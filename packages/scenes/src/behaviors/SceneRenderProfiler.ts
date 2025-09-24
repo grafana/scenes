@@ -1,6 +1,6 @@
-import { writeSceneLog } from '../utils/writeSceneLog';
+import { writePerformanceLog } from '../utils/writePerformanceLog';
 import { SceneQueryControllerLike } from './types';
-import { getScenePerformanceTracker, generateOperationId, DashboardPerformanceData } from './ScenePerformanceTracker';
+import { getScenePerformanceTracker, generateOperationId, PerformanceEventData } from './ScenePerformanceTracker';
 import { PanelProfilingManager, PanelProfilingConfig } from './PanelProfilingManager';
 import { SceneObject } from '../core/types';
 
@@ -17,10 +17,8 @@ export class SceneRenderProfiler {
   #profileStartTs: number | null = null;
   #trailAnimationFrameId: number | null = null;
 
-  // Dashboard metadata for observer notifications
-  private dashboardUID?: string;
-  private dashboardTitle?: string;
-  private panelCount?: number;
+  // Generic metadata for observer notifications
+  private metadata: Record<string, unknown> = {};
 
   // Operation ID for correlating dashboard interaction events
   #currentOperationId?: string;
@@ -33,7 +31,10 @@ export class SceneRenderProfiler {
   // Panel profiling composition
   private _panelProfilingManager?: PanelProfilingManager;
 
-  public constructor(private queryController?: SceneQueryControllerLike, panelProfilingConfig?: PanelProfilingConfig) {
+  // Query controller for monitoring query completion
+  private queryController?: SceneQueryControllerLike;
+
+  public constructor(panelProfilingConfig?: PanelProfilingConfig) {
     this.setupVisibilityChangeHandler();
 
     // Compose with panel profiling manager if provided
@@ -42,18 +43,16 @@ export class SceneRenderProfiler {
     }
   }
 
-  /** Set dashboard metadata from Grafana */
-  public setDashboardMetadata(uid: string, title: string, panelCount: number) {
-    this.dashboardUID = uid;
-    this.dashboardTitle = title;
-    this.panelCount = panelCount;
+  /** Set generic metadata for observer notifications */
+  public setMetadata(metadata: Record<string, unknown>) {
+    this.metadata = { ...metadata };
   }
 
   public setQueryController(queryController: SceneQueryControllerLike) {
     this.queryController = queryController;
   }
 
-  /** Attach panel profiling to a scene object (composition) */
+  /** Attach panel profiling to a scene object */
   public attachPanelProfiling(sceneObject: SceneObject) {
     this._panelProfilingManager?.attachToScene(sceneObject);
   }
@@ -66,7 +65,7 @@ export class SceneRenderProfiler {
     // Cancel profiling when tab becomes inactive
     this.#visibilityChangeHandler = () => {
       if (document.hidden && this.#profileInProgress) {
-        writeSceneLog('SceneRenderProfiler', 'Tab became inactive, cancelling profile');
+        writePerformanceLog('SceneRenderProfiler', 'Tab became inactive, cancelling profile');
         this.cancelProfile();
       }
     };
@@ -90,7 +89,7 @@ export class SceneRenderProfiler {
   public startProfile(name: string) {
     // Skip profiling if tab is inactive
     if (document.hidden) {
-      writeSceneLog('SceneRenderProfiler', 'Tab is inactive, skipping profile', name);
+      writePerformanceLog('SceneRenderProfiler', 'Tab is inactive, skipping profile', name);
       return;
     }
 
@@ -112,22 +111,18 @@ export class SceneRenderProfiler {
    * @param force - True if canceling existing profile, false if starting clean
    */
   private _startNewProfile(name: string, force = false) {
-    this.clearPanelMetricsRegistry();
-
     this.#profileInProgress = { origin: name, crumbs: [] };
     this.#profileStartTs = performance.now();
 
     const profileType = force ? 'forced' : 'clean';
-    writeSceneLog('SceneRenderProfiler', `Profile started [${profileType}]`, name);
+    writePerformanceLog('SceneRenderProfiler', `Profile started [${profileType}]`, name);
 
     this.#currentOperationId = generateOperationId('dashboard');
     getScenePerformanceTracker().notifyDashboardInteractionStart({
       operationId: this.#currentOperationId,
       interactionType: name,
-      dashboardUID: this.getDashboardUID(),
-      dashboardTitle: this.getDashboardTitle(),
-      panelCount: this.getPanelCount(),
       timestamp: this.#profileStartTs,
+      metadata: this.metadata,
     });
   }
 
@@ -143,7 +138,7 @@ export class SceneRenderProfiler {
 
     // Detect tab inactivity as backup to Page Visibility API
     if (frameLength > TAB_INACTIVE_THRESHOLD) {
-      writeSceneLog('SceneRenderProfiler', 'Tab was inactive, cancelling profile measurement');
+      writePerformanceLog('SceneRenderProfiler', 'Tab was inactive, cancelling profile measurement');
       this.cancelProfile();
       return;
     }
@@ -160,8 +155,8 @@ export class SceneRenderProfiler {
       const slowFrames = processRecordedSpans(this.#recordedTrailingSpans);
       const slowFramesTime = slowFrames.reduce((acc, val) => acc + val, 0);
 
-      writeSceneLog(
-        this.constructor.name,
+      writePerformanceLog(
+        'SceneRenderProfiler',
         'Profile tail recorded, slow frames duration:',
         slowFramesTime,
         slowFrames,
@@ -172,8 +167,8 @@ export class SceneRenderProfiler {
 
       const profileDuration = measurementStartTs - profileStartTs;
 
-      writeSceneLog(
-        this.constructor.name,
+      writePerformanceLog(
+        'SceneRenderProfiler',
         'Profile duration (core interaction):',
         profileDuration,
         'ms, trailing frames duration:',
@@ -200,15 +195,13 @@ export class SceneRenderProfiler {
       // Legacy onProfileComplete callback removed - analytics now handled by observer pattern
       if (this.#profileInProgress) {
         // Notify performance observers of dashboard interaction completion
-        const dashboardData: DashboardPerformanceData = {
+        const dashboardData: PerformanceEventData = {
           operationId: this.#currentOperationId || generateOperationId('dashboard-fallback'),
           interactionType: this.#profileInProgress.origin,
-          dashboardUID: this.getDashboardUID(),
-          dashboardTitle: this.getDashboardTitle(),
-          panelCount: this.getPanelCount(),
           timestamp: profileEndTs,
           duration: profileDuration + slowFramesTime,
           networkDuration: networkDuration,
+          metadata: this.metadata,
         };
 
         const tracker = getScenePerformanceTracker();
@@ -229,9 +222,9 @@ export class SceneRenderProfiler {
   };
 
   public tryCompletingProfile() {
-    writeSceneLog('SceneRenderProfiler', 'Trying to complete profile', this.#profileInProgress);
+    writePerformanceLog('SceneRenderProfiler', 'Trying to complete profile', this.#profileInProgress);
     if (this.queryController?.runningQueriesCount() === 0 && this.#profileInProgress) {
-      writeSceneLog('SceneRenderProfiler', 'All queries completed, stopping profile');
+      writePerformanceLog('SceneRenderProfiler', 'All queries completed, stopping profile');
       this.recordProfileTail(performance.now(), this.#profileStartTs!);
     }
   }
@@ -244,14 +237,14 @@ export class SceneRenderProfiler {
     if (this.#trailAnimationFrameId) {
       cancelAnimationFrame(this.#trailAnimationFrameId);
       this.#trailAnimationFrameId = null;
-      writeSceneLog('SceneRenderProfiler', 'Cancelled recording frames, new profile started');
+      writePerformanceLog('SceneRenderProfiler', 'Cancelled recording frames, new profile started');
     }
   }
 
   // cancel profile
   public cancelProfile() {
     if (this.#profileInProgress) {
-      writeSceneLog('SceneRenderProfiler', 'Cancelling profile', this.#profileInProgress);
+      writePerformanceLog('SceneRenderProfiler', 'Cancelling profile', this.#profileInProgress);
 
       // Profile cancelled - cleanup handled by observer pattern
 
@@ -266,31 +259,6 @@ export class SceneRenderProfiler {
     }
   }
 
-  /**
-   * S5.0: Register panel metrics (hybrid approach - totals + details)
-   * Panels call this method to update their metrics as operations complete
-   * Accumulates totals and maintains detailed operation history
-   */
-  public registerPanelMetrics(panelKey: string, partialMetrics: any): void {
-    // Legacy method - now handled by unified collector
-    writeSceneLog(
-      'SceneRenderProfiler',
-      `Legacy registerPanelMetrics called for panel ${panelKey} - now handled by unified collector`
-    );
-  }
-
-  // Legacy mergeHybridMetrics method removed - now handled by unified collector
-
-  // Panel metrics collection removed - now handled by observer pattern in analytics aggregator
-
-  /**
-   * Clear panel metrics - now handled by analytics aggregator
-   */
-  private clearPanelMetricsRegistry(): void {
-    // Clearing is now handled by the analytics aggregator via observer events
-    // No direct collector interaction needed
-  }
-
   public addCrumb(crumb: string) {
     if (this.#profileInProgress) {
       // writeSceneLog('SceneRenderProfiler', 'Adding crumb:', crumb);
@@ -298,27 +266,12 @@ export class SceneRenderProfiler {
       getScenePerformanceTracker().notifyDashboardInteractionMilestone({
         operationId: generateOperationId('dashboard-milestone'),
         interactionType: this.#profileInProgress.origin,
-        dashboardUID: this.getDashboardUID(),
-        dashboardTitle: this.getDashboardTitle(),
-        panelCount: this.getPanelCount(),
         timestamp: performance.now(),
         milestone: crumb,
+        metadata: this.metadata,
       });
       this.#profileInProgress.crumbs.push(crumb);
     }
-  }
-
-  // Helper methods for observer notifications
-  private getDashboardUID(): string {
-    return this.dashboardUID ?? 'unknown';
-  }
-
-  private getDashboardTitle(): string {
-    return this.dashboardTitle ?? 'Unknown Dashboard';
-  }
-
-  private getPanelCount(): number {
-    return this.panelCount ?? 0;
   }
 }
 

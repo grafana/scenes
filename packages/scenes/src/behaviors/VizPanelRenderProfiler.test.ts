@@ -511,7 +511,7 @@ describe('VizPanelRenderProfiler', () => {
       performanceNowSpy.mockReturnValue(endTime);
 
       // Call the callback to complete the render
-      endRenderCallback!(endTime, duration, 'component-to-effects');
+      endRenderCallback!(endTime, duration);
 
       // Should work without errors - the callback handles all the internal logic
       expect(performanceNowSpy).toHaveBeenCalled();

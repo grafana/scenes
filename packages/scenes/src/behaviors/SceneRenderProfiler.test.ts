@@ -92,7 +92,8 @@ describe('SceneRenderProfiler', () => {
 
   it('should initialize with query controller and return initial state', () => {
     const mockController = createMockQueryController();
-    const profiler = new SceneRenderProfiler(mockController);
+    const profiler = new SceneRenderProfiler();
+    profiler.setQueryController(mockController);
     expect(profiler.isTailRecording()).toBe(false);
     profiler.cleanup();
   });
@@ -202,7 +203,8 @@ describe('SceneRenderProfiler integration tests', () => {
     });
 
     mockQueryController = createMockQueryController();
-    profiler = new SceneRenderProfiler(mockQueryController);
+    profiler = new SceneRenderProfiler();
+    profiler.setQueryController(mockQueryController);
   });
 
   afterEach(() => {
@@ -558,7 +560,8 @@ describe('SceneRenderProfiler integration tests', () => {
   it('should handle profile cancellation via tab visibility', () => {
     const addEventListenerSpy = jest.spyOn(global.document, 'addEventListener');
     try {
-      const freshProfiler = new SceneRenderProfiler(mockQueryController);
+      const freshProfiler = new SceneRenderProfiler();
+      freshProfiler.setQueryController(mockQueryController);
       expect(addEventListenerSpy).toHaveBeenCalledWith('visibilitychange', expect.any(Function));
 
       freshProfiler.startProfile('interrupted-profile');
@@ -881,7 +884,8 @@ describe('S5.0: Panel Metrics Collection', () => {
       runningQueriesCount: () => 0,
     };
 
-    const profiler = new SceneRenderProfiler(mockQueryController as any);
+    const profiler = new SceneRenderProfiler();
+    profiler.setQueryController(mockQueryController as any);
 
     // Panel metrics collection now handled by observer pattern in analytics aggregator
 
@@ -913,7 +917,8 @@ describe('S5.0: Panel Metrics Collection', () => {
       state: {},
     };
 
-    const profiler = new SceneRenderProfiler(mockQueryController as any);
+    const profiler = new SceneRenderProfiler();
+    profiler.setQueryController(mockQueryController as any);
 
     // Panel metrics collection moved to observer pattern
     // Verify profiler initializes without errors

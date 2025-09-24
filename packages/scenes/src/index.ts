@@ -31,12 +31,14 @@ export * as behaviors from './behaviors';
 // PanelLifecyclePhase export removed - not used in observer pattern implementation
 export {
   type ScenePerformanceObserver,
-  type DashboardPerformanceData,
+  type BasePerformanceEvent,
+  type PerformanceEventData,
   type PanelPerformanceData,
   type QueryPerformanceData,
   getScenePerformanceTracker,
   generateOperationId,
 } from './behaviors/ScenePerformanceTracker';
+export { writePerformanceLog } from './utils/writePerformanceLog';
 export * as dataLayers from './querying/layers';
 
 export { SceneObjectBase, useSceneObjectState } from './core/SceneObjectBase';

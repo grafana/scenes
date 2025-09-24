@@ -5,7 +5,6 @@ import { SceneObject } from '../core/types';
 import { sceneGraph } from '../core/sceneGraph';
 
 export interface PanelProfilingConfig {
-  dashboardUIDs?: string[]; // Which dashboards to profile ('*' for all)
   watchStateKey?: string; // State property to watch for structural changes (e.g., 'body', 'children')
 }
 

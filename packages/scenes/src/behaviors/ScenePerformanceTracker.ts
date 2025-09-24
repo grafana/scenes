@@ -9,44 +9,37 @@ export function generateOperationId(prefix = 'op'): string {
   return `${prefix}-${Date.now()}-${++operationCounter}`;
 }
 
-export interface DashboardPerformanceData {
+/** Base interface for all performance events */
+export interface BasePerformanceEvent {
   operationId: string; // Unique identifier for correlating start/complete events
-  interactionType: string;
-  dashboardUID: string;
-  dashboardTitle: string;
-  panelCount: number;
   timestamp: number;
   duration?: number;
-  networkDuration?: number;
-  milestone?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>; // Additional contextual metadata
+  error?: string;
 }
 
-export interface PanelPerformanceData {
-  operationId: string; // Unique identifier for correlating start/complete events
+export interface PerformanceEventData extends BasePerformanceEvent {
+  interactionType: string;
+  networkDuration?: number;
+  milestone?: string;
+}
+
+export interface PanelPerformanceData extends BasePerformanceEvent {
   panelId: string;
   panelKey: string;
   pluginId: string;
   pluginVersion?: string;
   panelTitle?: string;
   operation: 'lifecycle' | 'query' | 'transform' | 'fieldConfig' | 'render';
-  timestamp: number;
-  duration?: number;
-  metadata?: Record<string, any>;
-  error?: string;
 }
 
-export interface QueryPerformanceData {
-  operationId: string; // Unique identifier for correlating start/complete events
+export interface QueryPerformanceData extends BasePerformanceEvent {
   panelId: string;
   queryId: string;
   queryType?: string;
   datasource?: string;
-  timestamp: number;
-  duration?: number;
   seriesCount?: number;
   dataPointsCount?: number;
-  error?: string;
 }
 
 /**
@@ -55,9 +48,9 @@ export interface QueryPerformanceData {
  */
 export interface ScenePerformanceObserver {
   // Dashboard-level events
-  onDashboardInteractionStart?(data: DashboardPerformanceData): void;
-  onDashboardInteractionMilestone?(data: DashboardPerformanceData): void;
-  onDashboardInteractionComplete?(data: DashboardPerformanceData): void;
+  onDashboardInteractionStart?(data: PerformanceEventData): void;
+  onDashboardInteractionMilestone?(data: PerformanceEventData): void;
+  onDashboardInteractionComplete?(data: PerformanceEventData): void;
 
   // Panel-level events
   onPanelLifecycleStart?(data: PanelPerformanceData): void;
@@ -125,15 +118,15 @@ export class ScenePerformanceTracker {
     });
   }
 
-  public notifyDashboardInteractionStart(data: DashboardPerformanceData): void {
+  public notifyDashboardInteractionStart(data: PerformanceEventData): void {
     this.notifyObservers('onDashboardInteractionStart', data, 'dashboard interaction start');
   }
 
-  public notifyDashboardInteractionMilestone(data: DashboardPerformanceData): void {
+  public notifyDashboardInteractionMilestone(data: PerformanceEventData): void {
     this.notifyObservers('onDashboardInteractionMilestone', data, 'dashboard interaction milestone');
   }
 
-  public notifyDashboardInteractionComplete(data: DashboardPerformanceData): void {
+  public notifyDashboardInteractionComplete(data: PerformanceEventData): void {
     this.notifyObservers('onDashboardInteractionComplete', data, 'dashboard interaction complete');
   }
 

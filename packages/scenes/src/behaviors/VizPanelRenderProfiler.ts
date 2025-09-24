@@ -6,9 +6,6 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneQueryControllerEntry } from './types';
 import { QueryProfilerLike } from '../querying/registerQueryWithController';
 import { getScenePerformanceTracker, generateOperationId } from './ScenePerformanceTracker';
-import { compareRenderMeasurements, ReactRenderData, SimpleRenderData } from '../utils/renderComparison';
-
-type ReactProfilerPhase = 'mount' | 'update' | 'nested-update';
 
 export interface VizPanelRenderProfilerState extends SceneObjectState {}
 
@@ -17,8 +14,6 @@ export interface VizPanelRenderProfilerState extends SceneObjectState {}
  *
  * Performance events are sent to ScenePerformanceTracker observers, which are consumed
  * by Grafana's ScenePerformanceService and DashboardAnalyticsAggregator.
- *
- * Debug: localStorage.setItem('scenes.debug.renderComparison', 'true')
  */
 export interface VizPanelRenderProfilerLike {
   getPanelMetrics(): any;
@@ -32,7 +27,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   private _isTracking = false;
   private _loadPluginStartTime?: number;
   private _applyFieldConfigStartTime?: number;
-  private _renderStartTime?: number;
   private _activeQueries = new Map<string, { entry: SceneQueryControllerEntry; startTime: number }>();
 
   public constructor(state: Partial<VizPanelRenderProfilerState> = {}) {
@@ -271,46 +265,13 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     return `VizPanelRenderProfiler [${panelTitle}]`;
   }
 
-  // Render comparison data
-  private _lastReactRender?: ReactRenderData;
-  private _lastSimpleRender?: SimpleRenderData;
-
-  /**
-   * Store React Profiler data for render comparison
-   */
-  public onReactRender(renderInfo: {
-    phase: ReactProfilerPhase;
-    actualDuration: number;
-    baseDuration: number;
-    startTime: number;
-    commitTime: number;
-    panelId: string;
-  }) {
-    if (!this._panelKey) {
-      return;
-    }
-
-    this._lastReactRender = {
-      phase: renderInfo.phase,
-      actualDuration: renderInfo.actualDuration,
-      baseDuration: renderInfo.baseDuration,
-      startTime: renderInfo.startTime,
-      commitTime: renderInfo.commitTime,
-      timestamp: renderInfo.startTime,
-    };
-  }
-
   /**
    * Track simple render timing with operation ID correlation
    */
-  public onSimpleRenderStart(
-    timestamp: number
-  ): ((endTimestamp: number, duration: number, type: string) => void) | undefined {
+  public onSimpleRenderStart(timestamp: number): ((endTimestamp: number, duration: number) => void) | undefined {
     if (!this._panelKey) {
       return undefined;
     }
-
-    this._renderStartTime = timestamp;
 
     const operationId = generateOperationId('render');
     getScenePerformanceTracker().notifyPanelLifecycleStart({
@@ -324,16 +285,11 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     });
 
     // Return end callback with captured operationId and panel context
-    return (endTimestamp: number, duration: number, type: string) => {
+    return (endTimestamp: number, duration: number) => {
       if (!this._panelKey) {
         return;
       }
 
-      this._lastSimpleRender = {
-        duration,
-        type,
-        timestamp: this._renderStartTime || performance.now(),
-      };
       getScenePerformanceTracker().notifyPanelLifecycleComplete({
         operationId,
         panelId: this._panelId || 'unknown',
@@ -343,28 +299,8 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         operation: 'render',
         duration,
         timestamp: endTimestamp,
-        metadata: { renderType: type },
       });
-
-      this._renderStartTime = undefined;
     };
-  }
-
-  /**
-   * Compare React Profiler vs Simple render measurements using utility
-   */
-  public compareRenderMeasurements(data: { reactProfiler: any }) {
-    if (!this._lastReactRender || !this._lastSimpleRender) {
-      return;
-    }
-
-    compareRenderMeasurements(this._lastReactRender, this._lastSimpleRender, {
-      panelKey: this._panelKey,
-      pluginId: this._pluginId,
-      loggerName: this._getPanelInfo(),
-    });
-    this._lastReactRender = undefined;
-    this._lastSimpleRender = undefined;
   }
 
   /** Handle plugin changes */

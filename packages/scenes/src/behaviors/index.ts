@@ -9,7 +9,8 @@ export {
   ScenePerformanceTracker,
   getScenePerformanceTracker,
   type ScenePerformanceObserver,
-  type DashboardPerformanceData,
+  type BasePerformanceEvent,
+  type PerformanceEventData,
   type PanelPerformanceData,
   type QueryPerformanceData,
 } from './ScenePerformanceTracker';
