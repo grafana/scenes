@@ -95,7 +95,20 @@ export function QueryVariable({
     });
 
     variable.refreshOptions();
-  }, [skipUrlSync, allValue, datasource, hide, includeAll, label, query, refresh, regex, sort, variable, variableAdded]);
+  }, [
+    skipUrlSync,
+    allValue,
+    datasource,
+    hide,
+    includeAll,
+    label,
+    query,
+    refresh,
+    regex,
+    sort,
+    variable,
+    variableAdded,
+  ]);
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {
