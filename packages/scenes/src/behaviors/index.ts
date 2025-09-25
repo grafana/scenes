@@ -15,6 +15,16 @@ export {
   type DashboardInteractionMilestoneData,
   type DashboardInteractionCompleteData,
   type PanelPerformanceData,
+  type PanelTransformPerformanceData,
+  type PanelQueryPerformanceData,
+  type PanelRenderPerformanceData,
+  type PanelPluginLoadPerformanceData,
+  type PanelFieldConfigPerformanceData,
+  type TransformMetadata,
+  type QueryMetadata,
+  type RenderMetadata,
+  type PluginLoadMetadata,
+  type FieldConfigMetadata,
   type QueryPerformanceData,
 } from './ScenePerformanceTracker';
 

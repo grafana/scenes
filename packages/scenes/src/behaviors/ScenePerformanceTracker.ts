@@ -14,17 +14,18 @@ export interface BasePerformanceEvent {
   operationId: string; // Unique identifier for correlating start/complete events
   timestamp: number;
   duration?: number;
-  metadata?: Record<string, unknown>; // Additional contextual metadata
   error?: string;
 }
 
 export interface DashboardInteractionStartData extends BasePerformanceEvent {
   interactionType: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface DashboardInteractionMilestoneData extends BasePerformanceEvent {
   interactionType: string;
   milestone: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface DashboardInteractionCompleteData extends BasePerformanceEvent {
@@ -32,24 +33,103 @@ export interface DashboardInteractionCompleteData extends BasePerformanceEvent {
   networkDuration?: number;
   longFramesCount: number;
   longFramesTotalTime: number;
+  metadata?: Record<string, unknown>;
 }
 
-export interface PanelPerformanceData extends BasePerformanceEvent {
+/** Metadata interface for transform operations */
+export interface TransformMetadata {
+  transformationId: string;
+  transformationCount: number;
+  seriesTransformationCount: number;
+  annotationTransformationCount: number;
+  success?: boolean;
+  error?: string;
+  // dataFrameCount: number;
+  // totalDataPoints: number;
+  // outputSeriesCount?: number;
+  // outputAnnotationsCount?: number;
+}
+
+/** Metadata interface for query operations */
+export interface QueryMetadata {
+  queryId: string;
+  queryType: string;
+}
+
+/** Metadata interface for render operations */
+export interface RenderMetadata {
+  // Empty for now - can be extended later if needed
+}
+
+/** Metadata interface for plugin load operations */
+export interface PluginLoadMetadata {
+  pluginId: string;
+  fromCache?: boolean;
+  pluginLoadTime?: number;
+}
+
+/** Metadata interface for field config operations */
+export interface FieldConfigMetadata {
+  // dataPointsCount?: number;
+  // seriesCount?: number;
+  // fieldCount?: number;
+  // overrideCount?: number;
+  // mappingCount?: number;
+}
+
+/** Base interface for panel performance events */
+interface BasePanelPerformanceData extends BasePerformanceEvent {
   panelId: string;
   panelKey: string;
   pluginId: string;
   pluginVersion?: string;
   panelTitle?: string;
-  operation: 'lifecycle' | 'query' | 'transform' | 'fieldConfig' | 'render';
 }
 
+/** Transform operation performance data */
+export interface PanelTransformPerformanceData extends BasePanelPerformanceData {
+  operation: 'transform';
+  metadata: TransformMetadata;
+}
+
+/** Query operation performance data */
+export interface PanelQueryPerformanceData extends BasePanelPerformanceData {
+  operation: 'query';
+  metadata: QueryMetadata;
+}
+
+/** Render operation performance data */
+export interface PanelRenderPerformanceData extends BasePanelPerformanceData {
+  operation: 'render';
+  metadata: RenderMetadata;
+}
+
+/** Plugin load operation performance data */
+export interface PanelPluginLoadPerformanceData extends BasePanelPerformanceData {
+  operation: 'plugin-load';
+  metadata: PluginLoadMetadata;
+}
+
+/** Field config operation performance data */
+export interface PanelFieldConfigPerformanceData extends BasePanelPerformanceData {
+  operation: 'fieldConfig';
+  metadata: FieldConfigMetadata;
+}
+
+/** Discriminated union of all panel performance data types */
+export type PanelPerformanceData =
+  | PanelTransformPerformanceData
+  | PanelQueryPerformanceData
+  | PanelRenderPerformanceData
+  | PanelPluginLoadPerformanceData
+  | PanelFieldConfigPerformanceData;
+
+/** Non-panel query performance data for dashboard queries (annotations, variables, etc.) */
 export interface QueryPerformanceData extends BasePerformanceEvent {
-  panelId: string;
   queryId: string;
-  queryType?: string;
-  datasource?: string;
-  seriesCount?: number;
-  dataPointsCount?: number;
+  queryType: string;
+  querySource: 'annotation' | 'variable' | 'plugin' | 'datasource' | 'unknown';
+  origin: string; // e.g., "AnnotationsDataLayer", "QueryVariable", "VizPanel/loadPlugin"
 }
 
 /**
@@ -63,10 +143,8 @@ export interface ScenePerformanceObserver {
   onDashboardInteractionComplete?(data: DashboardInteractionCompleteData): void;
 
   // Panel-level events
-  onPanelLifecycleStart?(data: PanelPerformanceData): void;
   onPanelOperationStart?(data: PanelPerformanceData): void;
   onPanelOperationComplete?(data: PanelPerformanceData): void;
-  onPanelLifecycleComplete?(data: PanelPerformanceData): void;
 
   // Query-level events
   onQueryStart?(data: QueryPerformanceData): void;
@@ -140,20 +218,12 @@ export class ScenePerformanceTracker {
     this.notifyObservers('onDashboardInteractionComplete', data, 'dashboard interaction complete');
   }
 
-  public notifyPanelLifecycleStart(data: PanelPerformanceData): void {
-    this.notifyObservers('onPanelLifecycleStart', data, 'panel lifecycle start');
-  }
-
   public notifyPanelOperationStart(data: PanelPerformanceData): void {
     this.notifyObservers('onPanelOperationStart', data, 'panel operation start');
   }
 
   public notifyPanelOperationComplete(data: PanelPerformanceData): void {
     this.notifyObservers('onPanelOperationComplete', data, 'panel operation complete');
-  }
-
-  public notifyPanelLifecycleComplete(data: PanelPerformanceData): void {
-    this.notifyObservers('onPanelLifecycleComplete', data, 'panel lifecycle complete');
   }
 
   public notifyQueryStart(data: QueryPerformanceData): void {

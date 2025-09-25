@@ -2,6 +2,7 @@ import { Observable, catchError, from, map } from 'rxjs';
 import { LoadingState } from '@grafana/schema';
 import { sceneGraph } from '../core/sceneGraph';
 import { QueryResultWithState, SceneQueryControllerEntry } from '../behaviors/types';
+import { getScenePerformanceTracker, generateOperationId } from '../behaviors/ScenePerformanceTracker';
 
 // Forward declaration to avoid circular imports
 export interface QueryProfilerLike {
@@ -10,6 +11,25 @@ export interface QueryProfilerLike {
     entry: SceneQueryControllerEntry,
     queryId: string
   ): ((endTimestamp: number, error?: any) => void) | null;
+}
+
+/**
+ * Determine the query source type for non-panel queries
+ */
+function getQuerySource(type: string): 'annotation' | 'variable' | 'plugin' | 'datasource' | 'unknown' {
+  if (type.includes('annotations') || type.includes('Annotations')) {
+    return 'annotation';
+  }
+  if (type.includes('Variable') || type.includes('variable')) {
+    return 'variable';
+  }
+  if (type.includes('loadPlugin') || type.includes('plugin')) {
+    return 'plugin';
+  }
+  if (type.includes('getDataSource') || type.includes('datasource')) {
+    return 'datasource';
+  }
+  return 'unknown';
 }
 
 /**
@@ -34,8 +54,42 @@ export function registerQueryWithController<T extends QueryResultWithState>(
       // Use existing request ID if available, otherwise generate one
       const queryId = entry.request?.requestId || `${entry.type}-${Date.now()}-${Math.random()}`;
 
-      // Notify panel profiler if provided - get end callback
-      const endQueryCallback = profiler?.onQueryStarted(performance.now(), entry, queryId);
+      // Track performance for panel vs non-panel queries
+      let endQueryCallback: ((endTimestamp: number, error?: any) => void) | null = null;
+      let operationId: string | null = null;
+      const startTimestamp = performance.now();
+
+      if (profiler) {
+        // ✅ Panel query: Use panel profiler (which now uses panel operations internally)
+        endQueryCallback = profiler.onQueryStarted(startTimestamp, entry, queryId);
+      } else {
+        // ✅ Non-panel query: Track directly using query performance data
+        operationId = generateOperationId('query');
+        getScenePerformanceTracker().notifyQueryStart({
+          operationId,
+          queryId,
+          queryType: entry.type,
+          querySource: getQuerySource(entry.type),
+          origin: entry.origin.constructor.name,
+          timestamp: startTimestamp,
+        });
+
+        // Create end callback for non-panel queries
+        endQueryCallback = (endTimestamp: number, error?: any) => {
+          if (operationId) {
+            getScenePerformanceTracker().notifyQueryComplete({
+              operationId,
+              queryId,
+              queryType: entry.type,
+              querySource: getQuerySource(entry.type),
+              origin: entry.origin.constructor.name,
+              timestamp: endTimestamp,
+              duration: endTimestamp - startTimestamp,
+              error: error ? error?.message || String(error) || 'Unknown error' : undefined,
+            });
+          }
+        };
+      }
 
       queryControler.queryStarted(entry);
       let markedAsCompleted = false;

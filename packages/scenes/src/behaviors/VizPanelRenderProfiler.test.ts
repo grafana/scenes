@@ -16,8 +16,6 @@ const mockScenePerformanceTracker = {
   notifyQueryComplete: jest.fn(),
   notifyPanelOperationStart: jest.fn(),
   notifyPanelOperationComplete: jest.fn(),
-  notifyPanelLifecycleStart: jest.fn(),
-  notifyPanelLifecycleComplete: jest.fn(),
 };
 
 jest.mock('./ScenePerformanceTracker', () => ({
@@ -124,7 +122,7 @@ describe('VizPanelRenderProfiler', () => {
         expect.objectContaining({
           operationId: expect.stringContaining('pluginLoad-'),
           panelId: '42', // Uses panel's legacy ID
-          operation: 'lifecycle',
+          operation: 'plugin-load',
         })
       );
 
@@ -142,7 +140,7 @@ describe('VizPanelRenderProfiler', () => {
         expect.objectContaining({
           operationId: expect.stringContaining('pluginLoad-'),
           panelId: '42', // Uses panel's legacy ID
-          operation: 'lifecycle',
+          operation: 'plugin-load',
         })
       );
     });
@@ -155,13 +153,13 @@ describe('VizPanelRenderProfiler', () => {
       expect(mockScenePerformanceTracker.notifyPanelOperationStart).toHaveBeenCalledWith(
         expect.objectContaining({
           operationId: expect.stringContaining('pluginLoad-'),
-          operation: 'lifecycle',
+          operation: 'plugin-load',
         })
       );
       expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledWith(
         expect.objectContaining({
           operationId: expect.stringContaining('pluginLoad-'),
-          operation: 'lifecycle',
+          operation: 'plugin-load',
           metadata: expect.objectContaining({
             fromCache: true,
           }),
@@ -188,12 +186,17 @@ describe('VizPanelRenderProfiler', () => {
 
       const endQueryCallback = profiler.onQueryStarted(performance.now(), mockEntry, queryId);
 
-      // Verify observer notification was called for query start
-      expect(mockScenePerformanceTracker.notifyQueryStart).toHaveBeenCalledWith(
+      // Verify observer notification was called for query start (now uses panel operations)
+      expect(mockScenePerformanceTracker.notifyPanelOperationStart).toHaveBeenCalledWith(
         expect.objectContaining({
           operationId: expect.stringContaining('query-'),
-          panelId: '42', // Uses panel's legacy ID
-          queryId: 'test-query-1',
+          operation: 'query',
+          panelId: '42',
+          panelKey: 'test-panel-1',
+          metadata: expect.objectContaining({
+            queryId: 'test-query-1',
+            queryType: 'test-query',
+          }),
         })
       );
 
@@ -203,12 +206,17 @@ describe('VizPanelRenderProfiler', () => {
       performanceNowSpy.mockReturnValue(1500); // 500ms later
       endQueryCallback!(performance.now()); // Success case - no error
 
-      // Verify observer notification was called for query completion
-      expect(mockScenePerformanceTracker.notifyQueryComplete).toHaveBeenCalledWith(
+      // Verify observer notification was called for query completion (now uses panel operations)
+      expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledWith(
         expect.objectContaining({
           operationId: expect.stringContaining('query-'),
-          panelId: '42', // Uses panel's legacy ID
-          queryId: 'test-query-1',
+          operation: 'query',
+          panelId: '42',
+          panelKey: 'test-panel-1',
+          metadata: expect.objectContaining({
+            queryId: 'test-query-1',
+            queryType: 'test-query',
+          }),
         })
       );
     });
@@ -342,24 +350,34 @@ describe('VizPanelRenderProfiler', () => {
 
       const endQueryCallback = profiler.onQueryStarted(performance.now(), mockEntry, 'test-query-123');
 
-      // Verify observer notification was called for query start
-      expect(mockScenePerformanceTracker.notifyQueryStart).toHaveBeenCalledWith(
+      // Verify observer notification was called for query start (now uses panel operations)
+      expect(mockScenePerformanceTracker.notifyPanelOperationStart).toHaveBeenCalledWith(
         expect.objectContaining({
           operationId: expect.stringContaining('query-'),
-          panelId: '42', // Uses panel's legacy ID
-          queryId: 'test-query-123',
+          operation: 'query',
+          panelId: '42',
+          panelKey: 'test-panel-1',
+          metadata: expect.objectContaining({
+            queryId: 'test-query-123',
+            queryType: 'SceneQueryRunner/runQueries',
+          }),
         })
       );
 
       performanceNowSpy.mockReturnValue(1100); // 100ms later
       endQueryCallback!(performance.now()); // Success case - no error
 
-      // Verify observer notification was called for query completion
-      expect(mockScenePerformanceTracker.notifyQueryComplete).toHaveBeenCalledWith(
+      // Verify observer notification was called for query completion (now uses panel operations)
+      expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledWith(
         expect.objectContaining({
           operationId: expect.stringContaining('query-'),
-          panelId: '42', // Uses panel's legacy ID
-          queryId: 'test-query-123',
+          operation: 'query',
+          panelId: '42',
+          panelKey: 'test-panel-1',
+          metadata: expect.objectContaining({
+            queryId: 'test-query-123',
+            queryType: 'SceneQueryRunner/runQueries',
+          }),
         })
       );
     });
@@ -402,33 +420,43 @@ describe('VizPanelRenderProfiler', () => {
 
       // Start first query
       const endQuery1Callback = profiler.onQueryStarted(performance.now(), mockEntry1, 'query-1');
-      expect(mockScenePerformanceTracker.notifyQueryStart).toHaveBeenCalledWith(
+      expect(mockScenePerformanceTracker.notifyPanelOperationStart).toHaveBeenCalledWith(
         expect.objectContaining({
           operationId: expect.stringContaining('query-'),
-          panelId: '42', // Uses panel's legacy ID
-          queryId: 'query-1',
+          operation: 'query',
+          panelId: '42',
+          panelKey: 'test-panel-1',
+          metadata: expect.objectContaining({
+            queryId: 'query-1',
+            queryType: 'SceneQueryRunner/runQueries',
+          }),
         })
       );
 
       // Start second query (should also notify observer)
       const endQuery2Callback = profiler.onQueryStarted(performance.now(), mockEntry2, 'query-2');
-      expect(mockScenePerformanceTracker.notifyQueryStart).toHaveBeenCalledTimes(2);
+      expect(mockScenePerformanceTracker.notifyPanelOperationStart).toHaveBeenCalledTimes(2);
 
       // Complete first query
       performanceNowSpy.mockReturnValue(1050);
       endQuery1Callback!(performance.now()); // Success case - no error
-      expect(mockScenePerformanceTracker.notifyQueryComplete).toHaveBeenCalledWith(
+      expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledWith(
         expect.objectContaining({
           operationId: expect.stringContaining('query-'),
-          panelId: '42', // Uses panel's legacy ID
-          queryId: 'query-1',
+          operation: 'query',
+          panelId: '42',
+          panelKey: 'test-panel-1',
+          metadata: expect.objectContaining({
+            queryId: 'query-1',
+            queryType: 'SceneQueryRunner/runQueries',
+          }),
         })
       );
 
       // Complete second query
       performanceNowSpy.mockReturnValue(1100);
       endQuery2Callback!(performance.now()); // Success case - no error
-      expect(mockScenePerformanceTracker.notifyQueryComplete).toHaveBeenCalledTimes(2);
+      expect(mockScenePerformanceTracker.notifyPanelOperationComplete).toHaveBeenCalledTimes(2);
     });
 
     it('should get query count from SceneQueryRunner', () => {

@@ -97,12 +97,20 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     this._activeQueries.set(queryId, { entry, startTime: timestamp });
 
     const operationId = generateOperationId('query');
-    getScenePerformanceTracker().notifyQueryStart({
+
+    // ✅ Use panel operation tracking for panel queries
+    getScenePerformanceTracker().notifyPanelOperationStart({
       operationId,
       panelId: this._panelId!,
-      queryId: queryId,
-      queryType: entry.type,
+      panelKey: this._panelKey,
+      pluginId: this._pluginId!,
+      pluginVersion: this._pluginVersion,
+      operation: 'query',
       timestamp,
+      metadata: {
+        queryId: queryId,
+        queryType: entry.type,
+      },
     });
 
     // Return end callback with captured operationId and query context
@@ -119,13 +127,20 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       const duration = endTimestamp - queryInfo.startTime;
       this._activeQueries.delete(queryId);
 
-      getScenePerformanceTracker().notifyQueryComplete({
+      // ✅ Use panel operation completion for panel queries
+      getScenePerformanceTracker().notifyPanelOperationComplete({
         operationId,
         panelId: this._panelId!,
-        queryId: queryId,
-        queryType: entry.type,
-        duration: duration,
+        panelKey: this._panelKey,
+        pluginId: this._pluginId!,
+        pluginVersion: this._pluginVersion,
+        operation: 'query',
         timestamp: endTimestamp,
+        duration: duration,
+        metadata: {
+          queryId: queryId,
+          queryType: entry.type,
+        },
         error: error ? error?.message || String(error) || 'Unknown error' : undefined,
       });
     };
@@ -169,9 +184,11 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       panelId: this._panelId!,
       panelKey: this._panelKey,
       pluginId: this._pluginId!,
-      operation: 'lifecycle',
+      operation: 'plugin-load',
       timestamp: this._loadPluginStartTime,
-      metadata: { pluginId },
+      metadata: {
+        pluginId,
+      },
     });
 
     // Return end callback with captured operationId and panel context
@@ -187,10 +204,14 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         panelId: this._panelId!,
         panelKey: this._panelKey,
         pluginId: this._pluginId!,
-        operation: 'lifecycle',
+        operation: 'plugin-load',
         timestamp: performance.now(),
         duration,
-        metadata: { fromCache, pluginId: this._pluginId },
+        metadata: {
+          pluginId: this._pluginId!,
+          fromCache,
+          pluginLoadTime: duration,
+        },
       });
 
       this._loadPluginStartTime = undefined;
@@ -218,6 +239,9 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       pluginId: this._pluginId!,
       operation: 'fieldConfig',
       timestamp: this._applyFieldConfigStartTime,
+      metadata: {
+        // Initial metadata - will be updated on completion with actual counts
+      },
     });
 
     // Return end callback with captured operationId and panel context
@@ -236,7 +260,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         operation: 'fieldConfig',
         timestamp: endTimestamp,
         duration,
-        metadata: { dataPointsCount, seriesCount },
+        metadata: {},
       });
 
       this._applyFieldConfigStartTime = undefined;
@@ -274,7 +298,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     }
 
     const operationId = generateOperationId('render');
-    getScenePerformanceTracker().notifyPanelLifecycleStart({
+    getScenePerformanceTracker().notifyPanelOperationStart({
       operationId,
       panelId: this._panelId || 'unknown',
       panelKey: this._panelKey,
@@ -282,6 +306,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       pluginVersion: this._pluginVersion,
       operation: 'render',
       timestamp,
+      metadata: {},
     });
 
     // Return end callback with captured operationId and panel context
@@ -290,7 +315,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         return;
       }
 
-      getScenePerformanceTracker().notifyPanelLifecycleComplete({
+      getScenePerformanceTracker().notifyPanelOperationComplete({
         operationId,
         panelId: this._panelId || 'unknown',
         panelKey: this._panelKey,
@@ -299,6 +324,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         operation: 'render',
         duration,
         timestamp: endTimestamp,
+        metadata: {},
       });
     };
   }
@@ -336,8 +362,8 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     transformationId: string,
     metrics: {
       transformationCount: number;
-      dataFrameCount: number;
-      totalDataPoints: number;
+      // dataFrameCount: number;
+      // totalDataPoints: number;
       seriesTransformationCount: number;
       annotationTransformationCount: number;
     }
@@ -347,8 +373,8 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         duration: number,
         success: boolean,
         result?: {
-          outputSeriesCount?: number;
-          outputAnnotationsCount?: number;
+          // outputSeriesCount?: number;
+          // outputAnnotationsCount?: number;
           error?: string;
         }
       ) => void)
@@ -368,8 +394,10 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       metadata: {
         transformationId,
         transformationCount: metrics.transformationCount,
-        dataFrameCount: metrics.dataFrameCount,
-        totalDataPoints: metrics.totalDataPoints,
+        // dataFrameCount: metrics.dataFrameCount,
+        // totalDataPoints: metrics.totalDataPoints,
+        seriesTransformationCount: metrics.seriesTransformationCount,
+        annotationTransformationCount: metrics.annotationTransformationCount,
       },
     });
 
@@ -398,10 +426,15 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         duration,
         metadata: {
           transformationId,
+          transformationCount: metrics.transformationCount,
+          seriesTransformationCount: metrics.seriesTransformationCount,
+          annotationTransformationCount: metrics.annotationTransformationCount,
           success,
-          error: result?.error || !success,
-          outputSeriesCount: result?.outputSeriesCount,
-          outputAnnotationsCount: result?.outputAnnotationsCount,
+          error: result?.error || (!success ? 'Transform operation failed' : undefined),
+          // dataFrameCount: metrics.dataFrameCount,
+          // totalDataPoints: metrics.totalDataPoints,
+          // outputSeriesCount: result?.outputSeriesCount,
+          // outputAnnotationsCount: result?.outputAnnotationsCount,
         },
       });
     };
