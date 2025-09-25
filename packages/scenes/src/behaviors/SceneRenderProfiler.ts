@@ -1,6 +1,10 @@
 import { writePerformanceLog } from '../utils/writePerformanceLog';
 import { SceneQueryControllerLike, LongFrameEvent, SceneComponentInteractionEvent } from './types';
-import { getScenePerformanceTracker, generateOperationId, PerformanceEventData } from './ScenePerformanceTracker';
+import {
+  getScenePerformanceTracker,
+  generateOperationId,
+  DashboardInteractionCompleteData,
+} from './ScenePerformanceTracker';
 import { PanelProfilingManager, PanelProfilingConfig } from './PanelProfilingManager';
 import { SceneObject } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
@@ -347,7 +351,7 @@ export class SceneRenderProfiler {
       // Legacy onProfileComplete callback removed - analytics now handled by observer pattern
       if (this.#profileInProgress) {
         // Notify performance observers of dashboard interaction completion
-        const dashboardData: PerformanceEventData = {
+        const dashboardData: DashboardInteractionCompleteData = {
           operationId: this.#currentOperationId || generateOperationId('dashboard-fallback'),
           interactionType: this.#profileInProgress.origin,
           timestamp: profileEndTs,

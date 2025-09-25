@@ -32,7 +32,9 @@ export * as behaviors from './behaviors';
 export {
   type ScenePerformanceObserver,
   type BasePerformanceEvent,
-  type PerformanceEventData,
+  type DashboardInteractionStartData,
+  type DashboardInteractionMilestoneData,
+  type DashboardInteractionCompleteData,
   type PanelPerformanceData,
   type QueryPerformanceData,
   getScenePerformanceTracker,

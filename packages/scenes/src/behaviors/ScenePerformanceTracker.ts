@@ -18,10 +18,18 @@ export interface BasePerformanceEvent {
   error?: string;
 }
 
-export interface PerformanceEventData extends BasePerformanceEvent {
+export interface DashboardInteractionStartData extends BasePerformanceEvent {
+  interactionType: string;
+}
+
+export interface DashboardInteractionMilestoneData extends BasePerformanceEvent {
+  interactionType: string;
+  milestone: string;
+}
+
+export interface DashboardInteractionCompleteData extends BasePerformanceEvent {
   interactionType: string;
   networkDuration?: number;
-  milestone?: string;
   longFramesCount: number;
   longFramesTotalTime: number;
 }
@@ -50,9 +58,9 @@ export interface QueryPerformanceData extends BasePerformanceEvent {
  */
 export interface ScenePerformanceObserver {
   // Dashboard-level events
-  onDashboardInteractionStart?(data: PerformanceEventData): void;
-  onDashboardInteractionMilestone?(data: PerformanceEventData): void;
-  onDashboardInteractionComplete?(data: PerformanceEventData): void;
+  onDashboardInteractionStart?(data: DashboardInteractionStartData): void;
+  onDashboardInteractionMilestone?(data: DashboardInteractionMilestoneData): void;
+  onDashboardInteractionComplete?(data: DashboardInteractionCompleteData): void;
 
   // Panel-level events
   onPanelLifecycleStart?(data: PanelPerformanceData): void;
@@ -120,15 +128,15 @@ export class ScenePerformanceTracker {
     });
   }
 
-  public notifyDashboardInteractionStart(data: PerformanceEventData): void {
+  public notifyDashboardInteractionStart(data: DashboardInteractionStartData): void {
     this.notifyObservers('onDashboardInteractionStart', data, 'dashboard interaction start');
   }
 
-  public notifyDashboardInteractionMilestone(data: PerformanceEventData): void {
+  public notifyDashboardInteractionMilestone(data: DashboardInteractionMilestoneData): void {
     this.notifyObservers('onDashboardInteractionMilestone', data, 'dashboard interaction milestone');
   }
 
-  public notifyDashboardInteractionComplete(data: PerformanceEventData): void {
+  public notifyDashboardInteractionComplete(data: DashboardInteractionCompleteData): void {
     this.notifyObservers('onDashboardInteractionComplete', data, 'dashboard interaction complete');
   }
 

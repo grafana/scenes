@@ -11,7 +11,9 @@ export {
   getScenePerformanceTracker,
   type ScenePerformanceObserver,
   type BasePerformanceEvent,
-  type PerformanceEventData,
+  type DashboardInteractionStartData,
+  type DashboardInteractionMilestoneData,
+  type DashboardInteractionCompleteData,
   type PanelPerformanceData,
   type QueryPerformanceData,
 } from './ScenePerformanceTracker';
