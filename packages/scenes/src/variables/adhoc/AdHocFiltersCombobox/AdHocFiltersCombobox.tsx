@@ -679,7 +679,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       {optionsLoading ? <Spinner className={styles.loadingIndicator} inline={true} /> : null}
       <FloatingPortal>
         {open && (
-          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss modal={false}>
+          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss modal={true}>
             <>
               <div
                 style={{
