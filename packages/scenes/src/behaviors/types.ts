@@ -18,22 +18,6 @@ export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' 
 // Long Frame Detection types (re-exported from LongFrameDetector)
 export type { LongFrameEvent, LongFrameCallback } from './LongFrameDetector';
 
-// TODO: Remove this interface
-export interface SceneInteractionProfileEvent {
-  origin: string;
-  duration: number;
-  networkDuration: number;
-  jsHeapSizeLimit: number;
-  usedJSHeapSize: number;
-  totalJSHeapSize: number;
-  crumbs: string[];
-  startTs: number;
-  endTs: number;
-  longFramesCount: number;
-  longFramesTotalTime: number;
-  // add more granular data,i.e. network times? slow frames?
-}
-
 export interface SceneComponentInteractionEvent {
   origin: string;
   duration: number;
