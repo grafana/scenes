@@ -7,7 +7,6 @@ import {
 } from './ScenePerformanceTracker';
 import { PanelProfilingManager, PanelProfilingConfig } from './PanelProfilingManager';
 import { SceneObject } from '../core/types';
-import { writeSceneLog } from '../utils/writeSceneLog';
 import { LongFrameDetector } from './LongFrameDetector';
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
@@ -105,7 +104,7 @@ export class SceneRenderProfiler {
     // Cancel profiling when tab becomes inactive
     this.#visibilityChangeHandler = () => {
       if (document.hidden && this.#profileInProgress) {
-        writePerformanceLog('SceneRenderProfiler', 'Tab became inactive, cancelling profile');
+        writePerformanceLog('SRP', 'Tab became inactive, cancelling profile');
         this.cancelProfile();
       }
     };
@@ -134,7 +133,7 @@ export class SceneRenderProfiler {
   public startProfile(name: string) {
     // Skip profiling if tab is inactive
     if (document.hidden) {
-      writePerformanceLog('SceneRenderProfiler', 'Tab is inactive, skipping profile', name);
+      writePerformanceLog('SRP', 'Tab is inactive, skipping profile', name);
       return;
     }
 
@@ -153,7 +152,7 @@ export class SceneRenderProfiler {
   public startInteraction(interaction: string) {
     // Cancel any existing interaction recording
     if (this.#interactionInProgress) {
-      writeSceneLog('profile', 'Cancelled interaction:', this.#interactionInProgress);
+      writePerformanceLog('SRP', 'Cancelled interaction:', this.#interactionInProgress);
       this.#interactionInProgress = null;
     }
 
@@ -162,7 +161,7 @@ export class SceneRenderProfiler {
       startTs: performance.now(),
     };
 
-    writeSceneLog('SceneRenderProfiler', 'Started interaction:', interaction);
+    writePerformanceLog('SRP', 'Started interaction:', interaction);
   }
 
   public stopInteraction() {
@@ -176,11 +175,10 @@ export class SceneRenderProfiler {
     // Capture network requests that occurred during the interaction
     const networkDuration = captureNetwork(this.#interactionInProgress.startTs, endTs);
 
-    writeSceneLog('SceneRenderProfiler', 'Completed interaction:');
-    writeSceneLog('', `  ├─ Total time: ${interactionDuration.toFixed(1)}ms`);
-    writeSceneLog('', `  ├─ Network duration: ${networkDuration.toFixed(1)}ms`);
-    writeSceneLog('', `  ├─ StartTs: ${this.#interactionInProgress.startTs.toFixed(1)}ms`);
-    writeSceneLog('', `  └─ EndTs: ${endTs.toFixed(1)}ms`);
+    writePerformanceLog(
+      'SRP',
+      `[INTERACTION] Complete: ${interactionDuration.toFixed(1)}ms total | ${networkDuration.toFixed(1)}ms network`
+    );
 
     if (this.#onInteractionComplete && this.#profileInProgress) {
       this.#onInteractionComplete({
@@ -219,7 +217,7 @@ export class SceneRenderProfiler {
    */
   private _startNewProfile(name: string, force = false) {
     const profileType = force ? 'forced' : 'clean';
-    writePerformanceLog('SceneRenderProfiler', `Profile started [${profileType}]`, name);
+    writePerformanceLog('SRP', `[PROFILER] ${name} started (${profileType})`);
     this.#profileInProgress = { origin: name, crumbs: [] };
     this.#profileStartTs = performance.now();
     this.#longFramesCount = 0;
@@ -262,7 +260,7 @@ export class SceneRenderProfiler {
 
     // Detect tab inactivity as backup to Page Visibility API
     if (frameLength > TAB_INACTIVE_THRESHOLD) {
-      writePerformanceLog('SceneRenderProfiler', 'Tab was inactive, cancelling profile measurement');
+      writePerformanceLog('SRP', 'Tab was inactive, cancelling profile measurement');
       this.cancelProfile();
       return;
     }
@@ -280,7 +278,7 @@ export class SceneRenderProfiler {
       const slowFramesTime = slowFrames.reduce((acc, val) => acc + val, 0);
 
       writePerformanceLog(
-        'SceneRenderProfiler',
+        'SRP',
         'Profile tail recorded, slow frames duration:',
         slowFramesTime,
         slowFrames,
@@ -291,45 +289,22 @@ export class SceneRenderProfiler {
 
       const profileDuration = measurementStartTs - profileStartTs;
 
-      writePerformanceLog(
-        'SceneRenderProfiler',
-        'Profile duration (core interaction):',
-        profileDuration,
-        'ms, trailing frames duration:',
-        slowFramesTime,
-        'ms, total measured time:',
-        profileDuration + slowFramesTime
-      );
+      const slowFrameSummary =
+        slowFrames.length > 0
+          ? `${slowFramesTime.toFixed(1)}ms slow frames[tail recording] (${slowFrames.length}) ⚠️`
+          : `${slowFramesTime.toFixed(1)}ms slow frames[tail recording] (${slowFrames.length})`;
 
-      if (slowFrames.length > 0) {
-        // const slowFramesMarkName = `Slow Frames Summary: ${slowFrames.length} frames (${slowFramesTime.toFixed(1)}ms)`;
-        // performance.mark(slowFramesMarkName);
-        // Create individual measurements for each slow frame during tail
-        // slowFrames.forEach((frameTime, index) => {
-        //   if (frameTime > 16) {
-        //     // Only measure frames slower than 16ms (60fps)
-        //     try {
-        //       const frameStartTime =
-        //         this.#profileStartTs! +
-        //         profileDuration +
-        //         (index > 0 ? slowFrames.slice(0, index).reduce((sum, t) => sum + t, 0) : 0);
-        //       const frameId = `slow-frame-${index}`;
-        //       const frameStartMark = `${frameId}-start`;
-        //       const frameEndMark = `${frameId}-end`;
-        //       // performance.mark(frameStartMark, { startTime: frameStartTime });
-        //       // performance.mark(frameEndMark, { startTime: frameStartTime + frameTime });
-        //       // performance.measure(`Slow Frame ${index + 1}: ${frameTime.toFixed(1)}ms`, frameStartMark, frameEndMark);
-        //     } catch {
-        //       // Fallback if startTime not supported
-        //       // performance.mark(`Slow Frame ${index + 1}: ${frameTime.toFixed(1)}ms`);
-        //     }
-        //   }
-        // });
-      }
-      writeSceneLog('SceneRenderProfiler', 'Profile completed');
-      writeSceneLog('', `  ├─ Total time: ${(profileDuration + slowFramesTime).toFixed(1)}ms`);
-      writeSceneLog('', `  ├─ Slow frames: ${slowFramesTime}ms (${slowFrames.length} frames)`);
-      writeSceneLog('', `  └─ Long frames: ${this.#longFramesTotalTime}ms (${this.#longFramesCount} frames)`);
+      const longFrameSummary =
+        this.#longFramesCount > 0
+          ? `${this.#longFramesTotalTime.toFixed(1)}ms long frames[LoAF] (${this.#longFramesCount}) ⚠️`
+          : `${this.#longFramesTotalTime.toFixed(1)}ms long frames[LoAF] (${this.#longFramesCount})`;
+
+      writePerformanceLog(
+        'SRP',
+        `[PROFILER] Complete: ${(profileDuration + slowFramesTime).toFixed(
+          1
+        )}ms total | ${slowFrameSummary} | ${longFrameSummary}`
+      );
       this.#longFrameDetector.stop();
 
       this.#trailAnimationFrameId = null;
@@ -343,7 +318,7 @@ export class SceneRenderProfiler {
         return;
       }
 
-      // Performance measures now handled by Grafana ScenePerformanceService
+      // Performance measures now handled by Grafana ScenePerformanceLogger
 
       const networkDuration = captureNetwork(profileStartTs, profileEndTs);
       // Panel metrics collection now handled by observer pattern in analytics aggregator
@@ -380,9 +355,9 @@ export class SceneRenderProfiler {
   };
 
   public tryCompletingProfile() {
-    writePerformanceLog('SceneRenderProfiler', 'Trying to complete profile', this.#profileInProgress);
+    writePerformanceLog('SRP', 'Trying to complete profile', this.#profileInProgress);
     if (this.queryController?.runningQueriesCount() === 0 && this.#profileInProgress) {
-      writePerformanceLog('SceneRenderProfiler', 'All queries completed, stopping profile');
+      writePerformanceLog('SRP', 'All queries completed, stopping profile');
       this.recordProfileTail(performance.now(), this.#profileStartTs!);
     }
   }
@@ -395,14 +370,14 @@ export class SceneRenderProfiler {
     if (this.#trailAnimationFrameId) {
       cancelAnimationFrame(this.#trailAnimationFrameId);
       this.#trailAnimationFrameId = null;
-      writePerformanceLog('SceneRenderProfiler', 'Cancelled recording frames, new profile started');
+      writePerformanceLog('SRP', 'Cancelled recording frames, new profile started');
     }
   }
 
   // cancel profile
   public cancelProfile() {
     if (this.#profileInProgress) {
-      writePerformanceLog('SceneRenderProfiler', 'Cancelling profile', this.#profileInProgress);
+      writePerformanceLog('SRP', 'Cancelling profile', this.#profileInProgress);
 
       // Profile cancelled - cleanup handled by observer pattern
 
@@ -414,7 +389,7 @@ export class SceneRenderProfiler {
       }
       // Stop long frame tracking
       this.#longFrameDetector.stop();
-      writeSceneLog('SceneRenderProfiler', 'Stopped long frame detection - profile cancelled');
+      writePerformanceLog('SRP', 'Stopped long frame detection - profile cancelled');
       // Reset recorded spans to ensure complete cleanup
       this.#recordedTrailingSpans = [];
       this.#longFramesCount = 0;
@@ -424,7 +399,7 @@ export class SceneRenderProfiler {
 
   public addCrumb(crumb: string) {
     if (this.#profileInProgress) {
-      // writeSceneLog('SceneRenderProfiler', 'Adding crumb:', crumb);
+      // writeSceneLog('SRP', 'Adding crumb:', crumb);
       // Notify performance observers of milestone
       getScenePerformanceTracker().notifyDashboardInteractionMilestone({
         operationId: generateOperationId('dashboard-milestone'),

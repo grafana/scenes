@@ -128,7 +128,6 @@ export type PanelPerformanceData =
 export interface QueryPerformanceData extends BasePerformanceEvent {
   queryId: string;
   queryType: string;
-  querySource: 'annotation' | 'variable' | 'plugin' | 'datasource' | 'unknown';
   origin: string; // e.g., "AnnotationsDataLayer", "QueryVariable", "VizPanel/loadPlugin"
 }
 

@@ -14,25 +14,6 @@ export interface QueryProfilerLike {
 }
 
 /**
- * Determine the query source type for non-panel queries
- */
-function getQuerySource(type: string): 'annotation' | 'variable' | 'plugin' | 'datasource' | 'unknown' {
-  if (type.includes('annotations') || type.includes('Annotations')) {
-    return 'annotation';
-  }
-  if (type.includes('Variable') || type.includes('variable')) {
-    return 'variable';
-  }
-  if (type.includes('loadPlugin') || type.includes('plugin')) {
-    return 'plugin';
-  }
-  if (type.includes('getDataSource') || type.includes('datasource')) {
-    return 'datasource';
-  }
-  return 'unknown';
-}
-
-/**
  * Will look for a scene object with a behavior that is a SceneQueryController and register the query with it.
  * Optionally accepts a panel profiler for direct query tracking callbacks.
  */
@@ -52,42 +33,36 @@ export function registerQueryWithController<T extends QueryResultWithState>(
       }
 
       // Use existing request ID if available, otherwise generate one
-      const queryId = entry.request?.requestId || `${entry.type}-${Date.now()}-${Math.random()}`;
+      const queryId = entry.request?.requestId || `${entry.type}-${Math.floor(performance.now()).toString(36)}`;
 
-      // Track performance for panel vs non-panel queries
-      let endQueryCallback: ((endTimestamp: number, error?: any) => void) | null = null;
-      let operationId: string | null = null;
       const startTimestamp = performance.now();
+      let endQueryCallback: ((endTimestamp: number, error?: any) => void) | null = null;
 
       if (profiler) {
-        // ✅ Panel query: Use panel profiler (which now uses panel operations internally)
+        // Panel query: Use panel profiler
         endQueryCallback = profiler.onQueryStarted(startTimestamp, entry, queryId);
       } else {
-        // ✅ Non-panel query: Track directly using query performance data
-        operationId = generateOperationId('query');
+        // Non-panel query: Track directly with simple approach
+        const operationId = generateOperationId('query');
         getScenePerformanceTracker().notifyQueryStart({
           operationId,
           queryId,
           queryType: entry.type,
-          querySource: getQuerySource(entry.type),
           origin: entry.origin.constructor.name,
           timestamp: startTimestamp,
         });
 
-        // Create end callback for non-panel queries
+        // Create simple end callback for non-panel queries
         endQueryCallback = (endTimestamp: number, error?: any) => {
-          if (operationId) {
-            getScenePerformanceTracker().notifyQueryComplete({
-              operationId,
-              queryId,
-              queryType: entry.type,
-              querySource: getQuerySource(entry.type),
-              origin: entry.origin.constructor.name,
-              timestamp: endTimestamp,
-              duration: endTimestamp - startTimestamp,
-              error: error ? error?.message || String(error) || 'Unknown error' : undefined,
-            });
-          }
+          getScenePerformanceTracker().notifyQueryComplete({
+            operationId,
+            queryId,
+            queryType: entry.type,
+            origin: entry.origin.constructor.name,
+            timestamp: endTimestamp,
+            duration: endTimestamp - startTimestamp,
+            error: error ? error?.message || String(error) || 'Unknown error' : undefined,
+          });
         };
       }
 

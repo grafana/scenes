@@ -13,7 +13,7 @@ export interface VizPanelRenderProfilerState extends SceneObjectState {}
  * Tracks performance metrics for individual VizPanel instances using observer pattern.
  *
  * Performance events are sent to ScenePerformanceTracker observers, which are consumed
- * by Grafana's ScenePerformanceService and DashboardAnalyticsAggregator.
+ * by Grafana's ScenePerformanceLogger and DashboardAnalyticsAggregator.
  */
 export interface VizPanelRenderProfilerLike {
   getPanelMetrics(): any;
