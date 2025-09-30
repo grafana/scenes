@@ -64,6 +64,7 @@ export { VariableValueControl } from './variables/components/VariableValueContro
 export { SceneVariableSet } from './variables/sets/SceneVariableSet';
 export { ConstantVariable } from './variables/variants/ConstantVariable';
 export { CustomVariable } from './variables/variants/CustomVariable';
+export { SwitchVariable } from './variables/variants/SwitchVariable';
 export { DataSourceVariable } from './variables/variants/DataSourceVariable';
 export { QueryVariable } from './variables/variants/query/QueryVariable';
 export { TestVariable } from './variables/variants/TestVariable';

@@ -7,6 +7,7 @@ import { IntervalVariable } from './IntervalVariable';
 import { TextBoxVariable } from './TextBoxVariable';
 import { QueryVariable } from './query/QueryVariable';
 import { GroupByVariable } from '../groupby/GroupByVariable';
+import { SwitchVariable } from './SwitchVariable';
 
 export function isAdHocVariable(variable: SceneVariable): variable is AdHocFiltersVariable {
   return variable.state.type === 'adhoc';
@@ -38,4 +39,8 @@ export function isTextBoxVariable(variable: SceneVariable): variable is TextBoxV
 
 export function isGroupByVariable(variable: SceneVariable): variable is GroupByVariable {
   return variable.state.type === 'groupby';
+}
+
+export function isSwitchVariable(variable: SceneVariable): variable is SwitchVariable {
+  return variable.state.type === 'switch';
 }
