@@ -34,7 +34,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
     return new Observable((subscriber) => {
-      buildOptionsProvider(this as unknown as MultiValueVariable)
+      buildOptionsProvider(this)
         .getOptions()
         .subscribe({
           next: (options) => {

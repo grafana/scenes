@@ -63,7 +63,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
     this.setState({ loading: true, error: null });
 
     return new Observable((subscriber) => {
-      buildOptionsProvider(this as unknown as MultiValueVariable)
+      buildOptionsProvider(this)
         .getOptions(args)
         .subscribe({
           next: (options) => {

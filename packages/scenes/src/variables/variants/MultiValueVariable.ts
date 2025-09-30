@@ -23,7 +23,6 @@ import { setBaseClassState } from '../../utils/utils';
 import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
 
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
-import { OptionsProviderSettings } from './CustomOptionsProviders';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -42,7 +41,6 @@ export interface MultiValueVariableState extends SceneVariableState {
   maxVisibleValues?: number;
   noValueOnClear?: boolean;
   isReadOnly?: boolean;
-  optionsProvider?: OptionsProviderSettings;
 }
 
 export interface VariableGetOptionsArgs {

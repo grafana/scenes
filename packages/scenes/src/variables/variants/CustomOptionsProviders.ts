@@ -12,14 +12,14 @@ import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSeriali
 import { createQueryVariableRunner } from './query/createQueryVariableRunner';
 import { toMetricFindValues } from './query/toMetricFindValues';
 import { metricNamesToVariableValues, sortVariableValues } from './query/utils';
-import { MultiValueVariable, VariableGetOptionsArgs } from './MultiValueVariable';
+import { VariableGetOptionsArgs } from './MultiValueVariable';
 
-type BuilderFunction = (variable: MultiValueVariable) => CustomOptionsProvider;
+type BuilderFunction = (variable: CustomVariable | QueryVariable) => CustomOptionsProvider;
 
 const OPTIONS_PROVIDERS_REGISTRY = new Map<string, BuilderFunction>([
   [
     'csv',
-    (variable: MultiValueVariable) => {
+    (variable: CustomVariable | QueryVariable) => {
       if (!(variable instanceof CustomVariable)) {
         throw new TypeError('Variable is not a CustomVariable');
       }
@@ -30,7 +30,7 @@ const OPTIONS_PROVIDERS_REGISTRY = new Map<string, BuilderFunction>([
   ],
   [
     'json',
-    (variable: MultiValueVariable) => {
+    (variable: CustomVariable | QueryVariable) => {
       if (!(variable instanceof CustomVariable)) {
         throw new TypeError('Variable is not a CustomVariable');
       }
@@ -43,7 +43,7 @@ const OPTIONS_PROVIDERS_REGISTRY = new Map<string, BuilderFunction>([
   ],
   [
     'query',
-    (variable: MultiValueVariable) => {
+    (variable: CustomVariable | QueryVariable) => {
       if (!(variable instanceof QueryVariable)) {
         throw new TypeError('Variable is not a QueryVariable');
       }
@@ -54,7 +54,7 @@ const OPTIONS_PROVIDERS_REGISTRY = new Map<string, BuilderFunction>([
   ],
 ]);
 
-export function buildOptionsProvider(variable: MultiValueVariable) {
+export function buildOptionsProvider(variable: CustomVariable | QueryVariable) {
   const { optionsProvider } = variable.state;
   if (!optionsProvider) {
     throw new Error('Variable is missing optionsProvider');
