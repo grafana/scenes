@@ -1,4 +1,3 @@
-
 let oneTrustInjected = false;
 let consentChangeCallbacks = [];
 
@@ -50,7 +49,6 @@ export function loadOneTrustScript(oneTrustConfig) {
   }
 }
 
-
 /**
  * Check if user has given consent (simplified version)
  * @returns {boolean}
@@ -60,15 +58,13 @@ export function hasConsent() {
   return hasLocalConsent;
 }
 
-
 /**
  * Remove a callback from the analytics consent change listeners
  * @param callback - Function to remove from the callbacks list
  */
 export function removeAnalyticsConsentChange(callback) {
-  consentChangeCallbacks = consentChangeCallbacks.filter(cb => cb !== callback);
+  consentChangeCallbacks = consentChangeCallbacks.filter((cb) => cb !== callback);
 }
-
 
 /**
  * Register callback for analytics consent changes
@@ -89,24 +85,22 @@ export function onAnalyticsConsentChange(callback, config = null) {
   }
 
   if (!window.OptanonWrapper) {
-    window.OptanonWrapper = function() {
+    window.OptanonWrapper = function () {
       const stack = new Error().stack;
       const isInitialLoad = stack.includes('windowLoadBanner');
-      
+
       if (isInitialLoad) {
         return;
       }
-      
-      const hasAnalyticsConsent = window.OnetrustActiveGroups && 
-        window.OnetrustActiveGroups.includes(analyticsGroupId);
+
+      const hasAnalyticsConsent = window.OnetrustActiveGroups && window.OnetrustActiveGroups.includes(analyticsGroupId);
 
       if (hasAnalyticsConsent) {
         localStorage.setItem('localStorageConsent', 'true');
       } else {
         localStorage.setItem('localStorageConsent', 'false');
       }
-      
-      
+
       consentChangeCallbacks.forEach((cb, index) => {
         try {
           cb('analytics', hasAnalyticsConsent);

@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { 
-  loadOneTrustScript, 
-  hasConsent, 
-  onAnalyticsConsentChange, 
-  removeAnalyticsConsentChange
+import {
+  loadOneTrustScript,
+  hasConsent,
+  onAnalyticsConsentChange,
+  removeAnalyticsConsentChange,
 } from '../utils/oneTrustLoader';
 
 /**
@@ -12,7 +12,7 @@ import {
  */
 export const useOneTrustIntegration = (oneTrustConfig) => {
   const [hasAnalyticsConsent, setHasAnalyticsConsent] = useState(false);
-  
+
   const isRegistered = useRef(false);
 
   const handleConsentChange = useCallback((groupId, hasConsentValue) => {
@@ -21,7 +21,6 @@ export const useOneTrustIntegration = (oneTrustConfig) => {
 
   useEffect(() => {
     if (!oneTrustConfig.enabled) {
-      
       const localConsent = localStorage.getItem('localStorageConsent') === 'true';
       setHasAnalyticsConsent(localConsent);
       return;
@@ -38,7 +37,7 @@ export const useOneTrustIntegration = (oneTrustConfig) => {
 
     onAnalyticsConsentChange(handleConsentChange, oneTrustConfig);
 
-      const loaded = loadOneTrustScript(oneTrustConfig);
+    const loaded = loadOneTrustScript(oneTrustConfig);
 
     return () => {
       removeAnalyticsConsentChange(handleConsentChange);
@@ -47,6 +46,6 @@ export const useOneTrustIntegration = (oneTrustConfig) => {
   }, [oneTrustConfig.enabled, handleConsentChange]);
 
   return {
-    hasAnalyticsConsent
+    hasAnalyticsConsent,
   };
 };
