@@ -546,6 +546,17 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     );
   };
 
+  private _onAnnotationVisibilityChange = (label: string, mode: SeriesVisibilityChangeMode) => {
+    if (!this._dataWithFieldConfig) {
+      return;
+    }
+
+    this.onFieldConfigChange(
+      seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, this._dataWithFieldConfig.annotations),
+      true
+    );
+  };
+
   private _onInstanceStateChange = (state: any) => {
     if (this._panelContext) {
       this._panelContext = {
@@ -609,6 +620,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       },
       onSeriesColorChange: this._onSeriesColorChange,
       onToggleSeriesVisibility: this._onSeriesVisibilityChange,
+      onAnnotationVisibilityChange: this._onAnnotationVisibilityChange,
       onToggleLegendSort: this._onToggleLegendSort,
       onInstanceStateChange: this._onInstanceStateChange,
     };
