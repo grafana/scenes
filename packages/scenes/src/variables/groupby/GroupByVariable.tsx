@@ -33,6 +33,8 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIndicatorContainer';
 import { GroupByValueContainer, GroupByContainerProps } from './GroupByValueContainer';
+import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTracker';
+import { GROUPBY_DIMENSIONS_INTERACTION } from '../../behaviors/SceneRenderProfiler';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -457,10 +459,15 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         setUncommittedValue(newValue);
       }}
       onOpenMenu={async () => {
+        const profiler = getInteractionTracker(model);
+        profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+
         setIsFetchingOptions(true);
         await lastValueFrom(model.validateAndUpdate());
         setIsFetchingOptions(false);
         setIsOptionsOpen(true);
+
+        profiler?.stopInteraction();
       }}
       onCloseMenu={() => {
         setIsOptionsOpen(false);
@@ -509,10 +516,15 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         }
       }}
       onOpenMenu={async () => {
+        const profiler = getInteractionTracker(model);
+        profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+
         setIsFetchingOptions(true);
         await lastValueFrom(model.validateAndUpdate());
         setIsFetchingOptions(false);
         setIsOptionsOpen(true);
+
+        profiler?.stopInteraction();
       }}
       onCloseMenu={() => {
         setIsOptionsOpen(false);

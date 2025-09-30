@@ -1,5 +1,13 @@
-import { calculateNetworkTime, processRecordedSpans, captureNetwork, SceneRenderProfiler } from './SceneRenderProfiler';
-import { SceneQueryControllerLike } from './types';
+import {
+  calculateNetworkTime,
+  processRecordedSpans,
+  captureNetwork,
+  SceneRenderProfiler,
+  ADHOC_KEYS_DROPDOWN_INTERACTION,
+  ADHOC_VALUES_DROPDOWN_INTERACTION,
+  GROUPBY_DIMENSIONS_INTERACTION,
+} from './SceneRenderProfiler';
+import { SceneQueryControllerLike, SceneComponentInteractionEvent } from './types';
 
 // Mock writeSceneLog to prevent console noise in tests
 jest.mock('../utils/writeSceneLog', () => ({
@@ -889,5 +897,146 @@ describe('captureNetwork', () => {
       const result = captureNetwork(300, 100); // Invalid: endTs < startTs
       expect(typeof result).toBe('number');
     }).not.toThrow();
+  });
+});
+
+describe('SceneRenderProfiler - Interaction Profiling', () => {
+  let profiler: SceneRenderProfiler;
+  let mockOnInteractionComplete: jest.Mock<void, [SceneComponentInteractionEvent]>;
+
+  beforeEach(() => {
+    mockOnInteractionComplete = jest.fn();
+
+    profiler = new SceneRenderProfiler();
+    profiler.setInteractionCompleteHandler(mockOnInteractionComplete);
+
+    // Mock performance.now to return predictable values
+    jest
+      .spyOn(performance, 'now')
+      .mockReturnValueOnce(1000) // startInteraction
+      .mockReturnValueOnce(1200); // stopInteraction
+
+    // Mock performance.mark and performance.measure
+    jest.spyOn(performance, 'mark').mockImplementation();
+    jest.spyOn(performance, 'measure').mockImplementation();
+  });
+
+  afterEach(() => {
+    profiler.cleanup();
+    jest.restoreAllMocks();
+  });
+
+  describe('basic functionality', () => {
+    it('should start and stop interaction correctly', () => {
+      profiler.startInteraction(ADHOC_KEYS_DROPDOWN_INTERACTION);
+
+      expect(profiler.getCurrentInteraction()).toBe(ADHOC_KEYS_DROPDOWN_INTERACTION);
+
+      profiler.stopInteraction();
+      expect(profiler.getCurrentInteraction()).toBe(null);
+    });
+
+    it('should handle profiler without query controller callback', () => {
+      const standaloneProfiler = new SceneRenderProfiler();
+
+      standaloneProfiler.startInteraction(ADHOC_KEYS_DROPDOWN_INTERACTION);
+      expect(standaloneProfiler.getCurrentInteraction()).toBe(ADHOC_KEYS_DROPDOWN_INTERACTION);
+
+      standaloneProfiler.stopInteraction();
+      expect(standaloneProfiler.getCurrentInteraction()).toBe(null);
+
+      standaloneProfiler.cleanup();
+    });
+
+    it('should cancel existing interaction when starting a new one', () => {
+      profiler.startInteraction(ADHOC_KEYS_DROPDOWN_INTERACTION);
+      expect(profiler.getCurrentInteraction()).toBe(ADHOC_KEYS_DROPDOWN_INTERACTION);
+
+      profiler.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+      expect(profiler.getCurrentInteraction()).toBe(GROUPBY_DIMENSIONS_INTERACTION);
+    });
+  });
+
+  describe('profile completion', () => {
+    it('should complete interaction profile correctly', () => {
+      // Start a profile first, then interaction
+      profiler.startProfile('test-profile');
+      profiler.startInteraction(ADHOC_KEYS_DROPDOWN_INTERACTION);
+      profiler.stopInteraction();
+
+      expect(mockOnInteractionComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          origin: ADHOC_KEYS_DROPDOWN_INTERACTION,
+          duration: expect.any(Number),
+          networkDuration: expect.any(Number),
+          startTs: expect.any(Number),
+          endTs: expect.any(Number),
+        })
+      );
+    });
+
+    it('should create performance marks and measures', () => {
+      // Start a profile first, then interaction
+      profiler.startProfile('test-profile');
+      profiler.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+      profiler.stopInteraction();
+
+      expect(performance.mark).toHaveBeenCalledWith(
+        'groupby_dimensions_start',
+        expect.objectContaining({ startTime: expect.any(Number) })
+      );
+      expect(performance.mark).toHaveBeenCalledWith(
+        'groupby_dimensions_end',
+        expect.objectContaining({ startTime: expect.any(Number) })
+      );
+      expect(performance.measure).toHaveBeenCalledWith(
+        'Interaction_groupby_dimensions',
+        'groupby_dimensions_start',
+        'groupby_dimensions_end'
+      );
+    });
+  });
+
+  describe('interaction types', () => {
+    it('should support all defined interaction types', () => {
+      expect(ADHOC_KEYS_DROPDOWN_INTERACTION).toBe('adhoc_keys_dropdown');
+      expect(ADHOC_VALUES_DROPDOWN_INTERACTION).toBe('adhoc_values_dropdown');
+      expect(GROUPBY_DIMENSIONS_INTERACTION).toBe('groupby_dimensions');
+    });
+
+    it('should measure different interaction types', () => {
+      const interactions = [
+        ADHOC_KEYS_DROPDOWN_INTERACTION,
+        ADHOC_VALUES_DROPDOWN_INTERACTION,
+        GROUPBY_DIMENSIONS_INTERACTION,
+      ];
+
+      const mockCallback = jest.fn();
+
+      const testProfiler = new SceneRenderProfiler();
+      testProfiler.setInteractionCompleteHandler(mockCallback);
+
+      interactions.forEach((interaction) => {
+        // Start a profile first, then interaction
+        testProfiler.startProfile('test-profile');
+        testProfiler.startInteraction(interaction);
+        testProfiler.stopInteraction();
+      });
+
+      expect(mockCallback).toHaveBeenCalledTimes(3);
+      const results = mockCallback.mock.calls.map((call) => call[0]);
+      interactions.forEach((interaction) => {
+        expect(results.some((result) => result.origin === interaction)).toBe(true);
+      });
+
+      testProfiler.cleanup();
+    });
+  });
+
+  describe('error handling', () => {
+    it('should handle stopInteraction when no interaction is active', () => {
+      expect(() => profiler.stopInteraction()).not.toThrow();
+      expect(mockOnInteractionComplete).not.toHaveBeenCalled();
+    });
   });
 });

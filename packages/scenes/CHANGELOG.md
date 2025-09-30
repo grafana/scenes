@@ -1,3 +1,51 @@
+# v6.39.1 (Thu Sep 25 2025)
+
+#### 🐛 Bug Fix
+
+- fix: infinite focus loop [#1168](https://github.com/grafana/scenes/pull/1168) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
+# v6.39.0 (Wed Sep 24 2025)
+
+#### 🚀 Enhancement
+
+- AdHocVariables: Show custom value first for `=~` and `!~` regex operators [#1250](https://github.com/grafana/scenes/pull/1250) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
+# v6.38.0 (Fri Sep 19 2025)
+
+#### 🚀 Enhancement
+
+- SceneInteractionProfiler: Measure atomic selectbox interactions on adhocs and groupBy [#1240](https://github.com/grafana/scenes/pull/1240) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.37.0 (Fri Sep 19 2025)
+
+#### 🚀 Enhancement
+
+- SceneTimePicker: Pass move duration tooltip [#1248](https://github.com/grafana/scenes/pull/1248) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.36.0 (Thu Sep 18 2025)
 
 #### 🚀 Enhancement

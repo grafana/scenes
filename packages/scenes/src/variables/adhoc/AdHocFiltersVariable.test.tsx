@@ -258,6 +258,141 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(options[5]).toHaveTextContent('Foo');
   });
 
+  it('Exact match operators show custom value last', async () => {
+    const { filtersVar, runRequest } = setup({
+      filters: [
+        { key: 'key1', operator: '=', value: 'val1' },
+        { key: 'key2', operator: '=', value: 'val2' },
+      ],
+      getTagKeysProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+      getTagValuesProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    // Select the first value starting with "a"
+    await userEvent.type(selects[2], 'a{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('alice');
+
+    await userEvent.click(selects[2]);
+    await userEvent.clear(selects[2]);
+    await userEvent.type(selects[2], 'a');
+    const customValueOption = screen.getByText('Use custom value: a');
+    const options = screen.getAllByRole('option');
+    expect(options[0].textContent).toEqual('Alice');
+    expect(options[1].textContent).toEqual('Anise');
+    expect(options[2].textContent).toEqual('Use custom value: a');
+
+    expect(customValueOption).toBeInTheDocument();
+
+    await userEvent.type(selects[2], '[ArrowDown][ArrowDown]{enter}');
+
+    // should run a new query because the value has changed
+    expect(runRequest.mock.calls.length).toBe(3);
+    expect(filtersVar.state.filters[0].value).toBe('a');
+  });
+
+  it('Regex operators show custom value first', async () => {
+    const { filtersVar, runRequest } = setup({
+      filters: [
+        { key: 'key1', operator: '=~', value: 'val1' },
+        { key: 'key2', operator: '=~', value: 'val2' },
+      ],
+      getTagKeysProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+      getTagValuesProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    // Select the first value starting with "a"
+    await userEvent.type(selects[2], 'a{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    console.log('filtersVar', filtersVar.state.filters);
+    expect(filtersVar.state.filters[0].value).toBe('a');
+
+    await userEvent.click(selects[2]);
+    await userEvent.clear(selects[2]);
+    await userEvent.type(selects[2], 'a');
+    const customValueOption = screen.getByText('Use custom value: a');
+    const options = screen.getAllByRole('option');
+    expect(options[1].textContent).toEqual('Alice');
+    expect(options[2].textContent).toEqual('Anise');
+    expect(options[0].textContent).toEqual('Use custom value: a');
+
+    expect(customValueOption).toBeInTheDocument();
+
+    await userEvent.type(selects[2], '{enter}');
+
+    // should not run a new query since the value is the same
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('a');
+  });
+
   it('can set the same custom value again', async () => {
     const { filtersVar, runRequest } = setup();
 

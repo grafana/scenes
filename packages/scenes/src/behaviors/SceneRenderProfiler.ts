@@ -1,5 +1,5 @@
 import { writeSceneLog, writeSceneLogStyled } from '../utils/writeSceneLog';
-import { SceneQueryControllerLike, LongFrameEvent } from './types';
+import { SceneQueryControllerLike, LongFrameEvent, SceneComponentInteractionEvent } from './types';
 import { LongFrameDetector } from './LongFrameDetector';
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
@@ -31,6 +31,11 @@ export class SceneRenderProfiler {
     crumbs: string[];
   } | null = null;
 
+  #interactionInProgress: {
+    interaction: string;
+    startTs: number;
+  } | null = null;
+
   #profileStartTs: number | null = null;
   #trailAnimationFrameId: number | null = null;
 
@@ -43,14 +48,20 @@ export class SceneRenderProfiler {
   #longFramesTotalTime = 0;
 
   #visibilityChangeHandler: (() => void) | null = null;
+  #onInteractionComplete: ((event: SceneComponentInteractionEvent) => void) | null = null;
 
   public constructor(private queryController?: SceneQueryControllerLike) {
     this.#longFrameDetector = new LongFrameDetector();
     this.setupVisibilityChangeHandler();
+    this.#interactionInProgress = null;
   }
 
   public setQueryController(queryController: SceneQueryControllerLike) {
     this.queryController = queryController;
+  }
+
+  public setInteractionCompleteHandler(handler?: (event: SceneComponentInteractionEvent) => void) {
+    this.#onInteractionComplete = handler ?? null;
   }
 
   private setupVisibilityChangeHandler() {
@@ -104,6 +115,68 @@ export class SceneRenderProfiler {
     } else {
       this._startNewProfile(name);
     }
+  }
+
+  public startInteraction(interaction: string) {
+    // Cancel any existing interaction recording
+    if (this.#interactionInProgress) {
+      writeSceneLog('profile', 'Cancelled interaction:', this.#interactionInProgress);
+      this.#interactionInProgress = null;
+    }
+
+    this.#interactionInProgress = {
+      interaction,
+      startTs: performance.now(),
+    };
+
+    writeSceneLog('SceneRenderProfiler', 'Started interaction:', interaction);
+  }
+
+  public stopInteraction() {
+    if (!this.#interactionInProgress) {
+      return;
+    }
+
+    const endTs = performance.now();
+    const interactionDuration = endTs - this.#interactionInProgress.startTs;
+
+    // Capture network requests that occurred during the interaction
+    const networkDuration = captureNetwork(this.#interactionInProgress.startTs, endTs);
+
+    writeSceneLog('SceneRenderProfiler', 'Completed interaction:');
+    writeSceneLog('', `  ├─ Total time: ${interactionDuration.toFixed(1)}ms`);
+    writeSceneLog('', `  ├─ Network duration: ${networkDuration.toFixed(1)}ms`);
+    writeSceneLog('', `  ├─ StartTs: ${this.#interactionInProgress.startTs.toFixed(1)}ms`);
+    writeSceneLog('', `  └─ EndTs: ${endTs.toFixed(1)}ms`);
+
+    if (this.#onInteractionComplete && this.#profileInProgress) {
+      this.#onInteractionComplete({
+        origin: this.#interactionInProgress.interaction,
+        duration: interactionDuration,
+        networkDuration,
+        startTs: this.#interactionInProgress.startTs,
+        endTs,
+      });
+    }
+
+    // Create performance marks for browser dev tools
+    performance.mark(`${this.#interactionInProgress.interaction}_start`, {
+      startTime: this.#interactionInProgress.startTs,
+    });
+    performance.mark(`${this.#interactionInProgress.interaction}_end`, {
+      startTime: endTs,
+    });
+    performance.measure(
+      `Interaction_${this.#interactionInProgress.interaction}`,
+      `${this.#interactionInProgress.interaction}_start`,
+      `${this.#interactionInProgress.interaction}_end`
+    );
+
+    this.#interactionInProgress = null;
+  }
+
+  public getCurrentInteraction(): string | null {
+    return this.#interactionInProgress?.interaction ?? null;
   }
 
   /**
@@ -314,6 +387,10 @@ export class SceneRenderProfiler {
   };
 
   public tryCompletingProfile() {
+    if (!this.#profileInProgress) {
+      return;
+    }
+
     writeSceneLog('SceneRenderProfiler', 'Trying to complete profile', this.#profileInProgress);
     if (this.queryController?.runningQueriesCount() === 0 && this.#profileInProgress) {
       writeSceneLog('SceneRenderProfiler', 'All queries completed, starting tail measurement');
@@ -437,3 +514,6 @@ export const FILTER_CHANGED_INTERACTION = 'filter_changed';
 export const FILTER_RESTORED_INTERACTION = 'filter_restored';
 export const VARIABLE_VALUE_CHANGED_INTERACTION = 'variable_value_changed';
 export const SCOPES_CHANGED_INTERACTION = 'scopes_changed';
+export const ADHOC_KEYS_DROPDOWN_INTERACTION = 'adhoc_keys_dropdown';
+export const ADHOC_VALUES_DROPDOWN_INTERACTION = 'adhoc_values_dropdown';
+export const GROUPBY_DIMENSIONS_INTERACTION = 'groupby_dimensions';

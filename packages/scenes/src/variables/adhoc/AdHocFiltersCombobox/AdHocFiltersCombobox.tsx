@@ -19,6 +19,7 @@ import {
   AdHocFiltersVariable,
   isFilterComplete,
   isMultiValueOperator,
+  OPERATORS,
 } from '../AdHocFiltersVariable';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -46,7 +47,13 @@ import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteracti
 import { MultiValuePill } from './MultiValuePill';
 import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
 import { getQueryController } from '../../../core/sceneGraph/getQueryController';
-import { FILTER_REMOVED_INTERACTION, FILTER_CHANGED_INTERACTION } from '../../../behaviors/SceneRenderProfiler';
+import {
+  FILTER_REMOVED_INTERACTION,
+  FILTER_CHANGED_INTERACTION,
+  ADHOC_KEYS_DROPDOWN_INTERACTION,
+  ADHOC_VALUES_DROPDOWN_INTERACTION,
+} from '../../../behaviors/SceneRenderProfiler';
+import { getInteractionTracker } from '../../../core/sceneGraph/getInteractionTracker';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -244,11 +251,19 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
   if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
-    filteredDropDownItems.push({
+    const operatorDefinition = OPERATORS.find((op) => filter?.operator === op.value);
+    const customOptionValue: SelectableValue<string> = {
       value: inputValue.trim(),
       label: inputValue.trim(),
       isCustom: true,
-    });
+    };
+
+    // If operator is regex, add custom value option first
+    if (operatorDefinition?.isRegex) {
+      filteredDropDownItems.unshift(customOptionValue);
+    } else {
+      filteredDropDownItems.push(customOptionValue);
+    }
   }
 
   // Get the optional onAddCustomValue method from the AdHocFiltersVariable if defined
@@ -259,9 +274,19 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleFetchOptions = useCallback(
     async (inputType: AdHocInputType) => {
+      const profiler = getInteractionTracker(model);
+
+      // Start profiling the user interaction
+      const interactionName = inputType === 'key' ? ADHOC_KEYS_DROPDOWN_INTERACTION : ADHOC_VALUES_DROPDOWN_INTERACTION;
+
+      if (inputType !== 'operator') {
+        profiler?.startInteraction(interactionName);
+      }
+
       setOptionsError(false);
       setOptionsLoading(true);
       setOptions([]);
+
       let options: Array<SelectableValue<string>> = [];
 
       try {
@@ -276,6 +301,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         // if input type changed before fetch completed then abort updating options
         //   this can cause race condition and return incorrect options when input type changed
         if (filterInputTypeRef.current !== inputType) {
+          profiler?.stopInteraction();
           return;
         }
         setOptions(options);
@@ -287,7 +313,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       } catch (e) {
         setOptionsError(true);
       }
+
       setOptionsLoading(false);
+
+      profiler?.stopInteraction();
     },
     [filter, model]
   );
@@ -650,7 +679,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       {optionsLoading ? <Spinner className={styles.loadingIndicator} inline={true} /> : null}
       <FloatingPortal>
         {open && (
-          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss modal={false}>
+          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss modal={true}>
             <>
               <div
                 style={{
