@@ -44,6 +44,26 @@ export class PanelProfilingManager {
   }
 
   /**
+   * Attach VizPanelRenderProfiler to a specific panel if it doesn't already have one
+   * @param panel - The VizPanel to attach profiling to
+   */
+  public attachProfilerToPanel(panel: VizPanel): void {
+    // Check if profiler already exists
+    const existingProfiler = panel.state.$behaviors?.find((b) => b instanceof VizPanelRenderProfiler);
+
+    if (existingProfiler) {
+      return; // Already has a profiler
+    }
+
+    // Add profiler behavior
+    const profiler = new VizPanelRenderProfiler();
+
+    panel.setState({
+      $behaviors: [...(panel.state.$behaviors || []), profiler],
+    });
+  }
+
+  /**
    * Attach VizPanelRenderProfiler to all VizPanels that don't already have one
    */
   private _attachProfilersToPanels() {
@@ -55,17 +75,7 @@ export class PanelProfilingManager {
     const panels = sceneGraph.findAllObjects(this._sceneObject, (obj) => obj instanceof VizPanel) as VizPanel[];
 
     panels.forEach((panel) => {
-      // Check if profiler already exists
-      const existingProfiler = panel.state.$behaviors?.find((b) => b instanceof VizPanelRenderProfiler);
-
-      if (!existingProfiler) {
-        // Add profiler behavior
-        const profiler = new VizPanelRenderProfiler();
-
-        panel.setState({
-          $behaviors: [...(panel.state.$behaviors || []), profiler],
-        });
-      }
+      this.attachProfilerToPanel(panel);
     });
   }
 

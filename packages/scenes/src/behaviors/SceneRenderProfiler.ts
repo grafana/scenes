@@ -7,6 +7,7 @@ import {
 } from './ScenePerformanceTracker';
 import { PanelProfilingManager, PanelProfilingConfig } from './PanelProfilingManager';
 import { SceneObject } from '../core/types';
+import { VizPanel } from '../components/VizPanel/VizPanel';
 import { LongFrameDetector } from './LongFrameDetector';
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
@@ -92,6 +93,13 @@ export class SceneRenderProfiler {
   public attachPanelProfiling(sceneObject: SceneObject) {
     this._panelProfilingManager?.attachToScene(sceneObject);
   }
+
+  /** Attach profiler to a specific panel */
+  public attachProfilerToPanel(panel: VizPanel): void {
+    writePerformanceLog('SRP', 'Attaching profiler to panel', panel.state.key);
+    this._panelProfilingManager?.attachProfilerToPanel(panel);
+  }
+
   public setInteractionCompleteHandler(handler?: (event: SceneComponentInteractionEvent) => void) {
     this.#onInteractionComplete = handler ?? null;
   }
