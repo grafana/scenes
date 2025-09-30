@@ -761,7 +761,6 @@ describe('MultiValueVariable', () => {
             { label: 'Test', value: 'test', properties: { id: 'test', display: 'Test', location: 'US' } },
             { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
           ],
-          optionsProvider: { type: 'json', valueProp: 'id', textProp: 'display' },
         });
 
         await lastValueFrom(variable.validateAndUpdate());
@@ -784,7 +783,6 @@ describe('MultiValueVariable', () => {
             { label: 'Stag', value: 'stag', properties: { id: 'stag', display: 'Stag', location: 'SG' } },
             { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
           ],
-          optionsProvider: { type: 'json', valueProp: 'id', textProp: 'display' },
           isMulti: true,
         });
 
@@ -807,7 +805,6 @@ describe('MultiValueVariable', () => {
               { label: 'Stag', value: 'stag', properties: { id: 'stag', display: 'Stag', location: 'SG' } },
               { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
             ],
-            optionsProvider: { type: 'json', valueProp: 'id', textProp: 'display' },
             isMulti: true,
             includeAll: true,
           });
