@@ -35,7 +35,22 @@ const config = {
       }),
     ],
   ],
-
+  customFields: {
+    rudderStackTracking: {
+      url: "https://rs.grafana.com",
+      writeKey: "1sBAgwTlZ2K0zTzkM8YTWorZI00",
+      configUrl: "https://rsc.grafana.com",
+      sdkUrl: "https://rsdk.grafana.com",
+    },
+    canSpamUrl: "https://grafana.com/canspam",
+    gcomUrl: "https://grafana.com/api",
+    oneTrust: {
+      enabled: true,
+      scriptSrc: 'https://cdn.cookielaw.org/scripttemplates/otSDKStub.js',
+      domainId: '019644f3-5dcf-741c-8b6d-42fb8feae57f-test',
+      analyticsGroupId: 'C0002', // OneTrust group ID for analytics consent
+    },
+  },
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
