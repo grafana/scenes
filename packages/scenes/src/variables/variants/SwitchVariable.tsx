@@ -1,6 +1,7 @@
 import React from 'react';
 import { Observable, of } from 'rxjs';
-import { Switch } from '@grafana/ui';
+import { Switch, useTheme2 } from '@grafana/ui';
+import { css } from '@emotion/css';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import {
@@ -65,14 +66,27 @@ export class SwitchVariable extends SceneObjectBase<SwitchVariableState> impleme
 
 function SwitchVariableRenderer({ model }: SceneComponentProps<SwitchVariable>) {
   const state = model.useState();
+  const theme = useTheme2();
+
+  const containerStyle = css({
+    display: 'flex',
+    alignItems: 'center',
+    padding: theme.spacing(0, 1),
+    height: theme.spacing(theme.components.height.md),
+    borderRadius: theme.shape.radius.default,
+    border: `1px solid ${theme.components.input.borderColor}`,
+    background: theme.colors.background.primary,
+  });
 
   return (
-    <Switch
-      disabled={false}
-      value={state.value}
-      onChange={(event) => {
-        model.setValue(event!.currentTarget.checked);
-      }}
-    />
+    <div className={containerStyle}>
+      <Switch
+        disabled={false}
+        value={state.value}
+        onChange={(event) => {
+          model.setValue(event!.currentTarget.checked);
+        }}
+      />
+    </div>
   );
 }
