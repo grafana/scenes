@@ -176,16 +176,68 @@ describe('SwitchVariable', () => {
   });
 
   describe('URL syncing', () => {
-    it('Should not have URL syncing capabilities by default', () => {
+    it('Should have URL syncing capabilities', () => {
       const variable = new SwitchVariable({
         name: 'testSwitch',
         value: true,
       });
 
-      // SwitchVariable doesn't implement URL syncing like TextBoxVariable does
-      expect(variable.urlSync).toBeUndefined();
-      expect((variable as any).getUrlState).toBeUndefined();
-      expect((variable as any).updateFromUrl).toBeUndefined();
+      // SwitchVariable now implements URL syncing
+      expect(variable.urlSync).toBeDefined();
+      expect(variable.getUrlState).toBeDefined();
+      expect(variable.updateFromUrl).toBeDefined();
+      expect(variable.getKeys).toBeDefined();
+    });
+
+    it('Should return correct URL state', () => {
+      const variable = new SwitchVariable({
+        name: 'testSwitch',
+        value: true,
+      });
+
+      const urlState = variable.getUrlState();
+      expect(urlState).toEqual({ 'var-testSwitch': 'true' });
+
+      variable.setValue(false);
+      const urlStateFalse = variable.getUrlState();
+      expect(urlStateFalse).toEqual({ 'var-testSwitch': 'false' });
+    });
+
+    it('Should update from URL state', () => {
+      const variable = new SwitchVariable({
+        name: 'testSwitch',
+        value: false,
+      });
+
+      variable.updateFromUrl({ 'var-testSwitch': 'true' });
+      expect(variable.getValue()).toBe(true);
+
+      variable.updateFromUrl({ 'var-testSwitch': 'false' });
+      expect(variable.getValue()).toBe(false);
+
+      // Any string other than 'true' should be false
+      variable.updateFromUrl({ 'var-testSwitch': 'anything' });
+      expect(variable.getValue()).toBe(false);
+    });
+
+    it('Should return correct keys for URL sync', () => {
+      const variable = new SwitchVariable({
+        name: 'testSwitch',
+        value: true,
+      });
+
+      expect(variable.getKeys()).toEqual(['var-testSwitch']);
+    });
+
+    it('Should skip URL sync when skipUrlSync is true', () => {
+      const variable = new SwitchVariable({
+        name: 'testSwitch',
+        value: true,
+        skipUrlSync: true,
+      });
+
+      expect(variable.getKeys()).toEqual([]);
+      expect(variable.getUrlState()).toEqual({});
     });
   });
 

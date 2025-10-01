@@ -3,6 +3,8 @@ import { Observable, of } from 'rxjs';
 import { Switch, useTheme2 } from '@grafana/ui';
 import { css } from '@emotion/css';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
+import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import {
   SceneVariable,
@@ -11,7 +13,6 @@ import {
   ValidateAndUpdateResult,
   VariableValue,
 } from '../types';
-import { SceneComponentProps } from '../../core/types';
 
 export interface SwitchVariableState extends SceneVariableState {
   value: boolean;
@@ -33,6 +34,8 @@ export class SwitchVariable extends SceneObjectBase<SwitchVariableState> impleme
       name: '',
       ...initialState,
     });
+
+    this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: () => this.getKeys() });
   }
 
   /**
@@ -61,6 +64,37 @@ export class SwitchVariable extends SceneObjectBase<SwitchVariableState> impleme
 
   public getValue(): VariableValue {
     return Boolean(this.state.value);
+  }
+
+  private getKey(): string {
+    return `var-${this.state.name}`;
+  }
+
+  public getKeys(): string[] {
+    if (this.state.skipUrlSync) {
+      return [];
+    }
+
+    return [this.getKey()];
+  }
+
+  public getUrlState(): SceneObjectUrlValues {
+    if (this.state.skipUrlSync) {
+      return {};
+    }
+
+    return { [this.getKey()]: String(this.state.value) };
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues): void {
+    const val = values[this.getKey()];
+
+    if (typeof val === 'string') {
+      // Convert string values to boolean
+      // 'true' -> true, anything else -> false
+      const boolValue = val === 'true';
+      this.setValue(boolValue);
+    }
   }
 }
 
