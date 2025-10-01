@@ -22,6 +22,7 @@ import {
   isConstantVariable,
   isIntervalVariable,
   isGroupByVariable,
+  isSwitchVariable,
 } from './variables/variants/guards';
 
 export * from './core/types';
@@ -165,6 +166,7 @@ export const sceneUtils = {
   isQueryVariable,
   isTextBoxVariable,
   isGroupByVariable,
+  isSwitchVariable,
   isRepeatCloneOrChildOf,
   buildPathIdFor,
 };
