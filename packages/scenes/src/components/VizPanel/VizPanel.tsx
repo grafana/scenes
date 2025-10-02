@@ -17,6 +17,7 @@ import {
   PluginType,
   renderMarkdown,
   PanelPluginDataSupport,
+  DataTopic,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -503,6 +504,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         replaceVariables: this.interpolate,
         theme: config.theme2,
         timeZone: rawData.request?.timezone,
+        dataTopic: DataTopic.Annotations
       });
     }
 
