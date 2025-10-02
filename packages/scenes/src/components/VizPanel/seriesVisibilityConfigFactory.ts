@@ -130,6 +130,7 @@ function createOverride(
         },
       },
     ],
+    // @ts-ignore
     dataTopic: dataTopic,
   };
 }
