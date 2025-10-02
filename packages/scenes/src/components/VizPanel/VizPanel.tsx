@@ -504,6 +504,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         replaceVariables: this.interpolate,
         theme: config.theme2,
         timeZone: rawData.request?.timezone,
+        // @ts-ignore 
         dataTopic: DataTopic.Annotations,
       });
     }
