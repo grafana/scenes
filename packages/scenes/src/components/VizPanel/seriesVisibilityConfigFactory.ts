@@ -2,6 +2,7 @@ import {
   ByNamesMatcherMode,
   ConfigOverrideRule,
   DataFrame,
+  DataTopic,
   DynamicConfigValue,
   FieldConfigSource,
   FieldMatcherID,
@@ -20,7 +21,8 @@ export function seriesVisibilityConfigFactory(
   label: string,
   mode: SeriesVisibilityChangeMode,
   fieldConfig: FieldConfigSource,
-  data: DataFrame[]
+  data: DataFrame[],
+  dataTopic?: DataTopic
 ): FieldConfigSource {
   const { overrides } = fieldConfig;
 
@@ -29,7 +31,12 @@ export function seriesVisibilityConfigFactory(
 
   if (currentIndex < 0) {
     if (mode === SeriesVisibilityChangeMode.ToggleSelection) {
-      const override = createOverride([displayName, ...getNamesOfHiddenFields(overrides, data)]);
+      const override = createOverride(
+        [displayName, ...getNamesOfHiddenFields(overrides, data)],
+        undefined,
+        undefined,
+        dataTopic
+      );
 
       return {
         ...fieldConfig,
@@ -38,7 +45,7 @@ export function seriesVisibilityConfigFactory(
     }
 
     const displayNames = getDisplayNames(data, displayName);
-    const override = createOverride(displayNames);
+    const override = createOverride(displayNames, undefined, undefined, dataTopic);
 
     return {
       ...fieldConfig,
@@ -64,7 +71,7 @@ export function seriesVisibilityConfigFactory(
       };
     }
 
-    const override = createOverride([displayName, ...nameOfHiddenFields]);
+    const override = createOverride([displayName, ...nameOfHiddenFields], undefined, undefined, dataTopic);
 
     return {
       ...fieldConfig,
@@ -72,7 +79,7 @@ export function seriesVisibilityConfigFactory(
     };
   }
 
-  const override = createExtendedOverride(current, displayName);
+  const override = createExtendedOverride(current, displayName, undefined, dataTopic);
 
   if (allFieldsAreExcluded(override, data)) {
     return {
@@ -90,7 +97,8 @@ export function seriesVisibilityConfigFactory(
 function createOverride(
   names: string[],
   mode = ByNamesMatcherMode.exclude,
-  property?: DynamicConfigValue
+  property?: DynamicConfigValue,
+  dataTopic?: DataTopic
 ): SystemConfigOverrideRule {
   property = property ?? {
     id: 'custom.hideFrom',
@@ -122,13 +130,15 @@ function createOverride(
         },
       },
     ],
+    dataTopic: dataTopic,
   };
 }
 
 const createExtendedOverride = (
   current: SystemConfigOverrideRule,
   displayName: string,
-  mode = ByNamesMatcherMode.exclude
+  mode = ByNamesMatcherMode.exclude,
+  dataTopic?: DataTopic
 ): SystemConfigOverrideRule => {
   const property = current.properties.find((p) => p.id === 'custom.hideFrom');
   const existing = getExistingDisplayNames(current);
@@ -140,7 +150,7 @@ const createExtendedOverride = (
     existing.splice(index, 1);
   }
 
-  return createOverride(existing, mode, property);
+  return createOverride(existing, mode, property, dataTopic);
 };
 
 const getExistingDisplayNames = (rule: SystemConfigOverrideRule): string[] => {

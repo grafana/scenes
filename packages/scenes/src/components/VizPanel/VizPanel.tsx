@@ -555,7 +555,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
 
     this.onFieldConfigChange(
-      seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, this._dataWithFieldConfig.annotations ?? []),
+      seriesVisibilityConfigFactory(
+        label,
+        mode,
+        this.state.fieldConfig,
+        this._dataWithFieldConfig.annotations ?? [],
+        DataTopic.Annotations
+      ),
       true
     );
   };
