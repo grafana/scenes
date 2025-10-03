@@ -22,7 +22,8 @@ export function seriesVisibilityConfigFactory(
   mode: SeriesVisibilityChangeMode,
   fieldConfig: FieldConfigSource,
   data: DataFrame[],
-  dataTopic?: DataTopic
+  dataTopic?: DataTopic,
+  frame?: string
 ): FieldConfigSource {
   const { overrides } = fieldConfig;
 
@@ -35,7 +36,8 @@ export function seriesVisibilityConfigFactory(
         [displayName, ...getNamesOfHiddenFields(overrides, data)],
         undefined,
         undefined,
-        dataTopic
+        dataTopic,
+        frame
       );
 
       return {
@@ -45,7 +47,7 @@ export function seriesVisibilityConfigFactory(
     }
 
     const displayNames = getDisplayNames(data, displayName);
-    const override = createOverride(displayNames, undefined, undefined, dataTopic);
+    const override = createOverride(displayNames, undefined, undefined, dataTopic, frame);
 
     return {
       ...fieldConfig,
@@ -71,7 +73,7 @@ export function seriesVisibilityConfigFactory(
       };
     }
 
-    const override = createOverride([displayName, ...nameOfHiddenFields], undefined, undefined, dataTopic);
+    const override = createOverride([displayName, ...nameOfHiddenFields], undefined, undefined, dataTopic, frame);
 
     return {
       ...fieldConfig,
@@ -98,7 +100,8 @@ function createOverride(
   names: string[],
   mode = ByNamesMatcherMode.exclude,
   property?: DynamicConfigValue,
-  dataTopic?: DataTopic
+  dataTopic?: DataTopic,
+  frame?: string
 ): SystemConfigOverrideRule {
   property = property ?? {
     id: 'custom.hideFrom',
@@ -132,6 +135,8 @@ function createOverride(
     ],
     // @ts-ignore
     dataTopic: dataTopic,
+    // @ts-ignore
+    frame: frame,
   };
 }
 
@@ -139,7 +144,8 @@ const createExtendedOverride = (
   current: SystemConfigOverrideRule,
   displayName: string,
   mode = ByNamesMatcherMode.exclude,
-  dataTopic?: DataTopic
+  dataTopic?: DataTopic,
+  frame?: string
 ): SystemConfigOverrideRule => {
   const property = current.properties.find((p) => p.id === 'custom.hideFrom');
   const existing = getExistingDisplayNames(current);
@@ -151,7 +157,7 @@ const createExtendedOverride = (
     existing.splice(index, 1);
   }
 
-  return createOverride(existing, mode, property, dataTopic);
+  return createOverride(existing, mode, property, dataTopic, frame);
 };
 
 const getExistingDisplayNames = (rule: SystemConfigOverrideRule): string[] => {

@@ -549,7 +549,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     );
   };
 
-  private _onAnnotationVisibilityChange = (label: string, mode: SeriesVisibilityChangeMode) => {
+  private _onAnnotationVisibilityChange = (label: string, frame: string, mode: SeriesVisibilityChangeMode) => {
     if (!this._dataWithFieldConfig) {
       return;
     }
@@ -560,7 +560,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         mode,
         this.state.fieldConfig,
         this._dataWithFieldConfig.annotations ?? [],
-        DataTopic.Annotations
+        DataTopic.Annotations,
+        frame
       ),
       true
     );
