@@ -15,7 +15,9 @@ import {
 } from '../types';
 
 export interface SwitchVariableState extends SceneVariableState {
-  value: boolean;
+  value: string;
+  enabledValue: string;
+  disabledValue: string;
 }
 
 export class SwitchVariable extends SceneObjectBase<SwitchVariableState> implements SceneVariable<SwitchVariableState> {
@@ -30,7 +32,9 @@ export class SwitchVariable extends SceneObjectBase<SwitchVariableState> impleme
   public constructor(initialState: Partial<SwitchVariableState>) {
     super({
       type: 'switch',
-      value: false,
+      value: 'false',
+      enabledValue: 'true',
+      disabledValue: 'false',
       name: '',
       ...initialState,
     });
@@ -52,18 +56,34 @@ export class SwitchVariable extends SceneObjectBase<SwitchVariableState> impleme
     return of({});
   }
 
-  public setValue(newValue: boolean): void {
+  public setValue(newValue: string): void {
     // Ignore if there's no change
     if (this.getValue() === newValue) {
       return;
     }
 
-    this.setState({ value: Boolean(newValue) });
-    this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    if ([this.state.enabledValue, this.state.disabledValue].includes(newValue)) {
+      this.setState({ value: newValue });
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    } else {
+      console.error(
+        `Invalid value for switch variable: "${newValue}". Valid values are: "${this.state.enabledValue}" and "${this.state.disabledValue}".`
+      );
+      this.setState({ value: this.state.disabledValue });
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
   }
 
   public getValue(): VariableValue {
-    return Boolean(this.state.value);
+    return this.state.value;
+  }
+
+  public isEnabled(): boolean {
+    return this.state.value === this.state.enabledValue;
+  }
+
+  public isDisabled(): boolean {
+    return this.state.value === this.state.disabledValue;
   }
 
   private getKey(): string {
@@ -83,17 +103,14 @@ export class SwitchVariable extends SceneObjectBase<SwitchVariableState> impleme
       return {};
     }
 
-    return { [this.getKey()]: String(this.state.value) };
+    return { [this.getKey()]: this.state.value };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues): void {
     const val = values[this.getKey()];
 
     if (typeof val === 'string') {
-      // Convert string values to boolean
-      // 'true' -> true, anything else -> false
-      const boolValue = val === 'true';
-      this.setValue(boolValue);
+      this.setValue(val);
     }
   }
 }
@@ -115,10 +132,9 @@ function SwitchVariableRenderer({ model }: SceneComponentProps<SwitchVariable>) 
   return (
     <div className={containerStyle}>
       <Switch
-        disabled={false}
-        value={state.value}
+        value={state.value === state.enabledValue}
         onChange={(event) => {
-          model.setValue(event!.currentTarget.checked);
+          model.setValue(event!.currentTarget.checked ? state.enabledValue : state.disabledValue);
         }}
       />
     </div>
