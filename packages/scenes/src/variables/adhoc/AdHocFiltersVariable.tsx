@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   AdHocVariableFilter,
   GetTagResponse,
@@ -30,6 +30,7 @@ import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+import { VariableBackedAdHocFiltersController } from './controller/VariableBackedAdHocFiltersController';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -783,8 +784,11 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
 
+  // Create controller adapter for combobox mode
+  const controller = useMemo(() => new VariableBackedAdHocFiltersController(model), [model]);
+
   if (model.state.layout === 'combobox') {
-    return <AdHocFiltersComboboxRenderer model={model} />;
+    return <AdHocFiltersComboboxRenderer controller={controller} />;
   }
 
   return (

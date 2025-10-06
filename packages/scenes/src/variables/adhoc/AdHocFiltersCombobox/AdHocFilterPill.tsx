@@ -3,7 +3,8 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { t } from '@grafana/i18n';
 import { getNonApplicablePillStyles } from '../../utils';
 
@@ -11,12 +12,12 @@ const LABEL_MAX_VISIBLE_LENGTH = 20;
 
 interface Props {
   filter: AdHocFilterWithLabels;
-  model: AdHocFiltersVariable;
+  controller: AdHocFiltersController;
   readOnly?: boolean;
   focusOnWipInputRef?: () => void;
 }
 
-export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }: Props) {
+export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputRef }: Props) {
   const styles = useStyles2(getStyles);
   const [viewMode, setViewMode] = useState(true);
   const [shouldFocusOnPillWrapper, setShouldFocusOnPillWrapper] = useState(false);
@@ -51,9 +52,9 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
     if (filter.forceEdit && viewMode) {
       setViewMode(false);
       // immediately set forceEdit back to undefined as a clean up
-      model._updateFilter(filter, { forceEdit: undefined });
+      controller.updateFilter(filter, { forceEdit: undefined });
     }
-  }, [filter, model, viewMode]);
+  }, [filter, controller, viewMode]);
 
   // reset populateInputOnEdit when pill goes into view mode
   useEffect(() => {
@@ -133,9 +134,9 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
             onClick={(e) => {
               e.stopPropagation();
               if (filter.origin && filter.origin === 'dashboard') {
-                model.updateToMatchAll(filter);
+                controller.updateToMatchAll(filter);
               } else {
-                model._removeFilter(filter);
+                controller.removeFilter(filter);
               }
 
               setTimeout(() => focusOnWipInputRef?.());
@@ -145,9 +146,9 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
                 e.preventDefault();
                 e.stopPropagation();
                 if (filter.origin && filter.origin === 'dashboard') {
-                  model.updateToMatchAll(filter);
+                  controller.updateToMatchAll(filter);
                 } else {
-                  model._removeFilter(filter);
+                  controller.removeFilter(filter);
                 }
                 setTimeout(() => focusOnWipInputRef?.());
               }
@@ -186,13 +187,13 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
           <IconButton
             onClick={(e) => {
               e.stopPropagation();
-              model.restoreOriginalFilter(filter);
+              controller.restoreOriginalFilter(filter);
             }}
             onKeyDownCapture={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 e.stopPropagation();
-                model.restoreOriginalFilter(filter);
+                controller.restoreOriginalFilter(filter);
               }
             }}
             name="history"
@@ -220,7 +221,7 @@ export function AdHocFilterPill({ filter, model, readOnly, focusOnWipInputRef }:
   return (
     <AdHocCombobox
       filter={filter}
-      model={model}
+      controller={controller}
       handleChangeViewMode={handleChangeViewMode}
       focusOnWipInputRef={focusOnWipInputRef}
       populateInputOnEdit={populateInputOnEdit}

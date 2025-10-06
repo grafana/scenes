@@ -78,6 +78,12 @@ export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
+export type {
+  AdHocFiltersController,
+  AdHocFiltersControllerState,
+} from './variables/adhoc/controller/AdHocFiltersController';
+export { VariableBackedAdHocFiltersController } from './variables/adhoc/controller/VariableBackedAdHocFiltersController';
+export { AdHocFiltersComboboxRenderer } from './variables/adhoc/AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 export { escapeUrlPipeDelimiters } from './variables/utils';
