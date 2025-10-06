@@ -623,6 +623,20 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(locationService.getLocation().search).toBe('?var-filters=key2%7C%3D%7Cval2');
   });
 
+  it('properly hides filter on url sync', async () => {
+    // filter is hidden on dashboard
+    const { filtersVar } = setup({
+      filters: [{ key: 'key1', keyLabel: 'key1', operator: '=', value: 'val1', hidden: true }],
+    });
+
+    // and should be maintained on url sync
+    act(() => {
+      locationService.partial({ 'var-filters': ['key1|=|valUrl'] });
+    });
+
+    expect(filtersVar.state.filters.length).toEqual(1);
+  });
+
   it('overrides state when url has empty key', () => {
     const { filtersVar } = setup();
 

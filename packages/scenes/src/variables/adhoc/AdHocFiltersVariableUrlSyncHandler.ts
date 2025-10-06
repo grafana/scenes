@@ -63,7 +63,7 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       return;
     }
 
-    const filters = deserializeUrlToFilters(urlValue);
+    const filters = deserializeUrlToFilters(urlValue, this._variable.state.filters);
     const originFilters = updateOriginFilters([...(this._variable.state.originFilters || [])], filters);
 
     this._variable.setState({
@@ -101,14 +101,37 @@ function updateOriginFilters(prevOriginFilters: AdHocFilterWithLabels[], filters
   return updatedOriginFilters;
 }
 
-function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLabels[] {
+function deserializeUrlToFilters(
+  value: SceneObjectUrlValue,
+  filters: AdHocFilterWithLabels[]
+): AdHocFilterWithLabels[] {
   if (Array.isArray(value)) {
     const values = value;
-    return values.map(toFilter).filter(isFilter);
+    return values
+      .map(toFilter)
+      .map((f) => restorePropsOnExistingFilter(f, filters))
+      .filter(isFilter);
   }
 
-  const filter = toFilter(value);
+  let filter = toFilter(value);
+  filter = restorePropsOnExistingFilter(filter, filters);
+
   return filter === null ? [] : [filter];
+}
+
+function restorePropsOnExistingFilter(filter: AdHocFilterWithLabels | null, filters: AdHocFilterWithLabels[]) {
+  if (!filter) {
+    return null;
+  }
+
+  const savedFilter = filters.find((f) => f.key === filter.key);
+
+  if (savedFilter) {
+    filter.hidden = savedFilter.hidden;
+    filter.readOnly = savedFilter.readOnly;
+  }
+
+  return filter;
 }
 
 function toArray(filter: AdHocFilterWithLabels): string[] {
