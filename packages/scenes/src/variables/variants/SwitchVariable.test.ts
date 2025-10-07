@@ -4,7 +4,7 @@ import { SceneVariableValueChangedEvent } from '../types';
 import { SwitchVariable } from './SwitchVariable';
 
 describe('SwitchVariable', () => {
-  it('Should initialize with default values', () => {
+  it('should initialize with default values', () => {
     const variable = new SwitchVariable({
       name: 'test',
     });
@@ -16,7 +16,7 @@ describe('SwitchVariable', () => {
     expect(variable.state.disabledValue).toBe('false');
   });
 
-  it('Should initialize with provided value', () => {
+  it('should initialize with provided value', () => {
     const variable = new SwitchVariable({
       name: 'test',
       value: 'true',
@@ -25,7 +25,7 @@ describe('SwitchVariable', () => {
     expect(variable.state.value).toBe('true');
   });
 
-  it('Should initialize with other state properties', () => {
+  it('should initialise when provided with other state properties', () => {
     const variable = new SwitchVariable({
       name: 'test',
       value: 'true',
@@ -39,7 +39,7 @@ describe('SwitchVariable', () => {
     expect(variable.state.description).toBe('A test switch variable');
   });
 
-  it('Should initialize with custom enabled and disabled values', () => {
+  it('should initialize with custom enabled and disabled values', () => {
     const variable = new SwitchVariable({
       name: 'test',
       value: 'on',
@@ -52,84 +52,80 @@ describe('SwitchVariable', () => {
     expect(variable.state.disabledValue).toBe('off');
   });
 
-  describe('getValue()', () => {
-    it('Should return string value when value is enabled', () => {
-      const variable = new SwitchVariable({
-        name: 'test',
-        value: 'true',
-      });
-
-      expect(variable.getValue()).toBe('true');
+  it('should return string value when value is enabled', () => {
+    const variable = new SwitchVariable({
+      name: 'test',
+      value: 'true',
     });
 
-    it('Should return string value when value is disabled', () => {
-      const variable = new SwitchVariable({
-        name: 'test',
-        value: 'false',
-      });
-
-      expect(variable.getValue()).toBe('false');
-    });
-
-    it('Should return custom enabled value', () => {
-      const variable = new SwitchVariable({
-        name: 'test',
-        value: 'on',
-        enabledValue: 'on',
-        disabledValue: 'off',
-      });
-
-      expect(variable.getValue()).toBe('on');
-    });
-
-    it('Should return custom disabled value', () => {
-      const variable = new SwitchVariable({
-        name: 'test',
-        value: 'off',
-        enabledValue: 'on',
-        disabledValue: 'off',
-      });
-
-      expect(variable.getValue()).toBe('off');
-    });
+    expect(variable.getValue()).toBe('true');
   });
 
-  describe('isEnabled() and isDisabled()', () => {
-    it('Should return true for isEnabled when value equals enabledValue', () => {
-      const variable = new SwitchVariable({
-        name: 'test',
-        value: 'true',
-      });
-
-      expect(variable.isEnabled()).toBe(true);
-      expect(variable.isDisabled()).toBe(false);
+  it('should return string value when value is disabled', () => {
+    const variable = new SwitchVariable({
+      name: 'test',
+      value: 'false',
     });
 
-    it('Should return true for isDisabled when value equals disabledValue', () => {
-      const variable = new SwitchVariable({
-        name: 'test',
-        value: 'false',
-      });
+    expect(variable.getValue()).toBe('false');
+  });
 
-      expect(variable.isEnabled()).toBe(false);
-      expect(variable.isDisabled()).toBe(true);
+  it('should return custom enabled value', () => {
+    const variable = new SwitchVariable({
+      name: 'test',
+      value: 'on',
+      enabledValue: 'on',
+      disabledValue: 'off',
     });
 
-    it('Should work with custom enabled and disabled values', () => {
-      const variable = new SwitchVariable({
-        name: 'test',
-        value: 'on',
-        enabledValue: 'on',
-        disabledValue: 'off',
-      });
+    expect(variable.getValue()).toBe('on');
+  });
 
-      expect(variable.isEnabled()).toBe(true);
-      expect(variable.isDisabled()).toBe(false);
-
-      variable.setValue('off');
-      expect(variable.isEnabled()).toBe(false);
-      expect(variable.isDisabled()).toBe(true);
+  it('should return custom disabled value', () => {
+    const variable = new SwitchVariable({
+      name: 'test',
+      value: 'off',
+      enabledValue: 'on',
+      disabledValue: 'off',
     });
+
+    expect(variable.getValue()).toBe('off');
+  });
+
+  it('should return true for isEnabled when value equals enabledValue', () => {
+    const variable = new SwitchVariable({
+      name: 'test',
+      value: 'true',
+    });
+
+    expect(variable.isEnabled()).toBe(true);
+    expect(variable.isDisabled()).toBe(false);
+  });
+
+  it('should return true for isDisabled when value equals disabledValue', () => {
+    const variable = new SwitchVariable({
+      name: 'test',
+      value: 'false',
+    });
+
+    expect(variable.isEnabled()).toBe(false);
+    expect(variable.isDisabled()).toBe(true);
+  });
+
+  it('should work with custom enabled and disabled values', () => {
+    const variable = new SwitchVariable({
+      name: 'test',
+      value: 'on',
+      enabledValue: 'on',
+      disabledValue: 'off',
+    });
+
+    expect(variable.isEnabled()).toBe(true);
+    expect(variable.isDisabled()).toBe(false);
+
+    variable.setValue('off');
+    expect(variable.isEnabled()).toBe(false);
+    expect(variable.isDisabled()).toBe(true);
   });
 
   describe('setValue()', () => {
@@ -192,18 +188,25 @@ describe('SwitchVariable', () => {
       expect(variable.state.value).toBe('off');
     });
 
-    it('Should throw error for invalid values', () => {
+    it('should log an error and not change the value if invalid value is provided', () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const variable = new SwitchVariable({
         name: 'test',
         value: 'false',
       });
 
-      expect(() => variable.setValue('invalid')).toThrow(
+      variable.setValue('invalid');
+
+      expect(consoleSpy).toHaveBeenCalledWith(
         'Invalid value for switch variable: "invalid". Valid values are: "true" and "false".'
       );
+      expect(variable.state.value).toBe('false');
+
+      consoleSpy.mockRestore();
     });
 
-    it('Should throw error for invalid custom values', () => {
+    it('should log an error and not change the value if invalid value is provided with custom enabled and disabled values', () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const variable = new SwitchVariable({
         name: 'test',
         value: 'off',
@@ -211,9 +214,14 @@ describe('SwitchVariable', () => {
         disabledValue: 'off',
       });
 
-      expect(() => variable.setValue('invalid')).toThrow(
+      variable.setValue('invalid');
+
+      expect(consoleSpy).toHaveBeenCalledWith(
         'Invalid value for switch variable: "invalid". Valid values are: "on" and "off".'
       );
+      expect(variable.state.value).toBe('off');
+
+      consoleSpy.mockRestore();
     });
   });
 
@@ -296,34 +304,21 @@ describe('SwitchVariable', () => {
       expect(variable.getValue()).toBe('false');
     });
 
-    it('Should handle invalid URL values by throwing error', () => {
+    it('should log an error and not change the value if invalid value is provided', () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const variable = new SwitchVariable({
         name: 'testSwitch',
         value: 'false',
       });
 
-      expect(() => variable.updateFromUrl({ 'var-testSwitch': 'invalid' })).toThrow(
+      variable.updateFromUrl({ 'var-testSwitch': 'invalid' });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
         'Invalid value for switch variable: "invalid". Valid values are: "true" and "false".'
       );
-    });
+      expect(variable.state.value).toBe('false');
 
-    it('Should work with custom enabled/disabled values in URL sync', () => {
-      const variable = new SwitchVariable({
-        name: 'testSwitch',
-        value: 'off',
-        enabledValue: 'on',
-        disabledValue: 'off',
-      });
-
-      variable.updateFromUrl({ 'var-testSwitch': 'on' });
-      expect(variable.getValue()).toBe('on');
-
-      variable.updateFromUrl({ 'var-testSwitch': 'off' });
-      expect(variable.getValue()).toBe('off');
-
-      expect(() => variable.updateFromUrl({ 'var-testSwitch': 'invalid' })).toThrow(
-        'Invalid value for switch variable: "invalid". Valid values are: "on" and "off".'
-      );
+      consoleSpy.mockRestore();
     });
 
     it('Should return correct keys for URL sync', () => {

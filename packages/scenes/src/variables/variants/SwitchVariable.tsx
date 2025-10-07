@@ -66,8 +66,6 @@ export class SwitchVariable extends SceneObjectBase<SwitchVariableState> impleme
       console.error(
         `Invalid value for switch variable: "${newValue}". Valid values are: "${this.state.enabledValue}" and "${this.state.disabledValue}".`
       );
-      this.setState({ value: this.state.disabledValue });
-      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
 
