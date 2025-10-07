@@ -1,3 +1,15 @@
+# v6.39.1 (Thu Sep 25 2025)
+
+#### 🐛 Bug Fix
+
+- fix: infinite focus loop [#1168](https://github.com/grafana/scenes/pull/1168) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
 # v6.39.0 (Wed Sep 24 2025)
 
 #### 🚀 Enhancement
