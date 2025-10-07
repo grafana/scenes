@@ -5,3 +5,5 @@ packages/*/dist/**
 # Ignore `locales` directory so we also catch enterprise files
 **/locales/**/*.json
 
+# Added by lerna repair
+/.nx/workspace-data
