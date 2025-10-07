@@ -11220,6 +11220,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"cookiejs@npm:^2.1.2":
+  version: 2.1.3
+  resolution: "cookiejs@npm:2.1.3"
+  checksum: 10/8e9de3dc0231b768d2aa158dcf5ef45cbf4b6ec42458d09bdc32ddf7b773098c8530a6260b22964a569529187db81498a0e9a6f735cd5898548b767a2d0d0e9c
+  languageName: node
+  linkType: hard
+
 "copy-text-to-clipboard@npm:^3.2.0":
   version: 3.2.0
   resolution: "copy-text-to-clipboard@npm:3.2.0"
@@ -29532,6 +29539,7 @@ __metadata:
     "@grafana/scenes-react": "workspace:*"
     "@mdx-js/react": "npm:^3.0.0"
     clsx: "npm:^1.2.1"
+    cookiejs: "npm:^2.1.2"
     docusaurus-lunr-search: "npm:^3.3.1"
     prism-react-renderer: "npm:^2.1.0"
     react: "npm:^18.2.0"
