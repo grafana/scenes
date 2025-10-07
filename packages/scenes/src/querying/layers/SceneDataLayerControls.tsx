@@ -57,11 +57,9 @@ export function DataLayerControlSwitch({ layer }: SceneDataLayerControlProps) {
   );
 }
 
-const containerStyle = css({
-  display: 'flex',
-});
+const containerStyle = css({ display: 'flex' });
 
 const switchStyle = css({
   borderBottomLeftRadius: 0,
   borderTopLeftRadius: 0,
-})
+});
