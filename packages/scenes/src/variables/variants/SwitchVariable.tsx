@@ -1,6 +1,7 @@
 import React from 'react';
 import { Observable, of } from 'rxjs';
-import { Switch, useTheme2 } from '@grafana/ui';
+import { Switch, useStyles2 } from '@grafana/ui';
+import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
@@ -113,20 +114,10 @@ export class SwitchVariable extends SceneObjectBase<SwitchVariableState> impleme
 
 function SwitchVariableRenderer({ model }: SceneComponentProps<SwitchVariable>) {
   const state = model.useState();
-  const theme = useTheme2();
-
-  const containerStyle = css({
-    display: 'flex',
-    alignItems: 'center',
-    padding: theme.spacing(0, 1),
-    height: theme.spacing(theme.components.height.md),
-    borderRadius: theme.shape.radius.default,
-    border: `1px solid ${theme.components.input.borderColor}`,
-    background: theme.colors.background.primary,
-  });
+  const styles = useStyles2(getStyles);
 
   return (
-    <div className={containerStyle}>
+    <div className={styles.container}>
       <Switch
         value={state.value === state.enabledValue}
         onChange={(event) => {
@@ -135,4 +126,18 @@ function SwitchVariableRenderer({ model }: SceneComponentProps<SwitchVariable>) 
       />
     </div>
   );
+}
+
+function getStyles(theme: GrafanaTheme2) {
+  return {
+    container: css({
+      display: 'flex',
+      alignItems: 'center',
+      padding: theme.spacing(0, 1),
+      height: theme.spacing(theme.components.height.md),
+      borderRadius: theme.shape.radius.default,
+      border: `1px solid ${theme.components.input.borderColor}`,
+      background: theme.colors.background.primary,
+    }),
+  };
 }
