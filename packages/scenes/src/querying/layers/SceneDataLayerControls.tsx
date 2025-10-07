@@ -52,7 +52,12 @@ export function DataLayerControlSwitch({ layer }: SceneDataLayerControlProps) {
         description={layer.state.description}
         error={layer.state.data?.errors?.[0].message}
       />
-      <InlineSwitch className={switchStyle} id={elementId} value={isEnabled} onChange={() => layer.setState({ isEnabled: !isEnabled })} />
+      <InlineSwitch
+        className={switchStyle}
+        id={elementId}
+        value={isEnabled}
+        onChange={() => layer.setState({ isEnabled: !isEnabled })}
+      />
     </div>
   );
 }
