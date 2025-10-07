@@ -5,7 +5,6 @@ import { css } from '@emotion/css';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectUrlValues } from '../../core/types';
 import { SceneObjectUrlSyncConfig } from '../../services/SceneObjectUrlSyncConfig';
-import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import {
   SceneVariable,
   SceneVariableState,
@@ -22,15 +21,12 @@ export interface SwitchVariableState extends SceneVariableState {
 
 export class SwitchVariable extends SceneObjectBase<SwitchVariableState> implements SceneVariable<SwitchVariableState> {
   public static Component = SwitchVariableRenderer;
-
-  protected _variableDependency = new VariableDependencyConfig(this, {
-    statePaths: ['value'],
-  });
-
   private _prevValue: VariableValue = '';
 
   public constructor(initialState: Partial<SwitchVariableState>) {
     super({
+      // TODO: remove this once switch is in the schema @leventebalogh
+      // @ts-expect-error - switch is a valid variable type, but not in the schema yet
       type: 'switch',
       value: 'false',
       enabledValue: 'true',
