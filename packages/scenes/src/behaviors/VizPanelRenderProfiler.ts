@@ -15,9 +15,6 @@ export interface VizPanelRenderProfilerState extends SceneObjectState {}
  * Performance events are sent to ScenePerformanceTracker observers, which are consumed
  * by Grafana's ScenePerformanceLogger and DashboardAnalyticsAggregator.
  */
-export interface VizPanelRenderProfilerLike {
-  getPanelMetrics(): any;
-}
 
 export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfilerState> implements QueryProfilerLike {
   private _panelKey?: string;
@@ -127,7 +124,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       const duration = endTimestamp - queryInfo.startTime;
       this._activeQueries.delete(queryId);
 
-      // ✅ Use panel operation completion for panel queries
       getScenePerformanceTracker().notifyPanelOperationComplete({
         operationId,
         panelId: this._panelId!,
@@ -439,14 +435,5 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       });
     };
     return callback;
-  }
-
-  /**
-   * Legacy method for backward compatibility - returns null
-   * Use ScenePerformanceTracker observers instead
-   */
-  public getPanelMetrics() {
-    // Use ScenePerformanceTracker observers instead
-    return null;
   }
 }

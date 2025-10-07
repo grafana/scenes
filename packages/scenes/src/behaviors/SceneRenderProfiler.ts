@@ -326,12 +326,8 @@ export class SceneRenderProfiler {
         return;
       }
 
-      // Performance measures now handled by Grafana ScenePerformanceLogger
-
       const networkDuration = captureNetwork(profileStartTs, profileEndTs);
-      // Panel metrics collection now handled by observer pattern in analytics aggregator
 
-      // Legacy onProfileComplete callback removed - analytics now handled by observer pattern
       if (this.#profileInProgress) {
         // Notify performance observers of dashboard interaction completion
         const dashboardData: DashboardInteractionCompleteData = {
@@ -350,14 +346,6 @@ export class SceneRenderProfiler {
 
         this.#profileInProgress = null;
         this.#trailAnimationFrameId = null;
-      }
-      // @ts-ignore
-      if (window.__runs) {
-        // @ts-ignore
-        window.__runs += `${Date.now()}, ${profileDuration + slowFramesTime}\n`;
-      } else {
-        // @ts-ignore
-        window.__runs = `${Date.now()}, ${profileDuration + slowFramesTime}\n`;
       }
     }
   };

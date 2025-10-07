@@ -285,36 +285,6 @@ describe('VizPanelRenderProfiler', () => {
     });
   });
 
-  describe('Get Panel Metrics', () => {
-    beforeEach(() => {
-      panel.setState({
-        $behaviors: [profiler],
-      });
-      panel.activate();
-    });
-
-    it('should return panel metrics', () => {
-      // First activate the profiler to start tracking
-      panel.setState({
-        $behaviors: [profiler],
-      });
-      panel.activate();
-
-      const metrics = profiler.getPanelMetrics();
-
-      // Observer pattern now handles metrics collection - getPanelMetrics returns null
-      expect(metrics).toBeNull();
-    });
-
-    it('should return null if not tracking', () => {
-      const profilerNotActivated = new VizPanelRenderProfiler();
-      const metrics = profilerNotActivated.getPanelMetrics();
-
-      // Observer pattern now handles metrics collection - always returns null
-      expect(metrics).toBeNull();
-    });
-  });
-
   describe('S3.0 Lifecycle Integration', () => {
     let mockQueryRunner: SceneQueryRunner;
 
