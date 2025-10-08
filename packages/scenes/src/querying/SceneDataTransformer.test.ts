@@ -584,7 +584,6 @@ describe('SceneDataTransformer', () => {
     expect(data?.annotations?.[0].fields[0].values[0]).toBe(100);
   });
 
-
   describe('With inner query runner', () => {
     it('should apply transformations to query results', async () => {
       const queryRunner = new SceneDataTransformer({

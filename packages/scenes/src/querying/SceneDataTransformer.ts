@@ -1,4 +1,5 @@
 import {
+  CustomTransformOperator,
   DataFrame,
   DataTopic,
   DataTransformerConfig,
@@ -165,27 +166,18 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       return;
     }
 
-    let interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
+    const interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
 
-    const seriesTransformations = interpolatedTransformations
-      .filter((transformation) => {
-        if ('options' in transformation || 'topic' in transformation) {
-          return transformation.topic == null || transformation.topic === DataTopic.Series;
-        }
-
-        return true;
-      })
-      .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
-
-    const annotationsTransformations = interpolatedTransformations
-      .filter((transformation) => {
-        if ('options' in transformation || 'topic' in transformation) {
-          return transformation.topic === DataTopic.Annotations;
-        }
-
-        return false;
-      })
-      .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
+    const seriesTransformations = this._filterAndPrepareTransformationsByTopic(
+      interpolatedTransformations,
+      (topic) => topic == null || topic === DataTopic.Series,
+      true
+    );
+    const annotationsTransformations = this._filterAndPrepareTransformationsByTopic(
+      interpolatedTransformations,
+      DataTopic.Annotations,
+      false
+    );
 
     if (this._transformSub) {
       this._transformSub.unsubscribe();
@@ -197,20 +189,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       },
     };
 
-    let streams = [transformDataFrame(seriesTransformations, data.series, ctx)];
-
-    if (data.annotations && data.annotations.length > 0) {
-      if (annotationsTransformations.length > 0) {
-        streams.push(transformDataFrame(annotationsTransformations, data.annotations ?? []));
-      } else {  
-        streams.push(of(data.annotations));
-      }
-    }
+    const seriesStream = transformDataFrame(seriesTransformations, data.series, ctx);
+    const annotationsStream = transformDataFrame(annotationsTransformations, data.annotations ?? []);
 
     let series: DataFrame[] = [];
     let annotations: DataFrame[] = [];
 
-    this._transformSub = forkJoin(streams)
+    this._transformSub = forkJoin([seriesStream, annotationsStream])
       .pipe(
         map((results) => {
           // this strategy allows transformations to take in series frames and produce anno frames
@@ -272,5 +257,22 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         ? JSON.parse(sceneGraph.interpolate(this, JSON.stringify(t), data.request?.scopedVars))
         : t;
     });
+  }
+
+  private _filterAndPrepareTransformationsByTopic(
+    interpolatedTransformations: Array<DataTransformerConfig<any> | CustomTransformerDefinition>,
+    topic: DataTopic | ((topic?: DataTopic) => boolean),
+    includeByDefault: boolean
+  ): Array<DataTransformerConfig<any> | CustomTransformOperator> {
+    const topicCheckFn = typeof topic === 'function' ? topic : (t?: DataTopic) => t === topic;
+
+    return interpolatedTransformations
+      .filter((transformation) => {
+        if ('options' in transformation || 'topic' in transformation) {
+          return topicCheckFn(transformation.topic);
+        }
+        return includeByDefault;
+      })
+      .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
   }
 }
