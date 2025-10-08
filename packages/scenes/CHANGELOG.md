@@ -1,3 +1,15 @@
+# v6.39.2 (Wed Oct 08 2025)
+
+#### 🐛 Bug Fix
+
+- Chore: Fix annotations switch to work with new border radius [#1264](https://github.com/grafana/scenes/pull/1264) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v6.39.1 (Thu Sep 25 2025)
 
 #### 🐛 Bug Fix
