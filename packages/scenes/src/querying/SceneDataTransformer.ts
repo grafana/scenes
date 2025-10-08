@@ -199,8 +199,12 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     let streams = [transformDataFrame(seriesTransformations, data.series, ctx)];
 
-    if (data.annotations && data.annotations.length > 0 && annotationsTransformations.length > 0) {
-      streams.push(transformDataFrame(annotationsTransformations, data.annotations ?? []));
+    if (data.annotations && data.annotations.length > 0) {
+      if (annotationsTransformations.length > 0) {
+        streams.push(transformDataFrame(annotationsTransformations, data.annotations ?? []));
+      } else {  
+        streams.push(of(data.annotations));
+      }
     }
 
     let series: DataFrame[] = [];
