@@ -1,7 +1,7 @@
 import { css, cx } from '@emotion/css';
 import React from 'react';
 
-import { GrafanaTheme2 } from '@grafana/data';
+import { GrafanaTheme2, ScopedVars } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
@@ -24,6 +24,8 @@ export interface SceneGridRowState extends SceneGridItemStateLike {
   children: SceneGridItemLike[];
   /** Marks object as a repeated object and a key pointer to source object */
   repeatSourceKey?: string;
+  /** Scoped variables for variable interpolation (used in snapshots) */
+  scopedVars?: ScopedVars; // <-- Add this
 }
 
 export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
@@ -89,7 +91,7 @@ export class SceneGridRow extends SceneObjectBase<SceneGridRowState> {
 
 export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow>) {
   const styles = useStyles2(getSceneGridRowStyles);
-  const { isCollapsible, isCollapsed, title, actions, children } = model.useState();
+  const { isCollapsible, isCollapsed, title, actions, children, scopedVars } = model.useState();
   const layout = model.getGridLayout();
   const layoutDragClass = layout.getDragClass();
   const isDraggable = layout.isDraggable() && !isRepeatCloneOrChildOf(model);
@@ -108,11 +110,13 @@ export function SceneGridRowRenderer({ model }: SceneComponentProps<SceneGridRow
               ? t('grafana-scenes.components.scene-grid-row.expand-row', 'Expand row')
               : t('grafana-scenes.components.scene-grid-row.collapse-row', 'Collapse row')
           }
-          data-testid={selectors.components.DashboardRow.title(sceneGraph.interpolate(model, title, undefined, 'text'))}
+          data-testid={selectors.components.DashboardRow.title(
+            sceneGraph.interpolate(model, title, scopedVars, 'text')
+          )}
         >
           {isCollapsible && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
           <span className={styles.rowTitle} role="heading">
-            {sceneGraph.interpolate(model, title, undefined, 'text')}
+            {sceneGraph.interpolate(model, title, scopedVars, 'text')}
           </span>
         </button>
         <span className={cx(styles.panelCount, isCollapsed && styles.panelCountCollapsed)}>
