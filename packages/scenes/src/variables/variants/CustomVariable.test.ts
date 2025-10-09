@@ -299,7 +299,7 @@ label-3 : value-3,`,
       const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A, B] }) });
       scene.activate();
 
-      expect(B.transformQueryToOptions()).toEqual([
+      expect(B.transformCsvStringToOptions(B.state.query)).toEqual([
         { label: '1', value: '1' },
         { label: '2', value: '2' },
         { label: 'value1', value: 'value1' },
@@ -325,7 +325,7 @@ label-3 : value-3,`,
       const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A, B] }) });
       scene.activate();
 
-      expect(B.transformQueryToOptions(false)).toEqual([
+      expect(B.transformCsvStringToOptions(B.state.query, false)).toEqual([
         { label: '1', value: '1' },
         { label: '2', value: '2' },
         { label: '$A', value: '$A' },
