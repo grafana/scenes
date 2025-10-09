@@ -1,3 +1,31 @@
+# v6.39.3 (Thu Oct 09 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Introduce a new type called "switch" [#1258](https://github.com/grafana/scenes/pull/1258) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
+# v6.39.2 (Wed Oct 08 2025)
+
+#### 🐛 Bug Fix
+
+- Add cookie consent functionality for docs as at dev portal [#1257](https://github.com/grafana/scenes/pull/1257) ([@Ukochka](https://github.com/Ukochka))
+- `@grafana/scenes`
+  - Chore: Fix annotations switch to work with new border radius [#1264](https://github.com/grafana/scenes/pull/1264) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 2
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Yulia Shanyrova ([@Ukochka](https://github.com/Ukochka))
+
+---
+
 # v6.39.1 (Thu Sep 25 2025)
 
 #### 🐛 Bug Fix
