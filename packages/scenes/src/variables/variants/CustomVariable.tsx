@@ -30,11 +30,13 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
     });
   }
 
-  public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
-    const interpolated = sceneGraph.interpolate(this, this.state.query);
-    const match = interpolated.match(/(?:\\,|[^,])+/g) ?? [];
+  // We expose this publicly as we also need it outside the variable
+  // The interpolate flag is needed since we don't always want to get the interpolated options
+  public transformQueryToOptions(interpolate = true): VariableValueOption[] {
+    const query = interpolate ? sceneGraph.interpolate(this, this.state.query) : this.state.query;
+    const match = query.match(/(?:\\,|[^,])+/g) ?? [];
 
-    const options = match.map((text) => {
+    return match.map((text) => {
       text = text.replace(/\\,/g, ',');
       const textMatch = /^\s*(.+)\s:\s(.+)$/g.exec(text) ?? [];
       if (textMatch.length === 3) {
@@ -44,6 +46,10 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
         return { label: text.trim(), value: text.trim() };
       }
     });
+  }
+
+  public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
+    const options = this.transformQueryToOptions();
 
     if (!options.length) {
       this.skipNextValidation = true;
