@@ -58,7 +58,6 @@ jobs:
           repo_secrets: |
             GITHUB_APP_ID=github-app:app-id
             GITHUB_APP_PRIVATE_KEY=github-app:private-key
-            NPM_TOKEN=npm:token
 
       - name: Generate a token
         id: generate-token
@@ -90,5 +89,3 @@ jobs:
         run: yarn auto shipit
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-          NODE_AUTH_TOKEN: ${{ env.NPM_TOKEN }}
-          NPM_TOKEN: ${{ env.NPM_TOKEN }}
