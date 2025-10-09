@@ -293,6 +293,12 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   wrapper: css({
     display: 'flex',
+    '&:first-child': {
+      '> :first-child': {
+        borderBottomLeftRadius: 0,
+        borderTopLeftRadius: 0,
+      }
+    },
     '> *': {
       '&:not(:first-child)': {
         // Negative margin hides the double-border on adjacent selects
