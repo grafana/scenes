@@ -1,3 +1,16 @@
+# v6.39.3 (Thu Oct 09 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Introduce a new type called "switch" [#1258](https://github.com/grafana/scenes/pull/1258) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
 # v6.39.2 (Wed Oct 08 2025)
 
 #### 🐛 Bug Fix
