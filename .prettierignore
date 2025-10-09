@@ -7,3 +7,4 @@ packages/*/dist/**
 
 # Added by lerna repair
 /.nx/workspace-data
+.turbo

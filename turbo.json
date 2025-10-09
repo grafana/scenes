@@ -1,21 +1,18 @@
 {
-  "extends": ["//"],
   "$schema": "https://turborepo.org/schema.json",
-  "pipeline": {
+  "tasks": {
     "build": {
-      "dependsOn": ["^build"]
-    },
-    "build:dev": {
-      "outputs": []
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
     },
     "lint": {
-      "outputs": []
+      "cache": false
     },
     "typecheck": {
-      "outputs": []
+      "cache": false
     },
     "test": {
-      "outputs": []
+      "cache": false
     },
     "dev": {
       "cache": false,
