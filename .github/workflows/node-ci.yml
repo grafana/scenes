@@ -40,7 +40,7 @@ jobs:
         run: yarn typecheck
 
       - name: Build library
-        run: yarn build --force
+        run: yarn build
 
   release:
     name: Release
