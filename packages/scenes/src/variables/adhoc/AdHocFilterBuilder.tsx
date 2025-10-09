@@ -41,5 +41,5 @@ const getStyles = (theme: GrafanaTheme2) => ({
       borderBottomLeftRadius: 0,
       borderTopLeftRadius: 0,
     },
-  })
-})
+  }),
+});

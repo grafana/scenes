@@ -297,7 +297,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
       '> :first-child': {
         borderBottomLeftRadius: 0,
         borderTopLeftRadius: 0,
-      }
+      },
     },
     '> *': {
       '&:not(:first-child)': {
