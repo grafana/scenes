@@ -170,13 +170,21 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     const seriesTransformations = this._filterAndPrepareTransformationsByTopic(
       interpolatedTransformations,
-      (topic) => topic == null || topic === DataTopic.Series,
-      true
+      (transformation) => {
+        if ('options' in transformation || 'topic' in transformation) {
+          return transformation.topic == null || transformation.topic === DataTopic.Series;
+        }
+        return true;
+      }
     );
     const annotationsTransformations = this._filterAndPrepareTransformationsByTopic(
       interpolatedTransformations,
-      DataTopic.Annotations,
-      false
+      (transformation) => {
+        if ('options' in transformation || 'topic' in transformation) {
+          return transformation.topic === DataTopic.Annotations;
+        }
+        return false;
+      }
     );
 
     if (this._transformSub) {
@@ -261,18 +269,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   private _filterAndPrepareTransformationsByTopic(
     interpolatedTransformations: Array<DataTransformerConfig<any> | CustomTransformerDefinition>,
-    topic: DataTopic | ((topic?: DataTopic) => boolean),
-    includeByDefault: boolean
+    transformationFilter: (transformation: DataTransformerConfig<any> | CustomTransformerDefinition) => boolean
   ): Array<DataTransformerConfig<any> | CustomTransformOperator> {
-    const topicCheckFn = typeof topic === 'function' ? topic : (t?: DataTopic) => t === topic;
-
     return interpolatedTransformations
-      .filter((transformation) => {
-        if ('options' in transformation || 'topic' in transformation) {
-          return topicCheckFn(transformation.topic);
-        }
-        return includeByDefault;
-      })
+      .filter(transformationFilter)
       .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
   }
 }
