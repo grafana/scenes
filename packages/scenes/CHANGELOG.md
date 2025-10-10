@@ -1,3 +1,15 @@
+# v6.39.4 (Fri Oct 10 2025)
+
+#### 🐛 Bug Fix
+
+- CustomVariable: Expose query parsing mechanism [#1269](https://github.com/grafana/scenes/pull/1269) ([@bfmatei](https://github.com/bfmatei))
+
+#### Authors: 1
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+
+---
+
 # v6.39.3 (Thu Oct 09 2025)
 
 #### 🐛 Bug Fix
