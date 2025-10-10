@@ -3,7 +3,9 @@ import React from 'react';
 
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
-import { Button } from '@grafana/ui';
+import { Button, useStyles2 } from '@grafana/ui';
+import { GrafanaTheme2 } from '@grafana/data';
+import { css } from '@emotion/css';
 
 interface Props {
   model: AdHocFiltersVariable;
@@ -12,6 +14,7 @@ interface Props {
 
 export function AdHocFilterBuilder({ model, addFilterButtonText }: Props) {
   const { _wip } = model.useState();
+  const styles = useStyles2(getStyles);
 
   if (!_wip) {
     return (
@@ -22,6 +25,7 @@ export function AdHocFilterBuilder({ model, addFilterButtonText }: Props) {
         aria-label={t('grafana-scenes.variables.ad-hoc-filter-builder.aria-label-add-filter', 'Add filter')}
         data-testid={`AdHocFilter-add`}
         onClick={() => model._addWip()}
+        className={styles.addButton}
       >
         {addFilterButtonText}
       </Button>
@@ -30,3 +34,12 @@ export function AdHocFilterBuilder({ model, addFilterButtonText }: Props) {
 
   return <AdHocFilterRenderer filter={_wip} model={model} />;
 }
+
+const getStyles = (theme: GrafanaTheme2) => ({
+  addButton: css({
+    '&:first-child': {
+      borderBottomLeftRadius: 0,
+      borderTopLeftRadius: 0,
+    },
+  }),
+});
