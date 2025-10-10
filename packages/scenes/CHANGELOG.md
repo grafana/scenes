@@ -1,3 +1,15 @@
+# v6.39.5 (Fri Oct 10 2025)
+
+#### 🐛 Bug Fix
+
+- Annotations: Pass annotations through when transformations exist but none are annotations transformations [#1266](https://github.com/grafana/scenes/pull/1266) ([@fastfrwrd](https://github.com/fastfrwrd))
+
+#### Authors: 1
+
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+
+---
+
 # v6.39.4 (Fri Oct 10 2025)
 
 #### 🐛 Bug Fix
