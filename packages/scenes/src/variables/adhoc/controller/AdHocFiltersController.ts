@@ -12,6 +12,7 @@ export interface AdHocFiltersControllerState {
   supportsMultiValueOperators?: boolean;
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
+  inputPlaceholder?: string;
 }
 
 /**
@@ -100,4 +101,3 @@ export interface AdHocFiltersController {
    */
   stopInteraction?(): void;
 }
-
