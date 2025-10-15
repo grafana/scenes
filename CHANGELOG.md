@@ -1,3 +1,16 @@
+# v6.39.6 (Wed Oct 15 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix rounding on old-style adhoc filters [#1271](https://github.com/grafana/scenes/pull/1271) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v6.39.5 (Fri Oct 10 2025)
 
 #### 🐛 Bug Fix
