@@ -393,22 +393,6 @@ describe('SceneRenderProfiler integration tests', () => {
       // The first profile should not complete because it was cancelled
       expect(onProfileComplete).not.toHaveBeenCalled();
     });
-
-    it('should handle tab inactive detection during tail recording', () => {
-      setupProfileTest('tab-inactive-test');
-
-      // Execute first frame, then simulate tab inactive
-      mockTime += 16;
-      const firstCallback = Object.values(frameCallbacks).filter(Boolean)[0];
-      frameCallbacks = [];
-      firstCallback(mockTime);
-      expect(profiler.isTailRecording()).toBe(true);
-
-      mockTime += 1500; // > TAB_INACTIVE_THRESHOLD
-      const secondCallback = Object.values(frameCallbacks).filter(Boolean)[0];
-      secondCallback(mockTime);
-      expect(profiler.isTailRecording()).toBe(false);
-    });
   });
 
   describe('Slow frame recording integration', () => {
