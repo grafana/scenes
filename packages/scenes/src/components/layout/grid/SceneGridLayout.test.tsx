@@ -1098,12 +1098,12 @@ describe('SceneGridLayout', () => {
         isLazy: false,
       });
 
-      const gridCell = layout.toGridCell(layout.state.children[0]);
+      const gridLayout = layout.buildGridLayout(800, 600);
 
-      expect(gridCell.x).toBe(2.3);
-      expect(gridCell.y).toBe(1.7);
-      expect(gridCell.w).toBe(4.8);
-      expect(gridCell.h).toBe(6.5);
+      expect(gridLayout[0].x).toBe(2.3);
+      expect(gridLayout[0].y).toBe(1.7);
+      expect(gridLayout[0].w).toBe(4.8);
+      expect(gridLayout[0].h).toBe(6.5);
     });
 
     it('should default to DEFAULT_PANEL_SPAN for non-finite values and 0 for undefined position', () => {
@@ -1123,12 +1123,12 @@ describe('SceneGridLayout', () => {
         isLazy: false,
       });
 
-      const gridCell = layoutWithNaN.toGridCell(layoutWithNaN.state.children[0]);
+      const gridLayout = layoutWithNaN.buildGridLayout(800, 600);
 
-      expect(gridCell.x).toBe(0);
-      expect(gridCell.y).toBe(0);
-      expect(gridCell.w).toBe(4); // DEFAULT_PANEL_SPAN
-      expect(gridCell.h).toBe(4); // DEFAULT_PANEL_SPAN
+      expect(gridLayout[0].x).toBe(0);
+      expect(gridLayout[0].y).toBe(0);
+      expect(gridLayout[0].w).toBe(4); // DEFAULT_PANEL_SPAN
+      expect(gridLayout[0].h).toBe(4); // DEFAULT_PANEL_SPAN
     });
   });
 });
