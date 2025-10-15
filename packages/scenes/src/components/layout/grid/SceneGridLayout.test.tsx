@@ -6,6 +6,7 @@ import { SceneComponentProps, SceneObjectState } from '../../../core/types';
 import { EmbeddedScene } from '../../EmbeddedScene';
 import { SceneGridItem } from './SceneGridItem';
 
+import { DEFAULT_PANEL_SPAN } from './constants';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridRow } from './SceneGridRow';
 import * as utils from './utils';
@@ -1111,8 +1112,8 @@ describe('SceneGridLayout', () => {
         children: [
           new SceneGridItem({
             key: 'invalid',
-            x: undefined,
-            y: undefined,
+            x: NaN,
+            y: Infinity,
             width: NaN,
             height: Infinity,
             isDraggable: false,
@@ -1127,8 +1128,8 @@ describe('SceneGridLayout', () => {
 
       expect(gridLayout[0].x).toBe(0);
       expect(gridLayout[0].y).toBe(0);
-      expect(gridLayout[0].w).toBe(4); // DEFAULT_PANEL_SPAN
-      expect(gridLayout[0].h).toBe(4); // DEFAULT_PANEL_SPAN
+      expect(gridLayout[0].w).toBe(DEFAULT_PANEL_SPAN);
+      expect(gridLayout[0].h).toBe(DEFAULT_PANEL_SPAN);
     });
   });
 });
