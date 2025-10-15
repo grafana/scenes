@@ -1,3 +1,16 @@
+# v6.39.7 (Wed Oct 15 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SeneRenderProfiler: Remove tab inactive frame detection backup mechanism [#1276](https://github.com/grafana/scenes/pull/1276) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.39.6 (Wed Oct 15 2025)
 
 #### 🐛 Bug Fix
