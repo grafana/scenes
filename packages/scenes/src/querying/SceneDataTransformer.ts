@@ -111,18 +111,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     transformations: Array<DataTransformerConfig | CustomTransformerDefinition>
   ): {
     transformationCount: number;
-    dataFrameCount: number;
-    totalDataPoints: number;
     seriesTransformationCount: number;
     annotationTransformationCount: number;
   } {
     const transformationCount = transformations.length;
-    const dataFrameCount = data.series.length + (data.annotations?.length || 0);
-
-    // Calculate total data points across all series
-    const totalDataPoints = data.series.reduce((total, frame) => {
-      return total + frame.fields.reduce((frameTotal, field) => frameTotal + field.values.length, 0);
-    }, 0);
 
     // Count transformations by topic (series vs annotations)
     const seriesTransformationCount = transformations.filter((transformation) => {
@@ -141,8 +133,6 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     return {
       transformationCount,
-      dataFrameCount,
-      totalDataPoints,
       seriesTransformationCount,
       annotationTransformationCount,
     };
