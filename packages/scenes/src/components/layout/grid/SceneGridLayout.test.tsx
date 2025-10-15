@@ -1079,4 +1079,56 @@ describe('SceneGridLayout', () => {
       expect(rowBChild1.state!.y).toEqual(4);
     });
   });
+
+  describe('float gridPos handling', () => {
+    it('should preserve float values without rounding', () => {
+      const layout = new SceneGridLayout({
+        children: [
+          new SceneGridItem({
+            key: 'float-panel',
+            x: 2.3,
+            y: 1.7,
+            width: 4.8,
+            height: 6.5,
+            isDraggable: false,
+            isResizable: false,
+            body: new TestObject({}),
+          }),
+        ],
+        isLazy: false,
+      });
+
+      const gridCell = layout.toGridCell(layout.state.children[0]);
+
+      expect(gridCell.x).toBe(2.3);
+      expect(gridCell.y).toBe(1.7);
+      expect(gridCell.w).toBe(4.8);
+      expect(gridCell.h).toBe(6.5);
+    });
+
+    it('should default to DEFAULT_PANEL_SPAN for non-finite values and 0 for undefined position', () => {
+      const layoutWithNaN = new SceneGridLayout({
+        children: [
+          new SceneGridItem({
+            key: 'invalid',
+            x: undefined,
+            y: undefined,
+            width: NaN,
+            height: Infinity,
+            isDraggable: false,
+            isResizable: false,
+            body: new TestObject({}),
+          }),
+        ],
+        isLazy: false,
+      });
+
+      const gridCell = layoutWithNaN.toGridCell(layoutWithNaN.state.children[0]);
+
+      expect(gridCell.x).toBe(0);
+      expect(gridCell.y).toBe(0);
+      expect(gridCell.w).toBe(4); // DEFAULT_PANEL_SPAN
+      expect(gridCell.h).toBe(4); // DEFAULT_PANEL_SPAN
+    });
+  });
 });
