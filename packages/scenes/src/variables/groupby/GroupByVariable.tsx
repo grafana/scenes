@@ -219,7 +219,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return applicableValues;
   }
 
-  public async getGroupByApplicabilityForQueries(value: VariableValue, queries: SceneDataQuery[]) {
+  public async getGroupByApplicabilityForQueries(
+    value: VariableValue,
+    queries: SceneDataQuery[]
+  ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await getDataSource(this.state.datasource, {
       __sceneObject: wrapInSafeSerializableSceneObject(this),
     });

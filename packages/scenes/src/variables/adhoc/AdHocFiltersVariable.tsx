@@ -572,7 +572,10 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async getFiltersApplicabilityForQueries(filters: AdHocFilterWithLabels[], queries: SceneDataQuery[]) {
+  public async getFiltersApplicabilityForQueries(
+    filters: AdHocFilterWithLabels[],
+    queries: SceneDataQuery[]
+  ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getDrilldownsApplicability) {
