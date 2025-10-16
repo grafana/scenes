@@ -3,7 +3,6 @@ import { VizPanelRenderProfiler } from './VizPanelRenderProfiler';
 import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { SceneDataTransformer } from '../querying/SceneDataTransformer';
-// PanelPerformanceCollector removed - now using observer pattern
 
 // Mock writeSceneLog
 jest.mock('../utils/writeSceneLog', () => ({
@@ -48,7 +47,6 @@ describe('VizPanelRenderProfiler', () => {
   let panel: VizPanel;
   let profiler: VizPanelRenderProfiler;
   let performanceNowSpy: jest.SpyInstance;
-  // Collector spies removed - using observer pattern now
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -56,8 +54,6 @@ describe('VizPanelRenderProfiler', () => {
     // Mock performance.now()
     performanceNowSpy = jest.spyOn(performance, 'now');
     performanceNowSpy.mockReturnValue(1000);
-
-    // Collector spies removed - now using observer pattern for performance tracking
 
     // Create test panel
     panel = new VizPanel({

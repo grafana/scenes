@@ -317,8 +317,6 @@ export class SceneRenderProfiler {
 
       this.#trailAnimationFrameId = null;
 
-      // Profile completion - interaction context now handled by observer pattern
-
       const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
 
       // Guard against race condition where profile might be cancelled during execution
@@ -374,8 +372,6 @@ export class SceneRenderProfiler {
   public cancelProfile() {
     if (this.#profileInProgress) {
       writePerformanceLog('SRP', 'Cancelling profile', this.#profileInProgress);
-
-      // Profile cancelled - cleanup handled by observer pattern
 
       this.#profileInProgress = null;
       // Cancel any pending animation frame to prevent accessing null profileInProgress

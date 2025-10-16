@@ -28,7 +28,6 @@ export * from './core/types';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
 export * as behaviors from './behaviors';
-// PanelLifecyclePhase export removed - not used in observer pattern implementation
 export {
   type ScenePerformanceObserver,
   type BasePerformanceEvent,
@@ -87,10 +86,9 @@ export { registerRuntimeDataSource, RuntimeDataSource } from './querying/Runtime
 export type {
   SceneQueryControllerLike,
   SceneQueryControllerEntryType,
-  SceneQueryControllerEntry, // SceneInteractionProfileEvent export removed - replaced by observer pattern
+  SceneQueryControllerEntry,
 } from './behaviors/types';
 export { SceneRenderProfiler } from './behaviors/SceneRenderProfiler';
-// PanelProfilingConfig removed - internal implementation detail
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';

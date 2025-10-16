@@ -34,7 +34,6 @@ export interface SceneInteractionTrackerState extends SceneObjectState {
 export interface SceneQueryStateControllerState extends SceneObjectState {
   isRunning: boolean;
   enableProfiling?: boolean;
-  // onProfileComplete callback removed - replaced by observer pattern
 }
 
 export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateControllerState> {

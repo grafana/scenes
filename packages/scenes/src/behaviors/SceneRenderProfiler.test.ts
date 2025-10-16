@@ -459,7 +459,6 @@ describe('SceneRenderProfiler integration tests', () => {
       const frameDurations = [20, 50, 30, 40, 25]; // Expected duration: 140ms
       simulateVariableFrames(frameDurations);
 
-      // Performance measures now handled by observer pattern via ScenePerformanceLogger
       // Verify observer was notified instead of direct performance.measure call
       expectProfileCompletion(notifyMock, { origin: 'performance-measure-test', duration: 140 });
     });
@@ -652,7 +651,6 @@ describe('SceneRenderProfiler integration tests', () => {
       profiler.tryCompletingProfile();
       simulateAnimationFrames(3000, 16); // Trigger profile completion
 
-      // Performance measures now handled by observer pattern via ScenePerformanceLogger
       // Verify observer was notified of dashboard interaction completion
       expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -710,7 +708,6 @@ describe('SceneRenderProfiler integration tests', () => {
         simulateAnimationFrames(3000, 16); // Trigger profile completion
       }).not.toThrow();
 
-      // Performance measures now handled by observer pattern via ScenePerformanceLogger
       // Verify observer was notified of dashboard interaction completion
       expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -748,7 +745,6 @@ describe('SceneRenderProfiler integration tests', () => {
 
       // Verify all performance APIs were consumed correctly
       expect(global.performance.now).toHaveBeenCalled();
-      // Performance measures now handled by observer pattern via ScenePerformanceLogger
       expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
         expect.objectContaining({
           interactionType: 'complex-integration-test',
@@ -778,7 +774,6 @@ describe('SceneRenderProfiler integration tests', () => {
       // Verify all network-related performance APIs were called correctly
       expect(global.performance.getEntriesByType).toHaveBeenCalledWith('resource');
       expect(global.performance.clearResourceTimings).toHaveBeenCalled();
-      // Performance measures now handled by observer pattern via ScenePerformanceLogger
       expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
         expect.objectContaining({
           interactionType: 'network-operations-test',
@@ -933,8 +928,6 @@ describe('S5.0: Panel Metrics Collection', () => {
     const profiler = new SceneRenderProfiler();
     profiler.setQueryController(mockQueryController as any);
 
-    // Panel metrics collection now handled by observer pattern in analytics aggregator
-
     // Start and complete a profile
     profiler.startProfile('test-interaction');
     profiler.tryCompletingProfile();
@@ -953,7 +946,6 @@ describe('S5.0: Panel Metrics Collection', () => {
   it('should handle no query controller gracefully', () => {
     const profiler = new SceneRenderProfiler(); // No query controller
 
-    // Panel metrics collection moved to observer pattern - no direct access needed
     // Verify profiler can be created without query controller
     expect(profiler).toBeDefined();
   });
@@ -966,7 +958,6 @@ describe('S5.0: Panel Metrics Collection', () => {
     const profiler = new SceneRenderProfiler();
     profiler.setQueryController(mockQueryController as any);
 
-    // Panel metrics collection moved to observer pattern
     // Verify profiler initializes without errors
     expect(profiler).toBeDefined();
 
