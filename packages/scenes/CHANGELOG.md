@@ -1,3 +1,15 @@
+# v6.39.8 (Thu Oct 16 2025)
+
+#### 🐛 Bug Fix
+
+- SceneGridLayout: Preserve float gridPos values [#1275](https://github.com/grafana/scenes/pull/1275) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v6.39.7 (Wed Oct 15 2025)
 
 #### 🐛 Bug Fix
