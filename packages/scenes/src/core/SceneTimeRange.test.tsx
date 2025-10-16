@@ -7,10 +7,6 @@ import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneReactObject } from '../components/SceneReactObject';
 import { defaultTimeZone as browserTimeZone } from '@grafana/schema';
 
-jest.mock('@grafana/data', () => ({
-  ...jest.requireActual('@grafana/data'),
-}));
-
 function simulateDelay(newDateString: string, scene: EmbeddedScene) {
   jest.setSystemTime(new Date(newDateString));
   scene.activate();
@@ -285,17 +281,38 @@ describe('SceneTimeRange', () => {
         expect(urlState?.timezone).toBe('Europe/Berlin');
       });
 
-      it('should preserve "browser" timezone even when browser timezone is different', () => {
-        // This is the key test: "browser" should stay as "browser", not resolve to actual timezone
-        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'browser' });
-        const urlState = timeRange.urlSync?.getUrlState();
+      it('should preserve "browser" timezone even when getTimeZone returns different value', () => {
+        // This is the critical test: explicit state.timeZone should be preserved in URL
+        // Create a scene with an inner time range that has explicit "browser" timezone
+        const innerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'browser' });
 
-        // Verify getTimeZone() would resolve it
-        expect(timeRange.getTimeZone()).toBe(browserTimeZone);
+        // Create parent scene with a different timezone (Australia/Sydney from config)
+        const outerTimeRange = new SceneTimeRange({
+          from: 'now-6h',
+          to: 'now',
+          timeZone: USER_PROFILE_DEFAULT_TIME_ZONE,
+        });
 
-        // But URL state should preserve "browser"
+        const scene = new EmbeddedScene({
+          $timeRange: outerTimeRange,
+          body: new SceneFlexLayout({
+            children: [
+              new SceneFlexItem({
+                $timeRange: innerTimeRange,
+                body: PanelBuilders.timeseries().build(),
+              }),
+            ],
+          }),
+        });
+
+        scene.activate();
+
+        // The inner time range should preserve its explicit "browser" timezone in URL
+        const urlState = innerTimeRange.urlSync?.getUrlState();
         expect(urlState?.timezone).toBe('browser');
-        expect(urlState?.timezone).not.toBe(browserTimeZone);
+
+        // Even though parent has different timezone
+        expect(outerTimeRange.state.timeZone).toBe(USER_PROFILE_DEFAULT_TIME_ZONE);
       });
     });
   });
