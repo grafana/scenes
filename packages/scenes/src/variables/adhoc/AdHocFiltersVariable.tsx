@@ -11,7 +11,7 @@ import {
 } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
-import { ControlsLayout, SceneComponentProps } from '../../core/types';
+import { ControlsLayout, SceneComponentProps, SceneDataQuery } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
 import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
@@ -572,8 +572,10 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async _verifyApplicability() {
-    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+  public async getFiltersApplicabilityForQueries(filters: AdHocFilterWithLabels[], queries: SceneDataQuery[]) {
+    if (!filters.length || !queries.length) {
+      return;
+    }
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
@@ -581,21 +583,27 @@ export class AdHocFiltersVariable
       return;
     }
 
-    if (!filters) {
-      return;
-    }
-
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const response: DrilldownsApplicability[] = await ds.getDrilldownsApplicability({
+    return await ds.getDrilldownsApplicability({
       filters,
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
+  }
+
+  public async _verifyApplicability() {
+    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
+
+    if (!response) {
+      return;
+    }
 
     const responseMap = new Map<string, DrilldownsApplicability>();
     response.forEach((filter) => {

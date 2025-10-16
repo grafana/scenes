@@ -63,6 +63,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   hoverHeaderOffset?: number;
   /**
+   * Allows adding elements to the subheader of the panel.
+   */
+  subHeaderContent?: React.ReactNode | SceneObject | SceneObject[];
+  /**
    * Only shows vizPanelMenu on hover if false, otherwise the menu is always visible in the header
    */
   showMenuAlways?: boolean;

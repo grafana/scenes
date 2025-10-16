@@ -29,6 +29,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     hoverHeaderOffset,
     menu,
     headerActions,
+    subHeaderContent,
     titleItems,
     seriesLimit,
     seriesLimitShowAll,
@@ -101,6 +102,22 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // If we have a query runner on our level inform it of the container width (used to set auto max data points)
   if (dataObject && dataObject.setContainerWidth) {
     dataObject.setContainerWidth(Math.round(width));
+  }
+
+  let subHeaderElement: React.ReactNode[] = [];
+
+  if (subHeaderContent) {
+    if (Array.isArray(subHeaderContent)) {
+      subHeaderElement = subHeaderElement.concat(
+        subHeaderContent.map((subHeaderItem) => {
+          return <subHeaderItem.Component model={subHeaderItem} key={`${subHeaderItem.state.key}`} />;
+        })
+      );
+    } else if (isSceneObject(subHeaderContent)) {
+      subHeaderElement.push(<subHeaderContent.Component model={subHeaderContent} />);
+    } else {
+      subHeaderElement.push(subHeaderContent);
+    }
   }
 
   let titleItemsElement: React.ReactNode[] = [];
@@ -212,6 +229,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onFocus={setPanelAttention}
             onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
+            subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
             onDragStart={(e: React.PointerEvent) => {
               dragHooks.onDragStart?.(e, model);
             }}
