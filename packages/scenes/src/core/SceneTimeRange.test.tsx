@@ -289,10 +289,10 @@ describe('SceneTimeRange', () => {
         // This is the key test: "browser" should stay as "browser", not resolve to actual timezone
         const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'browser' });
         const urlState = timeRange.urlSync?.getUrlState();
-        
+
         // Verify getTimeZone() would resolve it
         expect(timeRange.getTimeZone()).toBe(browserTimeZone);
-        
+
         // But URL state should preserve "browser"
         expect(urlState?.timezone).toBe('browser');
         expect(urlState?.timezone).not.toBe(browserTimeZone);
