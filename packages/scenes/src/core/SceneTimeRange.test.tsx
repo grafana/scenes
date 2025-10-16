@@ -212,6 +212,92 @@ describe('SceneTimeRange', () => {
         expect(timeRange.getTimeZone()).toBe(browserTimeZone);
       });
     });
+
+    describe('getUrlState timezone preservation', () => {
+      it('should preserve explicit "browser" timezone in URL state', () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'browser' });
+        const urlState = timeRange.urlSync?.getUrlState();
+        expect(urlState?.timezone).toBe('browser');
+      });
+
+      it('should preserve explicit "UTC" timezone in URL state', () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'UTC' });
+        const urlState = timeRange.urlSync?.getUrlState();
+        expect(urlState?.timezone).toBe('UTC');
+      });
+
+      it('should preserve explicit IANA timezone in URL state', () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'America/New_York' });
+        const urlState = timeRange.urlSync?.getUrlState();
+        expect(urlState?.timezone).toBe('America/New_York');
+      });
+
+      it('should use resolved timezone when state.timeZone is undefined', () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+        const urlState = timeRange.urlSync?.getUrlState();
+        // When no explicit timezone is set, should resolve to browser timezone
+        expect(urlState?.timezone).toBe(browserTimeZone);
+      });
+
+      it('should preserve explicit timezone even when it matches resolved timezone', () => {
+        // Set explicit timezone to the same value as browser timezone
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: browserTimeZone });
+        const urlState = timeRange.urlSync?.getUrlState();
+        // Should still preserve the explicit value
+        expect(urlState?.timezone).toBe(browserTimeZone);
+      });
+
+      it('should resolve timezone from parent when state.timeZone is undefined', () => {
+        const outerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'America/New_York' });
+        const innerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+        const scene = new SceneFlexLayout({
+          $timeRange: outerTimeRange,
+          children: [
+            new SceneFlexItem({
+              $timeRange: innerTimeRange,
+              body: PanelBuilders.text().build(),
+            }),
+          ],
+        });
+        scene.activate();
+
+        const urlState = innerTimeRange.urlSync?.getUrlState();
+        // Should resolve to parent's timezone
+        expect(urlState?.timezone).toBe('America/New_York');
+      });
+
+      it('should preserve explicit timezone over parent timezone', () => {
+        const outerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'America/New_York' });
+        const innerTimeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'Europe/Berlin' });
+        const scene = new SceneFlexLayout({
+          $timeRange: outerTimeRange,
+          children: [
+            new SceneFlexItem({
+              $timeRange: innerTimeRange,
+              body: PanelBuilders.text().build(),
+            }),
+          ],
+        });
+        scene.activate();
+
+        const urlState = innerTimeRange.urlSync?.getUrlState();
+        // Should preserve own explicit timezone, not parent's
+        expect(urlState?.timezone).toBe('Europe/Berlin');
+      });
+
+      it('should preserve "browser" timezone even when browser timezone is different', () => {
+        // This is the key test: "browser" should stay as "browser", not resolve to actual timezone
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'browser' });
+        const urlState = timeRange.urlSync?.getUrlState();
+        
+        // Verify getTimeZone() would resolve it
+        expect(timeRange.getTimeZone()).toBe(browserTimeZone);
+        
+        // But URL state should preserve "browser"
+        expect(urlState?.timezone).toBe('browser');
+        expect(urlState?.timezone).not.toBe(browserTimeZone);
+      });
+    });
   });
 
   describe('delay now', () => {
