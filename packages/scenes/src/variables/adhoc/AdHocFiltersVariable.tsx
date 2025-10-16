@@ -602,7 +602,7 @@ export class AdHocFiltersVariable
     }
 
     const responseMap = new Map<string, DrilldownsApplicability>();
-    response.forEach((filter) => {
+    response.forEach((filter: DrilldownsApplicability) => {
       responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
     });
 
