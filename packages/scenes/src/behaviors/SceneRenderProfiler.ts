@@ -4,7 +4,6 @@ import { LongFrameDetector } from './LongFrameDetector';
 
 const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
 const DEFAULT_LONG_FRAME_THRESHOLD = 30; // Threshold for tail recording slow frames
-const TAB_INACTIVE_THRESHOLD = 1000; // Tab inactive threshold in ms
 
 /**
  * SceneRenderProfiler tracks dashboard interaction performance including:
@@ -236,14 +235,6 @@ export class SceneRenderProfiler {
   private measureTrailingFrames = (measurementStartTs: number, lastFrameTime: number, profileStartTs: number) => {
     const currentFrameTime = performance.now();
     const frameLength = currentFrameTime - lastFrameTime;
-
-    // Fallback: Detect if tab was inactive (frame longer than reasonable threshold)
-    // This serves as backup to Page Visibility API in case the event wasn't triggered
-    if (frameLength > TAB_INACTIVE_THRESHOLD) {
-      writeSceneLog('SceneRenderProfiler', 'Tab was inactive, cancelling profile measurement');
-      this.cancelProfile();
-      return;
-    }
 
     this.#recordedTrailingSpans.push(frameLength);
 
