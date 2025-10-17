@@ -34,7 +34,7 @@ import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSeriali
 import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIndicatorContainer';
 import { GroupByValueContainer, GroupByContainerProps } from './GroupByValueContainer';
 import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTracker';
-import { GROUPBY_DIMENSIONS_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionConstants';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */

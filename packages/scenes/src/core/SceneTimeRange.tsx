@@ -13,7 +13,7 @@ import { isValid } from '../utils/date';
 import { getQueryController } from './sceneGraph/getQueryController';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { isEmpty } from 'lodash';
-import { TIME_RANGE_CHANGE_INTERACTION } from '../behaviors/SceneRenderProfiler';
+import { TIME_RANGE_CHANGE_INTERACTION } from '../performance/interactionConstants';
 
 export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> implements SceneTimeRangeLike {
   protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['from', 'to', 'timezone', 'time', 'time.window'] });
