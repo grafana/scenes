@@ -557,6 +557,33 @@ describe('SceneDataTransformer', () => {
     expect(data?.annotations?.[0].fields[0].values[0]).toBe(100 + 4);
   });
 
+  it('includes annotations when there are no annotation transformations', () => {
+    //  multiply by 2, divide values by 100, multiply by 2, divide values by 100
+    const transformationNode = new SceneDataTransformer({
+      transformations: [transformer1config],
+      $data: sourceDataNode,
+    });
+
+    transformationNode.activate();
+
+    const stateUpdates = subscribeToStateUpdates(transformationNode);
+
+    sourceDataNode.setState({
+      data: {
+        state: LoadingState.Done,
+        timeRange: getDefaultTimeRange(),
+        series: [toDataFrame([[10, 10]])],
+        annotations: toAnnotationDataFrame([toDataFrame([[100, 10]])]),
+      },
+    });
+
+    const data = stateUpdates[0].data;
+    // Verify series are transformed
+    expect(data?.series[0].fields[0].values[0]).toBe(10 * 2);
+    // Verify annotations are passed through as-is
+    expect(data?.annotations?.[0].fields[0].values[0]).toBe(100);
+  });
+
   describe('With inner query runner', () => {
     it('should apply transformations to query results', async () => {
       const queryRunner = new SceneDataTransformer({
@@ -804,6 +831,14 @@ describe('SceneDataTransformer', () => {
           {
             fields: [
               { name: '0', config: {}, values: [100, 200, 300], type: 'number' },
+              { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
+            ],
+            length: 3,
+            meta: { dataTopic: 'annotations' },
+          },
+          {
+            fields: [
+              { name: '0', config: {}, values: [400, 500, 600], type: 'number' },
               { name: '1', config: {}, values: [1, 2, 3], type: 'number' },
             ],
             length: 3,
