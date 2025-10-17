@@ -40,6 +40,10 @@
       "splitter": {
         "aria-label-pane-resize-widget": "窗格大小调整小部件"
       },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
+      },
       "viz-panel": {
         "title": {
           "title": "标题"

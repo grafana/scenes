@@ -40,6 +40,10 @@
       "splitter": {
         "aria-label-pane-resize-widget": "Widget pro změnu velikosti panelu"
       },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
+      },
       "viz-panel": {
         "title": {
           "title": "Název"
