@@ -108,4 +108,77 @@ describe('timeMacros', () => {
     expect(sceneInterpolator(scene1, '${__interval_ms}')).toBe('${__interval_ms}');
     expect(sceneInterpolator(scene1, '$__interval_ms')).toBe('$__interval_ms');
   });
+
+  it('Date formatter should respect dashboard timezone when set to UTC', () => {
+    // Test with UTC timezone - April 1st 2023, 23:00 UTC
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({
+        from: '2023-04-01T23:00:00.000Z',
+        to: '2023-04-01T23:00:00.000Z',
+        timeZone: 'utc'
+      }),
+    });
+
+    // When dashboard is set to UTC, month should be 4 (April) regardless of browser timezone
+    expect(sceneInterpolator(scene, '${__to:date:M}')).toBe('4');
+    expect(sceneInterpolator(scene, '${__to:date:D}')).toBe('1');
+    expect(sceneInterpolator(scene, '${__to:date:YYYY-MM-DD}')).toBe('2023-04-01');
+  });
+
+  it('Date formatter should respect dashboard timezone when set to America/New_York', () => {
+    // Test with America/New_York timezone - April 1st 2023, 23:00 UTC = April 1st 19:00 EDT (UTC-4)
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({
+        from: '2023-04-01T23:00:00.000Z',
+        to: '2023-04-01T23:00:00.000Z',
+        timeZone: 'America/New_York'
+      }),
+    });
+
+    // In America/New_York timezone, this should still be April 1st (day 1) but hour should be 19
+    expect(sceneInterpolator(scene, '${__to:date:M}')).toBe('4');
+    expect(sceneInterpolator(scene, '${__to:date:D}')).toBe('1');
+    expect(sceneInterpolator(scene, '${__to:date:HH}')).toBe('19');
+  });
+
+  it('Date formatter should handle timezone correctly across month boundaries', () => {
+    // Test the specific bug case: March 31st 23:00 UTC
+    // In New York (UTC-4), this is still March 31st at 19:00
+    // But in Stockholm (UTC+2), this would be April 1st at 01:00
+    const utcScene = new TestScene({
+      $timeRange: new SceneTimeRange({
+        from: '2023-03-31T23:00:00.000Z',
+        to: '2023-03-31T23:00:00.000Z',
+        timeZone: 'utc'
+      }),
+    });
+
+    const nycScene = new TestScene({
+      $timeRange: new SceneTimeRange({
+        from: '2023-03-31T23:00:00.000Z',
+        to: '2023-03-31T23:00:00.000Z',
+        timeZone: 'America/New_York'
+      }),
+    });
+
+    const stockholmScene = new TestScene({
+      $timeRange: new SceneTimeRange({
+        from: '2023-03-31T23:00:00.000Z',
+        to: '2023-03-31T23:00:00.000Z',
+        timeZone: 'Europe/Stockholm'
+      }),
+    });
+
+    // UTC: March (month 3)
+    expect(sceneInterpolator(utcScene, '${__to:date:M}')).toBe('3');
+    expect(sceneInterpolator(utcScene, '${__to:date:D}')).toBe('31');
+
+    // NYC: Still March 31st at 19:00 (UTC-4)
+    expect(sceneInterpolator(nycScene, '${__to:date:M}')).toBe('3');
+    expect(sceneInterpolator(nycScene, '${__to:date:D}')).toBe('31');
+
+    // Stockholm: April 1st at 01:00 (UTC+2)
+    expect(sceneInterpolator(stockholmScene, '${__to:date:M}')).toBe('4');
+    expect(sceneInterpolator(stockholmScene, '${__to:date:D}')).toBe('1');
+  });
 });
