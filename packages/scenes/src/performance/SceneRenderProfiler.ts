@@ -1,5 +1,5 @@
 import { writePerformanceLog } from '../utils/writePerformanceLog';
-import { SceneQueryControllerLike, LongFrameEvent, SceneComponentInteractionEvent } from './types';
+import { SceneQueryControllerLike, LongFrameEvent, SceneComponentInteractionEvent } from '../behaviors/types';
 import {
   getScenePerformanceTracker,
   generateOperationId,

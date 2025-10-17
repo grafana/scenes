@@ -4,7 +4,7 @@ import {
   ADHOC_VALUES_DROPDOWN_INTERACTION,
   GROUPBY_DIMENSIONS_INTERACTION,
 } from './interactionConstants';
-import { SceneComponentInteractionEvent, SceneQueryControllerLike } from './types';
+import { SceneComponentInteractionEvent, SceneQueryControllerLike } from '../behaviors/types';
 // ScenePerformanceTracker imports handled via mocking
 
 // Mock writeSceneLog to prevent console noise in tests

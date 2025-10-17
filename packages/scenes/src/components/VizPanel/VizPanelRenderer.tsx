@@ -213,7 +213,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const context = model.getPanelContext();
   const panelId = model.getLegacyPanelId();
 
-  const panelContent = (
+  return (
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
@@ -285,8 +285,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       </div>
     </div>
   );
-
-  return panelContent;
 }
 
 function useDataWithSeriesLimit(data: PanelData | undefined, seriesLimit?: number, showAllSeries?: boolean) {

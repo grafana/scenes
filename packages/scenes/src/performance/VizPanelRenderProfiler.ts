@@ -3,7 +3,7 @@ import { SceneObjectState } from '../core/types';
 import { VizPanel } from '../components/VizPanel/VizPanel';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { sceneGraph } from '../core/sceneGraph';
-import { SceneQueryControllerEntry } from './types';
+import { SceneQueryControllerEntry } from '../behaviors/types';
 import { QueryProfilerLike } from '../querying/registerQueryWithController';
 import { getScenePerformanceTracker, generateOperationId } from './ScenePerformanceTracker';
 

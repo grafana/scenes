@@ -28,41 +28,8 @@ export * from './core/types';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
 export * as behaviors from './behaviors';
-export {
-  type ScenePerformanceObserver,
-  type BasePerformanceEvent,
-  type DashboardInteractionStartData,
-  type DashboardInteractionMilestoneData,
-  type DashboardInteractionCompleteData,
-  type PanelPerformanceData,
-  type PanelTransformPerformanceData,
-  type PanelQueryPerformanceData,
-  type PanelRenderPerformanceData,
-  type PanelPluginLoadPerformanceData,
-  type PanelFieldConfigPerformanceData,
-  type TransformMetadata,
-  type QueryMetadata,
-  type RenderMetadata,
-  type PluginLoadMetadata,
-  type FieldConfigMetadata,
-  type QueryPerformanceData,
-  getScenePerformanceTracker,
-  generateOperationId,
-} from './behaviors/ScenePerformanceTracker';
+export * as performanceUtils from './performance';
 export { writePerformanceLog } from './utils/writePerformanceLog';
-export {
-  REFRESH_INTERACTION,
-  TIME_RANGE_CHANGE_INTERACTION,
-  FILTER_ADDED_INTERACTION,
-  FILTER_REMOVED_INTERACTION,
-  FILTER_CHANGED_INTERACTION,
-  FILTER_RESTORED_INTERACTION,
-  VARIABLE_VALUE_CHANGED_INTERACTION,
-  SCOPES_CHANGED_INTERACTION,
-  ADHOC_KEYS_DROPDOWN_INTERACTION,
-  ADHOC_VALUES_DROPDOWN_INTERACTION,
-  GROUPBY_DIMENSIONS_INTERACTION,
-} from './behaviors/interactionConstants';
 export * as dataLayers from './querying/layers';
 
 export { SceneObjectBase, useSceneObjectState } from './core/SceneObjectBase';
@@ -88,7 +55,6 @@ export type {
   SceneQueryControllerEntryType,
   SceneQueryControllerEntry,
 } from './behaviors/types';
-export { SceneRenderProfiler } from './behaviors/SceneRenderProfiler';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';

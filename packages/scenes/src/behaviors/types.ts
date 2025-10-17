@@ -16,7 +16,7 @@ export interface SceneQueryControllerEntry {
 export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' | 'alerts' | 'plugin' | string;
 
 // Long Frame Detection types (re-exported from LongFrameDetector)
-export type { LongFrameEvent, LongFrameCallback } from './LongFrameDetector';
+export type { LongFrameEvent, LongFrameCallback } from '../performance/LongFrameDetector';
 
 export interface SceneComponentInteractionEvent {
   origin: string;

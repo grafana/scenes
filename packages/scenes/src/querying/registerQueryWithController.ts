@@ -2,7 +2,7 @@ import { Observable, catchError, from, map } from 'rxjs';
 import { LoadingState } from '@grafana/schema';
 import { sceneGraph } from '../core/sceneGraph';
 import { QueryResultWithState, SceneQueryControllerEntry } from '../behaviors/types';
-import { getScenePerformanceTracker, generateOperationId } from '../behaviors/ScenePerformanceTracker';
+import { getScenePerformanceTracker, generateOperationId } from '../performance';
 
 // Forward declaration to avoid circular imports
 export interface QueryProfilerLike {

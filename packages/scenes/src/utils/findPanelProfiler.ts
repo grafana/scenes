@@ -1,7 +1,7 @@
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject } from '../core/types';
 import { VizPanel } from '../components/VizPanel/VizPanel';
-import { VizPanelRenderProfiler } from '../behaviors/VizPanelRenderProfiler';
+import { VizPanelRenderProfiler } from '../performance/VizPanelRenderProfiler';
 
 /**
  * Find VizPanelRenderProfiler for a scene object by traversing up to find VizPanel ancestor.
