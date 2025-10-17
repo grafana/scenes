@@ -40,6 +40,10 @@
       "splitter": {
         "aria-label-pane-resize-widget": "Widget för storleksändring av ruta"
       },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
+      },
       "viz-panel": {
         "title": {
           "title": "Titel"

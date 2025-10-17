@@ -40,6 +40,10 @@
       "splitter": {
         "aria-label-pane-resize-widget": "Виджет изменения размера панелей"
       },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
+      },
       "viz-panel": {
         "title": {
           "title": "Заголовок"

@@ -40,6 +40,10 @@
       "splitter": {
         "aria-label-pane-resize-widget": "Bölme yeniden boyutlandırma widget'ı"
       },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
+      },
       "viz-panel": {
         "title": {
           "title": "Başlık"
