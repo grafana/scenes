@@ -235,9 +235,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       pluginId: this._pluginId!,
       operation: 'fieldConfig',
       timestamp: this._applyFieldConfigStartTime,
-      metadata: {
-        // Initial metadata - will be updated on completion with actual counts
-      },
+      metadata: {},
     });
 
     // Return end callback with captured operationId and panel context
@@ -358,8 +356,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     transformationId: string,
     metrics: {
       transformationCount: number;
-      // dataFrameCount: number;
-      // totalDataPoints: number;
       seriesTransformationCount: number;
       annotationTransformationCount: number;
     }
@@ -369,8 +365,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         duration: number,
         success: boolean,
         result?: {
-          // outputSeriesCount?: number;
-          // outputAnnotationsCount?: number;
           error?: string;
         }
       ) => void)
@@ -390,8 +384,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       metadata: {
         transformationId,
         transformationCount: metrics.transformationCount,
-        // dataFrameCount: metrics.dataFrameCount,
-        // totalDataPoints: metrics.totalDataPoints,
         seriesTransformationCount: metrics.seriesTransformationCount,
         annotationTransformationCount: metrics.annotationTransformationCount,
       },
@@ -427,10 +419,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
           annotationTransformationCount: metrics.annotationTransformationCount,
           success,
           error: result?.error || (!success ? 'Transform operation failed' : undefined),
-          // dataFrameCount: metrics.dataFrameCount,
-          // totalDataPoints: metrics.totalDataPoints,
-          // outputSeriesCount: result?.outputSeriesCount,
-          // outputAnnotationsCount: result?.outputAnnotationsCount,
         },
       });
     };

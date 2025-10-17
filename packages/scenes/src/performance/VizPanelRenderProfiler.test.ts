@@ -87,7 +87,6 @@ describe('VizPanelRenderProfiler', () => {
 
       expect(panel.getLegacyPanelId).toHaveBeenCalled();
       expect(panel.getPlugin).toHaveBeenCalled();
-      // Observer pattern now handles panel tracking - no direct collector calls
     });
 
     it('should handle missing panel gracefully', () => {

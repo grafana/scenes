@@ -360,7 +360,6 @@ export class SceneRenderProfiler {
     }
   }
 
-  // cancel profile
   public cancelProfile() {
     if (this.#profileInProgress) {
       writePerformanceLog('SRP', 'Cancelling profile', this.#profileInProgress);
@@ -383,7 +382,6 @@ export class SceneRenderProfiler {
 
   public addCrumb(crumb: string) {
     if (this.#profileInProgress) {
-      // writeSceneLog('SRP', 'Adding crumb:', crumb);
       // Notify performance observers of milestone
       getScenePerformanceTracker().notifyDashboardInteractionMilestone({
         operationId: generateOperationId('dashboard-milestone'),
@@ -462,5 +460,3 @@ export function calculateNetworkTime(requests: PerformanceResourceTiming[]): num
 
   return totalNetworkTime;
 }
-
-// Constants moved to ./interactionConstants.ts to avoid circular dependencies

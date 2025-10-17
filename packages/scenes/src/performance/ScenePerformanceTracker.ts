@@ -44,10 +44,6 @@ export interface TransformMetadata {
   annotationTransformationCount: number;
   success?: boolean;
   error?: string;
-  // dataFrameCount: number;
-  // totalDataPoints: number;
-  // outputSeriesCount?: number;
-  // outputAnnotationsCount?: number;
 }
 
 /** Metadata interface for query operations */
@@ -69,13 +65,7 @@ export interface PluginLoadMetadata {
 }
 
 /** Metadata interface for field config operations */
-export interface FieldConfigMetadata {
-  // dataPointsCount?: number;
-  // seriesCount?: number;
-  // fieldCount?: number;
-  // overrideCount?: number;
-  // mappingCount?: number;
-}
+export interface FieldConfigMetadata {}
 
 /** Base interface for panel performance events */
 interface BasePanelPerformanceData extends BasePerformanceEvent {
