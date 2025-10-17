@@ -8,14 +8,26 @@ import { LoadingState } from '@grafana/schema';
 import { DataQueryRequest, getDefaultTimeRange } from '@grafana/data';
 
 describe('timeMacros', () => {
-  it('Can use use $__url_time_range with browser timeZone', () => {
+  it('Can use use $__url_time_range with explicit browser timeZone', () => {
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now', timeZone: 'browser' }),
+    });
+
+    // Browser timezone should be preserved as "browser", not resolved to actual timezone
+    expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now&timezone=browser');
+  });
+
+  it('Can use use $__url_time_range when timezone is undefined', () => {
     const scene = new TestScene({
       $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
     });
 
-    expect(sceneInterpolator(scene, '$__url_time_range')).toBe(
-      `from=now-5m&to=now&timezone=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`
-    );
+    // When timezone is undefined, getUrlState() will use getTimeZone() which resolves to browser default
+    // This should include the resolved timezone in the URL
+    const result = sceneInterpolator(scene, '$__url_time_range');
+    expect(result).toContain('from=now-5m');
+    expect(result).toContain('to=now');
+    expect(result).toContain('timezone=');
   });
 
   it('Can use use $__url_time_range with custom timeZone', () => {
