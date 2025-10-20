@@ -2,15 +2,13 @@ import { Observable, catchError, from, map } from 'rxjs';
 import { LoadingState } from '@grafana/schema';
 import { sceneGraph } from '../core/sceneGraph';
 import { QueryResultWithState, SceneQueryControllerEntry } from '../behaviors/types';
-import { getScenePerformanceTracker, generateOperationId } from '../performance';
+import { getScenePerformanceTracker, generateOperationId } from '../performance/ScenePerformanceTracker';
 
-// Forward declaration to avoid circular imports
+// Import performance callback types
+import { QueryCompletionCallback } from '../performance/types';
+
 export interface QueryProfilerLike {
-  onQueryStarted(
-    timestamp: number,
-    entry: SceneQueryControllerEntry,
-    queryId: string
-  ): ((endTimestamp: number, error?: any) => void) | null;
+  onQueryStarted(timestamp: number, entry: SceneQueryControllerEntry, queryId: string): QueryCompletionCallback | null;
 }
 
 /**
@@ -36,7 +34,7 @@ export function registerQueryWithController<T extends QueryResultWithState>(
       const queryId = entry.request?.requestId || `${entry.type}-${Math.floor(performance.now()).toString(36)}`;
 
       const startTimestamp = performance.now();
-      let endQueryCallback: ((endTimestamp: number, error?: any) => void) | null = null;
+      let endQueryCallback: QueryCompletionCallback | null = null;
 
       if (profiler) {
         // Panel query: Use panel profiler

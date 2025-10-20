@@ -5,6 +5,13 @@ import { writeSceneLog } from '../utils/writeSceneLog';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneQueryControllerEntry } from '../behaviors/types';
 import { QueryProfilerLike } from '../querying/registerQueryWithController';
+import {
+  QueryCompletionCallback,
+  PluginLoadCompletionCallback,
+  FieldConfigCompletionCallback,
+  RenderCompletionCallback,
+  DataTransformCompletionCallback,
+} from './types';
 import { getScenePerformanceTracker, generateOperationId } from './ScenePerformanceTracker';
 
 export interface VizPanelRenderProfilerState extends SceneObjectState {}
@@ -86,7 +93,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     timestamp: number,
     entry: SceneQueryControllerEntry,
     queryId: string
-  ): ((endTimestamp: number, error?: any) => void) | null {
+  ): QueryCompletionCallback | null {
     if (!this._panelKey) {
       return null;
     }
@@ -111,7 +118,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     });
 
     // Return end callback with captured operationId and query context
-    const callback = (endTimestamp: number, error?: any) => {
+    return (endTimestamp: number, error?: any) => {
       if (!this._panelKey) {
         return;
       }
@@ -140,13 +147,12 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         error: error ? error?.message || String(error) || 'Unknown error' : undefined,
       });
     };
-    return callback;
   }
 
   /**
    * Track plugin loading with operation ID correlation
    */
-  public onPluginLoadStart(pluginId: string): ((plugin: any, fromCache?: boolean) => void) | null {
+  public onPluginLoadStart(pluginId: string): PluginLoadCompletionCallback | null {
     // Initialize early since plugin loading happens before _onActivate
     if (!this._panelKey) {
       let panel: VizPanel | undefined;
@@ -188,7 +194,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     });
 
     // Return end callback with captured operationId and panel context
-    const callback = (plugin: any, fromCache = false) => {
+    return (plugin: any, fromCache = false) => {
       if (!this._panelKey || !this._loadPluginStartTime) {
         return;
       }
@@ -212,15 +218,12 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
 
       this._loadPluginStartTime = undefined;
     };
-    return callback;
   }
 
   /**
    * Track field config processing with operation ID correlation
    */
-  public onFieldConfigStart(
-    timestamp: number
-  ): ((endTimestamp: number, dataPointsCount?: number, seriesCount?: number) => void) | null {
+  public onFieldConfigStart(timestamp: number): FieldConfigCompletionCallback | null {
     if (!this._panelKey) {
       return null;
     }
@@ -239,7 +242,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     });
 
     // Return end callback with captured operationId and panel context
-    const callback = (endTimestamp: number, dataPointsCount?: number, seriesCount?: number) => {
+    return (endTimestamp: number, dataPointsCount?: number, seriesCount?: number) => {
       if (!this._panelKey || !this._applyFieldConfigStartTime) {
         return;
       }
@@ -259,7 +262,6 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
 
       this._applyFieldConfigStartTime = undefined;
     };
-    return callback;
   }
 
   /**
@@ -286,7 +288,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
   /**
    * Track simple render timing with operation ID correlation
    */
-  public onSimpleRenderStart(timestamp: number): ((endTimestamp: number, duration: number) => void) | undefined {
+  public onSimpleRenderStart(timestamp: number): RenderCompletionCallback | undefined {
     if (!this._panelKey) {
       return undefined;
     }
@@ -359,16 +361,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
       seriesTransformationCount: number;
       annotationTransformationCount: number;
     }
-  ):
-    | ((
-        endTimestamp: number,
-        duration: number,
-        success: boolean,
-        result?: {
-          error?: string;
-        }
-      ) => void)
-    | null {
+  ): DataTransformCompletionCallback | null {
     if (!this._panelKey) {
       return null;
     }
@@ -390,7 +383,7 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
     });
 
     // Return end callback with captured operationId and panel context
-    const callback = (
+    return (
       endTimestamp: number,
       duration: number,
       success: boolean,
@@ -422,6 +415,5 @@ export class VizPanelRenderProfiler extends SceneObjectBase<VizPanelRenderProfil
         },
       });
     };
-    return callback;
   }
 }
