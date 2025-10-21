@@ -33,6 +33,11 @@
         "collapse-row": "Collapse row",
         "expand-row": "Expand row"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Cancel",
+        "text-refresh": "Refresh",
+        "tooltip-cancel": "Cancel all queries"
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparison",
         "button-tooltip": "Enable time frame comparison"
