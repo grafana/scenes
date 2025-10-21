@@ -4,9 +4,10 @@
  */
 
 /** Generate unique operation IDs for correlating start/complete events */
-let operationCounter = 0;
 export function generateOperationId(prefix = 'op'): string {
-  return `${prefix}-${Date.now()}-${++operationCounter}`;
+  // Use crypto.randomUUID() for true uniqueness without global state
+  const uuid = crypto.randomUUID();
+  return `${prefix}-${uuid}`;
 }
 
 /** Base interface for all performance events */
