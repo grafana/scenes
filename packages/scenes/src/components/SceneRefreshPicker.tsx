@@ -212,7 +212,12 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   const { refresh, intervals, autoEnabled, autoValue, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
-  let text = refresh === RefreshPicker.autoOption?.value ? autoValue : withText ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh') : undefined;
+  let text =
+    refresh === RefreshPicker.autoOption?.value
+      ? autoValue
+      : withText
+      ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
+      : undefined;
   let tooltip: string | undefined;
   let width: string | undefined;
 
