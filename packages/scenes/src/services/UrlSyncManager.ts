@@ -138,7 +138,6 @@ export class UrlSyncManager implements UrlSyncManagerLike {
       return;
     }
 
-    console.log('UrlSyncManager handleSceneObjectStateChanged called for', changedObject.state.key);
     const newUrlState = changedObject.urlSync.getUrlState();
 
     const searchParams = this._locationService.getSearch();

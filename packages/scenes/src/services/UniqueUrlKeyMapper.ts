@@ -1,4 +1,3 @@
-import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject } from '../core/types';
 
 export interface SceneObjectWithDepth {
@@ -47,7 +46,7 @@ export class UniqueUrlKeyMapper {
 
     let address = objectsWithKey.findIndex((o) => o === obj);
     if (address === -1) {
-      filterOutOrphanedObjects(objectsWithKey);
+      filterOutOrphanedObjects(objectsWithKey, obj.getRoot());
       objectsWithKey.push(obj);
 
       address = objectsWithKey.length - 1;
@@ -65,23 +64,34 @@ export class UniqueUrlKeyMapper {
   }
 }
 
-function filterOutOrphanedObjects(sceneObjects: SceneObject[]) {
-  console.log('filterOutOrphanedObjects called');
-  for (const obj of sceneObjects) {
-    if (isOrphanOrInActive(obj)) {
-      const index = sceneObjects.indexOf(obj);
-      sceneObjects.splice(index, 1);
+function filterOutOrphanedObjects(sceneObjects: SceneObject[], root: SceneObject) {
+  for (let i = 0; i < sceneObjects.length; i++) {
+    const obj = sceneObjects[i];
+    if (isOrphan(obj, root)) {
+      sceneObjects.splice(i, 1);
+      i--; // Decrement i to account for the removed element
     }
   }
 }
 
-function isOrphanOrInActive(obj: SceneObject) {
-  const root = obj.getRoot();
+function isOrphan(obj: SceneObject, root: SceneObject) {
+  if (!obj.parent) {
+    return false;
+  }
 
-  // If we cannot find it from the root it's an orphan
-  if (!sceneGraph.findObject(root, (child) => child === obj)) {
+  let found = false;
+
+  obj.parent.forEachChild((child) => {
+    if (child === obj) {
+      found = true;
+      return false; // stop iteration
+    }
+  });
+
+  // If we did not find the object among its parent's children it's an orphan
+  if (!found) {
     return true;
   }
 
-  return false;
+  return isOrphan(obj.parent, root);
 }

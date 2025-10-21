@@ -163,7 +163,6 @@ export class SceneTimeRangeCompare
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
-    console.log('SceneTimeRangeCompare updateFromUrl called');
     if (!values.compareWith) {
       return;
     }
