@@ -66,6 +66,7 @@ export class UniqueUrlKeyMapper {
 }
 
 function filterOutOrphanedObjects(sceneObjects: SceneObject[]) {
+  console.log('filterOutOrphanedObjects called');
   for (const obj of sceneObjects) {
     if (isOrphanOrInActive(obj)) {
       const index = sceneObjects.indexOf(obj);
