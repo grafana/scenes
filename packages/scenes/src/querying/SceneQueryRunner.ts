@@ -482,7 +482,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         stream = forkJoin([stream, ...secondaryStreams]).pipe(op);
       }
 
-      // S3.0 LIFECYCLE INTEGRATION: Find VizPanel profiler for query tracking
       const panelProfiler: QueryProfilerLike | undefined = findPanelProfiler(this);
 
       stream = stream.pipe(

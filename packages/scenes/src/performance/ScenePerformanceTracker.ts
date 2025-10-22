@@ -6,8 +6,14 @@
 /** Generate unique operation IDs for correlating start/complete events */
 export function generateOperationId(prefix = 'op'): string {
   // Use crypto.randomUUID() for true uniqueness without global state
-  const uuid = crypto.randomUUID();
-  return `${prefix}-${uuid}`;
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    const uuid = crypto.randomUUID();
+    return `${prefix}-${uuid}`;
+  }
+
+  // Fallback for environments without crypto.randomUUID support
+  const randomPart = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  return `${prefix}-${randomPart}`;
 }
 
 /** Base interface for all performance events */
