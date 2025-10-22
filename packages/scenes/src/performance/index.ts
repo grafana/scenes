@@ -9,4 +9,5 @@ export {
   type DashboardInteractionMilestoneData,
   type DashboardInteractionCompleteData,
   type PanelPerformanceData,
+  type QueryPerformanceData,
 } from './ScenePerformanceTracker';
