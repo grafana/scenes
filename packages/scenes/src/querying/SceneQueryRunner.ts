@@ -39,8 +39,9 @@ import { isExtraQueryProvider, ExtraQueryDataProcessor, ExtraQueryProvider } fro
 import { passthroughProcessor, extraQueryProcessingOperator } from './extraQueryProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
-import { registerQueryWithController } from './registerQueryWithController';
+import { registerQueryWithController, QueryProfilerLike } from './registerQueryWithController';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
+import { findPanelProfiler } from '../utils/findPanelProfiler';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
@@ -481,13 +482,18 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         stream = forkJoin([stream, ...secondaryStreams]).pipe(op);
       }
 
+      const panelProfiler: QueryProfilerLike | undefined = findPanelProfiler(this);
+
       stream = stream.pipe(
-        registerQueryWithController({
-          type: 'SceneQueryRunner/runQueries',
-          request: primary,
-          origin: this,
-          cancel: () => this.cancelQuery(),
-        })
+        registerQueryWithController(
+          {
+            type: 'SceneQueryRunner/runQueries',
+            request: primary,
+            origin: this,
+            cancel: () => this.cancelQuery(),
+          },
+          panelProfiler
+        )
       );
 
       this._querySub = stream.subscribe(this.onDataReceived);

@@ -1,7 +1,7 @@
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneStatelessBehavior } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
-import { SceneRenderProfiler } from './SceneRenderProfiler';
+import { SceneRenderProfiler } from '../performance/SceneRenderProfiler';
 import { SceneQueryControllerEntry, SceneQueryControllerLike, SceneQueryStateControllerState } from './types';
 
 export function isQueryController(s: SceneObject | SceneStatelessBehavior): s is SceneQueryControllerLike {

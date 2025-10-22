@@ -6,6 +6,13 @@ import { SceneQueryController } from './SceneQueryController';
 import { registerQueryWithController } from '../querying/registerQueryWithController';
 import { QueryResultWithState } from './types';
 
+// Mock crypto.randomUUID for generateOperationId
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: jest.fn(() => 'test-uuid-1234-5678-9abc-def012345678'),
+  },
+});
+
 describe('SceneQueryController', () => {
   let controller: SceneQueryController;
   let scene: SceneObject;
