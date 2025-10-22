@@ -75,6 +75,7 @@ function filterOutOrphanedObjects(sceneObjects: SceneObject[], root: SceneObject
 }
 
 function isOrphan(obj: SceneObject, root: SceneObject) {
+  // We don't consider objects without parents to be orphan as they can be top-level scene objects
   if (!obj.parent) {
     return false;
   }
@@ -86,6 +87,7 @@ function isOrphan(obj: SceneObject, root: SceneObject) {
       found = true;
       return false; // stop iteration
     }
+    return;
   });
 
   // If we did not find the object among its parent's children it's an orphan

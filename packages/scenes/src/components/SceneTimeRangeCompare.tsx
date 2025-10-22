@@ -156,7 +156,6 @@ export class SceneTimeRangeCompare
   }
 
   public getUrlState(): SceneObjectUrlValues {
-    console.log('SceneTimeRangeCompare getUrlState called');
     return {
       compareWith: this.state.compareWith,
     };
