@@ -10,12 +10,11 @@ import { DataQueryRequest, getDefaultTimeRange } from '@grafana/data';
 describe('timeMacros', () => {
   it('Can use use $__url_time_range with browser timeZone', () => {
     const scene = new TestScene({
-      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now', timeZone: 'browser' }),
     });
 
-    expect(sceneInterpolator(scene, '$__url_time_range')).toBe(
-      `from=now-5m&to=now&timezone=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`
-    );
+    // Browser timezone should be preserved as "browser", not resolved to actual timezone
+    expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now&timezone=browser');
   });
 
   it('Can use use $__url_time_range with custom timeZone', () => {
