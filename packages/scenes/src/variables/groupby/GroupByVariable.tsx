@@ -11,7 +11,7 @@ import {
 } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
-import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
+import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler, SceneDataQuery } from '../../core/types';
 import { sceneGraph } from '../../core/sceneGraph';
 import {
   SceneVariableValueChangedEvent,
@@ -219,7 +219,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return applicableValues;
   }
 
-  public async _verifyApplicability() {
+  public async getGroupByApplicabilityForQueries(
+    value: VariableValue,
+    queries: SceneDataQuery[]
+  ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await getDataSource(this.state.datasource, {
       __sceneObject: wrapInSafeSerializableSceneObject(this),
     });
@@ -229,18 +232,27 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       return;
     }
 
-    const queries = getQueriesForVariables(this);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const value = this.state.value;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const response = await ds.getDrilldownsApplicability({
+    return await ds.getDrilldownsApplicability({
       groupByKeys: Array.isArray(value) ? value.map((v) => String(v)) : value ? [String(value)] : [],
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
+  }
+
+  public async _verifyApplicability() {
+    const queries = getQueriesForVariables(this);
+    const value = this.state.value;
+
+    const response = await this.getGroupByApplicabilityForQueries(value, queries);
+
+    if (!response) {
+      return;
+    }
 
     if (!isEqual(response, this.state.keysApplicability)) {
       this.setState({ keysApplicability: response ?? undefined });
