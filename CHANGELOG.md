@@ -1,3 +1,16 @@
+# v6.40.0 (Thu Oct 23 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - UrlSyncManager: Fixes performance issue with unique key logic [#1281](https://github.com/grafana/scenes/pull/1281) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.39.9 (Thu Oct 23 2025)
 
 #### 🐛 Bug Fix
