@@ -1,3 +1,18 @@
+# v6.39.9 (Thu Oct 23 2025)
+
+#### 🐛 Bug Fix
+
+- Internationalisation: Translate RefreshPicker text [#1282](https://github.com/grafana/scenes/pull/1282) ([@ashharrison90](https://github.com/ashharrison90))
+- I18n: Download translations from Crowdin [#1251](https://github.com/grafana/scenes/pull/1251) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 3
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v6.39.8 (Thu Oct 16 2025)
 
 #### 🐛 Bug Fix
