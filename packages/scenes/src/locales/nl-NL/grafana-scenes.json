@@ -40,6 +40,10 @@
       "splitter": {
         "aria-label-pane-resize-widget": "Grootte widget wijzigen"
       },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
+      },
       "viz-panel": {
         "title": {
           "title": "Titel"

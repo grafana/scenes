@@ -40,6 +40,10 @@
       "splitter": {
         "aria-label-pane-resize-widget": "Widget pengubah ukuran panel"
       },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
+      },
       "viz-panel": {
         "title": {
           "title": "Judul"

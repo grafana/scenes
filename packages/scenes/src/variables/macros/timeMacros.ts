@@ -20,8 +20,6 @@ export class UrlTimeRangeMacro implements FormatVariable {
   public getValue(): SkipFormattingValue {
     const timeRange = getTimeRange(this._sceneObject);
     const urlState = timeRange.urlSync?.getUrlState();
-    // Preserve timezone as-is, including semantic values like "browser"
-    // This ensures dashboard links maintain the original timezone setting
     return new SkipFormattingValue(urlUtil.toUrlParams(urlState));
   }
 
