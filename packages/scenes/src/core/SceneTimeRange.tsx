@@ -195,13 +195,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
 
   public getUrlState() {
     const params = locationService.getSearchObject();
-    // Use state.timeZone if explicitly set, otherwise use getTimeZone() to resolve from parent or default
-    // This preserves explicit timezone values like "browser" instead of resolving them
-    const urlValues: SceneObjectUrlValues = {
-      from: this.state.from,
-      to: this.state.to,
-      timezone: this.state.timeZone !== undefined ? this.state.timeZone : this.getTimeZone(),
-    };
+    const urlValues: SceneObjectUrlValues = { from: this.state.from, to: this.state.to, timezone: this.getTimeZone() };
 
     // Clear time and time.window once they are converted to from and to
     if (params.time && params['time.window']) {
