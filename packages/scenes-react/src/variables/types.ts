@@ -7,4 +7,5 @@ export interface VariableProps {
   hide?: VariableHide;
   initialValue?: VariableValue;
   skipUrlSync?: boolean;
+  allValue?: string;
 }
