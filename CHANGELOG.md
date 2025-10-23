@@ -1,3 +1,16 @@
+# v6.40.1 (Thu Oct 23 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - UrlTimeRangeMacro: Dashboard links not preserving browser timezone [#1279](https://github.com/grafana/scenes/pull/1279) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v6.40.0 (Thu Oct 23 2025)
 
 #### 🚀 Enhancement
