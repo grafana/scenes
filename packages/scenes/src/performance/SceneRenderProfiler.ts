@@ -309,6 +309,25 @@ export class SceneRenderProfiler {
 
       this.#trailAnimationFrameId = null;
 
+      // Notify actual interaction completion (including slow frames)
+      if (this.#profileInProgress) {
+        getScenePerformanceTracker().notifyDashboardInteractionMilestone({
+          operationId: this.#currentOperationId,
+          interactionType: this.#profileInProgress.origin,
+          timestamp: profileStartTs + profileDuration + slowFramesTime,
+          milestone: 'actual_interaction_complete',
+          metadata: {
+            ...this.metadata,
+            actualDuration: profileDuration + slowFramesTime,
+            slowFramesTime: slowFramesTime,
+            slowFramesCount: slowFrames.length,
+            longFramesTime: this.#longFramesTotalTime,
+            longFramesCount: this.#longFramesCount,
+          },
+        });
+      }
+
+      // Profile completion - interaction context now handled by observer pattern
       const profileEndTs = profileStartTs + profileDuration + slowFramesTime;
 
       // Guard against race condition where profile might be cancelled during execution
@@ -343,7 +362,20 @@ export class SceneRenderProfiler {
   public tryCompletingProfile() {
     writePerformanceLog('SRP', 'Trying to complete profile', this.#profileInProgress);
     if (this.queryController?.runningQueriesCount() === 0 && this.#profileInProgress) {
-      writePerformanceLog('SRP', 'All queries completed, stopping profile');
+      writePerformanceLog('SRP', 'All queries completed, starting tail recording');
+
+      // Notify that all queries are complete
+      getScenePerformanceTracker().notifyDashboardInteractionMilestone({
+        operationId: this.#currentOperationId,
+        interactionType: this.#profileInProgress.origin,
+        timestamp: performance.now(),
+        milestone: 'queries_complete',
+        metadata: {
+          ...this.metadata,
+          queriesDuration: performance.now() - this.#profileStartTs,
+        },
+      });
+
       this.recordProfileTail(performance.now(), this.#profileStartTs!);
     }
   }
