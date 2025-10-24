@@ -1,29 +1,29 @@
 import React, { forwardRef, useLayoutEffect } from 'react';
-import { AdHocFiltersVariable } from '../AdHocFiltersVariable';
+import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 
 interface Props {
-  model: AdHocFiltersVariable;
+  controller: AdHocFiltersController;
 }
 
 export const AdHocFiltersAlwaysWipCombobox = forwardRef(function AdHocFiltersAlwaysWipCombobox(
-  { model }: Props,
+  { controller }: Props,
   // pass ability to focus on input element back to parent
   //    parentRef is coming from AdHocFiltersComboboxRenderer
   //    parentRef is mutated through useImperativeHandle in AdHocCombobox
   parentRef
 ) {
-  const { _wip } = model.useState();
+  const { wip } = controller.useState();
 
-  // when combobox is in wip mode then check and add _wip if its missing
-  //    needed on first render and when _wip is reset on filter value commit
+  // when combobox is in wip mode then check and add wip if its missing
+  //    needed on first render and when wip is reset on filter value commit
   useLayoutEffect(() => {
-    if (!_wip) {
-      model._addWip();
+    if (!wip) {
+      controller.addWip();
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [_wip]);
+  }, [wip]);
 
-  return <AdHocCombobox model={model} filter={_wip} isAlwaysWip ref={parentRef} />;
+  return <AdHocCombobox controller={controller} filter={wip} isAlwaysWip ref={parentRef} />;
 });
