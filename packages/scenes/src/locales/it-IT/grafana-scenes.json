@@ -33,6 +33,11 @@
         "collapse-row": "Riduci riga",
         "expand-row": "Espandi riga"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Confronto",
         "button-tooltip": "Abilita confronto intervallo di tempo"

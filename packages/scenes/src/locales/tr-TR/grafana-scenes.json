@@ -33,6 +33,11 @@
         "collapse-row": "Satırı daralt",
         "expand-row": "Satırı genişlet"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Karşılaştırma",
         "button-tooltip": "Zaman dilimi karşılaştırmasını etkinleştir"

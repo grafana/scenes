@@ -33,6 +33,11 @@
         "collapse-row": "折叠行",
         "expand-row": "展开行"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "比较",
         "button-tooltip": "启用时间范围比较"
