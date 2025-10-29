@@ -83,8 +83,6 @@ export class SimpleController implements AdHocFiltersController {
   }
 
   updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>): void {
-    console.log('updateFilter', filter, update);
-    console.log('wip', this.wip);
     if (filter === this.wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
@@ -138,25 +136,30 @@ export class SimpleController implements AdHocFiltersController {
 }
 
 /**
+ * Demo component renderer that uses SimpleController
+ */
+function SimpleControllerDemoRenderer({ model }: SceneComponentProps<SimpleControllerDemo>) {
+  const [filters, setFilters] = useState<AdHocFilterWithLabels[]>([
+    { key: 'vowels', operator: '=', value: 'a', condition: '' },
+  ]);
+  const [wip, setWip] = useState<AdHocFilterWithLabels | undefined>(undefined);
+
+  const controller = useMemo(() => new SimpleController(filters, setFilters, wip, setWip), [filters, wip]);
+
+  return (
+    <>
+      <AdHocFiltersComboboxRenderer controller={controller} />
+      <div style={{ marginTop: '16px' }}>
+        <h4>Current filters:</h4>
+        <pre>{JSON.stringify(filters, null, 2)}</pre>
+      </div>
+    </>
+  );
+}
+
+/**
  * Demo component that uses SimpleController
  */
 export class SimpleControllerDemo extends SceneObjectBase<SceneObjectState> {
-  static Component = ({ model }: SceneComponentProps<SimpleControllerDemo>) => {
-    const [filters, setFilters] = useState<AdHocFilterWithLabels[]>([
-      { key: 'vowels', operator: '=', value: 'a', condition: '' },
-    ]);
-    const [wip, setWip] = useState<AdHocFilterWithLabels | undefined>(undefined);
-
-    const controller = useMemo(() => new SimpleController(filters, setFilters, wip, setWip), [filters, wip]);
-
-    return (
-      <>
-        <AdHocFiltersComboboxRenderer controller={controller} />
-        <div style={{ marginTop: '16px' }}>
-          <h4>Current filters:</h4>
-          <pre>{JSON.stringify(filters, null, 2)}</pre>
-        </div>
-      </>
-    );
-  };
+  static Component = SimpleControllerDemoRenderer;
 }
