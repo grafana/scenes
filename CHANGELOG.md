@@ -1,3 +1,16 @@
+# v6.42.0 (Wed Oct 29 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Decouple AdHocFiltersComboboxRenderer from AdHocFiltersVariable [#1272](https://github.com/grafana/scenes/pull/1272) ([@adrapereira](https://github.com/adrapereira))
+
+#### Authors: 1
+
+- Andre Pereira ([@adrapereira](https://github.com/adrapereira))
+
+---
+
 # v6.41.0 (Wed Oct 29 2025)
 
 #### 🚀 Enhancement
