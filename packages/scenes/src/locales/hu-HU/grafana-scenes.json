@@ -33,6 +33,11 @@
         "collapse-row": "Sor összecsukása",
         "expand-row": "Sor kibontása"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Összehasonlítás",
         "button-tooltip": "Időkeret-összehasonlítás engedélyezése"

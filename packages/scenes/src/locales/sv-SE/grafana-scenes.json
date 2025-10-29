@@ -33,6 +33,11 @@
         "collapse-row": "Dölj rad",
         "expand-row": "Expandera rad"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Jämförelse",
         "button-tooltip": "Aktivera jämförelse av tidsram"
