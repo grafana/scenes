@@ -82,7 +82,7 @@ export type {
   AdHocFiltersController,
   AdHocFiltersControllerState,
 } from './variables/adhoc/controller/AdHocFiltersController';
-export { VariableBackedAdHocFiltersController } from './variables/adhoc/controller/VariableBackedAdHocFiltersController';
+export { AdHocFiltersVariableController } from './variables/adhoc/controller/AdHocFiltersVariableController';
 export { AdHocFiltersComboboxRenderer } from './variables/adhoc/AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';

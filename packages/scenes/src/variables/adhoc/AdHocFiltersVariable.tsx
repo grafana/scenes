@@ -30,7 +30,7 @@ import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
-import AdHocFiltersVariableController from './controller/AdHocFiltersVariableController';
+import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
