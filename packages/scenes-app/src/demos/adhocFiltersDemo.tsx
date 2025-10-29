@@ -19,6 +19,7 @@ import {
 import { Button, Stack } from '@grafana/ui';
 import React from 'react';
 import { getEmbeddedSceneDefaults } from './utils';
+import { SimpleControllerDemo } from './adhocFiltersControllerExample';
 
 export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -371,6 +372,33 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                       })
                     )
                     .build(),
+                }),
+              ],
+            }),
+            $timeRange: new SceneTimeRange(),
+          });
+        },
+      }),
+      new SceneAppPage({
+        title: 'Custom Controller',
+        routePath: `custom-controller`,
+        url: `${defaults.url}/custom-controller`,
+        getScene: () => {
+          return new EmbeddedScene({
+            ...getEmbeddedSceneDefaults(),
+            body: new SceneFlexLayout({
+              direction: 'column',
+              children: [
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new SceneCanvasText({
+                    text: `This demo shows AdHocFiltersComboboxRenderer with a simple custom controller. Try filtering by "vowels" or "consonants". It is not connected to any datasource.`,
+                    fontSize: 14,
+                  }),
+                }),
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new SimpleControllerDemo({}),
                 }),
               ],
             }),
