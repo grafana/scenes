@@ -20,9 +20,6 @@ export class UrlTimeRangeMacro implements FormatVariable {
   public getValue(): SkipFormattingValue {
     const timeRange = getTimeRange(this._sceneObject);
     const urlState = timeRange.urlSync?.getUrlState();
-    if (urlState?.timezone === 'browser') {
-      urlState.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    }
     return new SkipFormattingValue(urlUtil.toUrlParams(urlState));
   }
 

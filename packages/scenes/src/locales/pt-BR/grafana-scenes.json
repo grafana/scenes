@@ -33,6 +33,11 @@
         "collapse-row": "Recolher linha",
         "expand-row": "Expandir linha"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparação",
         "button-tooltip": "Ativar comparação de intervalo de tempo"

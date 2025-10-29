@@ -33,6 +33,11 @@
         "collapse-row": "Ciutkan baris",
         "expand-row": "Perbesar baris"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Perbandingan",
         "button-tooltip": "Aktifkan perbandingan kerangka waktu"

@@ -33,6 +33,11 @@
         "collapse-row": "Sbalit řádek",
         "expand-row": "Rozbalit řádek"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Srovnání",
         "button-tooltip": "Povolit porovnání časového rámce"
