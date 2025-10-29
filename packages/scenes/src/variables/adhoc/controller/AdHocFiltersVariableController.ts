@@ -8,7 +8,7 @@ import { getInteractionTracker } from '../../../core/sceneGraph/getInteractionTr
  * Adapter that wraps AdHocFiltersVariable to implement the AdHocFiltersController interface.
  * This allows the combobox UI to work with the variable while keeping the UI decoupled.
  */
-export class VariableBackedAdHocFiltersController implements AdHocFiltersController {
+export default class AdHocFiltersVariableController implements AdHocFiltersController {
   public constructor(private model: AdHocFiltersVariable) {}
 
   public useState(): AdHocFiltersControllerState {
