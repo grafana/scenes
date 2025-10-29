@@ -1,3 +1,22 @@
+# v6.41.0 (Wed Oct 29 2025)
+
+#### 🚀 Enhancement
+
+- Panel-level performance attribution system [#1265](https://github.com/grafana/scenes/pull/1265) ([@dprokop](https://github.com/dprokop) [@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- I18n: Download translations from Crowdin [#1291](https://github.com/grafana/scenes/pull/1291) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 4
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.40.1 (Thu Oct 23 2025)
 
 #### 🐛 Bug Fix
