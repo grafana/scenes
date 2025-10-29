@@ -1,5 +1,5 @@
 import { Trans } from '@grafana/i18n';
-import React, { RefCallback, useCallback, useEffect, useMemo } from 'react';
+import React, { RefCallback, useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
 // @ts-ignore
@@ -50,6 +50,32 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
     [setPanelAttention]
   );
+
+  // S3.0 RENDER TRACKING: Simple timing for performance measurement
+  const profiler = useMemo(() => model.getProfiler(), [model]);
+
+  // Capture render start time immediately when component function runs
+  const currentRenderStart = performance.now();
+
+  const endRenderCallbackRef = React.useRef<((endTimestamp: number, duration: number) => void) | null>(null);
+
+  useLayoutEffect(() => {
+    if (profiler) {
+      const callback = profiler.onSimpleRenderStart(currentRenderStart);
+      endRenderCallbackRef.current = callback || null;
+    }
+  });
+
+  // Use useEffect (after DOM updates) to measure complete render cycle timing
+  useEffect(() => {
+    if (endRenderCallbackRef.current) {
+      const timestamp = performance.now();
+      // Measure from component start to after DOM updates AND effects (complete render cycle)
+      const duration = timestamp - currentRenderStart;
+      endRenderCallbackRef.current(timestamp, duration);
+      endRenderCallbackRef.current = null; // Clear callback after use
+    }
+  });
 
   const plugin = model.getPlugin();
 
