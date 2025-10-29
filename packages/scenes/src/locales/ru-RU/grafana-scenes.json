@@ -33,12 +33,21 @@
         "collapse-row": "Свернуть строку",
         "expand-row": "Развернуть строку"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Сравнение",
         "button-tooltip": "Включить сравнение временных рамок"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Виджет изменения размера панелей"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

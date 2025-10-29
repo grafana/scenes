@@ -46,7 +46,7 @@ import {
   FILTER_CHANGED_INTERACTION,
   ADHOC_KEYS_DROPDOWN_INTERACTION,
   ADHOC_VALUES_DROPDOWN_INTERACTION,
-} from '../../../behaviors/SceneRenderProfiler';
+} from '../../../performance/interactionConstants';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;

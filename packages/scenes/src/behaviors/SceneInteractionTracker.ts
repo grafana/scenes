@@ -1,6 +1,6 @@
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneStatelessBehavior } from '../core/types';
-import { SceneRenderProfiler } from './SceneRenderProfiler';
+import { SceneRenderProfiler } from '../performance/SceneRenderProfiler';
 import { SceneInteractionTrackerState } from './types';
 
 export function isInteractionTracker(s: SceneObject | SceneStatelessBehavior): s is SceneInteractionTracker {

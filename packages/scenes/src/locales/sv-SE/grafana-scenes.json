@@ -33,12 +33,21 @@
         "collapse-row": "Dölj rad",
         "expand-row": "Expandera rad"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Jämförelse",
         "button-tooltip": "Aktivera jämförelse av tidsram"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widget för storleksändring av ruta"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

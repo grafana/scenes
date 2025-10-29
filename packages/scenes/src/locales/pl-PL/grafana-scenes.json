@@ -33,12 +33,21 @@
         "collapse-row": "Zwiń wiersz",
         "expand-row": "Rozwiń wiersz"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Porównanie",
         "button-tooltip": "Włącz porównanie ram czasowych"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widżet zmiany rozmiaru okienka"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

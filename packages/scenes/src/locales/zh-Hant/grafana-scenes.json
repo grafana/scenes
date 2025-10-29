@@ -33,12 +33,21 @@
         "collapse-row": "收闔列",
         "expand-row": "展開列"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "比較",
         "button-tooltip": "啟用時間範圍比較"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "窗格調整大小小工具"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

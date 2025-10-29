@@ -1,4 +1,4 @@
-import { writeSceneLog } from '../utils/writeSceneLog';
+import { writePerformanceLog } from '../utils/writePerformanceLog';
 
 const LONG_FRAME_THRESHOLD = 50; // Threshold for both LoAF and manual tracking (ms)
 
@@ -49,7 +49,7 @@ export class LongFrameDetector {
    */
   public start(callback: LongFrameCallback): void {
     if (this.#isTracking) {
-      writeSceneLog('LongFrameDetector', 'Already tracking frames, stopping previous session');
+      writePerformanceLog('LFD', 'Already tracking frames, stopping previous session');
       this.stop();
     }
 
@@ -62,8 +62,8 @@ export class LongFrameDetector {
       this.startManualFrameTracking();
     }
 
-    writeSceneLog(
-      'LongFrameDetector',
+    writePerformanceLog(
+      'LFD',
       `Started tracking with ${
         this.isLoAFAvailable() ? 'LoAF API' : 'manual'
       } method, threshold: ${LONG_FRAME_THRESHOLD}ms`
@@ -99,7 +99,7 @@ export class LongFrameDetector {
    */
   private startLoAFTracking(): void {
     if (!this.isLoAFAvailable()) {
-      writeSceneLog('LongFrameDetector', 'LoAF API not available, falling back to manual tracking');
+      writePerformanceLog('LFD', 'LoAF API not available, falling back to manual tracking');
       this.startManualFrameTracking();
       return;
     }
@@ -138,13 +138,13 @@ export class LongFrameDetector {
             }
           }
 
-          writeSceneLog('LongFrameDetector', `Long frame detected (LoAF): ${entry.duration}ms at ${entry.startTime}ms`);
+          writePerformanceLog('LFD', `Long frame detected (LoAF): ${entry.duration}ms at ${entry.startTime}ms`);
         }
       });
 
       this.#loafObserver.observe({ type: 'long-animation-frame', buffered: false });
     } catch (error) {
-      writeSceneLog('LongFrameDetector', 'Failed to start LoAF tracking, falling back to manual:', error);
+      writePerformanceLog('LFD', 'Failed to start LoAF tracking, falling back to manual:', error);
       this.startManualFrameTracking();
     }
   }
@@ -156,7 +156,7 @@ export class LongFrameDetector {
     if (this.#loafObserver) {
       this.#loafObserver.disconnect();
       this.#loafObserver = null;
-      writeSceneLog('LongFrameDetector', 'Stopped LoAF tracking');
+      writePerformanceLog('LFD', 'Stopped LoAF tracking');
     }
   }
 
@@ -175,7 +175,7 @@ export class LongFrameDetector {
     if (this.#frameTrackingId) {
       cancelAnimationFrame(this.#frameTrackingId);
       this.#frameTrackingId = null;
-      writeSceneLog('LongFrameDetector', 'Stopped manual frame tracking');
+      writePerformanceLog('LFD', 'Stopped manual frame tracking');
     }
   }
 
@@ -222,8 +222,8 @@ export class LongFrameDetector {
         }
       }
 
-      writeSceneLog(
-        'LongFrameDetector',
+      writePerformanceLog(
+        'LFD',
         `Long frame detected (manual): ${frameLength}ms (threshold: ${LONG_FRAME_THRESHOLD}ms)`
       );
     }

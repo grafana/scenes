@@ -8,7 +8,8 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObject, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
-import { REFRESH_INTERACTION } from '../behaviors/SceneRenderProfiler';
+import { REFRESH_INTERACTION } from '../performance/interactionConstants';
+import { t } from '@grafana/i18n';
 
 export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', '1h', '2h', '1d'];
 
@@ -211,15 +212,20 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   const { refresh, intervals, autoEnabled, autoValue, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
-  let text = refresh === RefreshPicker.autoOption?.value ? autoValue : withText ? 'Refresh' : undefined;
+  let text =
+    refresh === RefreshPicker.autoOption?.value
+      ? autoValue
+      : withText
+      ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
+      : undefined;
   let tooltip: string | undefined;
   let width: string | undefined;
 
   if (isRunning) {
-    tooltip = 'Cancel all queries';
+    tooltip = t('grafana-scenes.components.scene-refresh-picker.tooltip-cancel', 'Cancel all queries');
 
     if (withText) {
-      text = 'Cancel';
+      text = t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel');
     }
   }
 

@@ -33,12 +33,21 @@
         "collapse-row": "Sbalit řádek",
         "expand-row": "Rozbalit řádek"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Srovnání",
         "button-tooltip": "Povolit porovnání časového rámce"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widget pro změnu velikosti panelu"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {
