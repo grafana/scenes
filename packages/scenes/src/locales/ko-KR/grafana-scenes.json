@@ -33,6 +33,11 @@
         "collapse-row": "행 접기",
         "expand-row": "행 펼치기"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "비교",
         "button-tooltip": "시간 범위 비교 활성화"
