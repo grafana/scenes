@@ -1,3 +1,15 @@
+# v6.42.1 (Thu Oct 30 2025)
+
+#### 🐛 Bug Fix
+
+- Data Layers: Add `placement` property [#1289](https://github.com/grafana/scenes/pull/1289) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
 # v6.42.0 (Wed Oct 29 2025)
 
 #### 🚀 Enhancement
