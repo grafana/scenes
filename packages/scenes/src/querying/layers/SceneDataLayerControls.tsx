@@ -1,10 +1,9 @@
-import { css } from '@emotion/css';
-import { LoadingState } from '@grafana/schema';
-import { InlineSwitch } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneDataLayerProvider, SceneObjectState } from '../../core/types';
+import { LoadingState } from '@grafana/schema';
+import { css } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
 
 interface SceneDataLayerControlsState extends SceneObjectState {}
@@ -27,20 +26,21 @@ function SceneDataLayerControlsRenderer({ model }: SceneComponentProps<SceneData
   return (
     <>
       {layers.map((layer) => (
-        <layer.Component model={layer} key={layer.state.key} />
+        <SceneDataLayerControlRenderer layer={layer} key={layer.state.key} />
       ))}
     </>
   );
 }
 
-interface SceneDataLayerControlProps {
-  layer: SceneDataLayerProvider;
-}
-
-export function DataLayerControlSwitch({ layer }: SceneDataLayerControlProps) {
+// Renders controls for a single data layer
+export function SceneDataLayerControlRenderer({ layer }: { layer: SceneDataLayerProvider }) {
   const elementId = `data-layer-${layer.state.key}`;
-  const { data, isEnabled } = layer.useState();
+  const { data, isHidden } = layer.useState();
   const showLoading = Boolean(data && data.state === LoadingState.Loading);
+
+  if (isHidden) {
+    return null;
+  }
 
   return (
     <div className={containerStyle}>
@@ -52,19 +52,9 @@ export function DataLayerControlSwitch({ layer }: SceneDataLayerControlProps) {
         description={layer.state.description}
         error={layer.state.data?.errors?.[0].message}
       />
-      <InlineSwitch
-        className={switchStyle}
-        id={elementId}
-        value={isEnabled}
-        onChange={() => layer.setState({ isEnabled: !isEnabled })}
-      />
+      <layer.Component model={layer} />
     </div>
   );
 }
 
 const containerStyle = css({ display: 'flex' });
-
-const switchStyle = css({
-  borderBottomLeftRadius: 0,
-  borderTopLeftRadius: 0,
-});
