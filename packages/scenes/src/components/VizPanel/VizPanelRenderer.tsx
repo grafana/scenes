@@ -29,7 +29,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     hoverHeaderOffset,
     menu,
     headerActions,
-    subHeaderContent,
+    subHeader,
     titleItems,
     seriesLimit,
     seriesLimitShowAll,
@@ -132,17 +132,17 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   let subHeaderElement: React.ReactNode[] = [];
 
-  if (subHeaderContent) {
-    if (Array.isArray(subHeaderContent)) {
+  if (subHeader) {
+    if (Array.isArray(subHeader)) {
       subHeaderElement = subHeaderElement.concat(
-        subHeaderContent.map((subHeaderItem) => {
+        subHeader.map((subHeaderItem) => {
           return <subHeaderItem.Component model={subHeaderItem} key={`${subHeaderItem.state.key}`} />;
         })
       );
-    } else if (isSceneObject(subHeaderContent)) {
-      subHeaderElement.push(<subHeaderContent.Component model={subHeaderContent} />);
+    } else if (isSceneObject(subHeader)) {
+      subHeaderElement.push(<subHeader.Component model={subHeader} />);
     } else {
-      subHeaderElement.push(subHeaderContent);
+      subHeaderElement.push(subHeader);
     }
   }
 
