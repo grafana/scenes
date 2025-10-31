@@ -34,8 +34,8 @@
         "expand-row": "Rozbalit řádek"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "Zrušit",
+        "text-refresh": "Obnovit",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {

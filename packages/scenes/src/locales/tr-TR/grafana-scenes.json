@@ -34,8 +34,8 @@
         "expand-row": "Satırı genişlet"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "İptal",
+        "text-refresh": "Yenile",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {

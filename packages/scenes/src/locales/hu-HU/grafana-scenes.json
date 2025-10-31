@@ -34,8 +34,8 @@
         "expand-row": "Sor kibontása"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "Mégse",
+        "text-refresh": "Frissítés",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {

@@ -34,8 +34,8 @@
         "expand-row": "Expandera rad"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "Avbryt",
+        "text-refresh": "Uppdatera",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {
