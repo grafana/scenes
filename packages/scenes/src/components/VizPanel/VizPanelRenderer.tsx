@@ -29,6 +29,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     hoverHeaderOffset,
     menu,
     headerActions,
+    subHeader,
     titleItems,
     seriesLimit,
     seriesLimitShowAll,
@@ -129,6 +130,22 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     dataObject.setContainerWidth(Math.round(width));
   }
 
+  let subHeaderElement: React.ReactNode[] = [];
+
+  if (subHeader) {
+    if (Array.isArray(subHeader)) {
+      subHeaderElement = subHeaderElement.concat(
+        subHeader.map((subHeaderItem) => {
+          return <subHeaderItem.Component model={subHeaderItem} key={`${subHeaderItem.state.key}`} />;
+        })
+      );
+    } else if (isSceneObject(subHeader)) {
+      subHeaderElement.push(<subHeader.Component model={subHeader} />);
+    } else {
+      subHeaderElement.push(subHeader);
+    }
+  }
+
   let titleItemsElement: React.ReactNode[] = [];
 
   if (titleItems) {
@@ -217,7 +234,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
-          // @ts-expect-error showMenuAlways remove when updating to @grafana/ui@12 fixed in https://github.com/grafana/grafana/pull/103553
           <PanelChrome
             title={titleInterpolated}
             description={description?.trim() ? model.getDescription : undefined}
@@ -238,6 +254,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onFocus={setPanelAttention}
             onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
+            // @ts-expect-error remove this on next grafana/ui update
+            subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
             onDragStart={(e: React.PointerEvent) => {
               dragHooks.onDragStart?.(e, model);
             }}
