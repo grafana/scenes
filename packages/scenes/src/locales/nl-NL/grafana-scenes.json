@@ -34,8 +34,8 @@
         "expand-row": "Rij uitvouwen"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "Annuleren",
+        "text-refresh": "Vernieuwen",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {

@@ -34,8 +34,8 @@
         "expand-row": "Rozwiń wiersz"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "Anuluj",
+        "text-refresh": "Odśwież",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {

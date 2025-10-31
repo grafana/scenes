@@ -34,8 +34,8 @@
         "expand-row": "행 펼치기"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "취소",
+        "text-refresh": "새로 고침",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {

@@ -34,8 +34,8 @@
         "expand-row": "行を展開"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "キャンセル",
+        "text-refresh": "更新",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {

@@ -34,8 +34,8 @@
         "expand-row": "Развернуть строку"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "Отмена",
+        "text-refresh": "Обновить",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {
