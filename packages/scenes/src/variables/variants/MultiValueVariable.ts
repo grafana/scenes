@@ -1,4 +1,4 @@
-import { isArray, isEqual } from 'lodash';
+import { isArray, isEqual, property } from 'lodash';
 import { map, Observable } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
@@ -26,6 +26,7 @@ import { getQueryController } from '../../core/sceneGraph/getQueryController';
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
   text: VariableValue; // old current.value
+  valueProperties?: Record<string, VariableValueSingle>;
   options: VariableValueOption[];
   allowCustomValue?: boolean;
   isMulti?: boolean;
@@ -50,6 +51,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   extends SceneObjectBase<TState>
   implements SceneVariable<TState>
 {
+  private static fieldAccessorCache: FieldAccessorCache = {};
+
   protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
 
   /**
@@ -167,6 +170,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
           stateUpdate.text = validTexts;
         }
       }
+
       return stateUpdate;
     }
 
@@ -179,11 +183,13 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       // Here we can correct the text value state
       stateUpdate.text = matchingOption.label;
       stateUpdate.value = matchingOption.value;
+      stateUpdate.valueProperties = matchingOption.properties;
     } else {
       // Current value is found in options
       const defaultState = this.getDefaultSingleState(options);
       stateUpdate.value = defaultState.value;
-      stateUpdate.text = defaultState.text;
+      stateUpdate.text = defaultState.label;
+      stateUpdate.valueProperties = defaultState.properties;
     }
 
     return stateUpdate;
@@ -221,14 +227,30 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       value = this.state.options.map((x) => x.value);
     }
 
-    if (fieldPath != null && Array.isArray(value)) {
-      const index = parseInt(fieldPath, 10);
-      if (!isNaN(index) && index >= 0 && index < value.length) {
-        return value[index];
+    if (fieldPath != null) {
+      if (Array.isArray(value)) {
+        const index = parseInt(fieldPath, 10);
+        if (!isNaN(index) && index >= 0 && index < value.length) {
+          return value[index];
+        }
+      }
+
+      if (this.state.valueProperties) {
+        const accessor = this.getFieldAccessor(fieldPath);
+        return accessor(this.state.valueProperties);
       }
     }
 
     return value;
+  }
+
+  private getFieldAccessor(fieldPath: string) {
+    const accessor = MultiValueVariable.fieldAccessorCache[fieldPath];
+    if (accessor) {
+      return accessor;
+    }
+
+    return (MultiValueVariable.fieldAccessorCache[fieldPath] = property(fieldPath));
   }
 
   public getValueText(): string {
@@ -258,13 +280,13 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
   }
 
-  protected getDefaultSingleState(options: VariableValueOption[]) {
+  protected getDefaultSingleState(options: VariableValueOption[]): VariableValueOption {
     if (this.state.defaultToAll) {
-      return { value: ALL_VARIABLE_VALUE, text: ALL_VARIABLE_TEXT };
+      return { value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT };
     } else if (options.length > 0) {
-      return { value: options[0].value, text: options[0].label };
+      return { value: options[0].value, label: options[0].label, properties: options[0].properties };
     } else {
-      return { value: '', text: '' };
+      return { value: '', label: '' };
     }
   }
 
@@ -515,4 +537,8 @@ export class CustomAllValue implements CustomVariableValue {
 
     return this._value;
   }
+}
+
+interface FieldAccessorCache {
+  [key: string]: (obj: any) => any;
 }
