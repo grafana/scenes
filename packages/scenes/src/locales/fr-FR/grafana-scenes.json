@@ -33,12 +33,21 @@
         "collapse-row": "Réduire la ligne",
         "expand-row": "Développer la ligne"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparaison",
         "button-tooltip": "Activer la comparaison d’intervalles"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widget de redimensionnement du panneau"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

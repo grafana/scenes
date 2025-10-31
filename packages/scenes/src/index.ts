@@ -29,6 +29,8 @@ export * from './core/types';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
 export * as behaviors from './behaviors';
+export * as performanceUtils from './performance';
+export { writePerformanceLog } from './utils/writePerformanceLog';
 export * as dataLayers from './querying/layers';
 
 export { SceneObjectBase, useSceneObjectState } from './core/SceneObjectBase';
@@ -53,9 +55,7 @@ export type {
   SceneQueryControllerLike,
   SceneQueryControllerEntryType,
   SceneQueryControllerEntry,
-  SceneInteractionProfileEvent,
 } from './behaviors/types';
-export { SceneRenderProfiler } from './behaviors/SceneRenderProfiler';
 
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
@@ -80,6 +80,12 @@ export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
 export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
+export type {
+  AdHocFiltersController,
+  AdHocFiltersControllerState,
+} from './variables/adhoc/controller/AdHocFiltersController';
+export { AdHocFiltersVariableController } from './variables/adhoc/controller/AdHocFiltersVariableController';
+export { AdHocFiltersComboboxRenderer } from './variables/adhoc/AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 export { escapeUrlPipeDelimiters } from './variables/utils';

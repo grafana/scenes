@@ -33,12 +33,21 @@
         "collapse-row": "Contraer fila",
         "expand-row": "Expandir fila"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparación",
         "button-tooltip": "Habilitar comparación de intervalos de tiempo"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widget de cambio de tamaño del panel"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

@@ -33,12 +33,21 @@
         "collapse-row": "Rij samenvouwen",
         "expand-row": "Rij uitvouwen"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Vergelijking",
         "button-tooltip": "Tijdsbestekvergelijking inschakelen"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Grootte widget wijzigen"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

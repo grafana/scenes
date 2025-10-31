@@ -20,7 +20,7 @@ import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
-import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../performance/interactionConstants';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
 
 export interface MultiValueVariableState extends SceneVariableState {

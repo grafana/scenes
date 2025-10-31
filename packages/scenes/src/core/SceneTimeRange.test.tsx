@@ -7,10 +7,6 @@ import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneReactObject } from '../components/SceneReactObject';
 import { defaultTimeZone as browserTimeZone } from '@grafana/schema';
 
-jest.mock('@grafana/data', () => ({
-  ...jest.requireActual('@grafana/data'),
-}));
-
 function simulateDelay(newDateString: string, scene: EmbeddedScene) {
   jest.setSystemTime(new Date(newDateString));
   scene.activate();

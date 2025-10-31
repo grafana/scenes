@@ -33,12 +33,21 @@
         "collapse-row": "行を折りたたむ",
         "expand-row": "行を展開"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "比較",
         "button-tooltip": "時間枠比較を有効にする"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "ペインリサイズウィジェット"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

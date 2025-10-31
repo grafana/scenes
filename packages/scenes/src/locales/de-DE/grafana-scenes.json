@@ -33,12 +33,21 @@
         "collapse-row": "Zeile ausblenden",
         "expand-row": "Zeile einblenden"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "",
+        "text-refresh": "",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Vergleich",
         "button-tooltip": "Zeitrahmenvergleich aktivieren"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widget zur Größenänderung des Bereichs"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

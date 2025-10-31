@@ -1,3 +1,105 @@
+# v6.42.1 (Thu Oct 30 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Data Layers: Add `placement` property [#1289](https://github.com/grafana/scenes/pull/1289) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
+# v6.42.0 (Wed Oct 29 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Decouple AdHocFiltersComboboxRenderer from AdHocFiltersVariable [#1272](https://github.com/grafana/scenes/pull/1272) ([@adrapereira](https://github.com/adrapereira))
+
+#### Authors: 1
+
+- Andre Pereira ([@adrapereira](https://github.com/adrapereira))
+
+---
+
+# v6.41.0 (Wed Oct 29 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Panel-level performance attribution system [#1265](https://github.com/grafana/scenes/pull/1265) ([@dprokop](https://github.com/dprokop) [@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - I18n: Download translations from Crowdin [#1291](https://github.com/grafana/scenes/pull/1291) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 4
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.40.1 (Thu Oct 23 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - UrlTimeRangeMacro: Dashboard links not preserving browser timezone [#1279](https://github.com/grafana/scenes/pull/1279) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
+# v6.40.0 (Thu Oct 23 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - UrlSyncManager: Fixes performance issue with unique key logic [#1281](https://github.com/grafana/scenes/pull/1281) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.39.9 (Thu Oct 23 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Internationalisation: Translate RefreshPicker text [#1282](https://github.com/grafana/scenes/pull/1282) ([@ashharrison90](https://github.com/ashharrison90))
+  - I18n: Download translations from Crowdin [#1251](https://github.com/grafana/scenes/pull/1251) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 3
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v6.39.8 (Thu Oct 16 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneGridLayout: Preserve float gridPos values [#1275](https://github.com/grafana/scenes/pull/1275) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+#### Authors: 1
+
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v6.39.7 (Wed Oct 15 2025)
 
 #### 🐛 Bug Fix

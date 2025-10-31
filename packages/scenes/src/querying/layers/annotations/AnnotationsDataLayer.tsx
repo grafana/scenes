@@ -15,12 +15,13 @@ import { getMessageFromError } from '../../../utils/getMessageFromError';
 import { writeSceneLog } from '../../../utils/writeSceneLog';
 import { registerQueryWithController } from '../../registerQueryWithController';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
-import { DataLayerControlSwitch } from '../SceneDataLayerControls';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { dedupAnnotations, postProcessQueryResult } from './utils';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
 import { RefreshEvent } from '@grafana/runtime';
 import { DrilldownDependenciesManager } from '../../../variables/DrilldownDependenciesManager';
+import { InlineSwitch } from '@grafana/ui';
+import { css } from '@emotion/css';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   query: AnnotationQuery;
@@ -166,11 +167,24 @@ export class AnnotationsDataLayer
 }
 
 function AnnotationsDataLayerRenderer({ model }: SceneComponentProps<AnnotationsDataLayer>) {
-  const { isHidden } = model.useState();
+  const { isEnabled, isHidden } = model.useState();
+  const elementId = `data-layer-${model.state.key}`;
 
   if (isHidden) {
     return null;
   }
 
-  return <DataLayerControlSwitch layer={model} />;
+  return (
+    <InlineSwitch
+      className={switchStyle}
+      id={elementId}
+      value={isEnabled}
+      onChange={() => model.setState({ isEnabled: !isEnabled })}
+    />
+  );
 }
+
+const switchStyle = css({
+  borderBottomLeftRadius: 0,
+  borderTopLeftRadius: 0,
+});
