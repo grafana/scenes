@@ -34,8 +34,8 @@
         "expand-row": "Perbesar baris"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "Batalkan",
+        "text-refresh": "Muat ulang",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {

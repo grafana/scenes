@@ -1,3 +1,16 @@
+# v6.42.2 (Fri Oct 31 2025)
+
+#### 🐛 Bug Fix
+
+- I18n: Download translations from Crowdin [#1293](https://github.com/grafana/scenes/pull/1293) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+
+---
+
 # v6.42.1 (Thu Oct 30 2025)
 
 #### 🐛 Bug Fix

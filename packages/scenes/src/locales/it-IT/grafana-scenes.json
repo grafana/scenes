@@ -34,8 +34,8 @@
         "expand-row": "Espandi riga"
       },
       "scene-refresh-picker": {
-        "text-cancel": "",
-        "text-refresh": "",
+        "text-cancel": "Annulla",
+        "text-refresh": "Aggiorna",
         "tooltip-cancel": ""
       },
       "scene-time-range-compare-renderer": {
