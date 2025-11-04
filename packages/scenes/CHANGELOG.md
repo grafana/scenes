@@ -1,3 +1,15 @@
+# v6.42.3 (Tue Nov 04 2025)
+
+#### 🐛 Bug Fix
+
+- Switch Variable: Add an id for the input [#1295](https://github.com/grafana/scenes/pull/1295) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
 # v6.42.2 (Fri Oct 31 2025)
 
 #### 🐛 Bug Fix
