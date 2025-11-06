@@ -435,6 +435,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 
   return isMulti ? (
     <MultiSelect<VariableValueSingle>
+      // @ts-expect-error
       selectRef={selectRef}
       aria-label={t(
         'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
