@@ -111,6 +111,7 @@
             "format-date-in-different-ways": "Format date in different ways",
             "format-multivalued-variables-using-syntax-example": "Format multi-valued variables using glob syntax, example {value1,value2}",
             "html-escaping-of-values": "HTML escaping of values",
+            "join-values-with-a-comma": "Join values with a comma",
             "json-stringify-value": "JSON stringify value",
             "keep-value-as-is": "Keep value as is",
             "multiple-values-are-formatted-like-variablevalue": "Multiple values are formatted like variable=value",
