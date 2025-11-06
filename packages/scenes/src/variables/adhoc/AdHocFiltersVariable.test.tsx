@@ -372,7 +372,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // should run new query when filter changed
     expect(runRequest.mock.calls.length).toBe(2);
-    console.log('filtersVar', filtersVar.state.filters);
     expect(filtersVar.state.filters[0].value).toBe('a');
 
     await userEvent.click(selects[2]);
@@ -1792,6 +1791,32 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.originFilters).toEqual([]);
+  });
+
+  it('Returns originFilter values through getValue() if fieldPath is passed', () => {
+    const { filtersVar } = setup({
+      originFilters: [
+        {
+          key: 'scopeOriginFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: 'scope',
+        },
+      ],
+    });
+
+    const value = filtersVar.getValue('originFilters');
+    expect(value).toEqual(['scopeOriginFilter|=|val#scope']);
+  });
+
+  it.only('Returns filters expression through getValue()', () => {
+    const { filtersVar } = setup({
+      filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+    });
+
+    const value = filtersVar.getValue();
+    expect(value).toEqual(filtersVar.state.filterExpression);
   });
 
   it('Can override and replace getTagKeys and getTagValues', async () => {

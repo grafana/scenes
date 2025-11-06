@@ -13,14 +13,20 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
 import { ControlsLayout, SceneComponentProps } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
-import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
+import {
+  dataFromResponse,
+  escapeOriginFilterUrlDelimiters,
+  getQueriesForVariables,
+  renderPrometheusLabelFilters,
+  responseHasError,
+} from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { getDataSourceSrv } from '@grafana/runtime';
-import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
+import { AdHocFiltersVariableUrlSyncHandler, toArray } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
@@ -54,6 +60,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // reason with reason for nonApplicable filters
   nonApplicableReason?: string;
 }
+
+const ORIGIN_FILTERS_KEY: keyof AdHocFiltersVariableState = 'originFilters';
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
@@ -430,7 +438,21 @@ export class AdHocFiltersVariable
     }
   }
 
-  public getValue(): VariableValue | undefined {
+  public getValue(fieldPath?: string): VariableValue | undefined {
+    if (fieldPath === ORIGIN_FILTERS_KEY) {
+      const originFilters = this.state.originFilters;
+
+      if (!originFilters || originFilters?.length === 0) {
+        return [];
+      }
+
+      return [
+        ...originFilters.map((filter) =>
+          toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}`)
+        ),
+      ];
+    }
+
     return this.state.filterExpression;
   }
 
