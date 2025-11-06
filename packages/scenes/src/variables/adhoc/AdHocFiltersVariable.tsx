@@ -761,6 +761,30 @@ export class AdHocFiltersVariable
     });
   }
 
+  /**
+   * Focus the filter input to start adding a new filter.
+   * Works with both standard and combobox layouts.
+   */
+  public focusInput() {
+    if (this.state.readOnly) {
+      return;
+    }
+
+    if (this.state.layout === 'combobox') {
+      this.setState({ _shouldFocus: true });
+    }
+  }
+
+  /**
+   * Reset the focus flag after focusing has completed
+   * @internal
+   */
+  public _resetFocusFlag() {
+    if (this.state._shouldFocus) {
+      this.setState({ _shouldFocus: false });
+    }
+  }
+
   public _getOperators() {
     const { supportsMultiValueOperators, allowCustomValue = true } = this.state;
 

@@ -1,7 +1,7 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
-import React, { memo, useRef } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
@@ -11,12 +11,20 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly } = controller.useState();
+  const { originFilters, filters, readOnly, _shouldFocus } = controller.useState();
   const styles = useStyles2(getStyles);
 
   // ref that focuses on the always wip filter input
   // defined in the combobox component via useImperativeHandle
   const focusOnWipInputRef = useRef<() => void>();
+
+  // Handle focus when _shouldFocus flag is set
+  useEffect(() => {
+    if (_shouldFocus) {
+      focusOnWipInputRef.current?.();
+      controller.resetFocusFlag?.();
+    }
+  }, [_shouldFocus, controller]);
 
   return (
     <div

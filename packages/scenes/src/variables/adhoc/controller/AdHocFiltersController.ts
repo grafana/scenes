@@ -13,6 +13,7 @@ export interface AdHocFiltersControllerState {
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
   inputPlaceholder?: string;
+  _shouldFocus?: boolean;
 }
 
 /**
@@ -83,6 +84,17 @@ export interface AdHocFiltersController {
    * @param filter - The filter to restore
    */
   restoreOriginalFilter(filter: AdHocFilterWithLabels): void;
+
+  /**
+   * Optional: Focus the filter input (for combobox layout).
+   * This allows external code to programmatically focus the filter input.
+   */
+  focusInput?(): void;
+
+  /**
+   * Reset the focus flag.
+   */
+  resetFocusFlag?(): void;
 
   /**
    * Optional: Start profiling an interaction (for performance tracking).

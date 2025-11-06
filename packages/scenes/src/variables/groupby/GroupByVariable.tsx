@@ -1,5 +1,5 @@
 import { t } from '@grafana/i18n';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AdHocVariableFilter,
   DataSourceApi,
@@ -77,6 +77,11 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * Holds the applicability for each of the selected keys
    */
   keysApplicability?: DrilldownsApplicability[];
+  /**
+   * @internal
+   * Flag to trigger focus on the input
+   */
+  _shouldFocus?: boolean;
 }
 
 export type getTagKeysProvider = (
@@ -342,6 +347,17 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   public getDefaultMultiState(options: VariableValueOption[]): { value: VariableValueSingle[]; text: string[] } {
     return { value: [], text: [] };
   }
+
+  /**
+   * Focus the group by input to start selecting dimensions.
+   */
+  public focusInput() {
+    if (this.state.readOnly) {
+      return;
+    }
+
+    this.setState({ _shouldFocus: true });
+  }
 }
 
 export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVariable>) {
@@ -357,6 +373,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     allowCustomValue = true,
     defaultValue,
     keysApplicability,
+    _shouldFocus,
   } = model.useState();
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
@@ -379,6 +396,15 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   const hasDefaultValue = defaultValue !== undefined;
+
+  const selectRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (_shouldFocus) {
+      selectRef.current?.focus?.();
+      model.setState({ _shouldFocus: false });
+    }
+  }, [_shouldFocus, model]);
 
   // Detect value changes outside
   useEffect(() => {
@@ -409,6 +435,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 
   return isMulti ? (
     <MultiSelect<VariableValueSingle>
+      selectRef={selectRef}
       aria-label={t(
         'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
         'Group by selector'
@@ -487,6 +514,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     />
   ) : (
     <Select
+      selectRef={selectRef}
       aria-label={t(
         'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
         'Group by selector'
