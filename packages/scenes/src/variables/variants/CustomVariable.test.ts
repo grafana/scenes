@@ -286,11 +286,11 @@ label-3 : value-3,`,
       const variable = new CustomVariable({
         name: 'test',
         isMulti: false,
-        optionsProvider: { type: 'json', valueProp: 'id', textProp: 'display' },
+        valuesFormat: 'json',
         query: `
 [
-  { "id": "test", "display": "Test", "location": "US" },
-  { "id": "prod", "display": "Prod", "location": "EU" }
+  { "value": "test", "text": "Test", "location": "US" },
+  { "value": "prod", "text": "Prod", "location": "EU" }
 ]
         `,
         value: 'prod',
@@ -307,7 +307,7 @@ label-3 : value-3,`,
       const variable = new CustomVariable({
         name: 'test',
         isMulti: false,
-        optionsProvider: { type: 'json' },
+        valuesFormat: 'json',
         query: `["test", "prod"]`,
         value: 'prod',
         text: 'prod',

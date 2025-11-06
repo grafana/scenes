@@ -203,12 +203,12 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
                       toDataFrame({
                         fields: [
                           {
-                            name: 'id',
+                            name: 'value',
                             type: FieldType.string,
                             values: ['test', 'prod'],
                           },
                           {
-                            name: 'display',
+                            name: 'text',
                             type: FieldType.string,
                             values: ['Test', 'Prod'],
                           },
@@ -230,11 +230,6 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
             name: 'test',
             datasource: { uid: 'fake-std', type: 'fake-std' },
             query: 'query',
-            optionsProvider: {
-              type: 'query',
-              valueProp: 'id',
-              textProp: 'display',
-            },
           });
 
           await lastValueFrom(variable.validateAndUpdate());
