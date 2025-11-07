@@ -1810,7 +1810,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(value).toEqual(['scopeOriginFilter|=|val#scope']);
   });
 
-  it.only('Returns filters expression through getValue()', () => {
+  it('Returns filters expression through getValue()', () => {
     const { filtersVar } = setup({
       filters: [{ key: 'key1', operator: '=', value: 'val1' }],
     });
