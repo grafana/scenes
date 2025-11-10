@@ -111,7 +111,7 @@ function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLab
   return filter === null ? [] : [filter];
 }
 
-function toArray(filter: AdHocFilterWithLabels): string[] {
+export function toArray(filter: AdHocFilterWithLabels): string[] {
   const result = [toUrlCommaDelimitedString(filter.key, filter.keyLabel), filter.operator];
   if (isMultiValueOperator(filter.operator)) {
     // TODO remove expect-error when we're on the latest version of @grafana/data
