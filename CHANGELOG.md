@@ -1,3 +1,23 @@
+# v6.43.0 (Tue Nov 11 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Filters: Add per-panel non-applicable pills [#1278](https://github.com/grafana/scenes/pull/1278) ([@mdvictor](https://github.com/mdvictor))
+  - AdhocFiltersVariable: Expose `originFilters` in links [#1297](https://github.com/grafana/scenes/pull/1297) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Switch Variable: Add an id for the input [#1295](https://github.com/grafana/scenes/pull/1295) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 2
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.42.2 (Fri Oct 31 2025)
 
 #### 🐛 Bug Fix
