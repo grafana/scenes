@@ -50,7 +50,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
     });
   }
 
-  public transformJsonToOptions(json: string) {
+  public transformJsonToOptions(json: string): VariableValueOption[] {
     const parsedOptions = JSON.parse(json);
 
     if (!Array.isArray(parsedOptions)) {
@@ -69,8 +69,8 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
     const textProp = 'text';
 
     return parsedOptions.map((o) => ({
-      value: String(o[valueProp]).trim(),
       label: String(o[textProp] || o[valueProp])?.trim(),
+      value: String(o[valueProp]).trim(),
       properties: o,
     }));
   }
