@@ -77,9 +77,9 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
     const options =
-      this.state.valuesFormat === 'csv'
-        ? this.transformCsvStringToOptions(this.state.query)
-        : this.transformJsonToOptions(this.state.query);
+      this.state.valuesFormat === 'json'
+        ? this.transformJsonToOptions(this.state.query)
+        : this.transformCsvStringToOptions(this.state.query);
 
     if (!options.length) {
       this.skipNextValidation = true;
