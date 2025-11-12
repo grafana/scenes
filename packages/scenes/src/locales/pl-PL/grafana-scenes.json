@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Edytuj filtr z kluczem {{keyLabel}}",
         "managed-filter": "Filtr zarządzany ({{origin}})",
+        "non-applicable": "",
         "remove-filter-with-key": "Usuń filtr z kluczem {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Jeśli doprowadził Cię tutaj link, może to oznaczać błąd w aplikacji.",
         "subTitle": "Adres URL nie pasuje do żadnej strony",
         "title": "Nie znaleziono"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Zwiń scenę",
@@ -29,12 +33,21 @@
         "collapse-row": "Zwiń wiersz",
         "expand-row": "Rozwiń wiersz"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Anuluj",
+        "text-refresh": "Odśwież",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Porównanie",
         "button-tooltip": "Włącz porównanie ram czasowych"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widżet zmiany rozmiaru okienka"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

@@ -19,6 +19,7 @@ import { getQueryCancellationTest } from './queryCancellation';
 import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
 import { getTimeRangeComparisonTest } from './timeRangeComparison';
+import { getTimeCompareManyPanels } from './timeCompareManyPanels';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
 import { getAdhocFiltersDemo } from './adhocFiltersDemo';
@@ -196,6 +197,12 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Time range comparison test',
       getPage: getTimeRangeComparisonTest,
       getSourceCodeModule: () => import('!!raw-loader!../demos/timeRangeComparison'),
+    },
+    {
+      title: 'Time range compare many panels',
+      description: 'Performance test with per panel time compare and many panels ',
+      getPage: getTimeCompareManyPanels,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/timeCompareManyPanels'),
     },
     {
       title: 'Data layers',

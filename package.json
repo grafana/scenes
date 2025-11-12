@@ -57,9 +57,9 @@
     "@auto-it/released": "^11.0.7",
     "@testing-library/react": "^14.1.2",
     "auto": "^11.0.7",
-    "lerna": "^6.5.1",
+    "lerna": "^9.0.0",
     "lint-staged": "^13.2.0",
     "prettier": "2.5.1",
-    "turbo": "latest"
+    "turbo": "^2.5.8"
   }
 }

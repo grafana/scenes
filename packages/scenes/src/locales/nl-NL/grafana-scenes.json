@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Filter bewerken met sleutel {{keyLabel}}",
         "managed-filter": "{{origin}} beheerde filter",
+        "non-applicable": "",
         "remove-filter-with-key": "Filter verwijderen met sleutel {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Als je hier bent gekomen via een link, dan kan er een bug in deze applicatie zijn.",
         "subTitle": "De URL kwam met geen enkele pagina overeen",
         "title": "Niet gevonden"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Scène samenvouwen",
@@ -29,12 +33,21 @@
         "collapse-row": "Rij samenvouwen",
         "expand-row": "Rij uitvouwen"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Annuleren",
+        "text-refresh": "Vernieuwen",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Vergelijking",
         "button-tooltip": "Tijdsbestekvergelijking inschakelen"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Grootte widget wijzigen"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

@@ -15,23 +15,25 @@ export interface SceneQueryControllerEntry {
 
 export type SceneQueryControllerEntryType = 'data' | 'annotations' | 'variable' | 'alerts' | 'plugin' | string;
 
-export interface SceneInteractionProfileEvent {
+// Long Frame Detection types (re-exported from LongFrameDetector)
+export type { LongFrameEvent, LongFrameCallback } from '../performance/LongFrameDetector';
+
+export interface SceneComponentInteractionEvent {
   origin: string;
   duration: number;
   networkDuration: number;
-  jsHeapSizeLimit: number;
-  usedJSHeapSize: number;
-  totalJSHeapSize: number;
-  crumbs: string[];
   startTs: number;
   endTs: number;
-  // add more granular data,i.e. network times? slow frames?
+}
+
+export interface SceneInteractionTrackerState extends SceneObjectState {
+  enableInteractionTracking?: boolean;
+  onInteractionComplete?(event: SceneComponentInteractionEvent): void;
 }
 
 export interface SceneQueryStateControllerState extends SceneObjectState {
   isRunning: boolean;
   enableProfiling?: boolean;
-  onProfileComplete?(event: SceneInteractionProfileEvent): void;
 }
 
 export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateControllerState> {

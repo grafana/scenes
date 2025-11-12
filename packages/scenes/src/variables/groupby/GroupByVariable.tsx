@@ -1,11 +1,25 @@
 import { t } from '@grafana/i18n';
 import React, { useEffect, useMemo, useState } from 'react';
-import { AdHocVariableFilter, DataSourceApi, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
+import {
+  AdHocVariableFilter,
+  DataSourceApi,
+  // @ts-expect-error (temporary till we update grafana/data)
+  DrilldownsApplicability,
+  GetTagResponse,
+  MetricFindValue,
+  SelectableValue,
+} from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
-import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
+import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler, SceneDataQuery } from '../../core/types';
 import { sceneGraph } from '../../core/sceneGraph';
-import { ValidateAndUpdateResult, VariableValue, VariableValueOption, VariableValueSingle } from '../types';
+import {
+  SceneVariableValueChangedEvent,
+  ValidateAndUpdateResult,
+  VariableValue,
+  VariableValueOption,
+  VariableValueSingle,
+} from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
@@ -18,6 +32,9 @@ import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIndicatorContainer';
+import { GroupByValueContainer, GroupByContainerProps } from './GroupByValueContainer';
+import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTracker';
+import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionConstants';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -56,6 +73,10 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * Return replace: false if you want to combine the results with the default lookup
    */
   getTagKeysProvider?: getTagKeysProvider;
+  /**
+   * Holds the applicability for each of the selected keys
+   */
+  keysApplicability?: DrilldownsApplicability[];
 }
 
 export type getTagKeysProvider = (
@@ -166,6 +187,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   private _activationHandler = () => {
+    this._verifyApplicability();
+
     if (this.state.defaultValue) {
       if (this.checkIfRestorable(this.state.value)) {
         this.setState({ restorable: true });
@@ -178,6 +201,65 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       }
     };
   };
+
+  public getApplicableKeys(): VariableValue {
+    const { value, keysApplicability } = this.state;
+
+    const valueArray = isArray(value) ? value : value ? [value] : [];
+
+    if (!keysApplicability || keysApplicability.length === 0) {
+      return valueArray;
+    }
+
+    const applicableValues = valueArray.filter((val) => {
+      const applicability = keysApplicability.find((item) => item.key === val);
+      return !applicability || applicability.applicable !== false;
+    });
+
+    return applicableValues;
+  }
+
+  public async getGroupByApplicabilityForQueries(
+    value: VariableValue,
+    queries: SceneDataQuery[]
+  ): Promise<DrilldownsApplicability[] | undefined> {
+    const ds = await getDataSource(this.state.datasource, {
+      __sceneObject: wrapInSafeSerializableSceneObject(this),
+    });
+
+    // @ts-expect-error (temporary till we update grafana/data)
+    if (!ds.getDrilldownsApplicability) {
+      return;
+    }
+
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+
+    // @ts-expect-error (temporary till we update grafana/data)
+    return await ds.getDrilldownsApplicability({
+      groupByKeys: Array.isArray(value) ? value.map((v) => String(v)) : value ? [String(value)] : [],
+      queries,
+      timeRange,
+      scopes: sceneGraph.getScopes(this),
+      ...getEnrichedFiltersRequest(this),
+    });
+  }
+
+  public async _verifyApplicability() {
+    const queries = getQueriesForVariables(this);
+    const value = this.state.value;
+
+    const response = await this.getGroupByApplicabilityForQueries(value, queries);
+
+    if (!response) {
+      return;
+    }
+
+    if (!isEqual(response, this.state.keysApplicability)) {
+      this.setState({ keysApplicability: response ?? undefined });
+
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+  }
 
   // This method is related to the defaultValue property. We check if the current value
   // is different from the default value. If it is, the groupBy will show a button
@@ -274,6 +356,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     includeAll,
     allowCustomValue = true,
     defaultValue,
+    keysApplicability,
   } = model.useState();
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
@@ -358,6 +441,11 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
               IndicatorsContainer: () => <DefaultGroupByCustomIndicatorContainer model={model} />,
             }
           : {}),
+        MultiValueContainer: ({ innerProps, children }: React.PropsWithChildren<GroupByContainerProps>) => (
+          <GroupByValueContainer innerProps={innerProps} keysApplicability={keysApplicability}>
+            {children}
+          </GroupByValueContainer>
+        ),
       }}
       onInputChange={onInputChange}
       onBlur={() => {
@@ -372,18 +460,26 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         if (restorable !== model.state.restorable) {
           model.setState({ restorable: restorable });
         }
+
+        model._verifyApplicability();
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([], undefined, true);
         }
+
         setUncommittedValue(newValue);
       }}
       onOpenMenu={async () => {
+        const profiler = getInteractionTracker(model);
+        profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+
         setIsFetchingOptions(true);
         await lastValueFrom(model.validateAndUpdate());
         setIsFetchingOptions(false);
         setIsOptionsOpen(true);
+
+        profiler?.stopInteraction();
       }}
       onCloseMenu={() => {
         setIsOptionsOpen(false);
@@ -432,10 +528,15 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         }
       }}
       onOpenMenu={async () => {
+        const profiler = getInteractionTracker(model);
+        profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+
         setIsFetchingOptions(true);
         await lastValueFrom(model.validateAndUpdate());
         setIsFetchingOptions(false);
         setIsOptionsOpen(true);
+
+        profiler?.stopInteraction();
       }}
       onCloseMenu={() => {
         setIsOptionsOpen(false);

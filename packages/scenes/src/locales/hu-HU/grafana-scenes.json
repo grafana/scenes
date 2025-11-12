@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}} kulcsos szűrő szerkesztése",
         "managed-filter": "{{origin}} által kezelt szűrő",
+        "non-applicable": "",
         "remove-filter-with-key": "{{keyLabel}} kulcsos szűrő eltávolítása"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Ha egy hivatkozáson keresztül lépett ide, akkor lehet, hogy hiba van ebben az alkalmazásban.",
         "subTitle": "Az URL-cím nem egyezett egyetlen oldallal sem",
         "title": "Nem található"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Jelenet összecsukása",
@@ -29,12 +33,21 @@
         "collapse-row": "Sor összecsukása",
         "expand-row": "Sor kibontása"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Mégse",
+        "text-refresh": "Frissítés",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Összehasonlítás",
         "button-tooltip": "Időkeret-összehasonlítás engedélyezése"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Ablaktábla-átméretezési widget"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

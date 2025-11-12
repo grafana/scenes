@@ -279,6 +279,58 @@ label-3 : value-3,`,
       expect(A.state.value).toBe('value1');
       expect(B.state.options[2].value).toBe('value1');
     });
+
+    it('Should expose the interpolated options when flag is true', () => {
+      const A = new CustomVariable({
+        name: 'A',
+        options: [],
+        query: 'value1,value2',
+        value: '',
+        text: '',
+      });
+      const B = new CustomVariable({
+        name: 'B',
+        options: [],
+        query: '1,2,$A',
+        value: '',
+        text: '',
+      });
+
+      const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A, B] }) });
+      scene.activate();
+
+      expect(B.transformCsvStringToOptions(B.state.query)).toEqual([
+        { label: '1', value: '1' },
+        { label: '2', value: '2' },
+        { label: 'value1', value: 'value1' },
+      ]);
+    });
+
+    it('Should not expose the interpolated options when flag is false', () => {
+      const A = new CustomVariable({
+        name: 'A',
+        options: [],
+        query: 'value1,value2',
+        value: '',
+        text: '',
+      });
+      const B = new CustomVariable({
+        name: 'B',
+        options: [],
+        query: '1,2,$A',
+        value: '',
+        text: '',
+      });
+
+      const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A, B] }) });
+      scene.activate();
+
+      expect(B.transformCsvStringToOptions(B.state.query, false)).toEqual([
+        { label: '1', value: '1' },
+        { label: '2', value: '2' },
+        { label: '$A', value: '$A' },
+      ]);
+    });
   });
 
   describe('JSON options provider', () => {

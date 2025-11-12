@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Editar filtro com chave {{keyLabel}}",
         "managed-filter": "Filtro gerenciado de {{origin}}",
+        "non-applicable": "",
         "remove-filter-with-key": "Remover filtro com chave {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Se você chegou aqui usando um link, pode haver um bug neste aplicativo.",
         "subTitle": "O URL não corresponde a nenhuma página",
         "title": "Não encontrado"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Recolher cena",
@@ -29,12 +33,21 @@
         "collapse-row": "Recolher linha",
         "expand-row": "Expandir linha"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Cancelar",
+        "text-refresh": "Atualizar",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparação",
         "button-tooltip": "Ativar comparação de intervalo de tempo"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widget de redimensionamento do painel"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

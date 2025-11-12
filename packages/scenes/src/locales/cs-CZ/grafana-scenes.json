@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Upravit filtr pomocí klíče {{keyLabel}}",
         "managed-filter": "Spravovaný filtr: {{origin}}",
+        "non-applicable": "",
         "remove-filter-with-key": "Odebrat filtr pomocí klíče {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "Pokud jste se sem dostali pomocí odkazu, může se jednat o chybu v této aplikaci.",
         "subTitle": "Adresa URL neodpovídá žádné stránce",
         "title": "Nenalezeno"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Sbalit scénu",
@@ -29,12 +33,21 @@
         "collapse-row": "Sbalit řádek",
         "expand-row": "Rozbalit řádek"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Zrušit",
+        "text-refresh": "Obnovit",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Srovnání",
         "button-tooltip": "Povolit porovnání časového rámce"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widget pro změnu velikosti panelu"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

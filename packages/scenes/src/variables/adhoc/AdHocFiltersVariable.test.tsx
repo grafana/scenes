@@ -258,6 +258,140 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(options[5]).toHaveTextContent('Foo');
   });
 
+  it('Exact match operators show custom value last', async () => {
+    const { filtersVar, runRequest } = setup({
+      filters: [
+        { key: 'key1', operator: '=', value: 'val1' },
+        { key: 'key2', operator: '=', value: 'val2' },
+      ],
+      getTagKeysProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+      getTagValuesProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    // Select the first value starting with "a"
+    await userEvent.type(selects[2], 'a{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('alice');
+
+    await userEvent.click(selects[2]);
+    await userEvent.clear(selects[2]);
+    await userEvent.type(selects[2], 'a');
+    const customValueOption = screen.getByText('Use custom value: a');
+    const options = screen.getAllByRole('option');
+    expect(options[0].textContent).toEqual('Alice');
+    expect(options[1].textContent).toEqual('Anise');
+    expect(options[2].textContent).toEqual('Use custom value: a');
+
+    expect(customValueOption).toBeInTheDocument();
+
+    await userEvent.type(selects[2], '[ArrowDown][ArrowDown]{enter}');
+
+    // should run a new query because the value has changed
+    expect(runRequest.mock.calls.length).toBe(3);
+    expect(filtersVar.state.filters[0].value).toBe('a');
+  });
+
+  it('Regex operators show custom value first', async () => {
+    const { filtersVar, runRequest } = setup({
+      filters: [
+        { key: 'key1', operator: '=~', value: 'val1' },
+        { key: 'key2', operator: '=~', value: 'val2' },
+      ],
+      getTagKeysProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+      getTagValuesProvider: async () => ({
+        replace: true,
+        values: [
+          {
+            text: 'Alice',
+            value: 'alice',
+          },
+          {
+            text: 'Anise',
+            value: 'anise',
+          },
+        ],
+      }),
+    });
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    // should run initial query
+    expect(runRequest.mock.calls.length).toBe(1);
+
+    const wrapper = screen.getByTestId('AdHocFilter-key1');
+    const selects = getAllByRole(wrapper, 'combobox');
+
+    // Select the first value starting with "a"
+    await userEvent.type(selects[2], 'a{enter}');
+
+    // should run new query when filter changed
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('a');
+
+    await userEvent.click(selects[2]);
+    await userEvent.clear(selects[2]);
+    await userEvent.type(selects[2], 'a');
+    const customValueOption = screen.getByText('Use custom value: a');
+    const options = screen.getAllByRole('option');
+    expect(options[1].textContent).toEqual('Alice');
+    expect(options[2].textContent).toEqual('Anise');
+    expect(options[0].textContent).toEqual('Use custom value: a');
+
+    expect(customValueOption).toBeInTheDocument();
+
+    await userEvent.type(selects[2], '{enter}');
+
+    // should not run a new query since the value is the same
+    expect(runRequest.mock.calls.length).toBe(2);
+    expect(filtersVar.state.filters[0].value).toBe('a');
+  });
+
   it('can set the same custom value again', async () => {
     const { filtersVar, runRequest } = setup();
 
@@ -992,43 +1126,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
-  it('filters are matched to origin ones if keys match', () => {
-    const { filtersVar } = setup({
-      originFilters: [
-        {
-          key: 'dbFilterKey',
-          operator: '=',
-          value: 'dbFilterValue',
-          origin: 'dashboard',
-        },
-      ],
-    });
-
-    // this is a normal filter but the key matches the
-    // dashboard filter so we overwrite this filter
-    // with the dashboard injected one
-    const urlValues = {
-      'var-filters': ['dbFilterKey|!=|newDbFilterValue'],
-    };
-
-    act(() => {
-      locationService.partial(urlValues);
-    });
-
-    // new filter will take values from the URL normal filter
-    // but keep it as a dashboard level filter
-    expect(filtersVar.state.originFilters![0]).toEqual({
-      key: 'dbFilterKey',
-      keyLabel: 'dbFilterKey',
-      operator: '!=',
-      value: 'newDbFilterValue',
-      valueLabels: ['newDbFilterValue'],
-      origin: 'dashboard',
-      condition: '',
-      restorable: true,
-    });
-  });
-
   it('url updates origin filters properly', async () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
       {
@@ -1696,6 +1793,32 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.originFilters).toEqual([]);
   });
 
+  it('Returns originFilter values through getValue() if fieldPath is passed', () => {
+    const { filtersVar } = setup({
+      originFilters: [
+        {
+          key: 'scopeOriginFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: 'scope',
+        },
+      ],
+    });
+
+    const value = filtersVar.getValue('originFilters');
+    expect(value).toEqual(['scopeOriginFilter|=|val#scope']);
+  });
+
+  it('Returns filters expression through getValue()', () => {
+    const { filtersVar } = setup({
+      filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+    });
+
+    const value = filtersVar.getValue();
+    expect(value).toEqual(filtersVar.state.filterExpression);
+  });
+
   it('Can override and replace getTagKeys and getTagValues', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {
@@ -2227,7 +2350,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   describe('non-applicable filters', () => {
     it('should set non-applicable filters on activation', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getFiltersApplicabilitySpy } = setup(
+      const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
           filters: [
             {
@@ -2263,7 +2386,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // account for applicability check debounce
       await new Promise((r) => setTimeout(r, 150));
 
-      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[0].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[1].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
@@ -2334,7 +2457,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     it('should maintain default filter as non-applicable if we turn filter to match-all and then restore', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getFiltersApplicabilitySpy } = setup(
+      const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
           filters: [
             {
@@ -2369,7 +2492,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await new Promise((r) => setTimeout(r, 150));
 
-      expect(getFiltersApplicabilitySpy).toHaveBeenCalled();
+      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
 
@@ -2571,9 +2694,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('does not display hidden filters', async () => {
-      act(() => {
-        const { filtersVar } = setup();
+      const { filtersVar } = setup();
 
+      act(() => {
         filtersVar.setState({
           filters: [
             ...filtersVar.state.filters,
@@ -2583,10 +2706,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         });
       });
 
-      expect(await screen.findByText('key1 = valLabel1')).toBeInTheDocument();
-      expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
+      expect(await screen.findByText('key1 = val1')).toBeInTheDocument();
+      expect(await screen.findByText('key2 = val2')).toBeInTheDocument();
       expect(screen.queryAllByText('hidden_key = hidden_val')).toEqual([]);
-      expect(screen.queryAllByText('visible_key = visible_val')).toEqual([]);
+      expect(screen.queryAllByText('visible_key = visible_val')).not.toEqual([]);
     });
 
     it('focusing the input opens the key dropdown', async () => {
@@ -2851,11 +2974,11 @@ function setup(
   overrides?: Partial<AdHocFiltersVariableState>,
   filtersRequestEnricher?: FiltersRequestEnricher['enrichFiltersRequest'],
   scopesVariable?: ScopesVariable,
-  useGetFiltersApplicability?: boolean
+  useGetDrilldownsApplicability?: boolean
 ) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
-  const getFiltersApplicabilitySpy = jest.fn();
+  const getDrilldownsApplicabilitySpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
@@ -2870,9 +2993,9 @@ function setup(
         getRef() {
           return { uid: 'my-ds-uid' };
         },
-        ...(useGetFiltersApplicability && {
-          getFiltersApplicability(options: any) {
-            getFiltersApplicabilitySpy(options);
+        ...(useGetDrilldownsApplicability && {
+          getDrilldownsApplicability(options: any) {
+            getDrilldownsApplicabilitySpy(options);
             return [
               { key: 'cluster', applicable: true },
               { key: 'container', applicable: true },
@@ -2959,7 +3082,7 @@ function setup(
     runRequest: runRequestMock.fn,
     getTagKeysSpy,
     getTagValuesSpy,
-    getFiltersApplicabilitySpy,
+    getDrilldownsApplicabilitySpy,
     timeRange,
   };
 }

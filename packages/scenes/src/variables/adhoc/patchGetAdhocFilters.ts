@@ -4,7 +4,7 @@ import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { interpolate } from '../../core/sceneGraph/sceneGraph';
 
 let originalGetAdhocFilters: any = undefined;
-let allActiveFilterSets = new Set<AdHocFiltersVariable>();
+export const allActiveFilterSets = new Set<AdHocFiltersVariable>();
 
 export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {
   filterVar.addActivationHandler(() => {

@@ -244,6 +244,16 @@ export interface SceneDataProvider<T extends SceneObjectState = SceneDataState> 
   isDataReadyToDisplay?: () => boolean;
   cancelQuery?: () => void;
   getResultsStream(): Observable<SceneDataProviderResult>;
+  /**
+   * Can be used to disable query execution for scene elements that are out of view
+   */
+  isInViewChanged?(isInView: boolean): void;
+
+  /**
+   * Allow activating or deactivating the isInView behavior
+   * This is useful for external consumers of a data provider (i.e., the Dashboard datasource)
+   */
+  bypassIsInViewChanged?(bypassIsInView: boolean): void;
 }
 
 export interface SceneDataLayerProviderState extends SceneDataState {
@@ -251,6 +261,7 @@ export interface SceneDataLayerProviderState extends SceneDataState {
   description?: string;
   isEnabled?: boolean;
   isHidden?: boolean;
+  placement?: 'inControlsMenu';
 }
 
 export interface SceneDataLayerProvider extends SceneDataProvider<SceneDataLayerProviderState> {

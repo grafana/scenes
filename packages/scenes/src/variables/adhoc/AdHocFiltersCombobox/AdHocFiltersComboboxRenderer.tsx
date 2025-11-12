@@ -2,16 +2,16 @@ import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, useStyles2 } from '@grafana/ui';
 import React, { memo, useRef } from 'react';
-import { AdHocFiltersVariable } from '../AdHocFiltersVariable';
+import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
 
 interface Props {
-  model: AdHocFiltersVariable;
+  controller: AdHocFiltersController;
 }
 
-export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ model }: Props) {
-  const { originFilters, filters, readOnly } = model.useState();
+export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
+  const { originFilters, filters, readOnly } = controller.useState();
   const styles = useStyles2(getStyles);
 
   // ref that focuses on the always wip filter input
@@ -32,23 +32,25 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           <AdHocFilterPill
             key={`${index}-${filter.key}`}
             filter={filter}
-            model={model}
+            controller={controller}
             focusOnWipInputRef={focusOnWipInputRef.current}
           />
         ) : null
       )}
 
-      {filters.map((filter, index) => (
-        <AdHocFilterPill
-          key={`${index}-${filter.key}`}
-          filter={filter}
-          model={model}
-          readOnly={readOnly || filter.readOnly}
-          focusOnWipInputRef={focusOnWipInputRef.current}
-        />
-      ))}
+      {filters
+        .filter((filter) => !filter.hidden)
+        .map((filter, index) => (
+          <AdHocFilterPill
+            key={`${index}-${filter.key}`}
+            filter={filter}
+            controller={controller}
+            readOnly={readOnly || filter.readOnly}
+            focusOnWipInputRef={focusOnWipInputRef.current}
+          />
+        ))}
 
-      {!readOnly ? <AdHocFiltersAlwaysWipCombobox model={model} ref={focusOnWipInputRef} /> : null}
+      {!readOnly ? <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} /> : null}
     </div>
   );
 });

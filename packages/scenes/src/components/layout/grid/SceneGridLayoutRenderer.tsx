@@ -78,14 +78,18 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
   };
 
   return (
-    <div
-      ref={outerDivRef as RefCallback<HTMLDivElement>}
-      style={{ flex: '1 1 auto', position: 'relative', zIndex: 1, width: '100%' }}
-    >
+    <div ref={outerDivRef as RefCallback<HTMLDivElement>} className={gridWrapperClass}>
       {renderGrid(width, height)}
     </div>
   );
 }
+
+const gridWrapperClass = css({
+  flex: '1 1 auto',
+  position: 'relative',
+  zIndex: 1,
+  width: '100%',
+});
 
 interface GridItemWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   grid: SceneGridLayout;

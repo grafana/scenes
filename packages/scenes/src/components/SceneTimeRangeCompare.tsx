@@ -1,6 +1,5 @@
 import { t, Trans } from '@grafana/i18n';
-import { DataQueryRequest, DateTime, dateTime, FieldType, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
-import { config } from '@grafana/runtime';
+import { DataQueryRequest, DateTime, dateTime, GrafanaTheme2, rangeUtil, TimeRange } from '@grafana/data';
 import { ButtonGroup, ButtonSelect, Checkbox, ToolbarButton, useStyles2 } from '@grafana/ui';
 import React from 'react';
 import { sceneGraph } from '../core/sceneGraph';
@@ -201,23 +200,6 @@ const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary
         isTimeShiftQuery: true,
       },
     };
-    series.fields.forEach((field) => {
-      // Align compare series time stamps with reference series
-      if (field.type === FieldType.time) {
-        field.values = field.values.map((v) => {
-          return diff < 0 ? v - diff : v + diff;
-        });
-      }
-
-      field.config = {
-        ...field.config,
-        color: {
-          mode: 'fixed',
-          fixedColor: config.theme.palette.gray60,
-        },
-      };
-      return field;
-    });
   });
   return of(secondary);
 };

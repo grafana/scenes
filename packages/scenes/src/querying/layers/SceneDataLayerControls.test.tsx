@@ -1,10 +1,10 @@
 import React from 'react';
 import { selectors } from '@grafana/e2e-selectors';
 import { act, render, screen } from '@testing-library/react';
-import { DataLayerControlSwitch } from './SceneDataLayerControls';
+import { SceneDataLayerControlRenderer } from './SceneDataLayerControls';
 import { TestAnnotationsDataLayer } from './TestDataLayer';
 
-describe('SceneDataLayerControl', () => {
+describe('SceneDataLayerControlRenderer', () => {
   beforeAll(() => {
     jest.useFakeTimers();
   });
@@ -14,7 +14,7 @@ describe('SceneDataLayerControl', () => {
       name: 'Layer 1',
     });
 
-    render(<DataLayerControlSwitch layer={layer} />);
+    render(<SceneDataLayerControlRenderer layer={layer} />);
     expect(screen.queryAllByLabelText(selectors.components.LoadingIndicator.icon)).toHaveLength(0);
 
     act(() => {
@@ -49,7 +49,7 @@ describe('SceneDataLayerControl', () => {
       name: 'Layer 1',
     });
 
-    render(<DataLayerControlSwitch layer={layer} />);
+    render(<SceneDataLayerControlRenderer layer={layer} />);
 
     act(() => {
       layer.activate();

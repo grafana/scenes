@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "使用鍵 {{keyLabel}} 編輯篩選條件",
         "managed-filter": "{{origin}} 受管理的篩選條件",
+        "non-applicable": "",
         "remove-filter-with-key": "使用鍵 {{keyLabel}} 移除篩選條件"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "如果您使用連結找到此處，則此應用程式中可能存在錯誤。",
         "subTitle": "URL 與任何頁面都不相符",
         "title": "無結果"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "收闔場景",
@@ -29,12 +33,21 @@
         "collapse-row": "收闔列",
         "expand-row": "展開列"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "取消",
+        "text-refresh": "更新",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "比較",
         "button-tooltip": "啟用時間範圍比較"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "窗格調整大小小工具"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

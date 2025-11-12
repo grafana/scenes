@@ -1,5 +1,12 @@
 import { map, Observable, of } from 'rxjs';
 
+// Mock crypto.randomUUID for generateOperationId
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: jest.fn(() => 'test-uuid-1234-5678-9abc-def012345678'),
+  },
+});
+
 import {
   DataQueryRequest,
   DataQueryResponse,

@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "使用键 {{keyLabel}} 编辑筛选器",
         "managed-filter": "{{origin}} 托管筛选器",
+        "non-applicable": "",
         "remove-filter-with-key": "使用键 {{keyLabel}} 移除筛选器"
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "如果您使用链接找到了此处的路径，则此应用程序中可能存在错误。",
         "subTitle": "URL 与任何页面都不匹配",
         "title": "未找到"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "折叠场景",
@@ -29,12 +33,21 @@
         "collapse-row": "折叠行",
         "expand-row": "展开行"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "取消",
+        "text-refresh": "刷新",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "比较",
         "button-tooltip": "启用时间范围比较"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "窗格大小调整小部件"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

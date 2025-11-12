@@ -4,6 +4,7 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}}キーでフィルターを編集 ",
         "managed-filter": "{{origin}}管理フィルター",
+        "non-applicable": "",
         "remove-filter-with-key": "{{keyLabel}}キーでフィルターを削除 "
       },
       "adhoc-filters-combobox": {
@@ -14,6 +15,9 @@
         "content": "リンクからこのページにアクセスした場合、アプリケーションにバグがある可能性があります。",
         "subTitle": "URLがどのページにも一致しません",
         "title": "見つかりません"
+      },
+      "lazy-loader": {
+        "placeholder": ""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "シーンを折りたたむ",
@@ -29,12 +33,21 @@
         "collapse-row": "行を折りたたむ",
         "expand-row": "行を展開"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "キャンセル",
+        "text-refresh": "更新",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "比較",
         "button-tooltip": "時間枠比較を有効にする"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "ペインリサイズウィジェット"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {

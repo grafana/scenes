@@ -1,26 +1,32 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   AdHocVariableFilter,
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
   // @ts-expect-error (temporary till we update grafana/data)
-  FiltersApplicability,
+  DrilldownsApplicability,
   Scope,
   SelectableValue,
 } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
-import { ControlsLayout, SceneComponentProps } from '../../core/types';
+import { ControlsLayout, SceneComponentProps, SceneDataQuery } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
-import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
+import {
+  dataFromResponse,
+  escapeOriginFilterUrlDelimiters,
+  getQueriesForVariables,
+  renderPrometheusLabelFilters,
+  responseHasError,
+} from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { getDataSourceSrv } from '@grafana/runtime';
-import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
+import { AdHocFiltersVariableUrlSyncHandler, toArray } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
@@ -29,7 +35,8 @@ import { debounce, isEqual } from 'lodash';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
-import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
+import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -53,6 +60,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   // reason with reason for nonApplicable filters
   nonApplicableReason?: string;
 }
+
+const ORIGIN_FILTERS_KEY: keyof AdHocFiltersVariableState = 'originFilters';
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
@@ -429,7 +438,21 @@ export class AdHocFiltersVariable
     }
   }
 
-  public getValue(): VariableValue | undefined {
+  public getValue(fieldPath?: string): VariableValue | undefined {
+    if (fieldPath === ORIGIN_FILTERS_KEY) {
+      const originFilters = this.state.originFilters;
+
+      if (!originFilters || originFilters?.length === 0) {
+        return [];
+      }
+
+      return [
+        ...originFilters.map((filter) =>
+          toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}`)
+        ),
+      ];
+    }
+
     return this.state.filterExpression;
   }
 
@@ -572,33 +595,40 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async _verifyApplicability() {
-    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
-
+  public async getFiltersApplicabilityForQueries(
+    filters: AdHocFilterWithLabels[],
+    queries: SceneDataQuery[]
+  ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds || !ds.getFiltersApplicability) {
-      return;
-    }
-
-    if (!filters) {
+    if (!ds || !ds.getDrilldownsApplicability) {
       return;
     }
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const response: FiltersApplicability[] = await ds.getFiltersApplicability({
+    return await ds.getDrilldownsApplicability({
       filters,
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
+  }
 
-    const responseMap = new Map<string, FiltersApplicability>();
-    response.forEach((filter) => {
+  public async _verifyApplicability() {
+    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
+
+    if (!response) {
+      return;
+    }
+
+    const responseMap = new Map<string, DrilldownsApplicability>();
+    response.forEach((filter: DrilldownsApplicability) => {
       responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
     });
 
@@ -783,8 +813,14 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
 
-  if (model.state.layout === 'combobox') {
-    return <AdHocFiltersComboboxRenderer model={model} />;
+  // Create controller adapter for combobox mode
+  const controller = useMemo(
+    () => (model.state.layout === 'combobox' ? new AdHocFiltersVariableController(model) : undefined),
+    [model]
+  );
+
+  if (controller) {
+    return <AdHocFiltersComboboxRenderer controller={controller} />;
   }
 
   return (

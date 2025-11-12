@@ -132,6 +132,15 @@ describe('formatRegistry', () => {
       expect(result).toBe('var-server=helloAZ%25%3D');
     });
 
+    it('should use fieldPath when provided', () => {
+      const variable = new AdHocFiltersVariable({});
+
+      const result = formatRegistry
+        .get(VariableFormatID.QueryParam)
+        .formatter(['key1=val1', 'key5=val5'], [], variable, 'originFilters');
+      expect(result).toBe('var-Filters=key1%3Dval1&var-Filters=key5%3Dval5');
+    });
+
     it('should use variable url sync handler', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },

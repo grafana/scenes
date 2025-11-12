@@ -14,12 +14,8 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import {
-  AdHocFilterWithLabels,
-  AdHocFiltersVariable,
-  isFilterComplete,
-  isMultiValueOperator,
-} from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, isFilterComplete, isMultiValueOperator, OPERATORS } from '../AdHocFiltersVariable';
+import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DropdownItem,
@@ -45,13 +41,17 @@ import { handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
 import { MultiValuePill } from './MultiValuePill';
 import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
-import { getQueryController } from '../../../core/sceneGraph/getQueryController';
-import { FILTER_REMOVED_INTERACTION, FILTER_CHANGED_INTERACTION } from '../../../behaviors/SceneRenderProfiler';
+import {
+  FILTER_REMOVED_INTERACTION,
+  FILTER_CHANGED_INTERACTION,
+  ADHOC_KEYS_DROPDOWN_INTERACTION,
+  ADHOC_VALUES_DROPDOWN_INTERACTION,
+} from '../../../performance/interactionConstants';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
   isAlwaysWip?: boolean;
-  model: AdHocFiltersVariable;
+  controller: AdHocFiltersController;
   handleChangeViewMode?: (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => void;
   focusOnWipInputRef?: () => void;
   populateInputOnEdit?: boolean;
@@ -60,7 +60,14 @@ interface AdHocComboboxProps {
 export type AdHocInputType = 'key' | 'operator' | 'value';
 
 export const AdHocCombobox = forwardRef(function AdHocCombobox(
-  { filter, model, isAlwaysWip, handleChangeViewMode, focusOnWipInputRef, populateInputOnEdit }: AdHocComboboxProps,
+  {
+    filter,
+    controller,
+    isAlwaysWip,
+    handleChangeViewMode,
+    focusOnWipInputRef,
+    populateInputOnEdit,
+  }: AdHocComboboxProps,
   parentRef
 ) {
   const [open, setOpen] = useState(false);
@@ -72,10 +79,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const [filterInputType, setInputType] = useState<AdHocInputType>(!isAlwaysWip ? 'value' : 'key');
   const [preventFiltering, setPreventFiltering] = useState<boolean>(!isAlwaysWip && filterInputType === 'value');
   const styles = useStyles2(getStyles);
-  // control multi values with local state in order to commit all values at once and avoid _wip reset mid creation
+  // control multi values with local state in order to commit all values at once and avoid wip reset mid creation
   const [filterMultiValues, setFilterMultiValues] = useState<Array<SelectableValue<string>>>([]);
   const [_, setForceRefresh] = useState({});
-  const allowCustomValue = model.state.allowCustomValue ?? true;
+  const { allowCustomValue = true, onAddCustomValue, filters, inputPlaceholder } = controller.useState();
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -96,30 +103,30 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       return false;
     }
 
-    if (model.state.filters.at(-1) === filter) {
+    if (filters.at(-1) === filter) {
       return true;
     }
     return false;
-  }, [filter, isAlwaysWip, model.state.filters]);
+  }, [filter, isAlwaysWip, filters]);
 
   // reset wip filter. Used when navigating away with incomplete wip filer or when selecting wip filter value
   const handleResetWip = useCallback(() => {
     if (isAlwaysWip) {
-      model._addWip();
+      controller.addWip();
       setInputType('key');
       setInputValue('');
     }
-  }, [model, isAlwaysWip]);
+  }, [controller, isAlwaysWip]);
 
   const handleMultiValueFilterCommit = useCallback(
     (
-      model: AdHocFiltersVariable,
+      controller: AdHocFiltersController,
       filter: AdHocFilterWithLabels,
       filterMultiValues: Array<SelectableValue<string>>,
       preventFocus?: boolean
     ) => {
       if (!filterMultiValues.length && filter.origin) {
-        model.updateToMatchAll(filter);
+        controller.updateToMatchAll(filter);
       }
 
       if (filterMultiValues.length) {
@@ -137,11 +144,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         }
 
         if (shouldUpdate) {
-          const queryController = getQueryController(model);
-          queryController?.startProfile(FILTER_CHANGED_INTERACTION);
+          controller.startProfile?.(FILTER_CHANGED_INTERACTION);
         }
 
-        model._updateFilter(filter!, { valueLabels, values, value: values[0] });
+        controller.updateFilter(filter!, { valueLabels, values, value: values[0] });
         setFilterMultiValues([]);
       }
 
@@ -171,10 +177,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       if (reason && ['outside-press', 'escape-key'].includes(reason)) {
         if (isMultiValueEdit) {
           // commit multi value filter values on escape and click-away
-          handleMultiValueFilterCommit(model, filter!, filterMultiValues);
+          handleMultiValueFilterCommit(controller, filter!, filterMultiValues);
         } else {
           if (filter && filter.origin && inputValue === '') {
-            model.updateToMatchAll(filter);
+            controller.updateToMatchAll(filter);
           }
         }
 
@@ -190,7 +196,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       handleResetWip,
       inputValue,
       isMultiValueEdit,
-      model,
+      controller,
     ]
   );
 
@@ -244,38 +250,52 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
   if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
-    filteredDropDownItems.push({
+    const operatorDefinition = OPERATORS.find((op) => filter?.operator === op.value);
+    const customOptionValue: SelectableValue<string> = {
       value: inputValue.trim(),
       label: inputValue.trim(),
       isCustom: true,
-    });
-  }
+    };
 
-  // Get the optional onAddCustomValue method from the AdHocFiltersVariable if defined
-  const onAddCustomValue = model.state.onAddCustomValue;
+    // If operator is regex, add custom value option first
+    if (operatorDefinition?.isRegex) {
+      filteredDropDownItems.unshift(customOptionValue);
+    } else {
+      filteredDropDownItems.push(customOptionValue);
+    }
+  }
 
   // calculate width and populate listRef and disabledIndicesRef for arrow key navigation
   const maxOptionWidth = setupDropdownAccessibility(filteredDropDownItems, listRef, disabledIndicesRef);
 
   const handleFetchOptions = useCallback(
     async (inputType: AdHocInputType) => {
+      // Start profiling the user interaction
+      const interactionName = inputType === 'key' ? ADHOC_KEYS_DROPDOWN_INTERACTION : ADHOC_VALUES_DROPDOWN_INTERACTION;
+
+      if (inputType !== 'operator') {
+        controller.startInteraction?.(interactionName);
+      }
+
       setOptionsError(false);
       setOptionsLoading(true);
       setOptions([]);
+
       let options: Array<SelectableValue<string>> = [];
 
       try {
         if (inputType === 'key') {
-          options = await model._getKeys(null);
+          options = await controller.getKeys(null);
         } else if (inputType === 'operator') {
-          options = model._getOperators();
+          options = controller.getOperators();
         } else if (inputType === 'value') {
-          options = await model._getValuesFor(filter!);
+          options = await controller.getValuesFor(filter!);
         }
 
         // if input type changed before fetch completed then abort updating options
         //   this can cause race condition and return incorrect options when input type changed
         if (filterInputTypeRef.current !== inputType) {
+          controller.stopInteraction?.();
           return;
         }
         setOptions(options);
@@ -287,9 +307,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       } catch (e) {
         setOptionsError(true);
       }
+
       setOptionsLoading(false);
+
+      controller.stopInteraction?.();
     },
-    [filter, model]
+    [filter, controller]
   );
 
   const rowVirtualizer = useVirtualizer({
@@ -331,11 +354,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         focusOnWipInputRef?.();
 
         if (isFilterComplete(filter!)) {
-          const queryController = getQueryController(model);
-          queryController?.startProfile(FILTER_REMOVED_INTERACTION);
+          controller.startProfile?.(FILTER_REMOVED_INTERACTION);
         }
 
-        model._handleComboboxBackspace(filter!);
+        controller.handleComboboxBackspace(filter!);
 
         if (isAlwaysWip) {
           handleResetWip();
@@ -345,7 +367,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     [
       inputValue,
       filterInputType,
-      model,
+      controller,
       filter,
       isAlwaysWip,
       filterMultiValues.length,
@@ -362,7 +384,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (multiValueEdit) {
           // commit multi value filter values on tab away
           event.preventDefault();
-          handleMultiValueFilterCommit(model, filter!, filterMultiValues);
+          handleMultiValueFilterCommit(controller, filter!, filterMultiValues);
           refs.domReference.current?.focus();
         }
 
@@ -376,7 +398,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       handleChangeViewMode,
       handleMultiValueFilterCommit,
       handleResetWip,
-      model,
+      controller,
       refs.domReference,
     ]
   );
@@ -387,13 +409,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (multiValueEdit) {
           // commit multi value filter values on shift tab away
           event.preventDefault();
-          handleMultiValueFilterCommit(model, filter!, filterMultiValues, true);
+          handleMultiValueFilterCommit(controller, filter!, filterMultiValues, true);
         }
         handleChangeViewMode?.();
         handleResetWip();
       }
     },
-    [filter, filterMultiValues, handleChangeViewMode, handleMultiValueFilterCommit, handleResetWip, model]
+    [filter, filterMultiValues, handleChangeViewMode, handleMultiValueFilterCommit, handleResetWip, controller]
   );
 
   const handleEnterInput = useCallback(
@@ -420,11 +442,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
           // Only start profile if value has changed
           if (filterInputType === 'value' && payload.value !== filter?.value) {
-            const queryController = getQueryController(model);
-            queryController?.startProfile(FILTER_CHANGED_INTERACTION);
+            controller.startProfile?.(FILTER_CHANGED_INTERACTION);
           }
 
-          model._updateFilter(filter!, payload);
+          controller.updateFilter(filter!, payload);
 
           populateInputValueOnInputTypeSwitch({
             populateInputOnEdit,
@@ -453,7 +474,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       activeIndex,
       filteredDropDownItems,
       handleLocalMultiValueChange,
-      model,
+      controller,
       filter,
       filterInputType,
       populateInputOnEdit,
@@ -622,7 +643,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           onChange,
           value: inputValue,
           // dynamic placeholder to display operator and/or value in filter edit mode
-          placeholder: generatePlaceholder(filter!, filterInputType, isMultiValueEdit, isAlwaysWip),
+          placeholder: generatePlaceholder(filter!, filterInputType, isMultiValueEdit, isAlwaysWip, inputPlaceholder),
           'aria-autocomplete': 'list',
           onKeyDown(event) {
             if (!open) {
@@ -650,7 +671,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       {optionsLoading ? <Spinner className={styles.loadingIndicator} inline={true} /> : null}
       <FloatingPortal>
         {open && (
-          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss modal={false}>
+          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss modal={true}>
             <>
               <div
                 style={{
@@ -739,10 +760,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 });
 
                                 if (filterInputType === 'value' && payload.value !== filter?.value) {
-                                  const queryController = getQueryController(model);
-                                  queryController?.startProfile(FILTER_CHANGED_INTERACTION);
+                                  controller.startProfile?.(FILTER_CHANGED_INTERACTION);
                                 }
-                                model._updateFilter(filter!, payload);
+                                controller.updateFilter(filter!, payload);
 
                                 populateInputValueOnInputTypeSwitch({
                                   populateInputOnEdit,
@@ -794,7 +814,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               {isMultiValueEdit && !optionsLoading && !optionsError && filteredDropDownItems.length ? (
                 <MultiValueApplyButton
                   onApply={() => {
-                    handleMultiValueFilterCommit(model, filter!, filterMultiValues);
+                    handleMultiValueFilterCommit(controller, filter!, filterMultiValues);
                   }}
                   floatingElement={refs.floating.current}
                   maxOptionWidth={maxOptionWidth}
