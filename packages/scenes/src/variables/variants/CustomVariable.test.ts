@@ -334,6 +334,25 @@ label-3 : value-3,`,
   });
 
   describe('JSON values format', () => {
+    describe('When empty query is provided', () => {
+      it('Should default to empty options', async () => {
+        const variable = new CustomVariable({
+          name: 'test',
+          options: [],
+          value: '',
+          text: '',
+          valuesFormat: 'json',
+          query: '',
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.state.value).toEqual('');
+        expect(variable.state.text).toEqual('');
+        expect(variable.state.options).toEqual([]);
+      });
+    });
+
     it('Should generate correctly the options for an array of objects', async () => {
       const variable = new CustomVariable({
         name: 'test',

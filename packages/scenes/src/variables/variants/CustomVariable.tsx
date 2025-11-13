@@ -52,6 +52,10 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
   }
 
   public transformJsonToOptions(json: string): VariableValueOption[] {
+    if (!json) {
+      return [];
+    }
+
     const parsedOptions = JSON.parse(json);
 
     if (!Array.isArray(parsedOptions) || parsedOptions.some((o) => typeof o !== 'object' || o === null)) {
