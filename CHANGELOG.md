@@ -1,3 +1,18 @@
+# v6.46.1 (Thu Nov 13 2025)
+
+#### 🐛 Bug Fix
+
+- Demos: Update panel with header actions demo [#1299](https://github.com/grafana/scenes/pull/1299) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - MultiValueVariable: Fixes urlSync issues that caused wrong interpolation in queries [#1300](https://github.com/grafana/scenes/pull/1300) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.43.0 (Tue Nov 11 2025)
 
 #### 🚀 Enhancement
