@@ -433,7 +433,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     let urlValue: string | string[] | null = null;
     let value = this._sceneObject.state.value;
 
-    if (Array.isArray(value)) {
+    if (Array.isArray(value) && value.length > 1) {
       urlValue = value.map(String);
     } else if ((this, this._sceneObject.state.isMulti)) {
       // If we are inMulti mode we must return an array here as otherwise UrlSyncManager will not pass all values (in an array) in updateFromUrl
