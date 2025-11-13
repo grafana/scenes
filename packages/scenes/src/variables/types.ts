@@ -72,7 +72,7 @@ export interface CustomVariableValue {
 }
 
 export interface ValidateAndUpdateResult {}
-export interface VariableValueOptionProperties extends Record<string, any> {}
+export type VariableValueOptionProperties = Record<string, any>;
 export interface VariableValueOption {
   label: string;
   value: VariableValueSingle;
