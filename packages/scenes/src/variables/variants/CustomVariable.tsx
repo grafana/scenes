@@ -8,6 +8,7 @@ import { VariableValueOption } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 import { sceneGraph } from '../../core/sceneGraph';
 import React from 'react';
+import { omit } from 'lodash';
 
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;
@@ -65,13 +66,13 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
       throw new Error('Query must be a JSON array of strings or objects');
     }
 
-    const valueProp = 'value';
     const textProp = 'text';
+    const valueProp = 'value';
 
     return parsedOptions.map((o) => ({
       label: String(o[textProp] || o[valueProp])?.trim(),
       value: String(o[valueProp]).trim(),
-      properties: o,
+      properties: omit(o, [textProp, valueProp]),
     }));
   }
 
