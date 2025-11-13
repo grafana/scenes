@@ -333,8 +333,8 @@ label-3 : value-3,`,
     });
   });
 
-  describe('JSON options provider', () => {
-    it('Can provide object values (JSON is an array of objects)', async () => {
+  describe('JSON values format', () => {
+    it('Should generate correctly the options for an array of objects', async () => {
       const variable = new CustomVariable({
         name: 'test',
         isMulti: false,
@@ -355,21 +355,34 @@ label-3 : value-3,`,
       expect(variable.getValue('location')).toEqual('EU');
     });
 
-    it('Can provide non-object values (JSON is an array of strings)', async () => {
+    it('Should throw when query is not valid JSON', async () => {
       const variable = new CustomVariable({
         name: 'test',
-        isMulti: false,
         valuesFormat: 'json',
-        query: `["test", "prod"]`,
-        value: 'prod',
-        text: 'prod',
-        options: [],
+        query: `]]]]{ "value": "test", "location": "US" }]`,
       });
 
-      await lastValueFrom(variable.validateAndUpdate());
+      expect(() => variable.validateAndUpdate()).toThrow("Unexpected token ']'");
+    });
 
-      expect(variable.state.value).toBe('prod');
-      expect(variable.state.text).toBe('prod');
+    it('Should throw when query is not an array', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        valuesFormat: 'json',
+        query: `{ "value": "test", "location": "US" }`,
+      });
+
+      expect(() => variable.validateAndUpdate()).toThrow('Query must be a JSON array of objects');
+    });
+
+    it('Should throw if query is not an array of objects', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        valuesFormat: 'json',
+        query: `[{ "value": "test", "location": "US" }, 2, { "value": "prod", "location": "EU" }]`,
+      });
+
+      expect(() => variable.validateAndUpdate()).toThrow('Query must be a JSON array of objects');
     });
   });
 });

@@ -54,16 +54,8 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
   public transformJsonToOptions(json: string): VariableValueOption[] {
     const parsedOptions = JSON.parse(json);
 
-    if (!Array.isArray(parsedOptions)) {
-      throw new Error('Query must be a JSON array');
-    }
-
-    if (typeof parsedOptions[0] === 'string') {
-      return parsedOptions.map((value) => ({ label: value.trim(), value: value.trim() }));
-    }
-
-    if (typeof parsedOptions[0] !== 'object' || parsedOptions[0] === null) {
-      throw new Error('Query must be a JSON array of strings or objects');
+    if (!Array.isArray(parsedOptions) || parsedOptions.some((o) => typeof o !== 'object' || o === null)) {
+      throw new Error('Query must be a JSON array of objects');
     }
 
     const textProp = 'text';
