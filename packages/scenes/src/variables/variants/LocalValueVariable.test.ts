@@ -20,6 +20,17 @@ describe('LocalValueVariable', () => {
 
       expect(localVar.isAncestorLoading()).toBe(false);
     });
+
+    it('Supports multiple properties', async () => {
+      const localVar = new LocalValueVariable({
+        name: 'test',
+        value: 'value',
+        properties: { prop1: 'one', prop2: 'two' },
+      });
+
+      expect(localVar.getValue()).toBe('value');
+      expect(localVar.getValue('prop2')).toBe('two');
+    });
   });
 });
 

@@ -542,6 +542,6 @@ export class CustomAllValue implements CustomVariableValue {
   }
 }
 
-interface FieldAccessorCache {
+export interface FieldAccessorCache {
   [key: string]: (obj: any) => any;
 }
