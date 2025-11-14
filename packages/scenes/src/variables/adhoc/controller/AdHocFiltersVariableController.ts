@@ -21,6 +21,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       supportsMultiValueOperators: state.supportsMultiValueOperators,
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
+      _shouldFocus: state._shouldFocus,
     };
   }
 
@@ -62,6 +63,14 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels): void {
     this.model.restoreOriginalFilter(filter);
+  }
+
+  public focusInput(): void {
+    this.model.focusInput();
+  }
+
+  public resetFocusFlag(): void {
+    this.model._resetFocusFlag();
   }
 
   public startProfile(name: string): void {

@@ -151,6 +151,10 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Allows custom formatting of a value before saving to filter state
    */
   onAddCustomValue?: OnAddCustomValueFn;
+  /**
+   * @internal allows to focus the adhoc input through focusInput()
+   */
+  _shouldFocus?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -781,6 +785,30 @@ export class AdHocFiltersVariable
     this.setState({
       _wip: { key: '', value: '', operator: '=', condition: '' },
     });
+  }
+
+  /**
+   * Focus the filter input to start adding a new filter.
+   * Works with both standard and combobox layouts.
+   */
+  public focusInput() {
+    if (this.state.readOnly) {
+      return;
+    }
+
+    if (this.state.layout === 'combobox') {
+      this.setState({ _shouldFocus: true });
+    }
+  }
+
+  /**
+   * Reset the focus flag after focusing has completed
+   * @internal
+   */
+  public _resetFocusFlag() {
+    if (this.state._shouldFocus) {
+      this.setState({ _shouldFocus: false });
+    }
   }
 
   public _getOperators() {
