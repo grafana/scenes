@@ -54,6 +54,18 @@ export function getPanelHeaderActions(defaults: SceneAppPageState) {
               .setData(getQueryRunnerWithRandomWalkQuery())
               .setHeaderActions(<Select options={[{ label: 'Option 1', value: '1' }]} onChange={() => {}} value="1" />)
               .build(),
+            PanelBuilders.timeseries()
+              .setTitle('Hover header')
+              .setData(getQueryRunnerWithRandomWalkQuery())
+              .setHeaderActions(new VizPanelExploreButton())
+              .setMenu(new VizPanelMenu({ items: [{ text: 'Option 1' }] }))
+              .setHoverHeader(true)
+              .build(),
+            PanelBuilders.timeseries()
+              .setTitle('')
+              .setData(getQueryRunnerWithRandomWalkQuery())
+              .setHoverHeader(true)
+              .build(),
           ],
         }),
       });
