@@ -35,6 +35,7 @@ import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIn
 import { GroupByValueContainer, GroupByContainerProps } from './GroupByValueContainer';
 import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTracker';
 import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionConstants';
+import { DrilldownApplicabilitySupport } from '../supportsDrilldownsApplicability';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -84,11 +85,13 @@ export type getTagKeysProvider = (
   currentKey: string | null
 ) => Promise<{ replace?: boolean; values: MetricFindValue[] | GetTagResponse }>;
 
-export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
+export class GroupByVariable extends MultiValueVariable<GroupByVariableState> implements DrilldownApplicabilitySupport {
   static Component = GroupByVariableRenderer;
   isLazy = true;
 
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
+
+  private _applicabilityEnabled = false;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -219,6 +222,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return applicableValues;
   }
 
+  public isApplicabilityEnabled(): boolean {
+    return this._applicabilityEnabled;
+  }
+
   public async getGroupByApplicabilityForQueries(
     value: VariableValue,
     queries: SceneDataQuery[]
@@ -251,8 +258,11 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     const response = await this.getGroupByApplicabilityForQueries(value, queries);
 
     if (!response) {
+      this._applicabilityEnabled = false;
       return;
     }
+
+    this._applicabilityEnabled = true;
 
     if (!isEqual(response, this.state.keysApplicability)) {
       this.setState({ keysApplicability: response ?? undefined });

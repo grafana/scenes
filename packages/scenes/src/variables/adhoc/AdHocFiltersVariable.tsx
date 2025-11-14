@@ -37,6 +37,7 @@ import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
 import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
+import { DrilldownApplicabilitySupport } from '../supportsDrilldownsApplicability';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -235,7 +236,7 @@ interface OriginalValue {
 
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
-  implements SceneVariable<AdHocFiltersVariableState>
+  implements SceneVariable<AdHocFiltersVariableState>, DrilldownApplicabilitySupport
 {
   static Component = AdHocFiltersVariableRenderer;
 
@@ -246,6 +247,7 @@ export class AdHocFiltersVariable
   // to its original value if edited at some point
   private _originalValues: Map<string, OriginalValue> = new Map();
   private _prevScopes: Scope[] = [];
+  private _applicabilityEnabled = false;
 
   /** Needed for scopes dependency */
   protected _variableDependency = new VariableDependencyConfig(this, {
@@ -595,6 +597,10 @@ export class AdHocFiltersVariable
     }
   }
 
+  public isApplicabilityEnabled(): boolean {
+    return this._applicabilityEnabled;
+  }
+
   public async getFiltersApplicabilityForQueries(
     filters: AdHocFilterWithLabels[],
     queries: SceneDataQuery[]
@@ -624,8 +630,11 @@ export class AdHocFiltersVariable
     const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
 
     if (!response) {
+      this._applicabilityEnabled = false;
       return;
     }
+
+    this._applicabilityEnabled = true;
 
     const responseMap = new Map<string, DrilldownsApplicability>();
     response.forEach((filter: DrilldownsApplicability) => {
