@@ -1,3 +1,15 @@
+# v6.47.0 (Fri Nov 14 2025)
+
+#### 🚀 Enhancement
+
+- VizPanel: Do not pass empty array to titleItems [#1302](https://github.com/grafana/scenes/pull/1302) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.46.1 (Thu Nov 13 2025)
 
 #### 🐛 Bug Fix
