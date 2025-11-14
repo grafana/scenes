@@ -244,7 +244,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             height={height}
             selectionId={model.state.key}
             displayMode={displayMode}
-            titleItems={titleItemsElement}
+            titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
             dragClass={dragClass}
             actions={actionsElement}
             dragClassCancel={dragClassCancel}
