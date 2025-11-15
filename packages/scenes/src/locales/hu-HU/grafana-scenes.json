@@ -111,6 +111,7 @@
             "format-date-in-different-ways": "Dátum formázása különböző módokon",
             "format-multivalued-variables-using-syntax-example": "Többértékű változók formázása glob szintaxissal, például: {érték1,érték2}",
             "html-escaping-of-values": "Értékek módosított HTML-értelmezése",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "A JSON stringify értéke",
             "keep-value-as-is": "Érték megtartása adott állapotban",
             "multiple-values-are-formatted-like-variablevalue": "Több érték formázása változó=érték formátumban",
