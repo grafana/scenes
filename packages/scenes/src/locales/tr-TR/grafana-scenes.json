@@ -111,6 +111,7 @@
             "format-date-in-different-ways": "Tarihi farklı şekillerde biçimlendirin",
             "format-multivalued-variables-using-syntax-example": "Çok değerli değişkenleri glob söz dizimi kullanarak biçimlendirin (örneğin {value1,value2}).",
             "html-escaping-of-values": "Değerlerin HTML kaçış karakteriyle yazılması gerekir",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "JSON stringify değeri",
             "keep-value-as-is": "Değeri olduğu gibi tut",
             "multiple-values-are-formatted-like-variablevalue": "Birden fazla değer, değişken=değer biçiminde biçimlendirilir",
