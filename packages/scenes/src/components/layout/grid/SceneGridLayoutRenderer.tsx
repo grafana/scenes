@@ -11,7 +11,8 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useMeasure } from 'react-use';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
-  const { children, isLazy, isDraggable, isResizable } = model.useState();
+  const { children, isLazy, isDraggable, isResizable, placeholderItem } = model.useState();
+  const { width: placeholderWidth, height: placeholderHeight, key: placeholderKey } = placeholderItem.useState();
   const [outerDivRef, { width, height }] = useMeasure();
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -55,7 +56,15 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
           draggableHandle={`.grid-drag-handle-${model.state.key}`}
           draggableCancel=".grid-drag-cancel"
           layout={layout}
-          onDragStart={model.onDragStart}
+          droppingItem={{
+            i: placeholderKey!,
+            w: placeholderWidth!,
+            h: placeholderHeight!,
+          }}
+          onDragStart={(layout, oldItem, newItem, placeholder, event, element) => {
+            placeholderItem.setState({ width: oldItem.w, height: oldItem.h });
+            model.onDragStart(layout, oldItem, newItem, placeholder, event, element);
+          }}
           onDragStop={model.onDragStop}
           onResizeStop={model.onResizeStop}
           onLayoutChange={model.onLayoutChange}

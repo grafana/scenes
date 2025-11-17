@@ -12,6 +12,7 @@ import { SceneGridItemLike, SceneGridItemPlacement, SceneGridLayoutDragStartEven
 import { fitPanelsInHeight } from './utils';
 import { VizPanel } from '../../VizPanel/VizPanel';
 import { isRepeatCloneOrChildOf } from '../../../utils/utils';
+import { SceneGridPlaceholderItem } from './SceneGridPlaceholderItem';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -28,6 +29,7 @@ interface SceneGridLayoutState extends SceneObjectState {
    */
   UNSAFE_fitPanels?: boolean;
   children: SceneGridItemLike[];
+  placeholderItem: SceneGridPlaceholderItem;
 }
 
 export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> implements SceneLayout {
@@ -37,10 +39,11 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   private _oldLayout: ReactGridLayout.Layout[] = [];
   private _loadOldLayout = false;
 
-  public constructor(state: SceneGridLayoutState) {
+  public constructor(state: Omit<SceneGridLayoutState, 'placeholderItem'>) {
     super({
       ...state,
       children: sortChildrenByPosition(state.children),
+      placeholderItem: new SceneGridPlaceholderItem(),
     });
   }
 
@@ -189,6 +192,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
    * Will also scan row children and return child of the row
    */
   public getSceneLayoutChild(key: string): SceneGridItemLike {
+    if (key === this.state.placeholderItem?.state.key) {
+      return this.state.placeholderItem!;
+    }
+
     for (const child of this.state.children) {
       if (child.state.key === key) {
         return child;
