@@ -203,6 +203,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
       }
+
+      this.setState({ applicabilityEnabled: false });
     };
   };
 

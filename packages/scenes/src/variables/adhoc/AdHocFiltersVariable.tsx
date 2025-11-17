@@ -297,6 +297,8 @@ export class AdHocFiltersVariable
           this.restoreOriginalFilter(filter);
         }
       });
+
+      this.setState({ applicabilityEnabled: false });
     };
   };
 
