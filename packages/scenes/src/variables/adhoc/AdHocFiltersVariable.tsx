@@ -152,6 +152,10 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Allows custom formatting of a value before saving to filter state
    */
   onAddCustomValue?: OnAddCustomValueFn;
+  /**
+   * state for checking whether drilldown applicability is enabled
+   */
+  applicabilityEnabled?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -247,7 +251,6 @@ export class AdHocFiltersVariable
   // to its original value if edited at some point
   private _originalValues: Map<string, OriginalValue> = new Map();
   private _prevScopes: Scope[] = [];
-  private _applicabilityEnabled = false;
 
   /** Needed for scopes dependency */
   protected _variableDependency = new VariableDependencyConfig(this, {
@@ -598,7 +601,7 @@ export class AdHocFiltersVariable
   }
 
   public isApplicabilityEnabled(): boolean {
-    return this._applicabilityEnabled;
+    return this.state.applicabilityEnabled ?? false;
   }
 
   public async getFiltersApplicabilityForQueries(
@@ -630,11 +633,9 @@ export class AdHocFiltersVariable
     const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
 
     if (!response) {
-      this._applicabilityEnabled = false;
+      this.setState({ applicabilityEnabled: false });
       return;
     }
-
-    this._applicabilityEnabled = true;
 
     const responseMap = new Map<string, DrilldownsApplicability>();
     response.forEach((filter: DrilldownsApplicability) => {
@@ -642,6 +643,7 @@ export class AdHocFiltersVariable
     });
 
     const update = {
+      applicabilityEnabled: true,
       filters: [...this.state.filters],
       originFilters: [...(this.state.originFilters ?? [])],
     };

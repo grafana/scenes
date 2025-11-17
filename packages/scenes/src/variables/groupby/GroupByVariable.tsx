@@ -78,6 +78,10 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * Holds the applicability for each of the selected keys
    */
   keysApplicability?: DrilldownsApplicability[];
+  /**
+   * state for checking whether drilldown applicability is enabled
+   */
+  applicabilityEnabled?: boolean;
 }
 
 export type getTagKeysProvider = (
@@ -90,8 +94,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> im
   isLazy = true;
 
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
-
-  private _applicabilityEnabled = false;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -223,7 +225,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> im
   }
 
   public isApplicabilityEnabled(): boolean {
-    return this._applicabilityEnabled;
+    console.log(this.state.applicabilityEnabled);
+    return this.state.applicabilityEnabled ?? false;
   }
 
   public async getGroupByApplicabilityForQueries(
@@ -258,14 +261,12 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> im
     const response = await this.getGroupByApplicabilityForQueries(value, queries);
 
     if (!response) {
-      this._applicabilityEnabled = false;
+      this.setState({ applicabilityEnabled: false });
       return;
     }
 
-    this._applicabilityEnabled = true;
-
     if (!isEqual(response, this.state.keysApplicability)) {
-      this.setState({ keysApplicability: response ?? undefined });
+      this.setState({ keysApplicability: response ?? undefined, applicabilityEnabled: true });
 
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
