@@ -628,7 +628,6 @@ export class AdHocFiltersVariable
     const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
 
     if (!response) {
-      this.setState({ applicabilityEnabled: false });
       return;
     }
 

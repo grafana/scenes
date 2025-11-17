@@ -255,7 +255,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     const response = await this.getGroupByApplicabilityForQueries(value, queries);
 
     if (!response) {
-      this.setState({ applicabilityEnabled: false });
       return;
     }
 
