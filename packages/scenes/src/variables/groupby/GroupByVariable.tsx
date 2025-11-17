@@ -224,11 +224,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> im
     return applicableValues;
   }
 
-  public isApplicabilityEnabled(): boolean {
-    console.log(this.state.applicabilityEnabled);
-    return this.state.applicabilityEnabled ?? false;
-  }
-
   public async getGroupByApplicabilityForQueries(
     value: VariableValue,
     queries: SceneDataQuery[]

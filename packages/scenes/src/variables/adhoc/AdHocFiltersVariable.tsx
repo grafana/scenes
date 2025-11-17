@@ -600,10 +600,6 @@ export class AdHocFiltersVariable
     }
   }
 
-  public isApplicabilityEnabled(): boolean {
-    return this.state.applicabilityEnabled ?? false;
-  }
-
   public async getFiltersApplicabilityForQueries(
     filters: AdHocFilterWithLabels[],
     queries: SceneDataQuery[]
