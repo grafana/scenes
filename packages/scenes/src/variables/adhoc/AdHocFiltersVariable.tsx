@@ -37,7 +37,6 @@ import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
 import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
-import { DrilldownApplicabilitySupport } from '../supportsDrilldownsApplicability';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -240,7 +239,7 @@ interface OriginalValue {
 
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
-  implements SceneVariable<AdHocFiltersVariableState>, DrilldownApplicabilitySupport
+  implements SceneVariable<AdHocFiltersVariableState>
 {
   static Component = AdHocFiltersVariableRenderer;
 

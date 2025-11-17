@@ -35,7 +35,6 @@ import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIn
 import { GroupByValueContainer, GroupByContainerProps } from './GroupByValueContainer';
 import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTracker';
 import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionConstants';
-import { DrilldownApplicabilitySupport } from '../supportsDrilldownsApplicability';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -89,7 +88,7 @@ export type getTagKeysProvider = (
   currentKey: string | null
 ) => Promise<{ replace?: boolean; values: MetricFindValue[] | GetTagResponse }>;
 
-export class GroupByVariable extends MultiValueVariable<GroupByVariableState> implements DrilldownApplicabilitySupport {
+export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   static Component = GroupByVariableRenderer;
   isLazy = true;
 
