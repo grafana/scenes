@@ -61,6 +61,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
           onLayoutChange={model.onLayoutChange}
           isBounded={false}
           resizeHandle={<ResizeHandle />}
+          isDroppable={true}
         >
           {layout.map((gridItem, index) => (
             <GridItemWrapper
