@@ -6,13 +6,21 @@ import {
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
+  // @ts-expect-error (temporary till we update grafana/data)
+  DrilldownsApplicability,
   SelectableValue,
 } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
-import { DataSourceRef } from '@grafana/schema';
+import { DataQuery, DataSourceRef } from '@grafana/schema';
 import { css } from '@emotion/css';
+import { findActiveAdHocFilterVariableByUid } from './adhoc/patchGetAdhocFilters';
+import { findActiveGroupByVariablesByUid } from './groupby/findActiveGroupByVariablesByUid';
+import { getDataSource } from '../utils/getDataSource';
+import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializableSceneObject';
+import { AdHocFiltersVariable, isFilterApplicable, isFilterComplete } from './adhoc/AdHocFiltersVariable';
+import { GroupByVariable } from './groupby/GroupByVariable';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
@@ -274,4 +282,92 @@ export function getNonApplicablePillStyles(theme: GrafanaTheme2) {
       textDecoration: 'line-through',
     }),
   };
+}
+
+export function supportsDrilldownApplicability(
+  queryRunner: SceneQueryRunner,
+  filtersVar?: AdHocFiltersVariable,
+  groupByVar?: GroupByVariable
+) {
+  const datasourceUid = sceneGraph.interpolate(queryRunner, queryRunner.state.datasource?.uid);
+
+  if (
+    filtersVar &&
+    filtersVar?.state.applicabilityEnabled &&
+    datasourceUid === sceneGraph.interpolate(filtersVar, filtersVar.state?.datasource?.uid)
+  ) {
+    return true;
+  }
+
+  if (
+    groupByVar &&
+    groupByVar?.state.applicabilityEnabled &&
+    datasourceUid === sceneGraph.interpolate(groupByVar, groupByVar?.state.datasource?.uid)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+export async function getDrilldownApplicability(
+  queryRunner: SceneQueryRunner,
+  filtersVar?: AdHocFiltersVariable,
+  groupByVar?: GroupByVariable
+): Promise<DrilldownsApplicability[] | undefined> {
+  //if no drilldown vars return
+  if (!filtersVar && !groupByVar) {
+    return;
+  }
+
+  const datasource = queryRunner.state.datasource;
+  const queries = queryRunner.state.data?.request?.targets;
+
+  const ds = await getDataSource(datasource, {
+    __sceneObject: wrapInSafeSerializableSceneObject(queryRunner),
+  });
+
+  // return if method not implemented
+  // @ts-expect-error (temporary till we update grafana/data)
+  if (!ds.getDrilldownsApplicability) {
+    return;
+  }
+
+  const dsUid = sceneGraph.interpolate(queryRunner, datasource?.uid);
+  const timeRange = sceneGraph.getTimeRange(queryRunner).state.value;
+  const groupByKeys = [];
+  const filters = [];
+
+  const hasGroupByApplicability =
+    groupByVar && dsUid === sceneGraph.interpolate(groupByVar, groupByVar?.state.datasource?.uid);
+  const hasFiltersApplicability =
+    filtersVar && dsUid === sceneGraph.interpolate(filtersVar, filtersVar.state?.datasource?.uid);
+
+  // if neither vars use the ds from the queries, return
+  if (!hasGroupByApplicability && !hasFiltersApplicability) {
+    return;
+  }
+
+  if (hasGroupByApplicability) {
+    groupByKeys.push(
+      ...(Array.isArray(groupByVar.state.value)
+        ? groupByVar.state.value.map((v) => String(v))
+        : groupByVar.state.value
+        ? [String(groupByVar.state.value)]
+        : [])
+    );
+  }
+
+  if (hasFiltersApplicability) {
+    filters.push(...filtersVar.state.filters, ...(filtersVar.state.originFilters ?? []));
+  }
+
+  // @ts-expect-error (temporary till we update grafana/data)
+  return await ds.getDrilldownsApplicability({
+    groupByKeys,
+    filters,
+    queries,
+    timeRange,
+    scopes: sceneGraph.getScopes(queryRunner),
+  });
 }
