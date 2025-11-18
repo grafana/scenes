@@ -13,7 +13,7 @@ import {
   escapeURLDelimiters,
   getDrilldownApplicability,
   renderPrometheusLabelFilters,
-  supportsDrilldownApplicability,
+  verifyDrilldownApplicability,
 } from './variables/utils';
 import {
   isAdHocVariable,
@@ -179,7 +179,7 @@ export const sceneUtils = {
   buildPathIdFor,
 
   //drilldowns
-  supportsDrilldownApplicability,
+  verifyDrilldownApplicability,
   getDrilldownApplicability,
 };
 

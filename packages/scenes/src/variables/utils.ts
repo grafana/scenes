@@ -19,8 +19,13 @@ import { findActiveAdHocFilterVariableByUid } from './adhoc/patchGetAdhocFilters
 import { findActiveGroupByVariablesByUid } from './groupby/findActiveGroupByVariablesByUid';
 import { getDataSource } from '../utils/getDataSource';
 import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializableSceneObject';
-import { AdHocFiltersVariable, isFilterApplicable, isFilterComplete } from './adhoc/AdHocFiltersVariable';
-import { GroupByVariable } from './groupby/GroupByVariable';
+import {
+  AdHocFiltersVariable,
+  AdHocFiltersVariableState,
+  isFilterApplicable,
+  isFilterComplete,
+} from './adhoc/AdHocFiltersVariable';
+import { GroupByVariable, GroupByVariableState } from './groupby/GroupByVariable';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
@@ -284,26 +289,15 @@ export function getNonApplicablePillStyles(theme: GrafanaTheme2) {
   };
 }
 
-export function supportsDrilldownApplicability(
-  queryRunner: SceneQueryRunner,
-  filtersVar?: AdHocFiltersVariable,
-  groupByVar?: GroupByVariable
+export function verifyDrilldownApplicability(
+  sourceObject: SceneObject,
+  queriesDataSource: DataSourceRef | undefined,
+  drilldownDatasource: DataSourceRef | null,
+  isApplicabilityEnabled?: boolean
 ) {
-  const datasourceUid = sceneGraph.interpolate(queryRunner, queryRunner.state.datasource?.uid);
+  const datasourceUid = sceneGraph.interpolate(sourceObject, queriesDataSource?.uid);
 
-  if (
-    filtersVar &&
-    filtersVar?.state.applicabilityEnabled &&
-    datasourceUid === sceneGraph.interpolate(filtersVar, filtersVar.state?.datasource?.uid)
-  ) {
-    return true;
-  }
-
-  if (
-    groupByVar &&
-    groupByVar?.state.applicabilityEnabled &&
-    datasourceUid === sceneGraph.interpolate(groupByVar, groupByVar?.state.datasource?.uid)
-  ) {
+  if (isApplicabilityEnabled && datasourceUid === sceneGraph.interpolate(sourceObject, drilldownDatasource?.uid)) {
     return true;
   }
 
