@@ -1,3 +1,16 @@
+# v6.47.1 (Wed Nov 19 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Drilldowns: Applicabilty check on drilldown variables [#1303](https://github.com/grafana/scenes/pull/1303) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.47.0 (Fri Nov 14 2025)
 
 #### 🚀 Enhancement
