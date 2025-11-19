@@ -11,9 +11,7 @@ import {
   escapeLabelValueInExactSelector,
   escapeLabelValueInRegexSelector,
   escapeURLDelimiters,
-  getDrilldownApplicability,
   renderPrometheusLabelFilters,
-  verifyDrilldownApplicability,
 } from './variables/utils';
 import {
   isAdHocVariable,
@@ -177,10 +175,6 @@ export const sceneUtils = {
   isSwitchVariable,
   isRepeatCloneOrChildOf,
   buildPathIdFor,
-
-  //drilldowns
-  verifyDrilldownApplicability,
-  getDrilldownApplicability,
 };
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
