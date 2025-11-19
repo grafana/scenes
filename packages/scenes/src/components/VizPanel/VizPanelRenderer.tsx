@@ -140,7 +140,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         })
       );
     } else if (isSceneObject(subHeader)) {
-      subHeaderElement.push(<subHeader.Component model={subHeader} />);
+      subHeaderElement.push(<subHeader.Component model={subHeader} key={`${subHeader.state.key}`} />);
     } else {
       subHeaderElement.push(subHeader);
     }

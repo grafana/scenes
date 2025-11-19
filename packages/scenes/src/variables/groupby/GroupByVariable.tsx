@@ -77,6 +77,10 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * Holds the applicability for each of the selected keys
    */
   keysApplicability?: DrilldownsApplicability[];
+  /**
+   * state for checking whether drilldown applicability is enabled
+   */
+  applicabilityEnabled?: boolean;
 }
 
 export type getTagKeysProvider = (
@@ -199,6 +203,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
       }
+
+      this.setState({ applicabilityEnabled: false });
     };
   };
 
@@ -255,9 +261,11 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     if (!isEqual(response, this.state.keysApplicability)) {
-      this.setState({ keysApplicability: response ?? undefined });
+      this.setState({ keysApplicability: response ?? undefined, applicabilityEnabled: true });
 
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    } else {
+      this.setState({ applicabilityEnabled: true });
     }
   }
 

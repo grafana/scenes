@@ -151,6 +151,10 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Allows custom formatting of a value before saving to filter state
    */
   onAddCustomValue?: OnAddCustomValueFn;
+  /**
+   * state for checking whether drilldown applicability is enabled
+   */
+  applicabilityEnabled?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -293,6 +297,8 @@ export class AdHocFiltersVariable
           this.restoreOriginalFilter(filter);
         }
       });
+
+      this.setState({ applicabilityEnabled: false });
     };
   };
 
@@ -633,6 +639,7 @@ export class AdHocFiltersVariable
     });
 
     const update = {
+      applicabilityEnabled: true,
       filters: [...this.state.filters],
       originFilters: [...(this.state.originFilters ?? [])],
     };
