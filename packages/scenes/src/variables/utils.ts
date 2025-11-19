@@ -13,19 +13,12 @@ import {
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
-import { DataQuery, DataSourceRef } from '@grafana/schema';
+import { DataSourceRef } from '@grafana/schema';
 import { css } from '@emotion/css';
-import { findActiveAdHocFilterVariableByUid } from './adhoc/patchGetAdhocFilters';
-import { findActiveGroupByVariablesByUid } from './groupby/findActiveGroupByVariablesByUid';
 import { getDataSource } from '../utils/getDataSource';
 import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializableSceneObject';
-import {
-  AdHocFiltersVariable,
-  AdHocFiltersVariableState,
-  isFilterApplicable,
-  isFilterComplete,
-} from './adhoc/AdHocFiltersVariable';
-import { GroupByVariable, GroupByVariableState } from './groupby/GroupByVariable';
+import { AdHocFiltersVariable } from './adhoc/AdHocFiltersVariable';
+import { GroupByVariable } from './groupby/GroupByVariable';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
