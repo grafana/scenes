@@ -294,14 +294,12 @@ export function verifyDrilldownApplicability(
   queriesDataSource: DataSourceRef | undefined,
   drilldownDatasource: DataSourceRef | null,
   isApplicabilityEnabled?: boolean
-) {
+): boolean {
   const datasourceUid = sceneGraph.interpolate(sourceObject, queriesDataSource?.uid);
 
-  if (isApplicabilityEnabled && datasourceUid === sceneGraph.interpolate(sourceObject, drilldownDatasource?.uid)) {
-    return true;
-  }
-
-  return false;
+  return Boolean(
+    isApplicabilityEnabled && datasourceUid === sceneGraph.interpolate(sourceObject, drilldownDatasource?.uid)
+  );
 }
 
 export async function getDrilldownApplicability(

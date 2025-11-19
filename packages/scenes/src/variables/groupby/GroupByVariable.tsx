@@ -264,6 +264,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       this.setState({ keysApplicability: response ?? undefined, applicabilityEnabled: true });
 
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    } else {
+      this.setState({ applicabilityEnabled: true });
     }
   }
 
