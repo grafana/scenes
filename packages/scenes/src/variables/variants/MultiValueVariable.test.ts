@@ -759,4 +759,24 @@ describe('MultiValueVariable', () => {
       expect(variable.urlSync?.getKeys()).toEqual([]);
     });
   });
+
+  describe('multi prop / object support', () => {
+    it('Can have object values', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        value: 'A',
+        text: 'A',
+        delayMs: 0,
+        skipUrlSync: true,
+        optionsToReturn: [
+          { label: 'Test', value: 'test', properties: { id: 'test', display: 'Test', location: 'US' } },
+          { label: 'Prod', value: 'pod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
+        ],
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.getValue('location')).toEqual('US');
+    });
+  });
 });
