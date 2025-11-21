@@ -33,30 +33,18 @@ export function toMetricFindValues(
           return [];
         }
 
-        const indices = findFieldsIndices(frames);
-
-        if (indices.value === -1 && indices.text === -1 && !indices.properties.length) {
-          throw new Error("Couldn't find any field of type string in the results");
-        }
-
-        // a single field of type string that is neither named "value" nor "text" is considered as "value"
-        if (indices.value === -1 && indices.text === -1 && indices.properties.length === 1) {
-          indices.value = indices.properties[0].index;
-          indices.properties = [];
-        }
-
-        if (indices.value === -1 && indices.text === -1 && indices.properties.length && !valueProp && !textProp) {
-          throw new Error('Properties found in series but missing valueProp and textProp');
-        }
+        const indices = validateIndices(findFieldsIndices(frames), valueProp, textProp);
 
         const metrics: MetricFindValueWithOptionalProperties[] = [];
 
         for (const frame of frames) {
           for (let index = 0; index < frame.length; index++) {
-            const value = indices.value !== -1 ? frame.fields[indices.value].values.get(index) : '';
-            const text = indices.text !== -1 ? frame.fields[indices.text].values.get(index) : '';
-            const expandable =
-              indices.expandable !== -1 ? frame.fields[indices.expandable].values.get(index) : undefined;
+            const fieldValue = (fieldIndex: number) =>
+              fieldIndex !== -1 ? frame.fields[fieldIndex].values.get(index) : undefined;
+
+            const value = fieldValue(indices.value);
+            const text = fieldValue(indices.text);
+            const expandable = fieldValue(indices.expandable);
 
             if (!indices.properties.length) {
               metrics.push({
@@ -67,10 +55,10 @@ export function toMetricFindValues(
               continue;
             }
 
-            const properties = indices.properties.reduce((acc, p) => {
-              acc[p.name] = frame.fields[p.index].values.get(index);
-              return acc;
-            }, {} as Record<string, string>);
+            const properties: Record<string, string> = {};
+            for (const p of indices.properties) {
+              properties[p.name] = fieldValue(p.index);
+            }
 
             metrics.push({
               value:
@@ -105,8 +93,8 @@ function findFieldsIndices(frames: DataFrame[]): Indices {
   const indices: Indices = {
     value: -1,
     text: -1,
-    properties: [],
     expandable: -1,
+    properties: [],
   };
 
   for (const frame of getProcessedDataFrames(frames)) {
@@ -141,6 +129,26 @@ function findFieldsIndices(frames: DataFrame[]): Indices {
         indices.expandable = index;
       }
     }
+  }
+
+  return indices;
+}
+
+function validateIndices(indices: Indices, valueProp?: string, textProp?: string): Indices {
+  const hasNoValueOrText = indices.value === -1 && indices.text === -1;
+
+  if (hasNoValueOrText && !indices.properties.length) {
+    throw new Error("Couldn't find any field of type string in the results");
+  }
+
+  // A single field of type string that is neither named "value" nor "text" is considered as "value"
+  if (hasNoValueOrText && indices.properties.length === 1) {
+    indices.value = indices.properties[0].index;
+    indices.properties = [];
+  }
+
+  if (hasNoValueOrText && indices.properties.length && !valueProp && !textProp) {
+    throw new Error('Properties found in series but missing valueProp and textProp');
   }
 
   return indices;
