@@ -1,7 +1,8 @@
 import { t } from '@grafana/i18n';
 import { isArray, map, replace } from 'lodash';
 
-import { dateTime, Registry, RegistryItem, textUtil, escapeRegex, urlUtil } from '@grafana/data';
+import { dateTime, dateTimeForTimeZone, Registry, RegistryItem, textUtil, escapeRegex, urlUtil } from '@grafana/data';
+import { TimeZone } from '@grafana/schema';
 import { VariableType, VariableFormatID } from '@grafana/schema';
 
 import { VariableValue, VariableValueSingle } from '../types';
@@ -27,6 +28,7 @@ export interface FormatVariable {
 
   getValue(fieldPath?: string): VariableValue | undefined | null;
   getValueText?(fieldPath?: string): string;
+  getTimeZone?(): TimeZone;
   urlSync?: SceneObjectUrlSyncHandler;
 }
 
@@ -270,7 +272,7 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
         'grafana-scenes.variables.format-registry.formats.description.format-date-in-different-ways',
         'Format date in different ways'
       ),
-      formatter: (value, args) => {
+      formatter: (value, args, variable) => {
         let nrValue = NaN;
 
         if (typeof value === 'number') {
@@ -284,18 +286,21 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
         }
 
         const arg = args[0] ?? 'iso';
+        const timeZone = variable.getTimeZone?.();
+
         switch (arg) {
           case 'ms':
             return String(value);
           case 'seconds':
             return `${Math.round(nrValue! / 1000)}`;
           case 'iso':
-            return dateTime(nrValue).toISOString();
+            return timeZone ? dateTimeForTimeZone(timeZone, nrValue).toISOString() : dateTime(nrValue).toISOString();
           default:
+            const dateTimeObj = timeZone ? dateTimeForTimeZone(timeZone, nrValue) : dateTime(nrValue);
             if ((args || []).length > 1) {
-              return dateTime(nrValue).format(args.join(':'));
+              return dateTimeObj.format(args.join(':'));
             }
-            return dateTime(nrValue).format(arg);
+            return dateTimeObj.format(arg);
         }
       },
     },
