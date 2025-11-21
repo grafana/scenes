@@ -174,11 +174,8 @@ function areMetricFindValues(data: any[]): data is MetricFindValue[] {
       continue;
     }
 
-    if (
-      firstValue[firstValueKey] !== null &&
-      typeof firstValue[firstValueKey] !== 'string' &&
-      typeof firstValue[firstValueKey] !== 'number'
-    ) {
+    const value = firstValue[firstValueKey];
+    if (value !== null && typeof value !== 'string' && typeof value !== 'number') {
       continue;
     }
 
