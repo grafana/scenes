@@ -1,3 +1,17 @@
+# v6.48.0 (Mon Nov 24 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: support object values with multiple properties [#1236](https://github.com/grafana/scenes/pull/1236) ([@torkelo](https://github.com/torkelo) [@grafakus](https://github.com/grafakus))
+
+#### Authors: 2
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.47.1 (Wed Nov 19 2025)
 
 #### 🐛 Bug Fix
