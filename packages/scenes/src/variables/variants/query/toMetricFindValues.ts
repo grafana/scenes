@@ -10,7 +10,7 @@ import {
 import { map, OperatorFunction } from 'rxjs';
 
 interface MetricFindValueWithOptionalProperties extends MetricFindValue {
-  properties?: Record<string, any>;
+  properties?: Record<string, string>;
 }
 
 export function toMetricFindValues(
@@ -55,22 +55,14 @@ export function toMetricFindValues(
               continue;
             }
 
-            const properties: Record<string, string> = {};
+            const properties: MetricFindValueWithOptionalProperties['properties'] = {};
             for (const p of indices.properties) {
               properties[p.name] = fieldValue(p.index);
             }
 
             metrics.push({
-              value:
-                value ||
-                (valueProp && properties[valueProp as string]) ||
-                text ||
-                (textProp && properties[textProp as string]),
-              text:
-                text ||
-                (textProp && properties[textProp as string]) ||
-                value ||
-                (valueProp && properties[valueProp as string]),
+              value: value || (valueProp && properties[valueProp]) || text || (textProp && properties[textProp]),
+              text: text || (textProp && properties[textProp]) || value || (valueProp && properties[valueProp]),
               properties,
               expandable,
             });
