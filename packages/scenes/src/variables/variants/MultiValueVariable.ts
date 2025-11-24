@@ -1,4 +1,4 @@
-import { isArray, isEqual } from 'lodash';
+import { isArray, isEqual, property } from 'lodash';
 import { map, Observable } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
@@ -50,6 +50,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   extends SceneObjectBase<TState>
   implements SceneVariable<TState>
 {
+  private static fieldAccessorCache: FieldAccessorCache = {};
+
   protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
 
   /**
@@ -167,6 +169,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
           stateUpdate.text = validTexts;
         }
       }
+
       return stateUpdate;
     }
 
@@ -183,7 +186,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       // Current value is found in options
       const defaultState = this.getDefaultSingleState(options);
       stateUpdate.value = defaultState.value;
-      stateUpdate.text = defaultState.text;
+      stateUpdate.text = defaultState.label;
     }
 
     return stateUpdate;
@@ -217,18 +220,40 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       if (this.state.allValue) {
         return new CustomAllValue(this.state.allValue, this);
       }
-
-      value = this.state.options.map((x) => x.value);
+      value = this.state.options.map((o) => o.value);
     }
 
-    if (fieldPath != null && Array.isArray(value)) {
-      const index = parseInt(fieldPath, 10);
-      if (!isNaN(index) && index >= 0 && index < value.length) {
-        return value[index];
+    if (fieldPath != null) {
+      if (Array.isArray(value)) {
+        const index = parseInt(fieldPath, 10);
+        if (!isNaN(index) && index >= 0 && index < value.length) {
+          return value[index];
+        }
+
+        const accesor = this.getFieldAccessor(fieldPath);
+        return value.map((v) => {
+          const o = this.state.options.find((o) => o.value === v);
+          return o ? accesor(o.properties) : v;
+        });
+      }
+
+      const accesor = this.getFieldAccessor(fieldPath);
+      const o = this.state.options.find((o) => o.value === value);
+      if (o) {
+        return accesor(o.properties);
       }
     }
 
     return value;
+  }
+
+  private getFieldAccessor(fieldPath: string) {
+    const accessor = MultiValueVariable.fieldAccessorCache[fieldPath];
+    if (accessor) {
+      return accessor;
+    }
+
+    return (MultiValueVariable.fieldAccessorCache[fieldPath] = property(fieldPath));
   }
 
   public getValueText(): string {
@@ -252,19 +277,19 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     if (this.state.defaultToAll) {
       return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
     } else if (options.length > 0) {
-      return { value: [options[0].value], text: [options[0].label] };
+      return { value: [options[0].value], text: [options[0].label], properties: [options[0].properties] };
     } else {
       return { value: [], text: [] };
     }
   }
 
-  protected getDefaultSingleState(options: VariableValueOption[]) {
+  protected getDefaultSingleState(options: VariableValueOption[]): VariableValueOption {
     if (this.state.defaultToAll) {
-      return { value: ALL_VARIABLE_VALUE, text: ALL_VARIABLE_TEXT };
+      return { value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT };
     } else if (options.length > 0) {
-      return { value: options[0].value, text: options[0].label };
+      return { value: options[0].value, label: options[0].label, properties: options[0].properties };
     } else {
-      return { value: '', text: '' };
+      return { value: '', label: '' };
     }
   }
 
@@ -392,14 +417,14 @@ function findOptionMatchingCurrent(
 ) {
   let textMatch: VariableValueOption | undefined;
 
-  for (const item of options) {
-    if (item.value === currentValue) {
-      return item;
+  for (const o of options) {
+    if (o.value === currentValue) {
+      return o;
     }
 
     // No early return here as want to continue to look a value match
-    if (item.label === currentText) {
-      textMatch = item;
+    if (o.label === currentText) {
+      textMatch = o;
     }
   }
 
@@ -515,4 +540,8 @@ export class CustomAllValue implements CustomVariableValue {
 
     return this._value;
   }
+}
+
+export interface FieldAccessorCache {
+  [key: string]: (obj: any) => any;
 }

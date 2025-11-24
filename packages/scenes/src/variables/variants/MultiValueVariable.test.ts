@@ -759,4 +759,74 @@ describe('MultiValueVariable', () => {
       expect(variable.urlSync?.getKeys()).toEqual([]);
     });
   });
+
+  describe('multi prop / object support', () => {
+    describe('isMulti = false', () => {
+      it('Can have object values', async () => {
+        const variable = new TestVariable({
+          name: 'test',
+          delayMs: 0,
+          skipUrlSync: true,
+          value: 'prod',
+          text: 'Prod',
+          optionsToReturn: [
+            { label: 'Test', value: 'test', properties: { id: 'test', display: 'Test', location: 'US' } },
+            { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
+          ],
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.getValue()).toEqual('prod');
+        expect(variable.getValue('location')).toEqual('EU');
+      });
+    });
+
+    describe('isMulti = true', () => {
+      it('Can have object values', async () => {
+        const variable = new TestVariable({
+          name: 'test',
+          delayMs: 0,
+          skipUrlSync: true,
+          value: ['prod', 'stag'],
+          text: 'Prod + Staging',
+          optionsToReturn: [
+            { label: 'Test', value: 'test', properties: { id: 'test', display: 'Test', location: 'US' } },
+            { label: 'Stag', value: 'stag', properties: { id: 'stag', display: 'Stag', location: 'SG' } },
+            { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
+          ],
+          isMulti: true,
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.getValue()).toEqual(['prod', 'stag']);
+        expect(variable.getValue('location')).toEqual(['EU', 'SG']);
+      });
+
+      describe('value=$__all', () => {
+        it('Can have object values', async () => {
+          const variable = new TestVariable({
+            name: 'test',
+            delayMs: 0,
+            skipUrlSync: true,
+            value: ALL_VARIABLE_VALUE,
+            text: ALL_VARIABLE_TEXT,
+            optionsToReturn: [
+              { label: 'Test', value: 'test', properties: { id: 'test', display: 'Test', location: 'US' } },
+              { label: 'Stag', value: 'stag', properties: { id: 'stag', display: 'Stag', location: 'SG' } },
+              { label: 'Prod', value: 'prod', properties: { id: 'prod', display: 'Prod', location: 'EU' } },
+            ],
+            isMulti: true,
+            includeAll: true,
+          });
+
+          await lastValueFrom(variable.validateAndUpdate());
+
+          expect(variable.getValue()).toEqual(['test', 'stag', 'prod']);
+          expect(variable.getValue('location')).toEqual(['US', 'SG', 'EU']);
+        });
+      });
+    });
+  });
 });
