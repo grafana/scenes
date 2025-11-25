@@ -111,6 +111,7 @@
             "format-date-in-different-ways": "Formatera datum på olika sätt",
             "format-multivalued-variables-using-syntax-example": "Formatera flervärdesvariabler med globsyntax, till exempel {value1,value2}",
             "html-escaping-of-values": "HTML-undantagstecken för värden",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "JSON stringify-värde",
             "keep-value-as-is": "Behåll värdet som det är",
             "multiple-values-are-formatted-like-variablevalue": "Flera värden formateras som variabel=värde",

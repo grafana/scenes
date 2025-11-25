@@ -111,6 +111,7 @@
             "format-date-in-different-ways": "Formatowanie daty na różne sposoby",
             "format-multivalued-variables-using-syntax-example": "Formatowanie zmiennych wielowartościowych za pomocą składni glob, np. {value1,value2}",
             "html-escaping-of-values": "Modyfikowanie wartości w kodzie HTML",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "Wartość konwersji na ciąg JSON",
             "keep-value-as-is": "Zachowaj wartość w obecnej postaci",
             "multiple-values-are-formatted-like-variablevalue": "Wiele wartości jest sformatowanych w postaci zmienna=wartość",

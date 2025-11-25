@@ -111,6 +111,7 @@
             "format-date-in-different-ways": "Formátovat datum různými způsoby",
             "format-multivalued-variables-using-syntax-example": "Formátovat vícehodnotové proměnné pomocí globální syntaxe, například {value1,value2}",
             "html-escaping-of-values": "HTML escapování hodnot",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "Hodnota JSON stringify",
             "keep-value-as-is": "Ponechat hodnotu tak, jak je",
             "multiple-values-are-formatted-like-variablevalue": "Více hodnot je formátováno jako proměnná=hodnota",
