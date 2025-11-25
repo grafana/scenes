@@ -111,6 +111,7 @@
             "format-date-in-different-ways": "以不同方式格式化日期",
             "format-multivalued-variables-using-syntax-example": "使用 glob 语法格式化多值变量，例如 {value1,value2}",
             "html-escaping-of-values": "值的 HTML 转义",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "JSON 字符串化值",
             "keep-value-as-is": "保持值不变",
             "multiple-values-are-formatted-like-variablevalue": "多个值的格式为 variable=value",
