@@ -1,10 +1,10 @@
 import { isNumber, sortBy, toLower, uniqBy } from 'lodash';
 
-import { stringToJsRegex, VariableSort } from '@grafana/data';
+import { stringToJsRegex, VariableSort, VariableRegexApplyTo } from '@grafana/data';
 
 import { VariableValueOption } from '../../types';
 
-export function metricNamesToVariableValues(variableRegEx: string, sort: VariableSort, metricNames: any[]) {
+export function metricNamesToVariableValues(variableRegEx: string, regexApplyTo: VariableRegexApplyTo, sort: VariableSort, metricNames: any[]) {
   let regex;
   let options: VariableValueOption[] = [];
 
@@ -26,7 +26,8 @@ export function metricNamesToVariableValues(variableRegEx: string, sort: Variabl
     }
 
     if (regex) {
-      const matches = getAllMatches(value, regex);
+      const applyTo = regexApplyTo === VariableRegexApplyTo.text ? text : value;
+      const matches = getAllMatches(applyTo, regex);
       if (!matches.length) {
         continue;
       }

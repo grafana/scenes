@@ -9,6 +9,7 @@ import {
   ScopedVars,
   VariableRefresh,
   VariableSort,
+  VariableRegexApplyTo,
 } from '@grafana/data';
 
 import { sceneGraph } from '../../../core/sceneGraph';
@@ -35,6 +36,7 @@ export interface QueryVariableState extends MultiValueVariableState {
   datasource: DataSourceRef | null;
   query: string | SceneDataQuery;
   regex: string;
+  regexApplyTo: VariableRegexApplyTo;
   refresh: VariableRefresh;
   sort: VariableSort;
 
@@ -49,7 +51,7 @@ export interface QueryVariableState extends MultiValueVariableState {
 
 export class QueryVariable extends MultiValueVariable<QueryVariableState> {
   protected _variableDependency = new VariableDependencyConfig(this, {
-    statePaths: ['regex', 'query', 'datasource'],
+    statePaths: ['regex', 'regexApplyTo', 'query', 'datasource'],
   });
 
   public constructor(initialState: Partial<QueryVariableState>) {
@@ -61,6 +63,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       options: [],
       datasource: null,
       regex: '',
+      regexApplyTo: VariableRegexApplyTo.value,
       query: '',
       refresh: VariableRefresh.onDashboardLoad,
       sort: VariableSort.disabled,
@@ -105,7 +108,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
             if (this.state.regex) {
               regex = sceneGraph.interpolate(this, this.state.regex, undefined, 'regex');
             }
-            let options = metricNamesToVariableValues(regex, this.state.sort, values);
+            let options = metricNamesToVariableValues(regex, this.state.regexApplyTo, this.state.sort, values);
             if (this.state.staticOptions) {
               const customOptions = this.state.staticOptions;
               options = options.filter((option) => !customOptions.find((custom) => custom.value === option.value));
