@@ -9,14 +9,10 @@ import {
 } from '@grafana/data';
 import { map, OperatorFunction } from 'rxjs';
 
-interface MetricFindValueWithOptionalProperties extends MetricFindValue {
-  properties?: Record<string, string>;
-}
-
 export function toMetricFindValues(
   valueProp?: string,
   textProp?: string
-): OperatorFunction<PanelData, MetricFindValueWithOptionalProperties[]> {
+): OperatorFunction<PanelData, MetricFindValue[]> {
   return (source) =>
     source.pipe(
       map((panelData) => {
@@ -35,7 +31,7 @@ export function toMetricFindValues(
 
         const indices = validateIndices(findFieldsIndices(frames), valueProp, textProp);
 
-        const metrics: MetricFindValueWithOptionalProperties[] = [];
+        const metrics: MetricFindValue[] = [];
 
         for (const frame of frames) {
           for (let index = 0; index < frame.length; index++) {
@@ -55,7 +51,7 @@ export function toMetricFindValues(
               continue;
             }
 
-            const properties: MetricFindValueWithOptionalProperties['properties'] = {};
+            const properties: MetricFindValue['properties'] = {};
             for (const p of indices.properties) {
               properties[p.name] = fieldValue(p.index);
             }
