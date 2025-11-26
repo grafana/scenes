@@ -28,7 +28,7 @@
     "build:dev": "yarn build --environment NODE_ENV:development",
     "clean": "rimraf ./dist ./compiled ./package.tgz",
     "typecheck": "tsc --emitDeclarationOnly false --noEmit",
-    "test": "jest",
+    "test": "jest --watch",
     "lint": "eslint --cache .",
     "prepack": "node ./scripts/prepack.js",
     "postpack": "node ./scripts/postpack.js",

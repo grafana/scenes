@@ -30,18 +30,27 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { config, setRunRequest } from '@grafana/runtime';
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
-import { VariableSort } from '@grafana/schema';
+import { VariableRegexApplyTo, VariableSort } from '@grafana/schema';
 
-const runRequestMock = jest.fn().mockReturnValue(
-  of<PanelData>({
+function createMockData(valueValues: string[], textValues?: string[]) {
+  const fields = textValues
+    ? [
+        { name: 'text', type: FieldType.string, values: textValues },
+        { name: 'value', type: FieldType.string, values: valueValues },
+      ]
+    : [{ name: 'text', type: FieldType.string, values: valueValues }];
+
+  return of<PanelData>({
     state: LoadingState.Done,
     series: [
-      toDataFrame({
-        fields: [{ name: 'text', type: FieldType.string, values: ['val1', 'val2', 'val11'] }],
-      }),
+      toDataFrame({ fields }),
     ],
     timeRange: getDefaultTimeRange(),
-  })
+  });
+}
+
+const runRequestMock = jest.fn().mockReturnValue(
+  createMockData(['val1', 'val2', 'val11'])
 );
 
 setRunRequest(runRequestMock);
@@ -340,12 +349,19 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
       });
 
+      afterEach(() => {
+        runRequestMock.mockReturnValue(
+          createMockData(['val1', 'val2', 'val11'])
+        );
+      });
+
       it('should return options that match regex', async () => {
         const variable = new QueryVariable({
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
           regex: '/^val1/',
+          regexApplyTo: VariableRegexApplyTo.value,
         });
 
         await lastValueFrom(variable.validateAndUpdate());
@@ -353,6 +369,46 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         expect(variable.state.options).toEqual([
           { label: 'val1', value: 'val1' },
           { label: 'val11', value: 'val11' },
+        ]);
+      });
+
+      it('should apply regex to text if regexApplyTo is set to text', async () => {
+        runRequestMock.mockReturnValue(
+          createMockData(['val1', 'val2', 'val11'], ['Display1', 'Display2', 'Display11'])
+        );
+  
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          regex: '/^Display1/',
+          regexApplyTo: VariableRegexApplyTo.text,
+        });
+  
+        await lastValueFrom(variable.validateAndUpdate());
+  
+        expect(variable.state.options).toEqual([
+          { label: 'Display1', value: 'val1' },
+          { label: 'Display11', value: 'val11' },
+        ]);
+      });
+
+      it('should default regexApplyTo to value', async () => {
+        runRequestMock.mockReturnValue(
+          createMockData(['val1', 'val2', 'val11'], ['Display1', 'Display2', 'Display11'])
+        );
+  
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          regex: '/^val2/',
+        });
+  
+        await lastValueFrom(variable.validateAndUpdate());
+  
+        expect(variable.state.options).toEqual([
+          { label: 'Display2', value: 'val2' },
         ]);
       });
     });
