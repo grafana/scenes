@@ -86,7 +86,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Display 11', value: 'val11' },
       ];
 
-      const result = metricNamesToVariableValues('/^val1/', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues(
+        '/^val1/',
+        VariableRegexApplyTo.value,
+        VariableSort.disabled,
+        metricNames
+      );
 
       expect(result).toEqual([
         { label: 'Display 1', value: 'val1' },
@@ -101,7 +106,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Display11', value: 'val11' },
       ];
 
-      const result = metricNamesToVariableValues('/^Display1/', VariableRegexApplyTo.text, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues(
+        '/^Display1/',
+        VariableRegexApplyTo.text,
+        VariableSort.disabled,
+        metricNames
+      );
 
       expect(result).toEqual([
         { label: 'Display1', value: 'val1' },
@@ -116,7 +126,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Option C', value: 'optC' },
       ];
 
-      const result = metricNamesToVariableValues('/^optA$/', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues(
+        '/^optA$/',
+        VariableRegexApplyTo.value,
+        VariableSort.disabled,
+        metricNames
+      );
 
       expect(result).toEqual([{ label: 'Option A', value: 'optA' }]);
     });
@@ -272,11 +287,7 @@ describe('metricNamesToVariableValues', () => {
     });
 
     it('should handle items with only text or only value', () => {
-      const metricNames = [
-        { text: 'Text Only' },
-        { value: 'Value Only' },
-        { text: 'Both', value: 'Both' },
-      ];
+      const metricNames = [{ text: 'Text Only' }, { value: 'Value Only' }, { text: 'Both', value: 'Both' }];
 
       const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
 
@@ -293,7 +304,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Option 2', value: 'opt2' },
       ];
 
-      const result = metricNamesToVariableValues('/^nomatch/', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues(
+        '/^nomatch/',
+        VariableRegexApplyTo.value,
+        VariableSort.disabled,
+        metricNames
+      );
 
       expect(result).toEqual([]);
     });
@@ -320,7 +336,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Avocado', value: 'av' },
       ];
 
-      const result = metricNamesToVariableValues('/^[AB]/', VariableRegexApplyTo.text, VariableSort.alphabeticalAsc, metricNames);
+      const result = metricNamesToVariableValues(
+        '/^[AB]/',
+        VariableRegexApplyTo.text,
+        VariableSort.alphabeticalAsc,
+        metricNames
+      );
 
       expect(result).toEqual([
         { label: 'Apple', value: 'a' },

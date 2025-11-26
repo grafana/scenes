@@ -4,7 +4,12 @@ import { stringToJsRegex, VariableSort, VariableRegexApplyTo } from '@grafana/da
 
 import { VariableValueOption } from '../../types';
 
-export function metricNamesToVariableValues(variableRegEx: string, regexApplyTo: VariableRegexApplyTo, sort: VariableSort, metricNames: any[]) {
+export function metricNamesToVariableValues(
+  variableRegEx: string,
+  regexApplyTo: VariableRegexApplyTo,
+  sort: VariableSort,
+  metricNames: any[]
+) {
   let regex;
   let options: VariableValueOption[] = [];
 

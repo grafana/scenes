@@ -42,16 +42,12 @@ function createMockData(valueValues: string[], textValues?: string[]) {
 
   return of<PanelData>({
     state: LoadingState.Done,
-    series: [
-      toDataFrame({ fields }),
-    ],
+    series: [toDataFrame({ fields })],
     timeRange: getDefaultTimeRange(),
   });
 }
 
-const runRequestMock = jest.fn().mockReturnValue(
-  createMockData(['val1', 'val2', 'val11'])
-);
+const runRequestMock = jest.fn().mockReturnValue(createMockData(['val1', 'val2', 'val11']));
 
 setRunRequest(runRequestMock);
 
@@ -350,9 +346,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
       });
 
       afterEach(() => {
-        runRequestMock.mockReturnValue(
-          createMockData(['val1', 'val2', 'val11'])
-        );
+        runRequestMock.mockReturnValue(createMockData(['val1', 'val2', 'val11']));
       });
 
       it('should return options that match regex', async () => {
@@ -376,7 +370,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         runRequestMock.mockReturnValue(
           createMockData(['val1', 'val2', 'val11'], ['Display1', 'Display2', 'Display11'])
         );
-  
+
         const variable = new QueryVariable({
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
@@ -384,9 +378,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
           regex: '/^Display1/',
           regexApplyTo: VariableRegexApplyTo.text,
         });
-  
+
         await lastValueFrom(variable.validateAndUpdate());
-  
+
         expect(variable.state.options).toEqual([
           { label: 'Display1', value: 'val1' },
           { label: 'Display11', value: 'val11' },
@@ -397,19 +391,17 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         runRequestMock.mockReturnValue(
           createMockData(['val1', 'val2', 'val11'], ['Display1', 'Display2', 'Display11'])
         );
-  
+
         const variable = new QueryVariable({
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
           regex: '/^val2/',
         });
-  
+
         await lastValueFrom(variable.validateAndUpdate());
-  
-        expect(variable.state.options).toEqual([
-          { label: 'Display2', value: 'val2' },
-        ]);
+
+        expect(variable.state.options).toEqual([{ label: 'Display2', value: 'val2' }]);
       });
     });
 
