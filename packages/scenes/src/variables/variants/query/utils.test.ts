@@ -1,6 +1,14 @@
-import { VariableSort, VariableRegexApplyTo } from '@grafana/data';
+import { VariableSort, VariableRegexApplyTo as VariableRegexApplyToFromData } from '@grafana/data';
 import { metricNamesToVariableValues, sortVariableValues } from './utils';
 import { VariableValueOption } from '../../types';
+
+// TODO: Fallback enum for backward compatibility with older versions of @grafana/data
+const VariableRegexApplyTo =
+  VariableRegexApplyToFromData ||
+  ({
+    value: 0,
+    text: 1,
+  } as const);
 
 describe('metricNamesToVariableValues', () => {
   describe('Basic functionality', () => {
