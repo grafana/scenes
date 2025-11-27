@@ -36,7 +36,7 @@ export function metricNamesToVariableValues(
     }
 
     if (regex) {
-      const applyTo = regexApplyTo === VariableRegexApplyTo?.text ? text : value;
+      const applyTo = regexApplyTo === (VariableRegexApplyTo?.text || 1) ? text : value;
       const matches = getAllMatches(applyTo, regex);
       if (!matches.length) {
         continue;

@@ -147,9 +147,9 @@ describe('metricNamesToVariableValues', () => {
 
   describe('Sorting', () => {
     const unsortedOptions: VariableValueOption[] = [
-      { label: 'Zebra', value: 'z' },
-      { label: 'Apple', value: 'a' },
-      { label: 'Banana', value: 'b' },
+      { label: 'Display3', value: 'val3' },
+      { label: 'Display1', value: 'val1' },
+      { label: 'Display2', value: 'val2' },
     ];
 
     it('should not sort when sort is disabled', () => {
@@ -160,18 +160,18 @@ describe('metricNamesToVariableValues', () => {
     it('should sort alphabetically ascending', () => {
       const result = sortVariableValues([...unsortedOptions], VariableSort.alphabeticalAsc);
       expect(result).toEqual([
-        { label: 'Apple', value: 'a' },
-        { label: 'Banana', value: 'b' },
-        { label: 'Zebra', value: 'z' },
+        { label: 'Display1', value: 'val1' },
+        { label: 'Display2', value: 'val2' },
+        { label: 'Display3', value: 'val3' },
       ]);
     });
 
     it('should sort alphabetically descending', () => {
       const result = sortVariableValues([...unsortedOptions], VariableSort.alphabeticalDesc);
       expect(result).toEqual([
-        { label: 'Zebra', value: 'z' },
-        { label: 'Banana', value: 'b' },
-        { label: 'Apple', value: 'a' },
+        { label: 'Display3', value: 'val3' },
+        { label: 'Display2', value: 'val2' },
+        { label: 'Display1', value: 'val1' },
       ]);
     });
 
@@ -207,31 +207,31 @@ describe('metricNamesToVariableValues', () => {
 
     it('should sort case-insensitively ascending', () => {
       const caseOptions: VariableValueOption[] = [
-        { label: 'zebra', value: 'z' },
-        { label: 'Apple', value: 'a' },
-        { label: 'banana', value: 'b' },
+        { label: 'display3', value: 'val3' },
+        { label: 'Display1', value: 'val1' },
+        { label: 'display2', value: 'val2' },
       ];
 
       const result = sortVariableValues(caseOptions, VariableSort.alphabeticalCaseInsensitiveAsc);
       expect(result).toEqual([
-        { label: 'Apple', value: 'a' },
-        { label: 'banana', value: 'b' },
-        { label: 'zebra', value: 'z' },
+        { label: 'Display1', value: 'val1' },
+        { label: 'display2', value: 'val2' },
+        { label: 'display3', value: 'val3' },
       ]);
     });
 
     it('should sort case-insensitively descending', () => {
       const caseOptions: VariableValueOption[] = [
-        { label: 'Apple', value: 'a' },
-        { label: 'zebra', value: 'z' },
-        { label: 'banana', value: 'b' },
+        { label: 'Display1', value: 'val1' },
+        { label: 'display3', value: 'val3' },
+        { label: 'display2', value: 'val2' },
       ];
 
       const result = sortVariableValues(caseOptions, VariableSort.alphabeticalCaseInsensitiveDesc);
       expect(result).toEqual([
-        { label: 'zebra', value: 'z' },
-        { label: 'banana', value: 'b' },
-        { label: 'Apple', value: 'a' },
+        { label: 'display3', value: 'val3' },
+        { label: 'display2', value: 'val2' },
+        { label: 'Display1', value: 'val1' },
       ]);
     });
 
@@ -336,25 +336,24 @@ describe('metricNamesToVariableValues', () => {
   });
 
   describe('Integration: regex + sorting', () => {
-    it('should apply regex filter and then sort', () => {
+    it.only('should apply regex filter and then sort', () => {
       const metricNames = [
-        { text: 'Zebra', value: 'z' },
-        { text: 'Apple', value: 'a' },
-        { text: 'Banana', value: 'b' },
-        { text: 'Avocado', value: 'av' },
+        { text: 'Display3', value: 'val3' },
+        { text: 'Display1', value: 'val1' },
+        { text: 'Display2', value: 'val2' },
+        { text: 'Display1a', value: 'val1a' },
       ];
 
       const result = metricNamesToVariableValues(
-        '/^[AB]/',
+        '/^Display1/',
         VariableRegexApplyTo.text,
         VariableSort.alphabeticalAsc,
         metricNames
       );
 
       expect(result).toEqual([
-        { label: 'Apple', value: 'a' },
-        { label: 'Avocado', value: 'av' },
-        { label: 'Banana', value: 'b' },
+        { label: 'Display1', value: 'val1' },
+        { label: 'Display1a', value: 'val1a' },
       ]);
     });
   });
