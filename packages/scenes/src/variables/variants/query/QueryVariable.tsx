@@ -64,7 +64,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       options: [],
       datasource: null,
       regex: '',
-      // @ts-expect-error TODO: remove harcoded default value after updating grafana/data
+      // TODO: remove harcoded default value after updating grafana/data
       regexApplyTo: VariableRegexApplyTo?.value ?? 0,
       query: '',
       refresh: VariableRefresh.onDashboardLoad,
@@ -110,7 +110,12 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
             if (this.state.regex) {
               regex = sceneGraph.interpolate(this, this.state.regex, undefined, 'regex');
             }
-            let options = metricNamesToVariableValues(regex, this.state.regexApplyTo, this.state.sort, values);
+            let options = metricNamesToVariableValues({
+              variableRegEx: regex,
+              variableRegexApplyTo: this.state.regexApplyTo,
+              sort: this.state.sort,
+              metricNames: values,
+            });
             if (this.state.staticOptions) {
               const customOptions = this.state.staticOptions;
               options = options.filter((option) => !customOptions.find((custom) => custom.value === option.value));

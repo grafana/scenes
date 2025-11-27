@@ -9,12 +9,19 @@ import {
 
 import { VariableValueOption } from '../../types';
 
-export function metricNamesToVariableValues(
-  variableRegEx: string,
-  regexApplyTo: VariableRegexApplyTo,
-  sort: VariableSort,
-  metricNames: any[]
-) {
+interface MetricNamesToVariableValuesArgs {
+  variableRegEx: string;
+  variableRegexApplyTo: VariableRegexApplyTo;
+  sort: VariableSort;
+  metricNames: any[];
+}
+
+export function metricNamesToVariableValues({
+  variableRegEx,
+  variableRegexApplyTo,
+  sort,
+  metricNames,
+}: MetricNamesToVariableValuesArgs) {
   let regex;
   let options: VariableValueOption[] = [];
 
@@ -36,7 +43,7 @@ export function metricNamesToVariableValues(
     }
 
     if (regex) {
-      const applyTo = regexApplyTo === (VariableRegexApplyTo?.text || 1) ? text : value;
+      const applyTo = variableRegexApplyTo === (VariableRegexApplyTo?.text || 1) ? text : value;
       const matches = getAllMatches(applyTo, regex);
       if (!matches.length) {
         continue;

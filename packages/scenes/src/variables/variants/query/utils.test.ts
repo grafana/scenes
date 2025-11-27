@@ -18,7 +18,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Option 2', value: 'opt2' },
       ];
 
-      const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues({
+        variableRegEx: '',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([
         { label: 'Option 1', value: 'opt1' },
@@ -29,7 +34,12 @@ describe('metricNamesToVariableValues', () => {
     it('should use value as text when text is missing', () => {
       const metricNames = [{ value: 'opt1' }, { value: 'opt2' }];
 
-      const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues({
+        variableRegEx: '',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([
         { label: 'opt1', value: 'opt1' },
@@ -40,7 +50,12 @@ describe('metricNamesToVariableValues', () => {
     it('should use text as value when value is missing', () => {
       const metricNames = [{ text: 'Option 1' }, { text: 'Option 2' }];
 
-      const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues({
+        variableRegEx: '',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([
         { label: 'Option 1', value: 'Option 1' },
@@ -51,7 +66,12 @@ describe('metricNamesToVariableValues', () => {
     it('should handle null values by converting to empty strings', () => {
       const metricNames = [{ text: null, value: null }];
 
-      const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues({
+        variableRegEx: '',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([{ label: '', value: '' }]);
     });
@@ -62,7 +82,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Text', value: 789 },
       ];
 
-      const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues({
+        variableRegEx: '',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([
         { label: '123', value: '456' },
@@ -77,7 +102,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Option 2', value: 'opt2' },
       ];
 
-      const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues({
+        variableRegEx: '',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([
         { label: 'Option 1', value: 'opt1' },
@@ -94,12 +124,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Display 11', value: 'val11' },
       ];
 
-      const result = metricNamesToVariableValues(
-        '/^val1/',
-        VariableRegexApplyTo.value,
-        VariableSort.disabled,
-        metricNames
-      );
+      const result = metricNamesToVariableValues({
+        variableRegEx: '/^val1/',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([
         { label: 'Display 1', value: 'val1' },
@@ -114,12 +144,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Display11', value: 'val11' },
       ];
 
-      const result = metricNamesToVariableValues(
-        '/^Display1/',
-        VariableRegexApplyTo.text,
-        VariableSort.disabled,
-        metricNames
-      );
+      const result = metricNamesToVariableValues({
+        variableRegEx: '/^Display1/',
+        variableRegexApplyTo: VariableRegexApplyTo.text,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([
         { label: 'Display1', value: 'val1' },
@@ -134,12 +164,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Option C', value: 'optC' },
       ];
 
-      const result = metricNamesToVariableValues(
-        '/^optA$/',
-        VariableRegexApplyTo.value,
-        VariableSort.disabled,
-        metricNames
-      );
+      const result = metricNamesToVariableValues({
+        variableRegEx: '/^optA$/',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([{ label: 'Option A', value: 'optA' }]);
     });
@@ -268,7 +298,12 @@ describe('metricNamesToVariableValues', () => {
 
   describe('Edge cases', () => {
     it('should handle empty array', () => {
-      const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, []);
+      const result = metricNamesToVariableValues({
+        variableRegEx: '',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames: [],
+      });
       expect(result).toEqual([]);
     });
 
@@ -278,7 +313,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Option', value: 'opt' },
       ];
 
-      const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues({
+        variableRegEx: '',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([
         { label: '', value: '' },
@@ -289,7 +329,12 @@ describe('metricNamesToVariableValues', () => {
     it('should handle undefined text and value', () => {
       const metricNames = [{ text: undefined, value: undefined }];
 
-      const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues({
+        variableRegEx: '',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([{ label: '', value: '' }]);
     });
@@ -297,7 +342,12 @@ describe('metricNamesToVariableValues', () => {
     it('should handle items with only text or only value', () => {
       const metricNames = [{ text: 'Text Only' }, { value: 'Value Only' }, { text: 'Both', value: 'Both' }];
 
-      const result = metricNamesToVariableValues('', VariableRegexApplyTo.value, VariableSort.disabled, metricNames);
+      const result = metricNamesToVariableValues({
+        variableRegEx: '',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([
         { label: 'Text Only', value: 'Text Only' },
@@ -312,12 +362,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Option 2', value: 'opt2' },
       ];
 
-      const result = metricNamesToVariableValues(
-        '/^nomatch/',
-        VariableRegexApplyTo.value,
-        VariableSort.disabled,
-        metricNames
-      );
+      const result = metricNamesToVariableValues({
+        variableRegEx: '/^nomatch/',
+        variableRegexApplyTo: VariableRegexApplyTo.value,
+        sort: VariableSort.disabled,
+        metricNames,
+      });
 
       expect(result).toEqual([]);
     });
@@ -336,7 +386,7 @@ describe('metricNamesToVariableValues', () => {
   });
 
   describe('Integration: regex + sorting', () => {
-    it.only('should apply regex filter and then sort', () => {
+    it('should apply regex filter and then sort', () => {
       const metricNames = [
         { text: 'Display3', value: 'val3' },
         { text: 'Display1', value: 'val1' },
@@ -344,12 +394,12 @@ describe('metricNamesToVariableValues', () => {
         { text: 'Display1a', value: 'val1a' },
       ];
 
-      const result = metricNamesToVariableValues(
-        '/^Display1/',
-        VariableRegexApplyTo.text,
-        VariableSort.alphabeticalAsc,
-        metricNames
-      );
+      const result = metricNamesToVariableValues({
+        variableRegEx: '/^Display1/',
+        variableRegexApplyTo: VariableRegexApplyTo.text,
+        sort: VariableSort.alphabeticalAsc,
+        metricNames,
+      });
 
       expect(result).toEqual([
         { label: 'Display1', value: 'val1' },
