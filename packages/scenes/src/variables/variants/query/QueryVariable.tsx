@@ -9,6 +9,7 @@ import {
   ScopedVars,
   VariableRefresh,
   VariableSort,
+  // @ts-expect-error TODO: remove suppression after updating grafana/data
   VariableRegexApplyTo,
 } from '@grafana/data';
 
@@ -63,7 +64,8 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       options: [],
       datasource: null,
       regex: '',
-      regexApplyTo: VariableRegexApplyTo.value,
+      // @ts-expect-error TODO: remove harcoded default value after updating grafana/data
+      regexApplyTo: VariableRegexApplyTo?.value ?? 0,
       query: '',
       refresh: VariableRefresh.onDashboardLoad,
       sort: VariableSort.disabled,

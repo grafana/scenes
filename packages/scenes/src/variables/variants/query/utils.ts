@@ -1,6 +1,11 @@
 import { isNumber, sortBy, toLower, uniqBy } from 'lodash';
 
-import { stringToJsRegex, VariableSort, VariableRegexApplyTo } from '@grafana/data';
+import { 
+  stringToJsRegex, 
+  VariableSort, 
+  // @ts-expect-error TODO: remove suppression after updating grafana/data
+  VariableRegexApplyTo 
+} from '@grafana/data';
 
 import { VariableValueOption } from '../../types';
 
@@ -31,7 +36,7 @@ export function metricNamesToVariableValues(
     }
 
     if (regex) {
-      const applyTo = regexApplyTo === VariableRegexApplyTo.text ? text : value;
+      const applyTo = regexApplyTo === VariableRegexApplyTo?.text ? text : value;
       const matches = getAllMatches(applyTo, regex);
       if (!matches.length) {
         continue;
