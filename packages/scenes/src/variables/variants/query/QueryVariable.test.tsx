@@ -30,7 +30,9 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { config, setRunRequest } from '@grafana/runtime';
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
-import { VariableRegexApplyTo as VariableRegexApplyToFromData, VariableSort } from '@grafana/schema';
+import { VariableSort } from '@grafana/schema';
+// @ts-expect-error TODO: remove suppression after updating grafana/data
+import { VariableRegexApplyTo as VariableRegexApplyToFromData } from '@grafana/data';
 
 // TODO: Fallback enum for backward compatibility with older versions of @grafana/data
 const VariableRegexApplyTo =

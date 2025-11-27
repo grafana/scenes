@@ -1,4 +1,8 @@
-import { VariableSort, VariableRegexApplyTo as VariableRegexApplyToFromData } from '@grafana/data';
+import {
+  VariableSort,
+  // @ts-expect-error TODO: remove suppression after updating grafana/data
+  VariableRegexApplyTo as VariableRegexApplyToFromData,
+} from '@grafana/data';
 import { metricNamesToVariableValues, sortVariableValues } from './utils';
 import { VariableValueOption } from '../../types';
 
