@@ -104,11 +104,11 @@ export const sortVariableValues = (options: VariableValueOption[], sortOrder: Va
       });
       options = options.reverse();
       break;
-    case VariableSort.naturalAsc || 7:
+    case VariableSort.naturalAsc:
       // Sort by natural sort
       options = sortByNaturalSort(options);
       break;
-    case VariableSort.naturalDesc || 8:
+    case VariableSort.naturalDesc:
       options = sortByNaturalSort(options);
       options = options.reverse();
       break;
