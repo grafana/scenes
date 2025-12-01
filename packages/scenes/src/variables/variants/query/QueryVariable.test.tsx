@@ -38,8 +38,8 @@ import { VariableSort } from '@grafana/schema';
 const VariableRegexApplyTo =
   VariableRegexApplyToFromData ||
   ({
-    value: 0,
-    text: 1,
+    value: 'value',
+    text: 'text',
   } as const);
 
 function createMockData(valueValues: string[], textValues?: string[]) {

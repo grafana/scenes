@@ -65,7 +65,7 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       datasource: null,
       regex: '',
       // TODO: remove harcoded default value after updating grafana/data
-      regexApplyTo: VariableRegexApplyTo?.value ?? 0,
+      regexApplyTo: VariableRegexApplyTo?.value ?? 'value',
       query: '',
       refresh: VariableRefresh.onDashboardLoad,
       sort: VariableSort.disabled,
