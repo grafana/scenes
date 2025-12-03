@@ -284,7 +284,7 @@ function findClosestInterval(userInterval: string, allowedIntervals: string[]): 
     if (intervalMs > userIntervalMs) {
       break;
     }
-    
+
     selectedInterval = allowedIntervals[i];
   }
   return selectedInterval;
