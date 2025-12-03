@@ -239,10 +239,22 @@ describe('SceneRefreshPicker', () => {
       expect(dateTime(t1.from)).toEqual(dateTime(timeRange.state.value.from));
     });
 
-    it('sets the interval to the first interval in the list if updated with a bad interval from the url', () => {
-      const { refreshPicker } = setupScene('5s', ['5s', '30s', '1m']);
-      refreshPicker.updateFromUrl({ refresh: '5s' });
+    it('sets the interval to the smallest allowed interval when invalid interval is less than all allowed intervals', () => {
+      const { refreshPicker } = setupScene('', ['5s', '30s', '1m']);
+      refreshPicker.updateFromUrl({ refresh: '3s' });
       expect(refreshPicker.state.refresh).toBe('30s');
+    });
+
+    it('sets the interval by rounding down to the highest allowed interval <= invalid interval', () => {
+      const { refreshPicker } = setupScene('', ['10s', '30s', '1m', '5m']);
+      refreshPicker.updateFromUrl({ refresh: '25s' });
+      expect(refreshPicker.state.refresh).toBe('10s');
+    });
+
+    it('sets the interval to the highest allowed interval when invalid interval is higher than all allowed intervals', () => {
+      const { refreshPicker } = setupScene('', ['10s', '30s', '1m', '5m']);
+      refreshPicker.updateFromUrl({ refresh: '5h' });
+      expect(refreshPicker.state.refresh).toBe('5m');
     });
 
     it('can let min config interval to be overriden', () => {

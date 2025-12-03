@@ -129,8 +129,8 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
         this.setState({ refresh });
       } else {
         this.setState({
-          // Default to the first refresh interval if the interval from the URL is not allowed, just like in the old architecture.
-          refresh: intervals ? intervals[0] : undefined,
+          // Default to the closest refresh interval if the interval from the URL is not allowed.
+          refresh: intervals ? findClosestInterval(refresh, intervals) : undefined,
         });
       }
     }
@@ -268,4 +268,24 @@ function isIntervalString(str: string): boolean {
   } catch {
     return false;
   }
+}
+
+function findClosestInterval(userInterval: string, allowedIntervals: string[]): string | undefined {
+  if (allowedIntervals.length === 0) {
+    return undefined;
+  }
+
+  const userIntervalMs = rangeUtil.intervalToMs(userInterval);
+  let bestInterval = allowedIntervals[0];
+
+  for (let i = 1; i < allowedIntervals.length; i++) {
+    const intervalMs = rangeUtil.intervalToMs(allowedIntervals[i]);
+    
+    if (intervalMs <= userIntervalMs) {
+      bestInterval = allowedIntervals[i];
+    } else {
+      break;
+    }
+  }
+  return bestInterval;
 }
