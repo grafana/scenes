@@ -129,7 +129,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
         this.setState({ refresh });
       } else {
         this.setState({
-          // Round down to the highest allowed refresh interval <= the URL interval if the interval from the URL is not allowed.
+          // Round down to the largest allowed refresh interval <= the URL interval if the interval from the URL is not allowed.
           refresh: intervals ? findClosestInterval(refresh, intervals) : undefined,
         });
       }
