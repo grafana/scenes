@@ -281,11 +281,11 @@ function findClosestInterval(userInterval: string, allowedIntervals: string[]): 
   for (let i = 1; i < allowedIntervals.length; i++) {
     const intervalMs = rangeUtil.intervalToMs(allowedIntervals[i]);
 
-    if (intervalMs <= userIntervalMs) {
-      selectedInterval = allowedIntervals[i];
-    } else {
+    if (intervalMs > userIntervalMs) {
       break;
     }
+    
+    selectedInterval = allowedIntervals[i];
   }
   return selectedInterval;
 }
