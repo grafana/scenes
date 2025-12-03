@@ -240,19 +240,19 @@ describe('SceneRefreshPicker', () => {
     });
 
     it('sets the interval to the smallest allowed interval when invalid interval is less than all allowed intervals', () => {
-      const { refreshPicker } = setupScene('', ['5s', '30s', '1m']);
-      refreshPicker.updateFromUrl({ refresh: '3s' });
-      expect(refreshPicker.state.refresh).toBe('5s');
+      const { refreshPicker } = setupScene('', ['30s', '1m', '5m']);
+      refreshPicker.updateFromUrl({ refresh: '10s' });
+      expect(refreshPicker.state.refresh).toBe('30s');
     });
 
     it('sets the interval by rounding down to the highest allowed interval <= invalid interval', () => {
-      const { refreshPicker } = setupScene('', ['10s', '30s', '1m', '5m']);
-      refreshPicker.updateFromUrl({ refresh: '25s' });
-      expect(refreshPicker.state.refresh).toBe('10s');
+      const { refreshPicker } = setupScene('30s', ['30s', '1m', '5m']);
+      refreshPicker.updateFromUrl({ refresh: '45s' });
+      expect(refreshPicker.state.refresh).toBe('30s');
     });
 
     it('sets the interval to the highest allowed interval when invalid interval is higher than all allowed intervals', () => {
-      const { refreshPicker } = setupScene('', ['10s', '30s', '1m', '5m']);
+      const { refreshPicker } = setupScene('30s', ['30s', '1m', '5m']);
       refreshPicker.updateFromUrl({ refresh: '5h' });
       expect(refreshPicker.state.refresh).toBe('5m');
     });
