@@ -276,16 +276,16 @@ function findClosestInterval(userInterval: string, allowedIntervals: string[]): 
   }
 
   const userIntervalMs = rangeUtil.intervalToMs(userInterval);
-  let bestInterval = allowedIntervals[0];
+  let selectedInterval = allowedIntervals[0];
 
   for (let i = 1; i < allowedIntervals.length; i++) {
     const intervalMs = rangeUtil.intervalToMs(allowedIntervals[i]);
 
     if (intervalMs <= userIntervalMs) {
-      bestInterval = allowedIntervals[i];
+      selectedInterval = allowedIntervals[i];
     } else {
       break;
     }
   }
-  return bestInterval;
+  return selectedInterval;
 }

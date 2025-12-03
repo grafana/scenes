@@ -242,7 +242,7 @@ describe('SceneRefreshPicker', () => {
     it('sets the interval to the smallest allowed interval when invalid interval is less than all allowed intervals', () => {
       const { refreshPicker } = setupScene('', ['5s', '30s', '1m']);
       refreshPicker.updateFromUrl({ refresh: '3s' });
-      expect(refreshPicker.state.refresh).toBe('30s');
+      expect(refreshPicker.state.refresh).toBe('5s');
     });
 
     it('sets the interval by rounding down to the highest allowed interval <= invalid interval', () => {
