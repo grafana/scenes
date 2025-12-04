@@ -16,19 +16,27 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     controller.useState();
   const styles = useStyles2(getStyles);
 
-  const recentDrilldowns = recentFilters?.map((filter) => ({
-    label: `${filter.key} ${filter.operator} ${filter.value}`,
-    onClick: () => {
-      controller.updateFilters([...filters, filter]);
-    },
-  }));
+  let drilldownRecommendationComponent = null;
 
-  const recommendedDrilldowns = recommendedFilters?.map((filter) => ({
-    label: `${filter.key} ${filter.operator} ${filter.value}`,
-    onClick: () => {
-      controller.updateFilters([...filters, filter]);
-    },
-  }));
+  if (drilldownRecommendationsEnabled) {
+    const recentDrilldowns = recentFilters?.map((filter) => ({
+      label: `${filter.key} ${filter.operator} ${filter.value}`,
+      onClick: () => {
+        controller.updateFilters([...filters, filter]);
+      },
+    }));
+
+    const recommendedDrilldowns = recommendedFilters?.map((filter) => ({
+      label: `${filter.key} ${filter.operator} ${filter.value}`,
+      onClick: () => {
+        controller.updateFilters([...filters, filter]);
+      },
+    }));
+
+    drilldownRecommendationComponent = (
+      <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />
+    );
+  }
 
   // ref that focuses on the always wip filter input
   // defined in the combobox component via useImperativeHandle
@@ -43,9 +51,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     >
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
-      {drilldownRecommendationsEnabled && (
-        <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />
-      )}
+      {drilldownRecommendationComponent}
 
       {originFilters?.map((filter, index) =>
         filter.origin ? (
