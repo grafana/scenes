@@ -34,9 +34,7 @@ export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldow
       <div className={styles.menuContainer} onClick={(ev) => ev.stopPropagation()}>
         <Stack direction="column">
           <Text weight="bold" variant="bodySmall" color="secondary">
-            <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recent-drilldowns">
-              Recent Drilldowns
-            </Trans>
+            <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recent">Recent</Trans>
           </Text>
           {recentDrilldowns && recentDrilldowns.length > 0 ? (
             recentDrilldowns.map((drilldown) => (
@@ -50,13 +48,11 @@ export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldow
             ))
           ) : (
             <div className={styles.emptyMessage}>
-              <Trans i18nKey="drilldown-recommendations.recent.empty">No recent drilldowns</Trans>
+              <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recent-empty">No recent values</Trans>
             </div>
           )}
           <Text weight="bold" variant="bodySmall" color="secondary">
-            <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recommended-drilldowns">
-              Recommended Drilldowns
-            </Trans>
+            <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recommended">Recommended</Trans>
           </Text>
           {recommendedDrilldowns && recommendedDrilldowns.length > 0 ? (
             recommendedDrilldowns.map((drilldown) => (
@@ -70,8 +66,8 @@ export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldow
             ))
           ) : (
             <div className={styles.emptyMessage}>
-              <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recommended.empty">
-                No reccomended drilldowns
+              <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recommended-empty">
+                No reccomended values
               </Trans>
             </div>
           )}
@@ -84,7 +80,7 @@ export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldow
     <>
       <IconButton
         name="plus"
-        tooltip={t('grafana-scenes.components.drilldown-recommendations.tooltip', 'Open drilldown recommendations')}
+        tooltip={t('grafana-scenes.components.drilldown-recommendations.tooltip', 'Show recommendations')}
         ref={ref}
         onClick={(ev) => {
           openPopover();
