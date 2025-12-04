@@ -118,7 +118,6 @@ export {
 export { SceneCSSGridLayout, SceneCSSGridItem } from './components/layout/CSSGrid/SceneCSSGridLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridLayoutDragStartEvent } from './components/layout/grid/types';
-export { SceneGridPlaceholderItem } from './components/layout/grid/SceneGridPlaceholderItem';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export { type SceneGridItemStateLike, type SceneGridItemLike } from './components/layout/grid/types';
