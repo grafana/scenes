@@ -82,6 +82,7 @@ export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldow
         name="plus"
         tooltip={t('grafana-scenes.components.drilldown-recommendations.tooltip', 'Show recommendations')}
         ref={ref}
+        className={cx(isPopoverVisible && styles.iconActive)}
         onClick={(ev) => {
           openPopover();
           ev.stopPropagation();
@@ -131,6 +132,12 @@ const getStyles = (theme: GrafanaTheme2) => ({
 
     '&:hover': {
       background: theme.colors.action.hover,
+    },
+  }),
+  iconActive: css({
+    '&:before': {
+      backgroundColor: theme.colors.action.hover,
+      opacity: 1,
     },
   }),
   emptyMessage: css({

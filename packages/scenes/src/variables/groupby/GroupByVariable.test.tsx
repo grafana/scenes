@@ -3,7 +3,7 @@ import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, config
 import { act, getAllByRole, render, screen } from '@testing-library/react';
 import { lastValueFrom, Observable, of } from 'rxjs';
 import React from 'react';
-import { GroupByVariable, GroupByVariableState } from './GroupByVariable';
+import { GroupByVariable, GroupByVariableState, RECENT_GROUPING_KEY } from './GroupByVariable';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexLayout, SceneFlexItem } from '../../components/layout/SceneFlexLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
@@ -15,6 +15,7 @@ import userEvent from '@testing-library/user-event';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
+import { MAX_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersVariable';
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
@@ -732,6 +733,88 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const result = variable.getApplicableKeys();
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('recent filters', () => {
+    beforeEach(() => {
+      localStorage.removeItem(RECENT_GROUPING_KEY);
+    });
+
+    it('should not set recent grouping if recommendations are disabled', () => {
+      const { variable } = setupTest({
+        drilldownRecommendationsEnabled: false,
+      });
+
+      expect(variable.state._recentGrouping).toEqual(undefined);
+    });
+
+    it('should set recentGrouping from browser storageon activation', () => {
+      const recentGrouping = [{ key: 'key1', value: 'value1' }];
+      localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(recentGrouping));
+
+      const { variable } = setupTest({
+        drilldownRecommendationsEnabled: true,
+      });
+
+      expect(variable.state._recentGrouping).toEqual(recentGrouping);
+    });
+
+    it('should add key to recentGrouping', () => {
+      const { variable } = setupTest({
+        drilldownRecommendationsEnabled: true,
+        value: [],
+      });
+
+      variable.setState({
+        _recentGrouping: variable.prepareRecentGrouping({ value: 'value', label: 'value' }),
+      });
+
+      expect(variable.state._recentGrouping).toEqual([{ value: 'value', text: 'value' }]);
+    });
+
+    it('should maintain only a list of top k recent filters', () => {
+      const { variable } = setupTest({
+        drilldownRecommendationsEnabled: true,
+        value: [],
+      });
+
+      variable.setState({
+        _recentGrouping: variable.prepareRecentGrouping({ value: 'value1', label: 'value1' }),
+      });
+
+      variable.setState({
+        _recentGrouping: variable.prepareRecentGrouping({ value: 'value2', label: 'value2' }),
+      });
+
+      variable.setState({
+        _recentGrouping: variable.prepareRecentGrouping({ value: 'value3', label: 'value3' }),
+      });
+
+      variable.setState({
+        _recentGrouping: variable.prepareRecentGrouping({ value: 'value4', label: 'value4' }),
+      });
+
+      expect(variable.state._recentGrouping).toHaveLength(MAX_RECENT_DRILLDOWNS);
+    });
+
+    it('should set in browser storage', () => {
+      const { variable } = setupTest({
+        drilldownRecommendationsEnabled: true,
+        value: [],
+      });
+
+      variable.setState({
+        _recentGrouping: variable.prepareRecentGrouping({ value: 'value1', label: 'value1' }),
+      });
+
+      variable.setState({
+        _recentGrouping: variable.prepareRecentGrouping({ value: 'value2', label: 'value2' }),
+      });
+
+      const storedGrouping = localStorage.getItem(RECENT_GROUPING_KEY);
+      expect(storedGrouping).toBeDefined();
+      expect(JSON.parse(storedGrouping!)).toHaveLength(2);
     });
   });
 });

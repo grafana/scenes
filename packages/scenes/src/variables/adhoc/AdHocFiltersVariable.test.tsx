@@ -1,7 +1,13 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariable, SceneVariableValueChangedEvent } from '../types';
-import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
+import {
+  AdHocFiltersVariable,
+  AdHocFiltersVariableState,
+  AdHocFilterWithLabels,
+  MAX_RECENT_DRILLDOWNS,
+  RECENT_FILTERS_KEY,
+} from './AdHocFiltersVariable';
 import {
   DataSourceSrv,
   config,
@@ -2503,6 +2509,104 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
 
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
+    });
+  });
+
+  describe('recent filters', () => {
+    beforeEach(() => {
+      localStorage.removeItem(RECENT_FILTERS_KEY);
+    });
+
+    it('should not set recentFilters if recommendations are disabled', () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: false,
+      });
+
+      expect(filtersVar.state._recentFilters).toEqual(undefined);
+    });
+
+    it('should set recentFilters from browser storage on activation', () => {
+      const recentFilters = [{ key: 'pod', operator: '=|', value: 'test1, test2', values: ['test1', 'test2'] }];
+
+      localStorage.setItem(RECENT_FILTERS_KEY, JSON.stringify(recentFilters));
+
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+      });
+
+      expect(filtersVar.state._recentFilters).toEqual(recentFilters);
+    });
+
+    it('should add filter to recentFilters', () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [],
+      });
+
+      const filter = {
+        key: 'cluster',
+        value: '1',
+        operator: '=',
+      };
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue' });
+
+      expect(filtersVar.state._recentFilters).toEqual([{ key: 'cluster', operator: '=', value: 'newValue' }]);
+      expect(filtersVar.state._recentFilters).toHaveLength(1);
+    });
+
+    it('should maintain only a list of top k recent filters', () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [],
+      });
+
+      const filter = {
+        key: 'cluster',
+        value: '1',
+        operator: '=',
+      };
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue' });
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue2' });
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue3' });
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue4' });
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue5' });
+
+      expect(filtersVar.state._recentFilters).toHaveLength(MAX_RECENT_DRILLDOWNS);
+    });
+
+    it('should set in browser storage', () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [],
+      });
+
+      const filter = {
+        key: 'cluster',
+        value: '1',
+        operator: '=',
+      };
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue' });
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue2' });
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      expect(storedFilters).toBeDefined();
+      expect(JSON.parse(storedFilters!)).toHaveLength(2);
     });
   });
 
