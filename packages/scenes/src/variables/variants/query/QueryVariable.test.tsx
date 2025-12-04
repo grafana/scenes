@@ -365,7 +365,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
           regex: '/^val1/',
-          regexApplyTo: VariableRegexApplyTo.value,
+          regexApplyTo: 'value',
         });
 
         await lastValueFrom(variable.validateAndUpdate());
@@ -386,7 +386,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
           regex: '/^Display1/',
-          regexApplyTo: VariableRegexApplyTo.text,
+          regexApplyTo: 'text',
         });
 
         await lastValueFrom(variable.validateAndUpdate());

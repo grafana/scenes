@@ -24,7 +24,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -40,7 +40,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -56,7 +56,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -72,7 +72,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -88,7 +88,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -108,7 +108,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -130,7 +130,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '/^val1/',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -150,7 +150,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '/^Display1/',
-        variableRegexApplyTo: VariableRegexApplyTo.text,
+        variableRegexApplyTo: 'text',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -170,7 +170,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '/^optA$/',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -304,7 +304,7 @@ describe('metricNamesToVariableValues', () => {
     it('should handle empty array', () => {
       const result = metricNamesToVariableValues({
         variableRegEx: '',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames: [],
       });
@@ -319,7 +319,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -335,7 +335,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -348,7 +348,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -368,7 +368,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '/^nomatch/',
-        variableRegexApplyTo: VariableRegexApplyTo.value,
+        variableRegexApplyTo: 'value',
         sort: VariableSort.disabled,
         metricNames,
       });
@@ -400,7 +400,7 @@ describe('metricNamesToVariableValues', () => {
 
       const result = metricNamesToVariableValues({
         variableRegEx: '/^Display1/',
-        variableRegexApplyTo: VariableRegexApplyTo.text,
+        variableRegexApplyTo: 'text',
         sort: VariableSort.alphabeticalAsc,
         metricNames,
       });
