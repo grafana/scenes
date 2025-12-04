@@ -46,7 +46,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                 moving panels. https://github.com/grafana/grafana/issues/18497
                 theme.breakpoints.md = 769
            */
-          isDraggable={isDraggable && width > 768}
+          isDraggable={false}
           isResizable={isResizable ?? false}
           containerPadding={[0, 0]}
           useCSSTransforms={true}
@@ -61,16 +61,14 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
             w: placeholderWidth!,
             h: placeholderHeight!,
           }}
-          onDragStart={(layout, oldItem, newItem, placeholder, event, element) => {
-            placeholderItem.setState({ width: oldItem.w, height: oldItem.h });
-            model.onDragStart(layout, oldItem, newItem, placeholder, event, element);
-          }}
+          onDragStart={model.onDragStart}
           onDragStop={model.onDragStop}
           onResizeStop={model.onResizeStop}
           onLayoutChange={model.onLayoutChange}
           isBounded={false}
           resizeHandle={<ResizeHandle />}
           isDroppable={true}
+          onDrop={console.log}
         >
           {layout.map((gridItem, index) => (
             <GridItemWrapper

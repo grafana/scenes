@@ -30,6 +30,8 @@ interface SceneGridLayoutState extends SceneObjectState {
   UNSAFE_fitPanels?: boolean;
   children: SceneGridItemLike[];
   placeholderItem: SceneGridPlaceholderItem;
+  isDragging: boolean;
+  isOutsideDragging: boolean;
 }
 
 export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> implements SceneLayout {
@@ -39,11 +41,13 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   private _oldLayout: ReactGridLayout.Layout[] = [];
   private _loadOldLayout = false;
 
-  public constructor(state: Omit<SceneGridLayoutState, 'placeholderItem'>) {
+  public constructor(state: Omit<SceneGridLayoutState, 'placeholderItem' | 'isDragging' | 'isOutsideDragging'>) {
     super({
       ...state,
       children: sortChildrenByPosition(state.children),
       placeholderItem: new SceneGridPlaceholderItem(),
+      isDragging: false,
+      isOutsideDragging: false,
     });
   }
 
@@ -319,7 +323,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     return rootChildren;
   }
 
-  public onDragStart: ReactGridLayout.ItemCallback = (gridLayout) => {
+  public onDragStart: ReactGridLayout.ItemCallback = (gridLayout, oldItem, newItem, placeholder, evt) => {
+    this.state.placeholderItem.setState({ width: newItem.w, height: newItem.h });
     this._oldLayout = [...gridLayout];
   };
 
@@ -426,6 +431,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     this._skipOnLayoutChange = false;
 
     return cells;
+  }
+
+  public setPlaceholderSize(width: number, height: number) {
+    this.state.placeholderItem.setState({ width, height });
   }
 }
 
