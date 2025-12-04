@@ -43,8 +43,7 @@ export function metricNamesToVariableValues({
     }
 
     if (regex) {
-      // TODO: remove harcoded default value after updating grafana/data
-      const applyTo = variableRegexApplyTo === (VariableRegexApplyTo?.text || 'text') ? text : value;
+      const applyTo = variableRegexApplyTo === 'text' ? text : value;
       const matches = getAllMatches(applyTo, regex);
       if (!matches.length) {
         continue;
