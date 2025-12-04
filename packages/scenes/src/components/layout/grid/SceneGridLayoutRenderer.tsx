@@ -64,8 +64,6 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                 }
               : undefined
           }
-          onDragStart={model.onDragStart}
-          onDrag={console.log}
           onResizeStop={model.onResizeStop}
           onLayoutChange={model.onLayoutChange}
           isBounded={false}

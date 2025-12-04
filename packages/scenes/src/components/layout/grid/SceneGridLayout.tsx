@@ -191,7 +191,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
    * Will also scan row children and return child of the row
    */
   public getSceneLayoutChild(key: string): SceneGridItemLike {
-    if (key === '__placeholder') {
+    if (key === this.state._placeholderItem?.state.key) {
       return this.state._placeholderItem!;
     }
 
@@ -317,10 +317,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     return rootChildren;
   }
-
-  public onDragStart: ReactGridLayout.ItemCallback = (gridLayout, oldItem, newItem, placeholder, evt) => {
-    this._oldLayout = [...gridLayout];
-  };
 
   public onDragStop = (gridLayout: ReactGridLayout.Layout[], updatedItem: ReactGridLayout.Layout) => {
     const sceneChild = this.getSceneLayoutChild(updatedItem.i)!;
