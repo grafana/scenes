@@ -13,6 +13,9 @@ export interface AdHocFiltersControllerState {
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
   inputPlaceholder?: string;
+  recentFilters?: AdHocFilterWithLabels[];
+  recommendedFilters?: AdHocFilterWithLabels[];
+  drilldownRecommendationsEnabled?: boolean;
 }
 
 /**
@@ -49,6 +52,19 @@ export interface AdHocFiltersController {
    * @param update - Partial filter properties to update
    */
   updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>): void;
+
+  /**
+   * Update filters list
+   * @param filters
+   * @param options
+   */
+  updateFilters(
+    filters: AdHocFilterWithLabels[],
+    options?: {
+      skipPublish?: boolean;
+      forcePublish?: boolean;
+    }
+  ): void;
 
   /**
    * Update a filter to match all values (=~ .*)

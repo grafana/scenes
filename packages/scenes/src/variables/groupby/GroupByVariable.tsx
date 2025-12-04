@@ -3,11 +3,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   AdHocVariableFilter,
   DataSourceApi,
-  // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
   GetTagResponse,
+  GrafanaTheme2,
   MetricFindValue,
   SelectableValue,
+  store,
 } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
@@ -23,7 +24,7 @@ import {
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
-import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
+import { InputActionMeta, MultiSelect, Select, useStyles2 } from '@grafana/ui';
 import { isArray, isEqual } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
@@ -35,6 +36,11 @@ import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIn
 import { GroupByValueContainer, GroupByContainerProps } from './GroupByValueContainer';
 import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTracker';
 import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionConstants';
+import { MAX_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersVariable';
+import { DrilldownRecommendations } from '../components/DrilldownRecommendations';
+import { css, cx } from '@emotion/css';
+
+export const RECENT_GROUPING_KEY = 'grafana.grouping.recent';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -81,6 +87,21 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * state for checking whether drilldown applicability is enabled
    */
   applicabilityEnabled?: boolean;
+
+  /**
+   * contains stored recent keys
+   */
+  _recentGrouping?: Array<SelectableValue<VariableValueSingle>>;
+
+  /**
+   * contains recommended keys
+   */
+  _recommendedGrouping?: Array<SelectableValue<VariableValueSingle>>;
+
+  /**
+   * enables drilldown recommendations
+   */
+  drilldownRecommendationsEnabled?: boolean;
 }
 
 export type getTagKeysProvider = (
@@ -91,6 +112,8 @@ export type getTagKeysProvider = (
 export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   static Component = GroupByVariableRenderer;
   isLazy = true;
+
+  private _store = store;
 
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
 
@@ -179,6 +202,13 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       this.changeValueTo(this.state.defaultValue.value, this.state.defaultValue.text, false);
     }
 
+    if (this.state.drilldownRecommendationsEnabled) {
+      const json = this._store.get(RECENT_GROUPING_KEY);
+      this.setState({
+        _recentGrouping: json ? JSON.parse(json) : [],
+      });
+    }
+
     if (this.state.applyMode === 'auto') {
       this.addActivationHandler(() => {
         allActiveGroupByVariables.add(this);
@@ -233,14 +263,12 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       __sceneObject: wrapInSafeSerializableSceneObject(this),
     });
 
-    // @ts-expect-error (temporary till we update grafana/data)
     if (!ds.getDrilldownsApplicability) {
       return;
     }
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
 
-    // @ts-expect-error (temporary till we update grafana/data)
     return await ds.getDrilldownsApplicability({
       groupByKeys: Array.isArray(value) ? value.map((v) => String(v)) : value ? [String(value)] : [],
       queries,
@@ -344,6 +372,25 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return keys;
   };
 
+  public prepareRecentGrouping(value: SelectableValue<VariableValueSingle>) {
+    if (!this.state.drilldownRecommendationsEnabled) {
+      return [];
+    }
+
+    const recentGrouping = [...(this.state._recentGrouping ?? []), { value: value.value, text: value.label }].slice(
+      -MAX_RECENT_DRILLDOWNS
+    );
+    this._store.set(RECENT_GROUPING_KEY, JSON.stringify(recentGrouping));
+
+    return recentGrouping;
+  }
+
+  public setRecommendedGrouping(recommendedGrouping: string[]) {
+    this.setState({
+      _recommendedGrouping: recommendedGrouping.map((key) => ({ value: key, text: key })),
+    });
+  }
+
   /**
    * Allows clearing the value of the variable to an empty value. Overrides default behavior of a MultiValueVariable
    */
@@ -365,7 +412,12 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     allowCustomValue = true,
     defaultValue,
     keysApplicability,
+    _recentGrouping,
+    _recommendedGrouping,
+    drilldownRecommendationsEnabled,
   } = model.useState();
+
+  const styles = useStyles2(getStyles);
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
     const arrayValue = isArray(value) ? value : [value];
@@ -415,7 +467,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     [optionSearcher, inputValue]
   );
 
-  return isMulti ? (
+  const select = isMulti ? (
     <MultiSelect<VariableValueSingle>
       aria-label={t(
         'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
@@ -428,6 +480,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         'Group by label'
       )}
       width="auto"
+      className={cx(drilldownRecommendationsEnabled && styles.seelctStylesInWrapper)}
       allowCustomValue={allowCustomValue}
       inputValue={inputValue}
       value={uncommittedValue}
@@ -476,6 +529,12 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           model.changeValueTo([], undefined, true);
         }
 
+        if (action.action === 'select-option' && action.option) {
+          model.setState({
+            _recentGrouping: model.prepareRecentGrouping(action.option),
+          });
+        }
+
         setUncommittedValue(newValue);
       }}
       onOpenMenu={async () => {
@@ -506,6 +565,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         'Group by label'
       )}
       width="auto"
+      className={cx(drilldownRecommendationsEnabled && styles.seelctStylesInWrapper)}
       inputValue={inputValue}
       value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
       allowCustomValue={allowCustomValue}
@@ -533,6 +593,9 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         if (newValue?.value) {
           setUncommittedValue([newValue]);
           model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : undefined);
+          model.setState({
+            _recentGrouping: model.prepareRecentGrouping(newValue),
+          });
         }
       }}
       onOpenMenu={async () => {
@@ -551,6 +614,50 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       }}
     />
   );
+
+  if (!drilldownRecommendationsEnabled) {
+    return select;
+  }
+
+  const recentDrilldowns = _recentGrouping?.map((groupBy) => ({
+    label: `${groupBy.value}`,
+    onClick: () => {
+      if (values.map((x) => x.value).includes(groupBy.value)) {
+        return;
+      }
+
+      model.changeValueTo(
+        [...values.map((x) => x.value!), groupBy.value!],
+        [...values.map((x) => x.label), groupBy.text ?? groupBy.value],
+        true
+      );
+    },
+  }));
+
+  const recommendedDrilldowns = _recommendedGrouping?.map((groupBy) => ({
+    label: `${groupBy.value}`,
+    onClick: () => {
+      if (values.map((x) => x.value).includes(groupBy.value)) {
+        return;
+      }
+
+      model.changeValueTo(
+        [...values.map((x) => x.value!), groupBy.value!],
+        [...values.map((x) => x.label), groupBy.text ?? groupBy.value],
+        true
+      );
+    },
+  }));
+
+  return (
+    <div className={styles.wrapper}>
+      <div className={styles.recommendations}>
+        <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />
+      </div>
+
+      {select}
+    </div>
+  );
 }
 
 const filterNoOp = () => true;
@@ -568,3 +675,29 @@ function toSelectableValue(input: VariableValueOption): SelectableValue<Variable
 
   return result;
 }
+
+const getStyles = (theme: GrafanaTheme2) => ({
+  wrapper: css({
+    display: 'flex',
+  }),
+  seelctStylesInWrapper: css({
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    border: `1px solid ${theme.colors.border.strong}`,
+    borderLeft: 'none',
+  }),
+  recommendations: css({
+    display: 'flex',
+    alignItems: 'center',
+    paddingInline: theme.spacing(0.5),
+    borderTop: `1px solid ${theme.colors.border.strong}`,
+    borderBottom: `1px solid ${theme.colors.border.strong}`,
+    backgroundColor: theme.components.input.background,
+    '& button': {
+      borderRadius: 0,
+      height: '100%',
+      margin: 0,
+      paddingInline: theme.spacing(0.5),
+    },
+  }),
+});

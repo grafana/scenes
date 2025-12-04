@@ -1,4 +1,9 @@
 {
+  "drilldown-recommendations": {
+    "recent": {
+      "empty": "No recent drilldowns"
+    }
+  },
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
@@ -10,6 +15,14 @@
       "adhoc-filters-combobox": {
         "remove-filter-value": "Remove filter value - {{itemLabel}}",
         "use-custom-value": "Use custom value: {{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent-drilldowns": "Recent Drilldowns",
+        "recommended": {
+          "empty": "No reccomended drilldowns"
+        },
+        "recommended-drilldowns": "Recommended Drilldowns",
+        "tooltip": "Open drilldown recommendations"
       },
       "fallback-page": {
         "content": "If you found your way here using a link then there might be a bug in this application.",
