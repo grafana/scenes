@@ -12,7 +12,6 @@ import { SceneGridItemLike, SceneGridItemPlacement, SceneGridLayoutDragStartEven
 import { fitPanelsInHeight } from './utils';
 import { VizPanel } from '../../VizPanel/VizPanel';
 import { isRepeatCloneOrChildOf } from '../../../utils/utils';
-import { SceneGridPlaceholderItem } from './SceneGridPlaceholderItem';
 
 interface SceneGridLayoutState extends SceneObjectState {
   /**
@@ -29,9 +28,7 @@ interface SceneGridLayoutState extends SceneObjectState {
    */
   UNSAFE_fitPanels?: boolean;
   children: SceneGridItemLike[];
-  placeholderItem: SceneGridPlaceholderItem;
-  isDragging: boolean;
-  isOutsideDragging: boolean;
+  _placeholderItem: SceneGridItemLike | null;
 }
 
 export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> implements SceneLayout {
@@ -41,13 +38,11 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   private _oldLayout: ReactGridLayout.Layout[] = [];
   private _loadOldLayout = false;
 
-  public constructor(state: Omit<SceneGridLayoutState, 'placeholderItem' | 'isDragging' | 'isOutsideDragging'>) {
+  public constructor(state: Omit<SceneGridLayoutState, '_placeholderItem'>) {
     super({
       ...state,
       children: sortChildrenByPosition(state.children),
-      placeholderItem: new SceneGridPlaceholderItem(),
-      isDragging: false,
-      isOutsideDragging: false,
+      _placeholderItem: null,
     });
   }
 
@@ -196,8 +191,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
    * Will also scan row children and return child of the row
    */
   public getSceneLayoutChild(key: string): SceneGridItemLike {
-    if (key === this.state.placeholderItem?.state.key) {
-      return this.state.placeholderItem!;
+    if (key === this.state._placeholderItem?.state.key) {
+      return this.state._placeholderItem!;
     }
 
     for (const child of this.state.children) {
@@ -324,7 +319,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 
   public onDragStart: ReactGridLayout.ItemCallback = (gridLayout, oldItem, newItem, placeholder, evt) => {
-    this.state.placeholderItem.setState({ width: newItem.w, height: newItem.h });
     this._oldLayout = [...gridLayout];
   };
 
@@ -374,6 +368,55 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     }
 
     this.setState({ children: sortChildrenByPosition(newChildren) });
+    this._skipOnLayoutChange = true;
+  };
+
+  public onDragStopNew = (gridLayout: ReactGridLayout.Layout[], updatedItem: ReactGridLayout.Layout) => {
+    const sceneChild = this.getSceneLayoutChild(updatedItem.i)!;
+
+    // Need to resort the grid layout based on new position (needed to find the new parent)
+    gridLayout = sortGridLayout(gridLayout);
+
+    // Update the parent if the child if it has moved to a row or back to the grid
+    const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
+    let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
+    let newChildren = this.state.children;
+
+    // Update children positions if they have changed
+    for (let i = 0; i < gridLayout.length; i++) {
+      const gridItem = gridLayout[i];
+      const child = this.getSceneLayoutChild(gridItem.i)!;
+      const childSize = child.state;
+
+      if (childSize?.x !== gridItem.x || childSize?.y !== gridItem.y) {
+        child.setState({
+          x: gridItem.x,
+          y: gridItem.y,
+        });
+      }
+    }
+
+    // Dot not allow dragging into repeated row clone
+    if (newParent instanceof SceneGridRow && isRepeatCloneOrChildOf(newParent)) {
+      this._loadOldLayout = true;
+    }
+
+    // if the child is a row and we are moving it under an uncollapsed row, keep the scene grid layout as parent
+    // and set the old layout flag if the state is invalid. We allow setting the children in an invalid state,
+    // as the layout will be updated in onLayoutChange and avoid flickering
+    if (sceneChild instanceof SceneGridRow && newParent instanceof SceneGridRow) {
+      if (!this.isRowDropValid(gridLayout, updatedItem, indexOfUpdatedItem)) {
+        this._loadOldLayout = true;
+      }
+
+      newParent = this;
+    }
+
+    if (newParent !== sceneChild.parent && !this._loadOldLayout) {
+      newChildren = this.moveChildTo(sceneChild, newParent);
+    }
+
+    this.setState({ children: sortChildrenByPosition(newChildren), _placeholderItem: null });
     this._skipOnLayoutChange = true;
   };
 
@@ -433,8 +476,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     return cells;
   }
 
-  public setPlaceholderSize(width: number, height: number) {
-    this.state.placeholderItem.setState({ width, height });
+  public setPlaceholder(placeholderItem: SceneGridItemLike | null) {
+    if (this.state._placeholderItem !== placeholderItem) {
+      this.setState({ _placeholderItem: placeholderItem });
+    }
   }
 }
 
