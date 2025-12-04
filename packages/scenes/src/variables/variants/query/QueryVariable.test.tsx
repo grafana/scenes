@@ -18,7 +18,7 @@ import {
   VariableRefresh,
   VariableSupportType,
   // @ts-expect-error TODO: remove suppression after updating grafana/data
-  VariableRegexApplyTo as VariableRegexApplyToFromData,
+  VariableRegexApplyTo,
 } from '@grafana/data';
 import { SceneTimeRange } from '../../../core/SceneTimeRange';
 
@@ -33,14 +33,6 @@ import userEvent from '@testing-library/user-event';
 import { config, setRunRequest } from '@grafana/runtime';
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 import { VariableSort } from '@grafana/schema';
-
-// TODO: Fallback enum for backward compatibility with older versions of @grafana/data
-const VariableRegexApplyTo =
-  VariableRegexApplyToFromData ||
-  ({
-    value: 'value',
-    text: 'text',
-  } as const);
 
 function createMockData(valueValues: string[], textValues?: string[]) {
   const fields = textValues

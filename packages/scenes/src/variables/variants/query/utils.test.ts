@@ -1,18 +1,10 @@
 import {
   VariableSort,
   // @ts-expect-error TODO: remove suppression after updating grafana/data
-  VariableRegexApplyTo as VariableRegexApplyToFromData,
+  VariableRegexApplyTo,
 } from '@grafana/data';
 import { metricNamesToVariableValues, sortVariableValues } from './utils';
 import { VariableValueOption } from '../../types';
-
-// TODO: Fallback enum for backward compatibility with older versions of @grafana/data
-const VariableRegexApplyTo =
-  VariableRegexApplyToFromData ||
-  ({
-    value: 'value',
-    text: 'text',
-  } as const);
 
 describe('metricNamesToVariableValues', () => {
   describe('Basic functionality', () => {
