@@ -22,14 +22,14 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     const recentDrilldowns = recentFilters?.map((filter) => ({
       label: `${filter.key} ${filter.operator} ${filter.value}`,
       onClick: () => {
-        controller.updateFilters([...filters, filter]);
+        controller.updateFilters?.([...filters, filter]);
       },
     }));
 
     const recommendedDrilldowns = recommendedFilters?.map((filter) => ({
       label: `${filter.key} ${filter.operator} ${filter.value}`,
       onClick: () => {
-        controller.updateFilters([...filters, filter]);
+        controller.updateFilters?.([...filters, filter]);
       },
     }));
 
