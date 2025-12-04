@@ -4,6 +4,7 @@ import {
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
+  // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
   Scope,
   SelectableValue,
@@ -654,12 +655,14 @@ export class AdHocFiltersVariable
     queries: SceneDataQuery[]
   ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getDrilldownsApplicability) {
       return;
     }
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
 
+    // @ts-expect-error (temporary till we update grafana/data)
     return await ds.getDrilldownsApplicability({
       filters,
       queries,
