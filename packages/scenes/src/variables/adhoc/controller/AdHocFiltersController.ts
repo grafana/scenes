@@ -58,7 +58,7 @@ export interface AdHocFiltersController {
    * @param filters
    * @param options
    */
-  updateFilters(
+  updateFilters?(
     filters: AdHocFilterWithLabels[],
     options?: {
       skipPublish?: boolean;
