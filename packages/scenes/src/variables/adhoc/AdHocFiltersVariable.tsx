@@ -294,8 +294,6 @@ export class AdHocFiltersVariable
       ...state,
     });
 
-    console.log(this.state);
-
     if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
     }
