@@ -65,13 +65,13 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               : undefined
           }
           onDragStart={model.onDragStart}
-          // onDragStop={model.onDragStop}
+          onDrag={console.log}
           onResizeStop={model.onResizeStop}
           onLayoutChange={model.onLayoutChange}
           isBounded={false}
           resizeHandle={<ResizeHandle />}
           isDroppable={true}
-          onDrop={model.onDragStopNew}
+          onDrop={model.onDragStop}
         >
           {layout.map((gridItem, index) => (
             <GridItemWrapper

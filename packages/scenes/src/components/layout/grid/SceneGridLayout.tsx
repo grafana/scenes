@@ -191,7 +191,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
    * Will also scan row children and return child of the row
    */
   public getSceneLayoutChild(key: string): SceneGridItemLike {
-    if (key === this.state._placeholderItem?.state.key) {
+    if (key === '__placeholder') {
       return this.state._placeholderItem!;
     }
 
@@ -322,57 +322,14 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     this._oldLayout = [...gridLayout];
   };
 
-  public onDragStop: ReactGridLayout.ItemCallback = (gridLayout, o, updatedItem) => {
+  public onDragStop = (gridLayout: ReactGridLayout.Layout[], updatedItem: ReactGridLayout.Layout) => {
     const sceneChild = this.getSceneLayoutChild(updatedItem.i)!;
 
-    // Need to resort the grid layout based on new position (needed to find the new parent)
-    gridLayout = sortGridLayout(gridLayout);
-
-    // Update the parent if the child if it has moved to a row or back to the grid
-    const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
-    let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
-    let newChildren = this.state.children;
-
-    // Update children positions if they have changed
-    for (let i = 0; i < gridLayout.length; i++) {
-      const gridItem = gridLayout[i];
-      const child = this.getSceneLayoutChild(gridItem.i)!;
-      const childSize = child.state;
-
-      if (childSize?.x !== gridItem.x || childSize?.y !== gridItem.y) {
-        child.setState({
-          x: gridItem.x,
-          y: gridItem.y,
-        });
-      }
-    }
-
-    // Dot not allow dragging into repeated row clone
-    if (newParent instanceof SceneGridRow && isRepeatCloneOrChildOf(newParent)) {
-      this._loadOldLayout = true;
-    }
-
-    // if the child is a row and we are moving it under an uncollapsed row, keep the scene grid layout as parent
-    // and set the old layout flag if the state is invalid. We allow setting the children in an invalid state,
-    // as the layout will be updated in onLayoutChange and avoid flickering
-    if (sceneChild instanceof SceneGridRow && newParent instanceof SceneGridRow) {
-      if (!this.isRowDropValid(gridLayout, updatedItem, indexOfUpdatedItem)) {
-        this._loadOldLayout = true;
-      }
-
-      newParent = this;
-    }
-
-    if (newParent !== sceneChild.parent && !this._loadOldLayout) {
-      newChildren = this.moveChildTo(sceneChild, newParent);
-    }
-
-    this.setState({ children: sortChildrenByPosition(newChildren) });
-    this._skipOnLayoutChange = true;
-  };
-
-  public onDragStopNew = (gridLayout: ReactGridLayout.Layout[], updatedItem: ReactGridLayout.Layout) => {
-    const sceneChild = this.getSceneLayoutChild(updatedItem.i)!;
+    // gridLayout contains both the original item and the updated item
+    // we need to remove the original item
+    gridLayout = gridLayout.filter(
+      (item) => item.i !== updatedItem.i || (item.i === updatedItem.i && item === updatedItem)
+    );
 
     // Need to resort the grid layout based on new position (needed to find the new parent)
     gridLayout = sortGridLayout(gridLayout);
