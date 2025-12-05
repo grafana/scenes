@@ -1,3 +1,16 @@
+# v6.49.0 (Fri Dec 05 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Introduce regexApplyTo variable field [#1306](https://github.com/grafana/scenes/pull/1306) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v6.48.1 (Thu Dec 04 2025)
 
 ### Release Notes
