@@ -21,6 +21,9 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       supportsMultiValueOperators: state.supportsMultiValueOperators,
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
+      recentFilters: state._recentFilters,
+      recommendedFilters: state._recommendedFilters,
+      drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
     };
   }
 
@@ -38,6 +41,16 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>): void {
     this.model._updateFilter(filter, update);
+  }
+
+  public updateFilters(
+    filters: AdHocFilterWithLabels[],
+    options?: {
+      skipPublish?: boolean;
+      forcePublish?: boolean;
+    }
+  ): void {
+    this.model.updateFilters(filters, options);
   }
 
   public updateToMatchAll(filter: AdHocFilterWithLabels): void {

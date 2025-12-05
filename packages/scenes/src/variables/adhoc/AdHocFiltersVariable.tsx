@@ -8,6 +8,7 @@ import {
   DrilldownsApplicability,
   Scope,
   SelectableValue,
+  store,
 } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
@@ -62,6 +63,10 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
 }
 
 const ORIGIN_FILTERS_KEY: keyof AdHocFiltersVariableState = 'originFilters';
+
+export const MAX_RECENT_DRILLDOWNS = 3;
+
+export const RECENT_FILTERS_KEY = 'grafana.filters.recent';
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
@@ -155,6 +160,21 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * state for checking whether drilldown applicability is enabled
    */
   applicabilityEnabled?: boolean;
+
+  /**
+   * contains stored recent filter
+   */
+  _recentFilters?: AdHocFilterWithLabels[];
+
+  /**
+   * contains recommended filters
+   */
+  _recommendedFilters?: AdHocFilterWithLabels[];
+
+  /**
+   * enables drilldown recommendations
+   */
+  drilldownRecommendationsEnabled?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -250,6 +270,7 @@ export class AdHocFiltersVariable
   // to its original value if edited at some point
   private _originalValues: Map<string, OriginalValue> = new Map();
   private _prevScopes: Scope[] = [];
+  private _store = store;
 
   /** Needed for scopes dependency */
   protected _variableDependency = new VariableDependencyConfig(this, {
@@ -290,6 +311,13 @@ export class AdHocFiltersVariable
 
   private _activationHandler = () => {
     this._debouncedVerifyApplicability();
+
+    if (this.state.drilldownRecommendationsEnabled) {
+      const json = this._store.get(RECENT_FILTERS_KEY);
+      this.setState({
+        _recentFilters: json ? JSON.parse(json) : [],
+      });
+    }
 
     return () => {
       this.state.originFilters?.forEach((filter) => {
@@ -490,7 +518,11 @@ export class AdHocFiltersVariable
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
-        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
+        this.setState({
+          filters: [...filters, { ..._wip, ...update }],
+          _wip: undefined,
+          _recentFilters: this.prepareRecentFilters({ ..._wip, ...update }),
+        });
         this._debouncedVerifyApplicability();
       } else {
         this.setState({ _wip: { ...filter, ...update } });
@@ -502,7 +534,18 @@ export class AdHocFiltersVariable
       return f === filter ? { ...f, ...update } : f;
     });
 
-    this.setState({ filters: updatedFilters });
+    this.setState({ filters: updatedFilters, _recentFilters: this.prepareRecentFilters({ ...filter, ...update }) });
+  }
+
+  private prepareRecentFilters(update: AdHocFilterWithLabels) {
+    if (!this.state.drilldownRecommendationsEnabled) {
+      return [];
+    }
+
+    const recentFilters = [...(this.state._recentFilters ?? []), update].slice(-MAX_RECENT_DRILLDOWNS);
+    this._store.set(RECENT_FILTERS_KEY, JSON.stringify(recentFilters));
+
+    return recentFilters;
   }
 
   public updateToMatchAll(filter: AdHocFilterWithLabels) {
@@ -599,6 +642,12 @@ export class AdHocFiltersVariable
         }, []),
       });
     }
+  }
+
+  public setRecommendedFilters(recommendedFilters: AdHocFilterWithLabels[]) {
+    this.setState({
+      _recommendedFilters: recommendedFilters,
+    });
   }
 
   public async getFiltersApplicabilityForQueries(
@@ -757,7 +806,7 @@ export class AdHocFiltersVariable
           ...scope,
           spec: {
             ...scope.spec,
-            filters: scope.spec.filters.filter((f) => f.key !== filter.key),
+            filters: scope.spec.filters?.filter((f) => f.key !== filter.key),
           },
         };
       });
