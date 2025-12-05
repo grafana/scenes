@@ -31,6 +31,6 @@ export function isSceneGridRow(child: SceneObject): child is SceneGridRow {
   return child instanceof SceneGridRow;
 }
 
-function isSceneGridLayout(child: SceneObject): child is SceneGridLayout {
+export function isSceneGridLayout(child: SceneObject): child is SceneGridLayout {
   return child instanceof SceneGridLayout;
 }
