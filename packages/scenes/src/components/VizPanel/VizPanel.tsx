@@ -17,6 +17,7 @@ import {
   PluginType,
   renderMarkdown,
   PanelPluginDataSupport,
+  DataTopic,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -536,12 +537,14 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         data: this._dataWithFieldConfig.annotations,
         fieldConfig: {
           defaults: {},
-          overrides: [],
+          overrides: [...this.state.fieldConfig.overrides],
         },
         fieldConfigRegistry,
         replaceVariables: this.interpolate,
         theme: config.theme2,
         timeZone: rawData.request?.timezone,
+        // @ts-ignore
+        dataTopic: DataTopic.Annotations,
       });
     }
 
@@ -587,6 +590,24 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     this.onFieldConfigChange(
       seriesVisibilityConfigFactory(label, mode, this.state.fieldConfig, this._dataWithFieldConfig.series),
+      true
+    );
+  };
+
+  private _onAnnotationVisibilityChange = (label: string, frame: string, mode: SeriesVisibilityChangeMode) => {
+    if (!this._dataWithFieldConfig) {
+      return;
+    }
+
+    this.onFieldConfigChange(
+      seriesVisibilityConfigFactory(
+        label,
+        mode,
+        this.state.fieldConfig,
+        this._dataWithFieldConfig.annotations ?? [],
+        DataTopic.Annotations,
+        frame
+      ),
       true
     );
   };
@@ -654,6 +675,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       },
       onSeriesColorChange: this._onSeriesColorChange,
       onToggleSeriesVisibility: this._onSeriesVisibilityChange,
+      onAnnotationVisibilityChange: this._onAnnotationVisibilityChange,
       onToggleLegendSort: this._onToggleLegendSort,
       onInstanceStateChange: this._onInstanceStateChange,
     };
