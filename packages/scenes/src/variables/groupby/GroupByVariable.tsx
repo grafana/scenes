@@ -477,6 +477,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         }
 
         setUncommittedValue(newValue);
+        setInputValue('');
       }}
       onOpenMenu={async () => {
         const profiler = getInteractionTracker(model);
