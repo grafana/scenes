@@ -2,7 +2,6 @@ import React, { RefCallback, useEffect, useRef } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 import { SceneComponentProps } from '../../../core/types';
 import { GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT } from './constants';
-import { LazyLoader } from '../LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridItemLike } from './types';
 import { useStyles2 } from '@grafana/ui';
@@ -11,7 +10,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useMeasure } from 'react-use';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
-  const { children, isLazy, isDraggable, isResizable } = model.useState();
+  const { children, isDraggable, isResizable } = model.useState();
   const [outerDivRef, { width, height }] = useMeasure();
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -68,7 +67,6 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
               grid={model}
               layoutItem={gridItem}
               index={index}
-              isLazy={isLazy}
               totalCount={layout.length}
             />
           ))}
@@ -96,31 +94,14 @@ interface GridItemWrapperProps extends React.HTMLAttributes<HTMLDivElement> {
   layoutItem: ReactGridLayout.Layout;
   index: number;
   totalCount: number;
-  isLazy?: boolean;
 }
 
 const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((props, ref) => {
-  const { grid, layoutItem, index, totalCount, isLazy, style, onLoad, onChange, children, ...divProps } = props;
+  const { grid, layoutItem, index, totalCount, style, onLoad, onChange, children, ...divProps } = props;
   const sceneChild = grid.getSceneLayoutChild(layoutItem.i)!;
   const className = sceneChild.getClassName?.();
 
   const innerContent = <sceneChild.Component model={sceneChild} key={sceneChild.state.key} />;
-
-  if (isLazy) {
-    return (
-      <LazyLoader
-        {...divProps}
-        key={sceneChild.state.key!}
-        data-griditem-key={sceneChild.state.key}
-        className={cx(className, props.className)}
-        style={style}
-        ref={ref}
-      >
-        {innerContent}
-        {children}
-      </LazyLoader>
-    );
-  }
 
   return (
     <div
