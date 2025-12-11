@@ -14,6 +14,9 @@ export interface SceneVariableState extends SceneObjectState {
   loading?: boolean;
   error?: any | null;
   description?: string | null;
+  // A default variable is something that is not coming from the JSON definition, but usually registered by datasources.
+  // It also doesn't get persisted back to the dashboard JSON.
+  isDefault?: boolean;
 }
 
 export interface SceneVariable<TState extends SceneVariableState = SceneVariableState> extends SceneObject<TState> {
