@@ -5,6 +5,11 @@ import { VariableType, VariableHide } from '@grafana/schema';
 
 import { SceneObject, SceneObjectState } from '../core/types';
 
+export interface SourceRef {
+  uid: string;
+  source: string;
+}
+
 export interface SceneVariableState extends SceneObjectState {
   type: VariableType;
   name: string;
@@ -14,9 +19,8 @@ export interface SceneVariableState extends SceneObjectState {
   loading?: boolean;
   error?: any | null;
   description?: string | null;
-  // A default variable is something that is not coming from the JSON definition, but usually registered by datasources.
-  // It also doesn't get persisted back to the dashboard JSON.
-  isDefault?: boolean;
+  // Tells which source registered the variable.
+  source?: SourceRef;
 }
 
 export interface SceneVariable<TState extends SceneVariableState = SceneVariableState> extends SceneObject<TState> {
