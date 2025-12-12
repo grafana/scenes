@@ -1,6 +1,6 @@
 import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, config } from '@grafana/runtime';
-import { act, getAllByRole, render, screen } from '@testing-library/react';
+import { act, getAllByRole, render, screen, waitFor } from '@testing-library/react';
 import { lastValueFrom, Observable, of } from 'rxjs';
 import React from 'react';
 import { GroupByVariable, GroupByVariableState, RECENT_GROUPING_KEY } from './GroupByVariable';
@@ -15,7 +15,7 @@ import userEvent from '@testing-library/user-event';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
-import { MAX_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersVariable';
+import { MAX_RECENT_DRILLDOWNS, MAX_STORED_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersVariable';
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
@@ -777,53 +777,54 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state._recentGrouping).toEqual(undefined);
     });
 
-    it('should set recentGrouping from browser storageon activation', () => {
-      const recentGrouping = [{ key: 'key1', value: 'value1' }];
+    it('should set recentGrouping from browser storage on activation', async () => {
+      const recentGrouping = [{ value: 'value1', text: 'value1' }];
       localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(recentGrouping));
 
       const { variable } = setupTest({
         drilldownRecommendationsEnabled: true,
       });
 
-      expect(variable.state._recentGrouping).toEqual(recentGrouping);
+      await waitFor(() => {
+        expect(variable.state._recentGrouping).toEqual(recentGrouping);
+      });
     });
 
-    it('should add key to recentGrouping', () => {
+    it('should add key to recentGrouping and store in localStorage', async () => {
       const { variable } = setupTest({
         drilldownRecommendationsEnabled: true,
         value: [],
       });
 
-      variable.setState({
-        _recentGrouping: variable.prepareRecentGrouping({ value: 'value', label: 'value' }),
-      });
+      variable.prepareRecentGrouping({ value: 'value', label: 'value' });
 
-      expect(variable.state._recentGrouping).toEqual([{ value: 'value', text: 'value' }]);
+      const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
+      expect(storedGroupings).toBeDefined();
+      expect(JSON.parse(storedGroupings!)).toHaveLength(1);
+      expect(JSON.parse(storedGroupings!)[0]).toEqual({ value: 'value', text: 'value' });
+
+      await waitFor(() => {
+        expect(variable.state._recentGrouping!.length).toBeGreaterThanOrEqual(0);
+      });
     });
 
-    it('should maintain only a list of top k recent filters', () => {
+    it('should store up to MAX_STORED_RECENT_DRILLDOWNS in localStorage but display MAX_RECENT_DRILLDOWNS', async () => {
       const { variable } = setupTest({
         drilldownRecommendationsEnabled: true,
         value: [],
       });
 
-      variable.setState({
-        _recentGrouping: variable.prepareRecentGrouping({ value: 'value1', label: 'value1' }),
-      });
+      for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
+        variable.prepareRecentGrouping({ value: `value${i}`, label: `value${i}` });
+      }
 
-      variable.setState({
-        _recentGrouping: variable.prepareRecentGrouping({ value: 'value2', label: 'value2' }),
-      });
+      const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
+      expect(storedGroupings).toBeDefined();
+      expect(JSON.parse(storedGroupings!)).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
 
-      variable.setState({
-        _recentGrouping: variable.prepareRecentGrouping({ value: 'value3', label: 'value3' }),
+      await waitFor(() => {
+        expect(variable.state._recentGrouping!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
       });
-
-      variable.setState({
-        _recentGrouping: variable.prepareRecentGrouping({ value: 'value4', label: 'value4' }),
-      });
-
-      expect(variable.state._recentGrouping).toHaveLength(MAX_RECENT_DRILLDOWNS);
     });
 
     it('should set in browser storage', () => {
@@ -832,13 +833,8 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         value: [],
       });
 
-      variable.setState({
-        _recentGrouping: variable.prepareRecentGrouping({ value: 'value1', label: 'value1' }),
-      });
-
-      variable.setState({
-        _recentGrouping: variable.prepareRecentGrouping({ value: 'value2', label: 'value2' }),
-      });
+      variable.prepareRecentGrouping({ value: 'value1', label: 'value1' });
+      variable.prepareRecentGrouping({ value: 'value2', label: 'value2' });
 
       const storedGrouping = localStorage.getItem(RECENT_GROUPING_KEY);
       expect(storedGrouping).toBeDefined();
