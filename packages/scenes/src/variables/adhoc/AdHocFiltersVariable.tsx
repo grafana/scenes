@@ -8,6 +8,7 @@ import {
   DrilldownsApplicability,
   Scope,
   SelectableValue,
+  store,
 } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
@@ -29,6 +30,7 @@ import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler, toArray } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
+import { getEnrichedDataRequest } from '../../querying/getEnrichedDataRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { debounce, isEqual } from 'lodash';
@@ -62,6 +64,11 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
 }
 
 const ORIGIN_FILTERS_KEY: keyof AdHocFiltersVariableState = 'originFilters';
+
+export const MAX_RECENT_DRILLDOWNS = 3;
+export const MAX_STORED_RECENT_DRILLDOWNS = 10;
+
+export const RECENT_FILTERS_KEY = 'grafana.filters.recent';
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
@@ -155,6 +162,21 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * state for checking whether drilldown applicability is enabled
    */
   applicabilityEnabled?: boolean;
+
+  /**
+   * contains stored recent filter
+   */
+  _recentFilters?: AdHocFilterWithLabels[];
+
+  /**
+   * contains recommended filters
+   */
+  _recommendedFilters?: AdHocFilterWithLabels[];
+
+  /**
+   * enables drilldown recommendations
+   */
+  drilldownRecommendationsEnabled?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -250,6 +272,7 @@ export class AdHocFiltersVariable
   // to its original value if edited at some point
   private _originalValues: Map<string, OriginalValue> = new Map();
   private _prevScopes: Scope[] = [];
+  private _store = store;
 
   /** Needed for scopes dependency */
   protected _variableDependency = new VariableDependencyConfig(this, {
@@ -291,6 +314,20 @@ export class AdHocFiltersVariable
   private _activationHandler = () => {
     this._debouncedVerifyApplicability();
 
+    if (this.state.drilldownRecommendationsEnabled) {
+      const json = this._store.get(RECENT_FILTERS_KEY);
+      const storedFilters = json ? JSON.parse(json) : [];
+
+      // Verify applicability of stored recent filters
+      if (storedFilters.length > 0) {
+        this._verifyRecentFiltersApplicability(storedFilters);
+      } else {
+        this.setState({ _recentFilters: [] });
+      }
+
+      this._fetchRecommendedDrilldowns();
+    }
+
     return () => {
       this.state.originFilters?.forEach((filter) => {
         if (filter.restorable) {
@@ -301,6 +338,41 @@ export class AdHocFiltersVariable
       this.setState({ applicabilityEnabled: false });
     };
   };
+
+  private async _fetchRecommendedDrilldowns() {
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+
+    // @ts-expect-error (temporary till we update grafana/data)
+    if (!ds || !ds.getRecommendedDrilldowns) {
+      return;
+    }
+
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+    const scopes = sceneGraph.getScopes(this);
+    const filters = [...(this.state.originFilters ?? []), ...this.state.filters];
+
+    // Get dashboardUid from enriched data request
+    const enrichedRequest = getEnrichedDataRequest(this);
+    const dashboardUid = enrichedRequest?.dashboardUID;
+
+    try {
+      // @ts-expect-error (temporary till we update grafana/data)
+      const recommendedDrilldowns = await ds.getRecommendedDrilldowns({
+        timeRange,
+        dashboardUid,
+        queries: queries ?? [],
+        filters,
+        scopes,
+      });
+
+      if (recommendedDrilldowns?.filters) {
+        this.setRecommendedFilters(recommendedDrilldowns.filters);
+      }
+    } catch (error) {
+      console.error('Failed to fetch recommended drilldowns:', error);
+    }
+  }
 
   private _updateScopesFilters() {
     const scopes = sceneGraph.getScopes(this);
@@ -490,7 +562,11 @@ export class AdHocFiltersVariable
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
-        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
+        this.setState({
+          filters: [...filters, { ..._wip, ...update }],
+          _wip: undefined,
+          _recentFilters: this.prepareRecentFilters({ ..._wip, ...update }),
+        });
         this._debouncedVerifyApplicability();
       } else {
         this.setState({ _wip: { ...filter, ...update } });
@@ -502,7 +578,47 @@ export class AdHocFiltersVariable
       return f === filter ? { ...f, ...update } : f;
     });
 
-    this.setState({ filters: updatedFilters });
+    this.setState({ filters: updatedFilters, _recentFilters: this.prepareRecentFilters({ ...filter, ...update }) });
+  }
+
+  private prepareRecentFilters(update: AdHocFilterWithLabels) {
+    if (!this.state.drilldownRecommendationsEnabled) {
+      return [];
+    }
+
+    const storedFilters = this._store.get(RECENT_FILTERS_KEY);
+    const allRecentFilters = storedFilters ? JSON.parse(storedFilters) : [];
+
+    const updatedStoredFilters = [...allRecentFilters, update].slice(-MAX_STORED_RECENT_DRILLDOWNS);
+    this._store.set(RECENT_FILTERS_KEY, JSON.stringify(updatedStoredFilters));
+
+    this._verifyRecentFiltersApplicability(updatedStoredFilters);
+
+    return this.state._recentFilters ?? [];
+  }
+
+  private async _verifyRecentFiltersApplicability(storedFilters: AdHocFilterWithLabels[]) {
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+    const response = await this.getFiltersApplicabilityForQueries(storedFilters, queries ?? []);
+
+    if (!response) {
+      this.setState({ _recentFilters: storedFilters.slice(-MAX_RECENT_DRILLDOWNS) });
+      return;
+    }
+
+    const applicabilityMap = new Map<string, boolean>();
+    response.forEach((item: DrilldownsApplicability) => {
+      applicabilityMap.set(item.key, item.applicable !== false);
+    });
+
+    const applicableFilters = storedFilters
+      .filter((f) => {
+        const isApplicable = applicabilityMap.get(f.key);
+        return isApplicable === undefined || isApplicable === true;
+      })
+      .slice(-MAX_RECENT_DRILLDOWNS);
+
+    this.setState({ _recentFilters: applicableFilters });
   }
 
   public updateToMatchAll(filter: AdHocFilterWithLabels) {
@@ -599,6 +715,12 @@ export class AdHocFiltersVariable
         }, []),
       });
     }
+  }
+
+  public setRecommendedFilters(recommendedFilters: AdHocFilterWithLabels[]) {
+    this.setState({
+      _recommendedFilters: recommendedFilters,
+    });
   }
 
   public async getFiltersApplicabilityForQueries(
@@ -757,7 +879,7 @@ export class AdHocFiltersVariable
           ...scope,
           spec: {
             ...scope.spec,
-            filters: scope.spec.filters.filter((f) => f.key !== filter.key),
+            filters: scope.spec.filters?.filter((f) => f.key !== filter.key),
           },
         };
       });

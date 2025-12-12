@@ -1,7 +1,14 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariable, SceneVariableValueChangedEvent } from '../types';
-import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
+import {
+  AdHocFiltersVariable,
+  AdHocFiltersVariableState,
+  AdHocFilterWithLabels,
+  MAX_RECENT_DRILLDOWNS,
+  MAX_STORED_RECENT_DRILLDOWNS,
+  RECENT_FILTERS_KEY,
+} from './AdHocFiltersVariable';
 import {
   DataSourceSrv,
   config,
@@ -2503,6 +2510,108 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
 
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
+    });
+  });
+
+  describe('recent filters', () => {
+    beforeEach(() => {
+      localStorage.removeItem(RECENT_FILTERS_KEY);
+    });
+
+    it('should not set recentFilters if recommendations are disabled', () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: false,
+      });
+
+      expect(filtersVar.state._recentFilters).toEqual(undefined);
+    });
+
+    it('should set recentFilters from browser storage on activation', async () => {
+      const recentFilters = [{ key: 'pod', operator: '=|', value: 'test1, test2', values: ['test1', 'test2'] }];
+
+      localStorage.setItem(RECENT_FILTERS_KEY, JSON.stringify(recentFilters));
+
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+      });
+
+      await waitFor(() => {
+        expect(filtersVar.state._recentFilters).toEqual(recentFilters);
+      });
+    });
+
+    it('should add filter to recentFilters and store in localStorage', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [],
+      });
+
+      const filter = {
+        key: 'cluster',
+        value: '1',
+        operator: '=',
+      };
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue' });
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      expect(storedFilters).toBeDefined();
+      expect(JSON.parse(storedFilters!)).toHaveLength(1);
+      expect(JSON.parse(storedFilters!)[0]).toEqual({ key: 'cluster', operator: '=', value: 'newValue' });
+
+      await waitFor(() => {
+        expect(filtersVar.state._recentFilters).toHaveLength(1);
+      });
+    });
+
+    it('should store up to MAX_STORED_RECENT_DRILLDOWNS in localStorage but display MAX_RECENT_DRILLDOWNS', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [],
+      });
+
+      const filter = {
+        key: 'cluster',
+        value: '1',
+        operator: '=',
+      };
+
+      for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
+        filtersVar.setState({ _wip: { ...filter, key: `key${i}` } });
+        filtersVar._updateFilter({ ...filter, key: `key${i}` }, { value: `newValue${i}` });
+      }
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      expect(storedFilters).toBeDefined();
+      expect(JSON.parse(storedFilters!)).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
+
+      await waitFor(() => {
+        expect(filtersVar.state._recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+      });
+    });
+
+    it('should set in browser storage', () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [],
+      });
+
+      const filter = {
+        key: 'cluster',
+        value: '1',
+        operator: '=',
+      };
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue' });
+
+      filtersVar.setState({ _wip: { ...filter, key: 'cluster2' } });
+      filtersVar._updateFilter({ ...filter, key: 'cluster2' }, { value: 'newValue2' });
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      expect(storedFilters).toBeDefined();
+      expect(JSON.parse(storedFilters!)).toHaveLength(2);
     });
   });
 

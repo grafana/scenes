@@ -88,7 +88,7 @@ export { AdHocFiltersVariableController } from './variables/adhoc/controller/AdH
 export { AdHocFiltersComboboxRenderer } from './variables/adhoc/AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
-export { escapeUrlPipeDelimiters } from './variables/utils';
+export { escapeUrlPipeDelimiters, getQueriesForVariables } from './variables/utils';
 
 export { type UrlSyncManagerLike, UrlSyncManager, NewSceneObjectAddedEvent } from './services/UrlSyncManager';
 export { useUrlSync } from './services/useUrlSync';
