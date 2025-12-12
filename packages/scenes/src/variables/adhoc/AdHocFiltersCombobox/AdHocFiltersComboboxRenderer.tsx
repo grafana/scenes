@@ -102,7 +102,13 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         </span>
       )}
 
-      {!readOnly ? <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} /> : null}
+      {!readOnly ? (
+        <AdHocFiltersAlwaysWipCombobox
+          controller={controller}
+          ref={focusOnWipInputRef}
+          onInputClick={hiddenCount > 0 ? () => setCollapsed(false) : undefined}
+        />
+      ) : null}
 
       {showCollapseButton && (
         <Button
