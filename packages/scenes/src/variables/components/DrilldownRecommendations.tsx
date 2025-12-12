@@ -67,7 +67,7 @@ export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldow
           ) : (
             <div className={styles.emptyMessage}>
               <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recommended-empty">
-                No reccomended values
+                No recommended values
               </Trans>
             </div>
           )}
