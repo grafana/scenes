@@ -495,6 +495,34 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
     });
 
+    it('should clear input value when selecting an option from the dropdown', async () => {
+      setupTest({
+        defaultOptions: [
+          { text: 'option1', value: 'option1' },
+          { text: 'option2', value: 'option2' },
+          { text: 'another', value: 'another' },
+        ],
+      });
+
+      const groupBySelect = screen.getByTestId('GroupBySelect-testGroupBy');
+      const input = groupBySelect.querySelector('input') as HTMLInputElement;
+      expect(input).toBeInTheDocument();
+
+      // Open the dropdown and type a search term
+      await userEvent.click(input);
+      await userEvent.type(input, 'option');
+
+      // Verify the input has the search term
+      expect(input.value).toBe('option');
+
+      // Select an option by clicking the checkbox
+      const options = screen.getAllByRole('option');
+      await userEvent.click(options[0]);
+
+      // Verify the input value is cleared after selection
+      expect(input.value).toBe('');
+    });
+
     it('input should show restore icon and be clickable', async () => {
       const { variable } = setupTest(
         {

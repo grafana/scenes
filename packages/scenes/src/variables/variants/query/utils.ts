@@ -1,10 +1,27 @@
 import { isNumber, sortBy, toLower, uniqBy } from 'lodash';
 
-import { stringToJsRegex, VariableSort } from '@grafana/data';
+import {
+  stringToJsRegex,
+  VariableSort,
+  // @ts-expect-error TODO: remove suppression after updating grafana/data
+  VariableRegexApplyTo,
+} from '@grafana/data';
 
 import { VariableValueOption } from '../../types';
 
-export function metricNamesToVariableValues(variableRegEx: string, sort: VariableSort, metricNames: any[]) {
+interface MetricNamesToVariableValuesArgs {
+  variableRegEx: string;
+  variableRegexApplyTo: VariableRegexApplyTo;
+  sort: VariableSort;
+  metricNames: any[];
+}
+
+export function metricNamesToVariableValues({
+  variableRegEx,
+  variableRegexApplyTo,
+  sort,
+  metricNames,
+}: MetricNamesToVariableValuesArgs) {
   let regex;
   let options: VariableValueOption[] = [];
 
@@ -26,7 +43,8 @@ export function metricNamesToVariableValues(variableRegEx: string, sort: Variabl
     }
 
     if (regex) {
-      const matches = getAllMatches(value, regex);
+      const applyTo = variableRegexApplyTo === 'text' ? text : value;
+      const matches = getAllMatches(applyTo, regex);
       if (!matches.length) {
         continue;
       }
@@ -104,11 +122,11 @@ export const sortVariableValues = (options: VariableValueOption[], sortOrder: Va
       });
       options = options.reverse();
       break;
-    case VariableSort.naturalAsc || 7:
+    case VariableSort.naturalAsc:
       // Sort by natural sort
       options = sortByNaturalSort(options);
       break;
-    case VariableSort.naturalDesc || 8:
+    case VariableSort.naturalDesc:
       options = sortByNaturalSort(options);
       options = options.reverse();
       break;

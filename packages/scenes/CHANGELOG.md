@@ -1,3 +1,39 @@
+# v6.49.0 (Fri Dec 05 2025)
+
+#### 🚀 Enhancement
+
+- Introduce regexApplyTo variable field [#1306](https://github.com/grafana/scenes/pull/1306) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v6.48.1 (Thu Dec 04 2025)
+
+### Release Notes
+
+#### Dashboard: Round down invalid refresh interval ([#1310](https://github.com/grafana/scenes/pull/1310))
+
+When a dashboard URL carried an invalid refresh value, the system previously defaulted the refresh interval to the minimum allowed value. This behaviour has now changed. Instead of jumping to the minimum interval, the refresh value is now rounded down to the nearest valid refresh interval.
+
+---
+
+#### 🐛 Bug Fix
+
+- Dashboard: Round down invalid refresh interval [#1310](https://github.com/grafana/scenes/pull/1310) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- fix: remove hardcoded values in sortVariableValues [#1307](https://github.com/grafana/scenes/pull/1307) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- I18n: Download translations from Crowdin [#1298](https://github.com/grafana/scenes/pull/1298) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 3
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v6.48.0 (Mon Nov 24 2025)
 
 #### 🚀 Enhancement

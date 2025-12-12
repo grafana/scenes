@@ -26,6 +26,7 @@ import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } f
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
 import { InputActionMeta, MultiSelect, Select, useStyles2 } from '@grafana/ui';
+import { components, GroupBase, MenuProps } from 'react-select';
 import { isArray, isEqual } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
@@ -500,6 +501,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       isLoading={isFetchingOptions}
       components={{
         Option: OptionWithCheckbox,
+        Menu: WideMenu,
         ...(hasDefaultValue
           ? {
               IndicatorsContainer: () => <DefaultGroupByCustomIndicatorContainer model={model} />,
@@ -539,6 +541,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         }
 
         setUncommittedValue(newValue);
+        setInputValue('');
       }}
       onOpenMenu={async () => {
         const profiler = getInteractionTracker(model);
@@ -584,6 +587,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       hideSelectedOptions={false}
       noValueOnClear={true}
       isLoading={isFetchingOptions}
+      components={{ Menu: WideMenu }}
       onInputChange={onInputChange}
       onChange={(newValue, action) => {
         if (action.action === 'clear') {
@@ -664,6 +668,17 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 }
 
 const filterNoOp = () => true;
+
+// custom minWidth menu component to fit custom value message
+function WideMenu<Option, IsMulti extends boolean, Group extends GroupBase<Option>>(
+  props: MenuProps<Option, IsMulti, Group>
+) {
+  return (
+    <components.Menu {...props}>
+      <div style={{ minWidth: '220px' }}>{props.children}</div>
+    </components.Menu>
+  );
+}
 
 function toSelectableValue(input: VariableValueOption): SelectableValue<VariableValueSingle> {
   const { label, value, group } = input;
