@@ -565,8 +565,8 @@ export class AdHocFiltersVariable
         this.setState({
           filters: [...filters, { ..._wip, ...update }],
           _wip: undefined,
-          _recentFilters: this.prepareRecentFilters({ ..._wip, ...update }),
         });
+        this.storeRecentFilters({ ..._wip, ...update });
         this._debouncedVerifyApplicability();
       } else {
         this.setState({ _wip: { ...filter, ...update } });
@@ -578,12 +578,13 @@ export class AdHocFiltersVariable
       return f === filter ? { ...f, ...update } : f;
     });
 
-    this.setState({ filters: updatedFilters, _recentFilters: this.prepareRecentFilters({ ...filter, ...update }) });
+    this.setState({ filters: updatedFilters });
+    this.storeRecentFilters({ ...filter, ...update });
   }
 
-  private prepareRecentFilters(update: AdHocFilterWithLabels) {
+  private storeRecentFilters(update: AdHocFilterWithLabels) {
     if (!this.state.drilldownRecommendationsEnabled) {
-      return [];
+      return;
     }
 
     const storedFilters = this._store.get(RECENT_FILTERS_KEY);
@@ -593,8 +594,6 @@ export class AdHocFiltersVariable
     this._store.set(RECENT_FILTERS_KEY, JSON.stringify(updatedStoredFilters));
 
     this._verifyRecentFiltersApplicability(updatedStoredFilters);
-
-    return this.state._recentFilters ?? [];
   }
 
   private async _verifyRecentFiltersApplicability(storedFilters: AdHocFilterWithLabels[]) {

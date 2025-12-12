@@ -796,7 +796,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         value: [],
       });
 
-      variable.prepareRecentGrouping({ value: 'value', label: 'value' });
+      variable.storeRecentGrouping({ value: 'value', label: 'value' });
 
       const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
       expect(storedGroupings).toBeDefined();
@@ -815,7 +815,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       });
 
       for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
-        variable.prepareRecentGrouping({ value: `value${i}`, label: `value${i}` });
+        variable.storeRecentGrouping({ value: `value${i}`, label: `value${i}` });
       }
 
       const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
@@ -833,8 +833,8 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         value: [],
       });
 
-      variable.prepareRecentGrouping({ value: 'value1', label: 'value1' });
-      variable.prepareRecentGrouping({ value: 'value2', label: 'value2' });
+      variable.storeRecentGrouping({ value: 'value1', label: 'value1' });
+      variable.storeRecentGrouping({ value: 'value2', label: 'value2' });
 
       const storedGrouping = localStorage.getItem(RECENT_GROUPING_KEY);
       expect(storedGrouping).toBeDefined();

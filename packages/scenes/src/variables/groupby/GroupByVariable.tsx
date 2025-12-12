@@ -448,9 +448,9 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return keys;
   };
 
-  public prepareRecentGrouping(value: SelectableValue<VariableValueSingle>) {
+  public storeRecentGrouping(value: SelectableValue<VariableValueSingle>) {
     if (!this.state.drilldownRecommendationsEnabled) {
-      return [];
+      return;
     }
 
     const storedGroupings = this._store.get(RECENT_GROUPING_KEY);
@@ -464,8 +464,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     this._store.set(RECENT_GROUPING_KEY, JSON.stringify(updatedStoredGroupings));
 
     this._verifyRecentGroupingsApplicability(updatedStoredGroupings);
-
-    return this.state._recentGrouping ?? [];
   }
 
   public setRecommendedGrouping(recommendedGrouping: string[]) {
@@ -614,9 +612,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         }
 
         if (action.action === 'select-option' && action.option) {
-          model.setState({
-            _recentGrouping: model.prepareRecentGrouping(action.option),
-          });
+          model.storeRecentGrouping(action.option);
         }
 
         setUncommittedValue(newValue);
@@ -679,9 +675,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         if (newValue?.value) {
           setUncommittedValue([newValue]);
           model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : undefined);
-          model.setState({
-            _recentGrouping: model.prepareRecentGrouping(newValue),
-          });
+          model.storeRecentGrouping(newValue);
         }
       }}
       onOpenMenu={async () => {
