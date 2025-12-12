@@ -25,9 +25,13 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   const { width: windowWidth } = useWindowSize();
 
-  // Check if content has wrapped to multiple lines
+  // Check if content has wrapped to multiple lines (only when collapsible)
   const checkMultiLine = useCallback(() => {
-    if (wrapperRef.current && collapsible) {
+    if (!collapsible) {
+      setIsMultiLine(false);
+      return;
+    }
+    if (wrapperRef.current) {
       // Single line height is approximately minHeight (32px = 4 spacing units)
       const singleLineThreshold = 40; // slightly more than minHeight to account for padding
       setIsMultiLine(wrapperRef.current.scrollHeight > singleLineThreshold);
@@ -40,10 +44,16 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   const handleCollapseToggle = (event: React.MouseEvent) => {
     event.stopPropagation();
-    setCollapsed(true);
+    if (collapsible) {
+      setCollapsed(true);
+    }
   };
 
   const handleExpand = () => {
+    if (!collapsible) {
+      focusOnWipInputRef.current?.();
+      return;
+    }
     if (collapsed) {
       setCollapsed(false);
     } else {
@@ -57,17 +67,18 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   const allFilters = [...visibleOriginFilters, ...visibleFilters];
   const totalFiltersCount = allFilters.length;
 
-  // When collapsed, only show first 2 pills
+  // When collapsed and collapsible, only show first 2 pills
   const maxVisibleWhenCollapsed = 2;
-  const filtersToRender = collapsed ? allFilters.slice(0, maxVisibleWhenCollapsed) : allFilters;
-  const hiddenCount = collapsed ? Math.max(0, totalFiltersCount - maxVisibleWhenCollapsed) : 0;
+  const shouldCollapse = collapsible && collapsed;
+  const filtersToRender = shouldCollapse ? allFilters.slice(0, maxVisibleWhenCollapsed) : allFilters;
+  const hiddenCount = shouldCollapse ? Math.max(0, totalFiltersCount - maxVisibleWhenCollapsed) : 0;
 
-  // Reset collapsed state when there are no filters
+  // Reset collapsed state when there are no filters (only when collapsible)
   useEffect(() => {
-    if (totalFiltersCount === 0 && collapsed) {
+    if (collapsible && totalFiltersCount === 0 && collapsed) {
       setCollapsed(false);
     }
-  }, [totalFiltersCount, collapsed]);
+  }, [collapsible, totalFiltersCount, collapsed]);
 
   // Only show collapse button when expanded and content wraps to multiple lines
   const showCollapseButton = collapsible && isMultiLine && !collapsed;
@@ -77,8 +88,8 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       ref={wrapperRef}
       className={cx(styles.comboboxWrapper, {
         [styles.comboboxFocusOutline]: !readOnly,
-        [styles.collapsed]: collapsed && hiddenCount > 0,
-        [styles.clickableCollapsed]: collapsed && hiddenCount > 0,
+        [styles.collapsed]: collapsible && collapsed && hiddenCount > 0,
+        [styles.clickableCollapsed]: collapsible && collapsed && hiddenCount > 0,
       })}
       onClick={handleExpand}
     >
@@ -106,7 +117,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         <AdHocFiltersAlwaysWipCombobox
           controller={controller}
           ref={focusOnWipInputRef}
-          onInputClick={hiddenCount > 0 ? () => setCollapsed(false) : undefined}
+          onInputClick={collapsible && hiddenCount > 0 ? () => setCollapsed(false) : undefined}
         />
       ) : null}
 
