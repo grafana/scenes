@@ -182,6 +182,12 @@ export const generatePlaceholder = (
     return filter.valueLabels?.[0] || '';
   }
 
+  // When in WIP mode and selecting operator (key already selected),
+  // don't show the placeholder
+  if (isAlwaysWip && filterInputType === 'operator') {
+    return '';
+  }
+
   return filter[filterInputType] && !isAlwaysWip
     ? `${filter[filterInputType]}`
     : inputPlaceholder || INPUT_PLACEHOLDER_DEFAULT;

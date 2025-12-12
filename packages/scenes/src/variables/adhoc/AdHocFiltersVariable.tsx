@@ -155,6 +155,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * state for checking whether drilldown applicability is enabled
    */
   applicabilityEnabled?: boolean;
+  /**
+   * When true, enables a collapse button that appears when filters wrap to multiple lines.
+   * Allows users to collapse the filter UI to save vertical space.
+   */
+  collapsible?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;

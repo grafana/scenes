@@ -55,6 +55,7 @@ interface AdHocComboboxProps {
   handleChangeViewMode?: (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => void;
   focusOnWipInputRef?: () => void;
   populateInputOnEdit?: boolean;
+  onInputClick?: () => void;
 }
 
 export type AdHocInputType = 'key' | 'operator' | 'value';
@@ -67,6 +68,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     handleChangeViewMode,
     focusOnWipInputRef,
     populateInputOnEdit,
+    onInputClick,
   }: AdHocComboboxProps,
   parentRef
 ) {
@@ -662,6 +664,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         className={cx(styles.inputStyle, { [styles.loadingInputPadding]: !optionsLoading })}
         onClick={(event) => {
           event.stopPropagation();
+          onInputClick?.();
           setOpen(true);
         }}
         onFocus={() => {
