@@ -143,7 +143,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
     paddingInline: theme.spacing(1),
     paddingBlock: theme.spacing(0.5),
     flexGrow: 1,
-    position: 'relative',
   }),
   comboboxFocusOutline: css({
     '&:focus-within': {
