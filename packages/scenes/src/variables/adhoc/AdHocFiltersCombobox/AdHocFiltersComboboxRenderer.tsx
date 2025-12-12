@@ -96,7 +96,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
       {hiddenCount > 0 && (
         <span className={styles.moreIndicator}>
-          {t('grafana-scenes.adhoc-filters.more-filters', '+{{count}} more', { count: hiddenCount })}
+          {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.more-filters', '+{{count}} more', {
+            count: hiddenCount,
+          })}
         </span>
       )}
 
@@ -107,10 +109,13 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           className={styles.collapseButton}
           fill="text"
           onClick={handleCollapseToggle}
-          aria-label={t('grafana-scenes.adhoc-filters.collapse-filters', 'Collapse filters')}
+          aria-label={t(
+            'grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse-filters',
+            'Collapse filters'
+          )}
           aria-expanded={!collapsed}
         >
-          Collapse
+          {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse', 'Collapse')}
           <Icon name="angle-up" size="md" />
         </Button>
       )}
