@@ -1,7 +1,9 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Icon, useStyles2 } from '@grafana/ui';
-import React, { memo, useRef } from 'react';
+import { Button, Icon, useStyles2 } from '@grafana/ui';
+import { t } from '@grafana/i18n';
+import React, { memo, useRef, useState, useEffect, useCallback } from 'react';
+import { useWindowSize } from 'react-use';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
@@ -11,46 +13,107 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly } = controller.useState();
+  const { originFilters, filters, readOnly, collapsible } = controller.useState();
   const styles = useStyles2(getStyles);
+  const [collapsed, setCollapsed] = useState(true);
+  const [isMultiLine, setIsMultiLine] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   // ref that focuses on the always wip filter input
   // defined in the combobox component via useImperativeHandle
   const focusOnWipInputRef = useRef<() => void>();
 
+  const { width: windowWidth } = useWindowSize();
+
+  // Check if content has wrapped to multiple lines
+  const checkMultiLine = useCallback(() => {
+    if (wrapperRef.current && collapsible) {
+      // Single line height is approximately minHeight (32px = 4 spacing units)
+      const singleLineThreshold = 40; // slightly more than minHeight to account for padding
+      setIsMultiLine(wrapperRef.current.scrollHeight > singleLineThreshold);
+    }
+  }, [collapsible]);
+
+  useEffect(() => {
+    checkMultiLine();
+  }, [checkMultiLine, filters, originFilters, windowWidth, collapsed]);
+
+  const handleCollapseToggle = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    setCollapsed(true);
+  };
+
+  const handleExpand = () => {
+    if (collapsed) {
+      setCollapsed(false);
+    } else {
+      focusOnWipInputRef.current?.();
+    }
+  };
+
+  // Combine all visible filters into one array for easier slicing
+  const visibleOriginFilters = originFilters?.filter((f) => f.origin) ?? [];
+  const visibleFilters = filters.filter((f) => !f.hidden);
+  const allFilters = [...visibleOriginFilters, ...visibleFilters];
+  const totalFiltersCount = allFilters.length;
+
+  // When collapsed, only show first 2 pills
+  const maxVisibleWhenCollapsed = 2;
+  const filtersToRender = collapsed ? allFilters.slice(0, maxVisibleWhenCollapsed) : allFilters;
+  const hiddenCount = collapsed ? Math.max(0, totalFiltersCount - maxVisibleWhenCollapsed) : 0;
+
+  // Reset collapsed state when there are no filters
+  useEffect(() => {
+    if (totalFiltersCount === 0 && collapsed) {
+      setCollapsed(false);
+    }
+  }, [totalFiltersCount, collapsed]);
+
+  // Only show collapse button when expanded and content wraps to multiple lines
+  const showCollapseButton = collapsible && isMultiLine && !collapsed;
+
   return (
     <div
-      className={cx(styles.comboboxWrapper, { [styles.comboboxFocusOutline]: !readOnly })}
-      onClick={() => {
-        focusOnWipInputRef.current?.();
-      }}
+      ref={wrapperRef}
+      className={cx(styles.comboboxWrapper, {
+        [styles.comboboxFocusOutline]: !readOnly,
+        [styles.collapsed]: collapsed && hiddenCount > 0,
+        [styles.clickableCollapsed]: collapsed && hiddenCount > 0,
+      })}
+      onClick={handleExpand}
     >
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
-      {originFilters?.map((filter, index) =>
-        filter.origin ? (
-          <AdHocFilterPill
-            key={`${index}-${filter.key}`}
-            filter={filter}
-            controller={controller}
-            focusOnWipInputRef={focusOnWipInputRef.current}
-          />
-        ) : null
+      {filtersToRender.map((filter, index) => (
+        <AdHocFilterPill
+          key={`${filter.origin ? 'origin-' : ''}${index}-${filter.key}`}
+          filter={filter}
+          controller={controller}
+          readOnly={readOnly || filter.readOnly}
+          focusOnWipInputRef={focusOnWipInputRef.current}
+        />
+      ))}
+
+      {hiddenCount > 0 && (
+        <span className={styles.moreIndicator}>
+          {t('grafana-scenes.adhoc-filters.more-filters', '+{{count}} more', { count: hiddenCount })}
+        </span>
       )}
 
-      {filters
-        .filter((filter) => !filter.hidden)
-        .map((filter, index) => (
-          <AdHocFilterPill
-            key={`${index}-${filter.key}`}
-            filter={filter}
-            controller={controller}
-            readOnly={readOnly || filter.readOnly}
-            focusOnWipInputRef={focusOnWipInputRef.current}
-          />
-        ))}
-
       {!readOnly ? <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} /> : null}
+
+      {showCollapseButton && (
+        <Button
+          className={styles.collapseButton}
+          fill="text"
+          onClick={handleCollapseToggle}
+          aria-label={t('grafana-scenes.adhoc-filters.collapse-filters', 'Collapse filters')}
+          aria-expanded={!collapsed}
+        >
+          Collapse
+          <Icon name="angle-up" size="md" />
+        </Button>
+      )}
     </div>
   );
 });
@@ -69,6 +132,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     paddingInline: theme.spacing(1),
     paddingBlock: theme.spacing(0.5),
     flexGrow: 1,
+    position: 'relative',
   }),
   comboboxFocusOutline: css({
     '&:focus-within': {
@@ -84,5 +148,33 @@ const getStyles = (theme: GrafanaTheme2) => ({
   filterIcon: css({
     color: theme.colors.text.secondary,
     alignSelf: 'center',
+  }),
+  collapsed: css({
+    flexWrap: 'nowrap',
+    overflow: 'hidden',
+  }),
+  clickableCollapsed: css({
+    cursor: 'pointer',
+    '&:hover': {
+      borderColor: theme.colors.border.medium,
+    },
+  }),
+  moreIndicator: css({
+    color: theme.colors.text.secondary,
+    whiteSpace: 'nowrap',
+    ...theme.typography.bodySmall,
+    fontStyle: 'italic',
+    marginLeft: theme.spacing(0.5),
+  }),
+  collapseButton: css({
+    marginLeft: 'auto',
+    color: theme.colors.text.secondary,
+    padding: 0,
+    fontSize: theme.typography.bodySmall.fontSize,
+    border: 'none',
+    '&:hover': {
+      background: 'transparent',
+      color: theme.colors.text.primary,
+    },
   }),
 });

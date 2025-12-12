@@ -13,6 +13,10 @@ export interface AdHocFiltersControllerState {
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
   inputPlaceholder?: string;
+  /**
+   * When true, enables a collapse button that appears when filters wrap to multiple lines.
+   */
+  collapsible?: boolean;
 }
 
 /**

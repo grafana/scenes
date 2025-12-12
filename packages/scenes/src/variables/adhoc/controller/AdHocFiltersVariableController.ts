@@ -21,6 +21,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       supportsMultiValueOperators: state.supportsMultiValueOperators,
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
+      collapsible: state.collapsible,
     };
   }
 
