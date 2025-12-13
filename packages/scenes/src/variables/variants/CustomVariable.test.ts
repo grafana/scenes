@@ -299,7 +299,7 @@ label-3 : value-3,`,
       const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A, B] }) });
       scene.activate();
 
-      expect(B.transformCsvStringToOptions(B.state.query)).toEqual([
+      expect(B.transformListStringToOptions(B.state.query)).toEqual([
         { label: '1', value: '1' },
         { label: '2', value: '2' },
         { label: 'value1', value: 'value1' },
@@ -325,7 +325,7 @@ label-3 : value-3,`,
       const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A, B] }) });
       scene.activate();
 
-      expect(B.transformCsvStringToOptions(B.state.query, false)).toEqual([
+      expect(B.transformListStringToOptions(B.state.query, false)).toEqual([
         { label: '1', value: '1' },
         { label: '2', value: '2' },
         { label: '$A', value: '$A' },
@@ -402,6 +402,45 @@ label-3 : value-3,`,
       });
 
       expect(() => variable.validateAndUpdate()).toThrow('Query must be a JSON array of objects');
+    });
+  });
+
+  describe('CSV values format', () => {
+    describe('When empty query is provided', () => {
+      it('Should default to empty options', async () => {
+        const variable = new CustomVariable({
+          name: 'test',
+          options: [],
+          value: '',
+          text: '',
+          valuesFormat: 'csv',
+          query: '',
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.state.value).toEqual('');
+        expect(variable.state.text).toEqual('');
+        expect(variable.state.options).toEqual([]);
+      });
+    });
+
+    it('Should generate correctly the options for an array of objects', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        isMulti: false,
+        valuesFormat: 'csv',
+        query: `value,text,location
+test,Test,US
+prod,Prod,EU`,
+        value: 'prod',
+        text: 'Prod',
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.getValue()).toEqual('prod');
+      expect(variable.getValue('location')).toEqual('EU');
     });
   });
 });

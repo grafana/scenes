@@ -3,6 +3,7 @@ import { Observable, of } from 'rxjs';
 import { SceneComponentProps } from '../../core/types';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
+import { csvToJson } from '../utils';
 import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
@@ -10,9 +11,11 @@ import { sceneGraph } from '../../core/sceneGraph';
 import React from 'react';
 import { omit } from 'lodash';
 
+type ValuesFormat = 'list' | 'csv' | 'json';
+
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;
-  valuesFormat?: 'csv' | 'json';
+  valuesFormat?: ValuesFormat;
 }
 
 export class CustomVariable extends MultiValueVariable<CustomVariableState> {
@@ -24,7 +27,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
     super({
       type: 'custom',
       query: '',
-      valuesFormat: 'csv',
+      valuesFormat: 'list',
       value: '',
       text: '',
       options: [],
@@ -33,9 +36,22 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
     });
   }
 
+  public convertObjectToVariableValueOptions(parsedOptions: any) {
+    if (!Array.isArray(parsedOptions) || parsedOptions.some((o) => typeof o !== 'object' || o === null)) {
+      throw new Error('Query must be a JSON array of objects');
+    }
+    const textProp = 'text';
+    const valueProp = 'value';
+    return parsedOptions.map((o) => ({
+      label: String(o[textProp] || o[valueProp])?.trim(),
+      value: String(o[valueProp]).trim(),
+      properties: omit(o, [textProp, valueProp]),
+    }));
+  }
+
   // We expose this publicly as we also need it outside the variable
   // The interpolate flag is needed since we don't always want to get the interpolated options
-  public transformCsvStringToOptions(str: string, interpolate = true): VariableValueOption[] {
+  public transformListStringToOptions(str: string, interpolate = true): VariableValueOption[] {
     str = interpolate ? sceneGraph.interpolate(this, str) : str;
     const match = str.match(/(?:\\,|[^,])+/g) ?? [];
 
@@ -55,28 +71,25 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
     if (!json) {
       return [];
     }
-
     const parsedOptions = JSON.parse(json);
+    return this.convertObjectToVariableValueOptions(parsedOptions);
+  }
 
-    if (!Array.isArray(parsedOptions) || parsedOptions.some((o) => typeof o !== 'object' || o === null)) {
-      throw new Error('Query must be a JSON array of objects');
+  public transformCSVToOptions(csvString: string): VariableValueOption[] {
+    if (!csvString) {
+      return [];
     }
-
-    const textProp = 'text';
-    const valueProp = 'value';
-
-    return parsedOptions.map((o) => ({
-      label: String(o[textProp] || o[valueProp])?.trim(),
-      value: String(o[valueProp]).trim(),
-      properties: omit(o, [textProp, valueProp]),
-    }));
+    const parsedOptions = csvToJson(csvString);
+    return this.convertObjectToVariableValueOptions(parsedOptions);
   }
 
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
     const options =
       this.state.valuesFormat === 'json'
         ? this.transformJsonToOptions(this.state.query)
-        : this.transformCsvStringToOptions(this.state.query);
+        : this.state.valuesFormat === 'csv'
+        ? this.transformCSVToOptions(this.state.query)
+        : this.transformListStringToOptions(this.state.query);
 
     if (!options.length) {
       this.skipNextValidation = true;

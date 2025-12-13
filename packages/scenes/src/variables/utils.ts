@@ -46,6 +46,24 @@ export function safeStringifyValue(value: unknown) {
   return '';
 }
 
+// converts simple csv string into array of objects
+// TODO: if require replace this with a standard csv parsing library
+// TODO: doesn't handle quoted fields with comma, new line, escaped quotes
+// TODO: doesn't convert type handling. every value is considered as string
+// TODO: doesn't handle any validations such as incorrect fields length, etc
+export function csvToJson(csv: string): Array<Record<string, string>> {
+  const lines = csv.trim().split('\n');
+  const headers = lines[0].split(',').map((h) => h.trim());
+  return lines.slice(1).map((line) => {
+    const values = line.split(',').map((v) => v.trim());
+    const obj: Record<string, string> = {};
+    headers.forEach((header, index) => {
+      obj[header] = values[index] ?? '';
+    });
+    return obj;
+  });
+}
+
 export function renderPrometheusLabelFilters(filters: AdHocVariableFilter[]) {
   return filters.map((filter) => renderFilter(filter)).join(',');
 }
