@@ -437,6 +437,15 @@ export class AdHocFiltersVariable
     this._debouncedVerifyApplicability();
   }
 
+  private async verifyApplicabilityAndStoreRecentFilter(update: AdHocFilterWithLabels) {
+    await this._verifyApplicability();
+    if (!this.state.drilldownRecommendationsEnabled) {
+      return;
+    }
+
+    this.storeRecentFilter(update);
+  }
+
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
 
@@ -566,8 +575,7 @@ export class AdHocFiltersVariable
           filters: [...filters, { ..._wip, ...update }],
           _wip: undefined,
         });
-        this.storeRecentFilters({ ..._wip, ...update });
-        this._debouncedVerifyApplicability();
+        this.verifyApplicabilityAndStoreRecentFilter({ ..._wip, ...update });
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -579,10 +587,10 @@ export class AdHocFiltersVariable
     });
 
     this.setState({ filters: updatedFilters });
-    this.storeRecentFilters({ ...filter, ...update });
+    this.storeRecentFilter({ ...filter, ...update });
   }
 
-  private storeRecentFilters(update: AdHocFilterWithLabels) {
+  private storeRecentFilter(update: AdHocFilterWithLabels) {
     if (!this.state.drilldownRecommendationsEnabled) {
       return;
     }
@@ -593,7 +601,10 @@ export class AdHocFiltersVariable
     const updatedStoredFilters = [...allRecentFilters, update].slice(-MAX_STORED_RECENT_DRILLDOWNS);
     this._store.set(RECENT_FILTERS_KEY, JSON.stringify(updatedStoredFilters));
 
-    this._verifyRecentFiltersApplicability(updatedStoredFilters);
+    const filter = this.state.filters.find((f) => f.key === update.key && !Boolean(f.nonApplicable));
+    if (filter && !Boolean(filter.nonApplicable)) {
+      this.setState({ _recentFilters: updatedStoredFilters.slice(-MAX_RECENT_DRILLDOWNS) });
+    }
   }
 
   private async _verifyRecentFiltersApplicability(storedFilters: AdHocFilterWithLabels[]) {

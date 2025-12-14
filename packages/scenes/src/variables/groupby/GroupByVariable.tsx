@@ -312,10 +312,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
   }
 
-  public getApplicableKeys(): VariableValue {
+  public getApplicableKeys(): string[] {
     const { value, keysApplicability } = this.state;
 
-    const valueArray = isArray(value) ? value : value ? [value] : [];
+    const valueArray = isArray(value) ? value.map(String) : value ? [String(value)] : [];
 
     if (!keysApplicability || keysApplicability.length === 0) {
       return valueArray;
@@ -448,8 +448,15 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return keys;
   };
 
-  public storeRecentGrouping(value: SelectableValue<VariableValueSingle>) {
+  public async _verifyApplicabilityAndStoreRecentGrouping() {
+    await this._verifyApplicability();
+
     if (!this.state.drilldownRecommendationsEnabled) {
+      return;
+    }
+
+    const applicableValues = this.getApplicableKeys();
+    if (applicableValues.length === 0) {
       return;
     }
 
@@ -458,12 +465,19 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       ? JSON.parse(storedGroupings)
       : [];
 
-    const updatedStoredGroupings = [...allRecentGroupings, { value: value.value, text: value.label }].slice(
-      -MAX_STORED_RECENT_DRILLDOWNS
+    const existingWithoutApplicableValues = allRecentGroupings.filter(
+      (grouping) => !applicableValues.includes(String(grouping.value))
     );
-    this._store.set(RECENT_GROUPING_KEY, JSON.stringify(updatedStoredGroupings));
+    const updatedStoredGroupings = [
+      ...existingWithoutApplicableValues,
+      ...applicableValues.map((value) => ({ value, text: value })),
+    ];
 
-    this._verifyRecentGroupingsApplicability(updatedStoredGroupings);
+    const limitedStoredGroupings = updatedStoredGroupings.slice(-MAX_STORED_RECENT_DRILLDOWNS);
+
+    this._store.set(RECENT_GROUPING_KEY, JSON.stringify(limitedStoredGroupings));
+
+    this.setState({ _recentGrouping: limitedStoredGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
   }
 
   public setRecommendedGrouping(recommendedGrouping: string[]) {
@@ -604,15 +618,11 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           model.setState({ restorable: restorable });
         }
 
-        model._verifyApplicability();
+        model._verifyApplicabilityAndStoreRecentGrouping();
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([], undefined, true);
-        }
-
-        if (action.action === 'select-option' && action.option) {
-          model.storeRecentGrouping(action.option);
         }
 
         setUncommittedValue(newValue);
@@ -675,7 +685,6 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         if (newValue?.value) {
           setUncommittedValue([newValue]);
           model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : undefined);
-          model.storeRecentGrouping(newValue);
         }
       }}
       onOpenMenu={async () => {

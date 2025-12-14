@@ -77,7 +77,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   }
 
   public getGroupByKeys(): string[] | undefined {
-    return this._groupByVar ? (this._groupByVar.getApplicableKeys() as string[]) : undefined;
+    return this._groupByVar ? this._groupByVar.getApplicableKeys() : undefined;
   }
 
   public cleanup(): void {

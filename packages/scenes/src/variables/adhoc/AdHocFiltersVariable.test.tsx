@@ -2540,7 +2540,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    it('should add filter to recentFilters and store in localStorage', async () => {
+    it('should add filter to recentFilters and store in localStorage when adding new filter', async () => {
       const { filtersVar } = setup({
         drilldownRecommendationsEnabled: true,
         filters: [],
@@ -2554,6 +2554,28 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       filtersVar.setState({ _wip: filter });
       filtersVar._updateFilter(filter, { value: 'newValue' });
+
+      // Wait for async verifyApplicabilityAndStoreRecentFilter to complete
+      await waitFor(() => {
+        const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+        expect(storedFilters).toBeDefined();
+        expect(JSON.parse(storedFilters!)).toHaveLength(1);
+        expect(JSON.parse(storedFilters!)[0]).toEqual({ key: 'cluster', operator: '=', value: 'newValue' });
+      });
+
+      await waitFor(() => {
+        expect(filtersVar.state._recentFilters).toHaveLength(1);
+      });
+    });
+
+    it('should add filter to recentFilters immediately when editing existing filter', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [{ key: 'cluster', value: '1', operator: '=' }],
+      });
+
+      // Update an existing filter (not WIP) - this stores immediately
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
 
       const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
       expect(storedFilters).toBeDefined();
@@ -2571,15 +2593,17 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         filters: [],
       });
 
-      const filter = {
-        key: 'cluster',
-        value: '1',
-        operator: '=',
-      };
-
+      // For editing existing filters, storage is synchronous
+      // So we add filters first, then edit them
+      const initialFilters = [];
       for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
-        filtersVar.setState({ _wip: { ...filter, key: `key${i}` } });
-        filtersVar._updateFilter({ ...filter, key: `key${i}` }, { value: `newValue${i}` });
+        initialFilters.push({ key: `key${i}`, value: `value${i}`, operator: '=' as const });
+      }
+      filtersVar.setState({ filters: initialFilters });
+
+      // Now edit each filter to trigger storeRecentFilter
+      for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
+        filtersVar._updateFilter(filtersVar.state.filters[i], { value: `newValue${i}` });
       }
 
       const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
@@ -2591,27 +2615,26 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     });
 
-    it('should set in browser storage', () => {
+    it('should set in browser storage when editing existing filters', async () => {
       const { filtersVar } = setup({
         drilldownRecommendationsEnabled: true,
-        filters: [],
+        filters: [
+          { key: 'cluster', value: '1', operator: '=' },
+          { key: 'cluster2', value: '2', operator: '=' },
+        ],
       });
 
-      const filter = {
-        key: 'cluster',
-        value: '1',
-        operator: '=',
-      };
-
-      filtersVar.setState({ _wip: filter });
-      filtersVar._updateFilter(filter, { value: 'newValue' });
-
-      filtersVar.setState({ _wip: { ...filter, key: 'cluster2' } });
-      filtersVar._updateFilter({ ...filter, key: 'cluster2' }, { value: 'newValue2' });
+      // Edit existing filters to trigger storeRecentFilter (synchronous for edits)
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[1], { value: 'newValue2' });
 
       const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
       expect(storedFilters).toBeDefined();
       expect(JSON.parse(storedFilters!)).toHaveLength(2);
+
+      await waitFor(() => {
+        expect(filtersVar.state._recentFilters).toHaveLength(2);
+      });
     });
   });
 

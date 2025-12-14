@@ -764,7 +764,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
   });
 
-  describe('recent filters', () => {
+  describe('recent groupings', () => {
     beforeEach(() => {
       localStorage.removeItem(RECENT_GROUPING_KEY);
     });
@@ -790,55 +790,185 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       });
     });
 
-    it('should add key to recentGrouping and store in localStorage', async () => {
-      const { variable } = setupTest({
-        drilldownRecommendationsEnabled: true,
-        value: [],
-      });
+    it('should add applicable keys to recentGrouping and store in localStorage after verifyApplicabilityAndStoreRecentGrouping', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'value1', applicable: true }]);
 
-      variable.storeRecentGrouping({ value: 'value', label: 'value' });
+      const { variable } = setupTest(
+        {
+          drilldownRecommendationsEnabled: true,
+          value: ['value1'],
+        },
+        undefined,
+        undefined,
+        {
+          // @ts-expect-error (temporary till we update grafana/data)
+          getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+        }
+      );
+
+      await act(async () => {
+        await variable._verifyApplicabilityAndStoreRecentGrouping();
+      });
 
       const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
       expect(storedGroupings).toBeDefined();
       expect(JSON.parse(storedGroupings!)).toHaveLength(1);
-      expect(JSON.parse(storedGroupings!)[0]).toEqual({ value: 'value', text: 'value' });
+      expect(JSON.parse(storedGroupings!)[0]).toEqual({ value: 'value1', text: 'value1' });
 
-      await waitFor(() => {
-        expect(variable.state._recentGrouping!.length).toBeGreaterThanOrEqual(0);
+      expect(variable.state._recentGrouping).toHaveLength(1);
+      expect(variable.state._recentGrouping![0]).toEqual({ value: 'value1', text: 'value1' });
+    });
+
+    it('should not store non-applicable keys in recentGrouping', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'value1', applicable: false }]);
+
+      const { variable } = setupTest(
+        {
+          drilldownRecommendationsEnabled: true,
+          value: ['value1'],
+        },
+        undefined,
+        undefined,
+        {
+          // @ts-expect-error (temporary till we update grafana/data)
+          getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+        }
+      );
+
+      await act(async () => {
+        await variable._verifyApplicabilityAndStoreRecentGrouping();
       });
+
+      const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
+      // Nothing should be stored since the only value is non-applicable
+      expect(storedGroupings).toBeNull();
+      // _recentGrouping may be initialized on activation, so check it's empty or undefined
+      expect(variable.state._recentGrouping?.length ?? 0).toBe(0);
+    });
+
+    it('should only store applicable keys when some are non-applicable', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
+        { key: 'value1', applicable: true },
+        { key: 'value2', applicable: false },
+        { key: 'value3', applicable: true },
+      ]);
+
+      const { variable } = setupTest(
+        {
+          drilldownRecommendationsEnabled: true,
+          value: ['value1', 'value2', 'value3'],
+        },
+        undefined,
+        undefined,
+        {
+          // @ts-expect-error (temporary till we update grafana/data)
+          getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+        }
+      );
+
+      await act(async () => {
+        await variable._verifyApplicabilityAndStoreRecentGrouping();
+      });
+
+      const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
+      expect(storedGroupings).toBeDefined();
+      const parsed = JSON.parse(storedGroupings!);
+      expect(parsed).toHaveLength(2);
+      expect(parsed.map((g: { value: string }) => g.value)).toEqual(['value1', 'value3']);
+
+      expect(variable.state._recentGrouping).toHaveLength(2);
     });
 
     it('should store up to MAX_STORED_RECENT_DRILLDOWNS in localStorage but display MAX_RECENT_DRILLDOWNS', async () => {
-      const { variable } = setupTest({
-        drilldownRecommendationsEnabled: true,
-        value: [],
-      });
-
-      for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
-        variable.storeRecentGrouping({ value: `value${i}`, label: `value${i}` });
+      // Pre-populate localStorage with existing groupings
+      const existingGroupings = [];
+      for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS - 2; i++) {
+        existingGroupings.push({ value: `existing${i}`, text: `existing${i}` });
       }
+      localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(existingGroupings));
+
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
+        { key: 'newValue1', applicable: true },
+        { key: 'newValue2', applicable: true },
+        { key: 'newValue3', applicable: true },
+        { key: 'newValue4', applicable: true },
+      ]);
+
+      const { variable } = setupTest(
+        {
+          drilldownRecommendationsEnabled: true,
+          value: ['newValue1', 'newValue2', 'newValue3', 'newValue4'],
+        },
+        undefined,
+        undefined,
+        {
+          // @ts-expect-error (temporary till we update grafana/data)
+          getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+        }
+      );
+
+      await act(async () => {
+        await variable._verifyApplicabilityAndStoreRecentGrouping();
+      });
 
       const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
       expect(storedGroupings).toBeDefined();
       expect(JSON.parse(storedGroupings!)).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
 
-      await waitFor(() => {
-        expect(variable.state._recentGrouping!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
-      });
+      expect(variable.state._recentGrouping!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
     });
 
-    it('should set in browser storage', () => {
-      const { variable } = setupTest({
-        drilldownRecommendationsEnabled: true,
-        value: [],
-      });
+    it('should set in browser storage with applicable values', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
+        { key: 'value1', applicable: true },
+        { key: 'value2', applicable: true },
+      ]);
 
-      variable.storeRecentGrouping({ value: 'value1', label: 'value1' });
-      variable.storeRecentGrouping({ value: 'value2', label: 'value2' });
+      const { variable } = setupTest(
+        {
+          drilldownRecommendationsEnabled: true,
+          value: ['value1', 'value2'],
+        },
+        undefined,
+        undefined,
+        {
+          // @ts-expect-error (temporary till we update grafana/data)
+          getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+        }
+      );
+
+      await act(async () => {
+        await variable._verifyApplicabilityAndStoreRecentGrouping();
+      });
 
       const storedGrouping = localStorage.getItem(RECENT_GROUPING_KEY);
       expect(storedGrouping).toBeDefined();
       expect(JSON.parse(storedGrouping!)).toHaveLength(2);
+    });
+
+    it('should not store anything if drilldownRecommendationsEnabled is false', async () => {
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'value1', applicable: true }]);
+
+      const { variable } = setupTest(
+        {
+          drilldownRecommendationsEnabled: false,
+          value: ['value1'],
+        },
+        undefined,
+        undefined,
+        {
+          // @ts-expect-error (temporary till we update grafana/data)
+          getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
+        }
+      );
+
+      await act(async () => {
+        await variable._verifyApplicabilityAndStoreRecentGrouping();
+      });
+
+      const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
+      expect(storedGroupings).toBeNull();
+      expect(variable.state._recentGrouping).toBeUndefined();
     });
   });
 });
