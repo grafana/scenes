@@ -68,7 +68,8 @@ const ORIGIN_FILTERS_KEY: keyof AdHocFiltersVariableState = 'originFilters';
 export const MAX_RECENT_DRILLDOWNS = 3;
 export const MAX_STORED_RECENT_DRILLDOWNS = 10;
 
-export const RECENT_FILTERS_KEY = 'grafana.filters.recent';
+export const getRecentFiltersKey = (datasourceUid: string | undefined) =>
+  `grafana.filters.recent.${datasourceUid ?? 'default'}`;
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
@@ -272,7 +273,6 @@ export class AdHocFiltersVariable
   // to its original value if edited at some point
   private _originalValues: Map<string, OriginalValue> = new Map();
   private _prevScopes: Scope[] = [];
-  private _store = store;
 
   /** Needed for scopes dependency */
   protected _variableDependency = new VariableDependencyConfig(this, {
@@ -315,7 +315,7 @@ export class AdHocFiltersVariable
     this._debouncedVerifyApplicability();
 
     if (this.state.drilldownRecommendationsEnabled) {
-      const json = this._store.get(RECENT_FILTERS_KEY);
+      const json = store.get(getRecentFiltersKey(this.state.datasource?.uid));
       const storedFilters = json ? JSON.parse(json) : [];
 
       // Verify applicability of stored recent filters
@@ -363,7 +363,7 @@ export class AdHocFiltersVariable
         queries: queries ?? [],
         filters,
         scopes,
-        loggedUser: config.bootData.user.login,
+        userId: config.bootData.user.id,
       });
 
       if (recommendedDrilldowns?.filters) {
@@ -595,11 +595,12 @@ export class AdHocFiltersVariable
       return;
     }
 
-    const storedFilters = this._store.get(RECENT_FILTERS_KEY);
+    const key = getRecentFiltersKey(this.state.datasource?.uid);
+    const storedFilters = store.get(key);
     const allRecentFilters = storedFilters ? JSON.parse(storedFilters) : [];
 
     const updatedStoredFilters = [...allRecentFilters, update].slice(-MAX_STORED_RECENT_DRILLDOWNS);
-    this._store.set(RECENT_FILTERS_KEY, JSON.stringify(updatedStoredFilters));
+    store.set(key, JSON.stringify(updatedStoredFilters));
 
     const filter = this.state.filters.find((f) => f.key === update.key && !Boolean(f.nonApplicable));
     if (filter && !Boolean(filter.nonApplicable)) {

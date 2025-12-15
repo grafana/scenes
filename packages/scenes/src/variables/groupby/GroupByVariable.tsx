@@ -44,7 +44,8 @@ import { DrilldownRecommendations } from '../components/DrilldownRecommendations
 import { css, cx } from '@emotion/css';
 import { config } from '@grafana/runtime';
 
-export const RECENT_GROUPING_KEY = 'grafana.grouping.recent';
+export const getRecentGroupingKey = (datasourceUid: string | undefined) =>
+  `grafana.grouping.recent.${datasourceUid ?? 'default'}`;
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -116,8 +117,6 @@ export type getTagKeysProvider = (
 export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   static Component = GroupByVariableRenderer;
   isLazy = true;
-
-  private _store = store;
 
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
 
@@ -227,7 +226,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     if (this.state.drilldownRecommendationsEnabled) {
-      const json = this._store.get(RECENT_GROUPING_KEY);
+      const json = store.get(getRecentGroupingKey(this.state.datasource?.uid));
       const storedGroupings = json ? JSON.parse(json) : [];
 
       if (storedGroupings.length > 0) {
@@ -303,7 +302,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         queries,
         groupByKeys,
         scopes,
-        loggedUser: config.bootData.user.login,
+        userId: config.bootData.user.id,
       });
 
       if (recommendedDrilldowns?.groupByKeys) {
@@ -462,7 +461,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       return;
     }
 
-    const storedGroupings = this._store.get(RECENT_GROUPING_KEY);
+    const key = getRecentGroupingKey(this.state.datasource?.uid);
+    const storedGroupings = store.get(key);
     const allRecentGroupings: Array<SelectableValue<VariableValueSingle>> = storedGroupings
       ? JSON.parse(storedGroupings)
       : [];
@@ -477,7 +477,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const limitedStoredGroupings = updatedStoredGroupings.slice(-MAX_STORED_RECENT_DRILLDOWNS);
 
-    this._store.set(RECENT_GROUPING_KEY, JSON.stringify(limitedStoredGroupings));
+    store.set(key, JSON.stringify(limitedStoredGroupings));
 
     this.setState({ _recentGrouping: limitedStoredGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
   }

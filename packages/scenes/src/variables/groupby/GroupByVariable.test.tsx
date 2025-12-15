@@ -3,7 +3,7 @@ import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, config
 import { act, getAllByRole, render, screen, waitFor } from '@testing-library/react';
 import { lastValueFrom, Observable, of } from 'rxjs';
 import React from 'react';
-import { GroupByVariable, GroupByVariableState, RECENT_GROUPING_KEY } from './GroupByVariable';
+import { GroupByVariable, GroupByVariableState, getRecentGroupingKey } from './GroupByVariable';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexLayout, SceneFlexItem } from '../../components/layout/SceneFlexLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
@@ -765,6 +765,8 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
   });
 
   describe('recent groupings', () => {
+    const RECENT_GROUPING_KEY = getRecentGroupingKey('my-ds-uid');
+
     beforeEach(() => {
       localStorage.removeItem(RECENT_GROUPING_KEY);
     });

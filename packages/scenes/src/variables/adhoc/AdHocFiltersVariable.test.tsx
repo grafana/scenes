@@ -7,7 +7,7 @@ import {
   AdHocFilterWithLabels,
   MAX_RECENT_DRILLDOWNS,
   MAX_STORED_RECENT_DRILLDOWNS,
-  RECENT_FILTERS_KEY,
+  getRecentFiltersKey,
 } from './AdHocFiltersVariable';
 import {
   DataSourceSrv,
@@ -2514,6 +2514,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   describe('recent filters', () => {
+    const RECENT_FILTERS_KEY = getRecentFiltersKey('my-ds-uid');
+
     beforeEach(() => {
       localStorage.removeItem(RECENT_FILTERS_KEY);
     });

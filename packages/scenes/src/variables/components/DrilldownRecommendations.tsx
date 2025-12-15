@@ -141,8 +141,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
     },
   }),
   emptyMessage: css({
-    padding: theme.spacing(2),
-    textAlign: 'center',
+    padding: theme.spacing(0.5, 0),
     color: theme.colors.text.secondary,
+    ...theme.typography.bodySmall,
   }),
 });
