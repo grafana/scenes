@@ -12,12 +12,8 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
 import { GroupByVariable, GroupByVariableState } from './GroupByVariable';
-import {
-  GroupByRecommendations,
-  getRecentGroupingKey,
-  MAX_RECENT_DRILLDOWNS,
-  MAX_STORED_RECENT_DRILLDOWNS,
-} from './GroupByRecommendations';
+import { GroupByRecommendations, getRecentGroupingKey } from './GroupByRecommendations';
+import { MAX_RECENT_DRILLDOWNS, MAX_STORED_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersRecommendations';
 
 describe('GroupByRecommendations', () => {
   const RECENT_GROUPING_KEY = getRecentGroupingKey('my-ds-uid');
