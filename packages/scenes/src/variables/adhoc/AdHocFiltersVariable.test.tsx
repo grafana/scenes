@@ -1,14 +1,12 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariable, SceneVariableValueChangedEvent } from '../types';
+import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import {
-  AdHocFiltersVariable,
-  AdHocFiltersVariableState,
-  AdHocFilterWithLabels,
   MAX_RECENT_DRILLDOWNS,
   MAX_STORED_RECENT_DRILLDOWNS,
   getRecentFiltersKey,
-} from './AdHocFiltersVariable';
+} from './AdHocFiltersRecommendations';
 import {
   DataSourceSrv,
   config,

@@ -40,9 +40,6 @@ import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionCon
 import { css, cx } from '@emotion/css';
 import { GroupByRecommendations } from './GroupByRecommendations';
 
-export const getRecentGroupingKey = (datasourceUid: string | undefined) =>
-  `grafana.grouping.recent.${datasourceUid ?? 'default'}`;
-
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
   name: string;

@@ -11,15 +11,13 @@ import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
+import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import {
-  AdHocFiltersVariable,
-  AdHocFiltersVariableState,
-  AdHocFilterWithLabels,
+  AdHocFiltersRecommendations,
   getRecentFiltersKey,
   MAX_RECENT_DRILLDOWNS,
   MAX_STORED_RECENT_DRILLDOWNS,
-} from './AdHocFiltersVariable';
-import { AdHocFiltersRecommendations } from './AdHocFiltersRecommendations';
+} from './AdHocFiltersRecommendations';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),

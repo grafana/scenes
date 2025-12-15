@@ -17,13 +17,13 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { DrilldownRecommendations, DrilldownPill } from '../components/DrilldownRecommendations';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../constants';
-import {
-  AdHocFilterWithLabels,
-  AdHocFiltersVariable,
-  getRecentFiltersKey,
-  MAX_RECENT_DRILLDOWNS,
-  MAX_STORED_RECENT_DRILLDOWNS,
-} from './AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable } from './AdHocFiltersVariable';
+
+export const MAX_RECENT_DRILLDOWNS = 3;
+export const MAX_STORED_RECENT_DRILLDOWNS = 10;
+
+export const getRecentFiltersKey = (datasourceUid: string | undefined) =>
+  `grafana.filters.recent.${datasourceUid ?? 'default'}`;
 
 export interface AdHocFiltersRecommendationsState extends SceneObjectState {
   /** Recent filters */

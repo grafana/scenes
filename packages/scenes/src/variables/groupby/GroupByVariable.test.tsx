@@ -3,7 +3,8 @@ import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, config
 import { act, getAllByRole, render, screen, waitFor } from '@testing-library/react';
 import { lastValueFrom, Observable, of } from 'rxjs';
 import React from 'react';
-import { GroupByVariable, GroupByVariableState, getRecentGroupingKey } from './GroupByVariable';
+import { GroupByVariable, GroupByVariableState } from './GroupByVariable';
+import { getRecentGroupingKey } from './GroupByRecommendations';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexLayout, SceneFlexItem } from '../../components/layout/SceneFlexLayout';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
@@ -15,7 +16,7 @@ import userEvent from '@testing-library/user-event';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
-import { MAX_RECENT_DRILLDOWNS, MAX_STORED_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersVariable';
+import { MAX_RECENT_DRILLDOWNS, MAX_STORED_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersRecommendations';
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject

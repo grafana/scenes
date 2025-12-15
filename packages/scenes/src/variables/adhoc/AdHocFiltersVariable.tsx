@@ -64,12 +64,6 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
 
 const ORIGIN_FILTERS_KEY: keyof AdHocFiltersVariableState = 'originFilters';
 
-export const MAX_RECENT_DRILLDOWNS = 3;
-export const MAX_STORED_RECENT_DRILLDOWNS = 10;
-
-export const getRecentFiltersKey = (datasourceUid: string | undefined) =>
-  `grafana.filters.recent.${datasourceUid ?? 'default'}`;
-
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
 export type FilterOrigin = 'dashboard' | 'scope' | string;

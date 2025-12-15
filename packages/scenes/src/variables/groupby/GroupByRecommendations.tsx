@@ -18,10 +18,13 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { DrilldownRecommendations, DrilldownPill } from '../components/DrilldownRecommendations';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../constants';
-import { GroupByVariable, getRecentGroupingKey } from './GroupByVariable';
-import { MAX_RECENT_DRILLDOWNS, MAX_STORED_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersVariable';
+import { GroupByVariable } from './GroupByVariable';
+import { MAX_RECENT_DRILLDOWNS, MAX_STORED_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersRecommendations';
 import { VariableValue, VariableValueSingle } from '../types';
 import { isArray } from 'lodash';
+
+export const getRecentGroupingKey = (datasourceUid: string | undefined) =>
+  `grafana.grouping.recent.${datasourceUid ?? 'default'}`;
 
 export interface GroupByRecommendationsState extends SceneObjectState {
   /** Recent groupings */
