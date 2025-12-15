@@ -13,6 +13,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public useState(): AdHocFiltersControllerState {
     const state = this.model.useState();
+
     return {
       filters: state.filters,
       originFilters: state.originFilters,
@@ -21,8 +22,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       supportsMultiValueOperators: state.supportsMultiValueOperators,
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
-      recentFilters: state._recentFilters,
-      recommendedFilters: state._recommendedFilters,
+      valueRecommendations: state._valueRecommendations,
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
     };
   }

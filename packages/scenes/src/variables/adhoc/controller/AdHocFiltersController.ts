@@ -1,5 +1,6 @@
 import { SelectableValue } from '@grafana/data';
 import { AdHocFilterWithLabels, OnAddCustomValueFn } from '../AdHocFiltersVariable';
+import { AdHocFiltersRecommendations } from '../AdHocFiltersRecommendations';
 
 /**
  * Controller state returned by useState hook
@@ -13,8 +14,8 @@ export interface AdHocFiltersControllerState {
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
   inputPlaceholder?: string;
-  recentFilters?: AdHocFilterWithLabels[];
-  recommendedFilters?: AdHocFilterWithLabels[];
+  /** Value recommendations component - manages recent and recommended filters */
+  valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
 }
 

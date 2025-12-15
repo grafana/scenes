@@ -9,7 +9,6 @@ import {
   GrafanaTheme2,
   MetricFindValue,
   SelectableValue,
-  store,
 } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
@@ -33,16 +32,13 @@ import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
-import { getEnrichedDataRequest } from '../../querying/getEnrichedDataRequest';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIndicatorContainer';
 import { GroupByValueContainer, GroupByContainerProps } from './GroupByValueContainer';
 import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTracker';
 import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionConstants';
-import { MAX_RECENT_DRILLDOWNS, MAX_STORED_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersVariable';
-import { DrilldownRecommendations } from '../components/DrilldownRecommendations';
 import { css, cx } from '@emotion/css';
-import { config } from '@grafana/runtime';
+import { GroupByRecommendations } from './GroupByRecommendations';
 
 export const getRecentGroupingKey = (datasourceUid: string | undefined) =>
   `grafana.grouping.recent.${datasourceUid ?? 'default'}`;
@@ -94,14 +90,10 @@ export interface GroupByVariableState extends MultiValueVariableState {
   applicabilityEnabled?: boolean;
 
   /**
-   * contains stored recent keys
+   * Value recommendations scene object - manages recent and recommended groupings
+   * @internal
    */
-  _recentGrouping?: Array<SelectableValue<VariableValueSingle>>;
-
-  /**
-   * contains recommended keys
-   */
-  _recommendedGrouping?: Array<SelectableValue<VariableValueSingle>>;
+  _valueRecommendations?: GroupByRecommendations;
 
   /**
    * enables drilldown recommendations
@@ -225,17 +217,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       }
     }
 
-    if (this.state.drilldownRecommendationsEnabled) {
-      const json = store.get(getRecentGroupingKey(this.state.datasource?.uid));
-      const storedGroupings = json ? JSON.parse(json) : [];
-
-      if (storedGroupings.length > 0) {
-        this._verifyRecentGroupingsApplicability(storedGroupings);
-      } else {
-        this.setState({ _recentGrouping: [] });
-      }
-
-      this._fetchRecommendedDrilldowns();
+    if (this.state.drilldownRecommendationsEnabled && !this.state._valueRecommendations) {
+      const valueRecommendations = new GroupByRecommendations(this);
+      this.setState({ _valueRecommendations: valueRecommendations });
+      valueRecommendations.activate();
     }
 
     return () => {
@@ -246,72 +231,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       this.setState({ applicabilityEnabled: false });
     };
   };
-
-  private async _verifyRecentGroupingsApplicability(storedGroupings: Array<SelectableValue<VariableValueSingle>>) {
-    const queries = getQueriesForVariables(this);
-    const keys = storedGroupings.map((g) => String(g.value));
-    const response = await this.getGroupByApplicabilityForQueries(keys, queries);
-
-    if (!response) {
-      this.setState({ _recentGrouping: storedGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
-      return;
-    }
-
-    const applicabilityMap = new Map<string, boolean>();
-    response.forEach((item: DrilldownsApplicability) => {
-      applicabilityMap.set(item.key, item.applicable !== false);
-    });
-
-    const applicableGroupings = storedGroupings
-      .filter((g) => {
-        const isApplicable = applicabilityMap.get(String(g.value));
-        return isApplicable === undefined || isApplicable === true;
-      })
-      .slice(-MAX_RECENT_DRILLDOWNS);
-
-    this.setState({ _recentGrouping: applicableGroupings });
-  }
-
-  private async _fetchRecommendedDrilldowns() {
-    const ds = await getDataSource(this.state.datasource, {
-      __sceneObject: wrapInSafeSerializableSceneObject(this),
-    });
-
-    // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds || !ds.getRecommendedDrilldowns) {
-      return;
-    }
-
-    const queries = getQueriesForVariables(this);
-    const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const scopes = sceneGraph.getScopes(this);
-    const groupByKeys = Array.isArray(this.state.value)
-      ? this.state.value.map((v) => String(v))
-      : this.state.value
-      ? [String(this.state.value)]
-      : [];
-
-    const enrichedRequest = getEnrichedDataRequest(this);
-    const dashboardUid = enrichedRequest?.dashboardUID;
-
-    try {
-      // @ts-expect-error (temporary till we update grafana/data)
-      const recommendedDrilldowns = await ds.getRecommendedDrilldowns({
-        timeRange,
-        dashboardUid,
-        queries,
-        groupByKeys,
-        scopes,
-        userId: config.bootData.user.id,
-      });
-
-      if (recommendedDrilldowns?.groupByKeys) {
-        this.setRecommendedGrouping(recommendedDrilldowns.groupByKeys);
-      }
-    } catch (error) {
-      console.error('Failed to fetch recommended drilldowns:', error);
-    }
-  }
 
   public getApplicableKeys(): string[] {
     const { value, keysApplicability } = this.state;
@@ -452,7 +371,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   public async _verifyApplicabilityAndStoreRecentGrouping() {
     await this._verifyApplicability();
 
-    if (!this.state.drilldownRecommendationsEnabled) {
+    if (!this.state.drilldownRecommendationsEnabled || !this.state._valueRecommendations) {
       return;
     }
 
@@ -461,31 +380,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       return;
     }
 
-    const key = getRecentGroupingKey(this.state.datasource?.uid);
-    const storedGroupings = store.get(key);
-    const allRecentGroupings: Array<SelectableValue<VariableValueSingle>> = storedGroupings
-      ? JSON.parse(storedGroupings)
-      : [];
-
-    const existingWithoutApplicableValues = allRecentGroupings.filter(
-      (grouping) => !applicableValues.includes(String(grouping.value))
-    );
-    const updatedStoredGroupings = [
-      ...existingWithoutApplicableValues,
-      ...applicableValues.map((value) => ({ value, text: value })),
-    ];
-
-    const limitedStoredGroupings = updatedStoredGroupings.slice(-MAX_STORED_RECENT_DRILLDOWNS);
-
-    store.set(key, JSON.stringify(limitedStoredGroupings));
-
-    this.setState({ _recentGrouping: limitedStoredGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
-  }
-
-  public setRecommendedGrouping(recommendedGrouping: string[]) {
-    this.setState({
-      _recommendedGrouping: recommendedGrouping.map((key) => ({ value: key, text: key })),
-    });
+    this.state._valueRecommendations.storeRecentGrouping(applicableValues);
   }
 
   /**
@@ -509,8 +404,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     allowCustomValue = true,
     defaultValue,
     keysApplicability,
-    _recentGrouping,
-    _recommendedGrouping,
+    _valueRecommendations,
     drilldownRecommendationsEnabled,
   } = model.useState();
 
@@ -706,44 +600,14 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     />
   );
 
-  if (!drilldownRecommendationsEnabled) {
+  if (!drilldownRecommendationsEnabled || !_valueRecommendations) {
     return select;
   }
-
-  const recentDrilldowns = _recentGrouping?.map((groupBy) => ({
-    label: `${groupBy.value}`,
-    onClick: () => {
-      if (values.map((x) => x.value).includes(groupBy.value)) {
-        return;
-      }
-
-      model.changeValueTo(
-        [...values.map((x) => x.value!), groupBy.value!],
-        [...values.map((x) => x.label), groupBy.text ?? groupBy.value],
-        true
-      );
-    },
-  }));
-
-  const recommendedDrilldowns = _recommendedGrouping?.map((groupBy) => ({
-    label: `${groupBy.value}`,
-    onClick: () => {
-      if (values.map((x) => x.value).includes(groupBy.value)) {
-        return;
-      }
-
-      model.changeValueTo(
-        [...values.map((x) => x.value!), groupBy.value!],
-        [...values.map((x) => x.label), groupBy.text ?? groupBy.value],
-        true
-      );
-    },
-  }));
 
   return (
     <div className={styles.wrapper}>
       <div className={styles.recommendations}>
-        <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />
+        <_valueRecommendations.Component model={_valueRecommendations} />
       </div>
 
       {select}

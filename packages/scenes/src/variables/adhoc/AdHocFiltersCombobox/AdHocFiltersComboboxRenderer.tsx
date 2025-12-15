@@ -5,38 +5,15 @@ import React, { memo, useRef } from 'react';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
-import { DrilldownRecommendations } from '../../components/DrilldownRecommendations';
 
 interface Props {
   controller: AdHocFiltersController;
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, recentFilters, recommendedFilters, drilldownRecommendationsEnabled } =
+  const { originFilters, filters, readOnly, valueRecommendations, drilldownRecommendationsEnabled } =
     controller.useState();
   const styles = useStyles2(getStyles);
-
-  let drilldownRecommendationComponent = null;
-
-  if (drilldownRecommendationsEnabled) {
-    const recentDrilldowns = recentFilters?.map((filter) => ({
-      label: `${filter.key} ${filter.operator} ${filter.value}`,
-      onClick: () => {
-        controller.updateFilters?.([...filters, filter]);
-      },
-    }));
-
-    const recommendedDrilldowns = recommendedFilters?.map((filter) => ({
-      label: `${filter.key} ${filter.operator} ${filter.value}`,
-      onClick: () => {
-        controller.updateFilters?.([...filters, filter]);
-      },
-    }));
-
-    drilldownRecommendationComponent = (
-      <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />
-    );
-  }
 
   // ref that focuses on the always wip filter input
   // defined in the combobox component via useImperativeHandle
@@ -51,7 +28,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     >
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
-      {drilldownRecommendationComponent}
+      {drilldownRecommendationsEnabled && valueRecommendations && (
+        <valueRecommendations.Component model={valueRecommendations} />
+      )}
 
       {originFilters?.map((filter, index) =>
         filter.origin ? (

@@ -2520,12 +2520,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       localStorage.removeItem(RECENT_FILTERS_KEY);
     });
 
-    it('should not set recentFilters if recommendations are disabled', () => {
+    it('should not create drilldown recommendations component if recommendations are disabled', () => {
       const { filtersVar } = setup({
         drilldownRecommendationsEnabled: false,
       });
 
-      expect(filtersVar.state._recentFilters).toEqual(undefined);
+      expect(filtersVar.state._valueRecommendations).toBeUndefined();
     });
 
     it('should set recentFilters from browser storage on activation', async () => {
@@ -2538,7 +2538,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters).toEqual(recentFilters);
+        const recommendations = filtersVar.state._valueRecommendations;
+        expect(recommendations?.state.recentFilters).toEqual(recentFilters);
       });
     });
 
@@ -2566,7 +2567,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters).toHaveLength(1);
+        const recommendations = filtersVar.state._valueRecommendations;
+        expect(recommendations?.state.recentFilters).toHaveLength(1);
       });
     });
 
@@ -2585,7 +2587,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(JSON.parse(storedFilters!)[0]).toEqual({ key: 'cluster', operator: '=', value: 'newValue' });
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters).toHaveLength(1);
+        const recommendations = filtersVar.state._valueRecommendations;
+        expect(recommendations?.state.recentFilters).toHaveLength(1);
       });
     });
 
@@ -2613,7 +2616,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(JSON.parse(storedFilters!)).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+        const recommendations = filtersVar.state._valueRecommendations;
+        expect(recommendations?.state.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
       });
     });
 
@@ -2635,7 +2639,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(JSON.parse(storedFilters!)).toHaveLength(2);
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters).toHaveLength(2);
+        const recommendations = filtersVar.state._valueRecommendations;
+        expect(recommendations?.state.recentFilters).toHaveLength(2);
       });
     });
   });
