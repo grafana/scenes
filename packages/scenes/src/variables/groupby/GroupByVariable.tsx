@@ -42,6 +42,7 @@ import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionCon
 import { MAX_RECENT_DRILLDOWNS, MAX_STORED_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersVariable';
 import { DrilldownRecommendations } from '../components/DrilldownRecommendations';
 import { css, cx } from '@emotion/css';
+import { config } from '@grafana/runtime';
 
 export const RECENT_GROUPING_KEY = 'grafana.grouping.recent';
 
@@ -302,6 +303,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         queries,
         groupByKeys,
         scopes,
+        loggedUser: config.bootData.user.login,
       });
 
       if (recommendedDrilldowns?.groupByKeys) {

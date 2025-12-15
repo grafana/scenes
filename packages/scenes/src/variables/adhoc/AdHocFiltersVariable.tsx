@@ -26,7 +26,7 @@ import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
-import { getDataSourceSrv } from '@grafana/runtime';
+import { config, getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler, toArray } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
@@ -352,7 +352,6 @@ export class AdHocFiltersVariable
     const scopes = sceneGraph.getScopes(this);
     const filters = [...(this.state.originFilters ?? []), ...this.state.filters];
 
-    // Get dashboardUid from enriched data request
     const enrichedRequest = getEnrichedDataRequest(this);
     const dashboardUid = enrichedRequest?.dashboardUID;
 
@@ -364,6 +363,7 @@ export class AdHocFiltersVariable
         queries: queries ?? [],
         filters,
         scopes,
+        loggedUser: config.bootData.user.login,
       });
 
       if (recommendedDrilldowns?.filters) {
