@@ -449,6 +449,21 @@ export class AdHocFiltersVariable
     }
   }
 
+  /**
+   * Clear all user-added filters and restore origin filters to their original values.
+   */
+  public clearAll(): void {
+    // Restore all restorable origin filters to their original values
+    this.state.originFilters?.forEach((filter) => {
+      if (filter.restorable) {
+        this.restoreOriginalFilter(filter);
+      }
+    });
+
+    // Clear all user-added filters
+    this.setState({ filters: [] });
+  }
+
   public getValue(fieldPath?: string): VariableValue | undefined {
     if (fieldPath === ORIGIN_FILTERS_KEY) {
       const originFilters = this.state.originFilters;

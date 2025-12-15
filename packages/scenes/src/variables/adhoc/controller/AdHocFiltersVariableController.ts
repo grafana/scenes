@@ -65,6 +65,10 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
     this.model.restoreOriginalFilter(filter);
   }
 
+  public clearAll(): void {
+    this.model.clearAll();
+  }
+
   public startProfile(name: string): void {
     const queryController = getQueryController(this.model);
     queryController?.startProfile(name);

@@ -19,6 +19,10 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   const [isMultiLine, setIsMultiLine] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  const clearAll = () => {
+    controller.clearAll();
+  };
+
   // ref that focuses on the always wip filter input
   // defined in the combobox component via useImperativeHandle
   const focusOnWipInputRef = useRef<() => void>();
@@ -136,6 +140,10 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           <Icon name="angle-up" size="md" />
         </Button>
       )}
+
+      <div className={styles.clearAllButton}>
+        <Icon name="times" size="md" onClick={clearAll} />
+      </div>
     </div>
   );
 });
@@ -195,6 +203,14 @@ const getStyles = (theme: GrafanaTheme2) => ({
     border: 'none',
     '&:hover': {
       background: 'transparent',
+      color: theme.colors.text.primary,
+    },
+  }),
+  clearAllButton: css({
+    fontSize: theme.typography.bodySmall.fontSize,
+    cursor: 'pointer',
+    color: theme.colors.text.secondary,
+    '&:hover': {
       color: theme.colors.text.primary,
     },
   }),

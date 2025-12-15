@@ -89,6 +89,11 @@ export interface AdHocFiltersController {
   restoreOriginalFilter(filter: AdHocFilterWithLabels): void;
 
   /**
+   * Clear all user-added filters and restore origin filters to original values.
+   */
+  clearAll(): void;
+
+  /**
    * Optional: Start profiling an interaction (for performance tracking).
    * @param name - The interaction name
    */
