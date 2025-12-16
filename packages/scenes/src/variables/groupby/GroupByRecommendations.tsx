@@ -27,7 +27,6 @@ export class GroupByRecommendations {
   private _recommendedGrouping?: Array<SelectableValue<VariableValueSingle>>;
 
   private groupBy: GroupByVariable;
-  private scopesSubscription: Unsubscribable | undefined;
 
   private _scopedVars: { __sceneObject: ScopedVar };
 
@@ -58,9 +57,10 @@ export class GroupByRecommendations {
 
     // Subscribe to scopes variable changes
     const scopesVariable = sceneGraph.lookupVariable(SCOPES_VARIABLE_NAME, this.groupBy);
+    let scopesSubscription: Unsubscribable | undefined;
 
     if (scopesVariable instanceof ScopesVariable) {
-      this.scopesSubscription = scopesVariable.subscribeToState((newState, prevState) => {
+      scopesSubscription = scopesVariable.subscribeToState((newState, prevState) => {
         if (newState.scopes !== prevState.scopes) {
           const json = store.get(this._getStorageKey());
           const storedGroupings = json ? JSON.parse(json) : [];
@@ -73,10 +73,10 @@ export class GroupByRecommendations {
         }
       });
     }
-  }
 
-  public deinit() {
-    this.scopesSubscription?.unsubscribe();
+    return () => {
+      scopesSubscription?.unsubscribe();
+    };
   }
 
   private _getStorageKey(): string {

@@ -204,6 +204,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   private _activationHandler = () => {
+    let recommendationsDeact: (() => void) | undefined;
     this._verifyApplicability();
 
     if (this.state.defaultValue) {
@@ -215,7 +216,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     if (this.state.drilldownRecommendationsEnabled && !this.state._valueRecommendations) {
       const valueRecommendations = new GroupByRecommendations(this, this._scopedVars);
       this.setState({ _valueRecommendations: valueRecommendations });
-      valueRecommendations.init();
+      recommendationsDeact = valueRecommendations.init();
     }
 
     return () => {
@@ -225,7 +226,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
       this.setState({ applicabilityEnabled: false });
 
-      this.state._valueRecommendations?.deinit();
+      recommendationsDeact?.();
     };
   };
 
@@ -595,7 +596,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     />
   );
 
-  if (!drilldownRecommendationsEnabled || !_valueRecommendations) {
+  if (!_valueRecommendations) {
     return select;
   }
 

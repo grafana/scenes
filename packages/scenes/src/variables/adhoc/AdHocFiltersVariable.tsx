@@ -301,12 +301,13 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
+    let recommendationsDeact: (() => void) | undefined;
     this._debouncedVerifyApplicability();
 
     if (this.state.drilldownRecommendationsEnabled && !this.state._valueRecommendations) {
       const valueRecommendations = new AdHocFiltersRecommendations(this, this._scopedVars);
       this.setState({ _valueRecommendations: valueRecommendations });
-      valueRecommendations.init();
+      recommendationsDeact = valueRecommendations.init();
     }
 
     return () => {
@@ -318,7 +319,7 @@ export class AdHocFiltersVariable
 
       this.setState({ applicabilityEnabled: false });
 
-      this.state._valueRecommendations?.deinit();
+      recommendationsDeact?.();
     };
   };
 
@@ -536,7 +537,7 @@ export class AdHocFiltersVariable
 
     this.setState({ filters: updatedFilters });
 
-    if (this.state.drilldownRecommendationsEnabled && this.state._valueRecommendations) {
+    if (this.state._valueRecommendations) {
       this.state._valueRecommendations.storeRecentFilter({
         ...filter,
         ...update,

@@ -26,7 +26,6 @@ export class AdHocFiltersRecommendations {
   private _recommendedFilters?: AdHocFilterWithLabels[];
 
   private adHocFilter: AdHocFiltersVariable;
-  private scopesSubscription: Unsubscribable | undefined;
 
   private _scopedVars: { __sceneObject: ScopedVar };
 
@@ -57,9 +56,10 @@ export class AdHocFiltersRecommendations {
 
     // Set up subscription to scopes variable
     const scopesVariable = sceneGraph.lookupVariable(SCOPES_VARIABLE_NAME, this.adHocFilter);
+    let scopesSubscription: Unsubscribable | undefined;
 
     if (scopesVariable instanceof ScopesVariable) {
-      this.scopesSubscription = scopesVariable.subscribeToState((newState, prevState) => {
+      scopesSubscription = scopesVariable.subscribeToState((newState, prevState) => {
         if (newState.scopes !== prevState.scopes) {
           const json = store.get(this._getStorageKey());
           const storedFilters = json ? JSON.parse(json) : [];
@@ -72,10 +72,10 @@ export class AdHocFiltersRecommendations {
         }
       });
     }
-  }
 
-  public deinit() {
-    this.scopesSubscription?.unsubscribe();
+    return () => {
+      scopesSubscription?.unsubscribe();
+    };
   }
 
   private _getStorageKey(): string {
@@ -111,6 +111,8 @@ export class AdHocFiltersRecommendations {
 
       if (recommendedDrilldowns?.filters) {
         this._recommendedFilters = recommendedDrilldowns.filters;
+        // Force re-render since render() subscribes to parent's state via useState()
+        this.adHocFilter.forceRender();
       }
     } catch (error) {
       console.error('Failed to fetch recommended drilldowns:', error);
@@ -124,6 +126,8 @@ export class AdHocFiltersRecommendations {
 
     if (!response) {
       this._recentFilters = storedFilters.slice(-MAX_RECENT_DRILLDOWNS);
+      // Force re-render since render() subscribes to parent's state via useState()
+      this.adHocFilter.forceRender();
       return;
     }
 
@@ -140,6 +144,8 @@ export class AdHocFiltersRecommendations {
       .slice(-MAX_RECENT_DRILLDOWNS);
 
     this._recentFilters = applicableFilters;
+    // Force re-render since render() subscribes to parent's state via useState()
+    this.adHocFilter.forceRender();
   }
 
   /**
