@@ -2523,7 +2523,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         drilldownRecommendationsEnabled: false,
       });
 
-      expect(filtersVar.state._valueRecommendations).toBeUndefined();
+      expect(filtersVar.getRecommendations()).toBeUndefined();
     });
 
     it('should set recentFilters from browser storage on activation', async () => {
@@ -2536,7 +2536,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters).toEqual(recentFilters);
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toEqual(recentFilters);
       });
     });
 
@@ -2564,7 +2564,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters).toHaveLength(1);
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toHaveLength(1);
       });
     });
 
@@ -2583,7 +2583,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(JSON.parse(storedFilters!)[0]).toEqual({ key: 'cluster', operator: '=', value: 'newValue' });
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters).toHaveLength(1);
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toHaveLength(1);
       });
     });
 
@@ -2611,7 +2611,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(JSON.parse(storedFilters!)).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+        expect(filtersVar.getRecommendations()?.state.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
       });
     });
 
@@ -2633,7 +2633,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(JSON.parse(storedFilters!)).toHaveLength(2);
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters).toHaveLength(2);
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toHaveLength(2);
       });
     });
   });

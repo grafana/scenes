@@ -87,24 +87,6 @@ export interface GroupByVariableState extends MultiValueVariableState {
   applicabilityEnabled?: boolean;
 
   /**
-   * Value recommendations scene object - manages recent and recommended groupings
-   * @internal
-   */
-  _valueRecommendations?: GroupByRecommendations;
-
-  /**
-   * Recent groupings loaded from storage
-   * @internal
-   */
-  _recentGrouping?: Array<SelectableValue<VariableValueSingle>>;
-
-  /**
-   * Recommended groupings from datasource
-   * @internal
-   */
-  _recommendedGrouping?: Array<SelectableValue<VariableValueSingle>>;
-
-  /**
    * enables drilldown recommendations
    */
   drilldownRecommendationsEnabled?: boolean;
@@ -122,6 +104,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
 
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
+
+  private _recommendations: GroupByRecommendations | undefined;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -185,6 +169,13 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public constructor(initialState: Partial<GroupByVariableState>) {
+    const behaviors = initialState.$behaviors ?? [];
+    const recommendations = initialState.drilldownRecommendationsEnabled ? new GroupByRecommendations() : undefined;
+
+    if (recommendations) {
+      behaviors.push(recommendations);
+    }
+
     super({
       isMulti: true,
       name: '',
@@ -198,7 +189,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       type: 'groupby' as VariableType,
       ...initialState,
       noValueOnClear: true,
+      $behaviors: behaviors.length > 0 ? behaviors : undefined,
     });
+
+    this._recommendations = recommendations;
 
     if (this.state.defaultValue) {
       this.changeValueTo(this.state.defaultValue.value, this.state.defaultValue.text, false);
@@ -216,7 +210,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   private _activationHandler = () => {
-    let recommendationsDeact: (() => void) | undefined;
     this._verifyApplicability();
 
     if (this.state.defaultValue) {
@@ -225,22 +218,21 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       }
     }
 
-    if (this.state.drilldownRecommendationsEnabled && !this.state._valueRecommendations) {
-      const valueRecommendations = new GroupByRecommendations(this, this._scopedVars);
-      this.setState({ _valueRecommendations: valueRecommendations });
-      recommendationsDeact = valueRecommendations.init();
-    }
-
     return () => {
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
       }
 
       this.setState({ applicabilityEnabled: false });
-
-      recommendationsDeact?.();
     };
   };
+
+  /**
+   * Gets the GroupByRecommendations behavior if it exists in $behaviors
+   */
+  public getRecommendations(): GroupByRecommendations | undefined {
+    return this._recommendations;
+  }
 
   public getApplicableKeys(): string[] {
     const { value, keysApplicability } = this.state;
@@ -379,7 +371,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   public async _verifyApplicabilityAndStoreRecentGrouping() {
     await this._verifyApplicability();
 
-    if (!this.state.drilldownRecommendationsEnabled || !this.state._valueRecommendations) {
+    if (!this._recommendations) {
       return;
     }
 
@@ -388,7 +380,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       return;
     }
 
-    this.state._valueRecommendations.storeRecentGrouping(applicableValues);
+    this._recommendations.storeRecentGrouping(applicableValues);
   }
 
   /**
@@ -412,9 +404,10 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     allowCustomValue = true,
     defaultValue,
     keysApplicability,
-    _valueRecommendations,
     drilldownRecommendationsEnabled,
   } = model.useState();
+
+  const recommendations = model.getRecommendations();
 
   const styles = useStyles2(getStyles);
 
@@ -608,13 +601,15 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     />
   );
 
-  if (!_valueRecommendations) {
+  if (!recommendations) {
     return select;
   }
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.recommendations}>{_valueRecommendations.render()}</div>
+      <div className={styles.recommendations}>
+        <recommendations.Component model={recommendations} />
+      </div>
 
       {select}
     </div>

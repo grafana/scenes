@@ -2,11 +2,9 @@ import React from 'react';
 import {
   // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
-  ScopedVar,
   SelectableValue,
   store,
 } from '@grafana/data';
-import { Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../../core/sceneGraph';
 import { getEnrichedDataRequest } from '../../querying/getEnrichedDataRequest';
 import { getQueriesForVariables } from '../utils';
@@ -18,78 +16,96 @@ import { GroupByVariable } from './GroupByVariable';
 import { MAX_RECENT_DRILLDOWNS, MAX_STORED_RECENT_DRILLDOWNS } from '../adhoc/AdHocFiltersRecommendations';
 import { VariableValueSingle } from '../types';
 import { isArray } from 'lodash';
+import { SceneObjectBase } from '../../core/SceneObjectBase';
+import { SceneComponentProps, SceneObjectState } from '../../core/types';
+import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
+import { Unsubscribable } from 'rxjs';
 
 export const getRecentGroupingKey = (datasourceUid: string | undefined) =>
   `grafana.grouping.recent.${datasourceUid ?? 'default'}`;
 
-export class GroupByRecommendations {
-  private groupBy: GroupByVariable;
+export interface GroupByRecommendationsState extends SceneObjectState {
+  recentGrouping?: Array<SelectableValue<VariableValueSingle>>;
+  recommendedGrouping?: Array<SelectableValue<VariableValueSingle>>;
+}
 
-  private _scopedVars: { __sceneObject: ScopedVar };
+export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendationsState> {
+  static Component = GroupByRecommendationsRenderer;
 
-  public constructor(groupByVariable: GroupByVariable, scopedVars: { __sceneObject: ScopedVar }) {
-    this.groupBy = groupByVariable;
-    this._scopedVars = scopedVars;
+  public constructor(state: Partial<GroupByRecommendationsState> = {}) {
+    super(state);
+
+    this.addActivationHandler(this._activationHandler);
   }
 
-  public init() {
+  private get _groupBy(): GroupByVariable {
+    return this.parent as GroupByVariable;
+  }
+
+  private get _scopedVars() {
+    return { __sceneObject: wrapInSafeSerializableSceneObject(this._groupBy) };
+  }
+
+  private _activationHandler = () => {
     const json = store.get(this._getStorageKey());
     const storedGroupings = json ? JSON.parse(json) : [];
 
     if (storedGroupings.length > 0) {
       this._verifyRecentGroupingsApplicability(storedGroupings);
     } else {
-      this.groupBy.setState({ _recentGrouping: [] });
+      this.setState({ recentGrouping: [] });
     }
 
     this._fetchRecommendedDrilldowns();
 
     // Subscribe to scopes variable changes
-    const scopesVariable = sceneGraph.lookupVariable(SCOPES_VARIABLE_NAME, this.groupBy);
+    const scopesVariable = sceneGraph.lookupVariable(SCOPES_VARIABLE_NAME, this._groupBy);
     let scopesSubscription: Unsubscribable | undefined;
 
     if (scopesVariable instanceof ScopesVariable) {
-      scopesSubscription = scopesVariable.subscribeToState((newState, prevState) => {
-        if (newState.scopes !== prevState.scopes) {
-          const json = store.get(this._getStorageKey());
-          const storedGroupings = json ? JSON.parse(json) : [];
+      this._subs.add(
+        (scopesSubscription = scopesVariable.subscribeToState((newState, prevState) => {
+          if (newState.scopes !== prevState.scopes) {
+            const json = store.get(this._getStorageKey());
+            const storedGroupings = json ? JSON.parse(json) : [];
 
-          if (storedGroupings.length > 0) {
-            this._verifyRecentGroupingsApplicability(storedGroupings);
+            if (storedGroupings.length > 0) {
+              this._verifyRecentGroupingsApplicability(storedGroupings);
+            }
+
+            this._fetchRecommendedDrilldowns();
           }
-
-          this._fetchRecommendedDrilldowns();
-        }
-      });
+        }))
+      );
     }
 
     return () => {
       scopesSubscription?.unsubscribe();
     };
-  }
+  };
 
   private _getStorageKey(): string {
-    return getRecentGroupingKey(this.groupBy.state.datasource?.uid);
+    return getRecentGroupingKey(this._groupBy.state.datasource?.uid);
   }
 
   private async _fetchRecommendedDrilldowns() {
-    const ds = await getDataSource(this.groupBy.state.datasource, this._scopedVars);
+    const ds = await getDataSource(this._groupBy.state.datasource, this._scopedVars);
 
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getRecommendedDrilldowns) {
       return;
     }
 
-    const queries = getQueriesForVariables(this.groupBy);
-    const timeRange = sceneGraph.getTimeRange(this.groupBy).state.value;
-    const scopes = sceneGraph.getScopes(this.groupBy);
-    const groupByKeys = Array.isArray(this.groupBy.state.value)
-      ? this.groupBy.state.value.map((v) => String(v))
-      : this.groupBy.state.value
-      ? [String(this.groupBy.state.value)]
+    const queries = getQueriesForVariables(this._groupBy);
+    const timeRange = sceneGraph.getTimeRange(this._groupBy).state.value;
+    const scopes = sceneGraph.getScopes(this._groupBy);
+    const groupByKeys = Array.isArray(this._groupBy.state.value)
+      ? this._groupBy.state.value.map((v) => String(v))
+      : this._groupBy.state.value
+      ? [String(this._groupBy.state.value)]
       : [];
 
-    const enrichedRequest = getEnrichedDataRequest(this.groupBy);
+    const enrichedRequest = getEnrichedDataRequest(this._groupBy);
     const dashboardUid = enrichedRequest?.dashboardUID;
 
     try {
@@ -103,8 +119,8 @@ export class GroupByRecommendations {
       });
 
       if (recommendedDrilldowns?.groupByKeys) {
-        this.groupBy.setState({
-          _recommendedGrouping: recommendedDrilldowns.groupByKeys.map((key: string) => ({ value: key, text: key })),
+        this.setState({
+          recommendedGrouping: recommendedDrilldowns.groupByKeys.map((key: string) => ({ value: key, text: key })),
         });
       }
     } catch (error) {
@@ -113,12 +129,12 @@ export class GroupByRecommendations {
   }
 
   private async _verifyRecentGroupingsApplicability(storedGroupings: Array<SelectableValue<VariableValueSingle>>) {
-    const queries = getQueriesForVariables(this.groupBy);
+    const queries = getQueriesForVariables(this._groupBy);
     const keys = storedGroupings.map((g) => String(g.value));
-    const response = await this.groupBy.getGroupByApplicabilityForQueries(keys, queries);
+    const response = await this._groupBy.getGroupByApplicabilityForQueries(keys, queries);
 
     if (!response) {
-      this.groupBy.setState({ _recentGrouping: storedGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
+      this.setState({ recentGrouping: storedGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
       return;
     }
 
@@ -134,7 +150,7 @@ export class GroupByRecommendations {
       })
       .slice(-MAX_RECENT_DRILLDOWNS);
 
-    this.groupBy.setState({ _recentGrouping: applicableGroupings });
+    this.setState({ recentGrouping: applicableGroupings });
   }
 
   /**
@@ -164,49 +180,47 @@ export class GroupByRecommendations {
 
     store.set(key, JSON.stringify(limitedStoredGroupings));
 
-    this.groupBy.setState({ _recentGrouping: limitedStoredGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
+    this.setState({ recentGrouping: limitedStoredGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
   }
 
   /**
    * Add a grouping value to the parent variable
    */
   public addValueToParent(newValue: VariableValueSingle, newText?: string) {
-    const value = isArray(this.groupBy.state.value) ? this.groupBy.state.value : [this.groupBy.state.value];
-    const text = isArray(this.groupBy.state.text)
-      ? this.groupBy.state.text.map(String)
-      : [String(this.groupBy.state.text)];
+    const value = isArray(this._groupBy.state.value) ? this._groupBy.state.value : [this._groupBy.state.value];
+    const text = isArray(this._groupBy.state.text)
+      ? this._groupBy.state.text.map(String)
+      : [String(this._groupBy.state.text)];
 
     // Check if value already exists
     if (value.includes(newValue)) {
       return;
     }
 
-    this.groupBy.changeValueTo(
+    this._groupBy.changeValueTo(
       [...value.filter((v) => v !== ''), newValue],
       [...text.filter((t) => t !== ''), newText ?? String(newValue)],
       true
     );
   }
+}
 
-  public render() {
-    const { _recentGrouping, _recommendedGrouping } = this.groupBy.useState();
+function GroupByRecommendationsRenderer({ model }: SceneComponentProps<GroupByRecommendations>) {
+  const { recentGrouping, recommendedGrouping } = model.useState();
 
-    const recentDrilldowns: DrilldownPill[] | undefined = _recentGrouping?.map((groupBy) => ({
-      label: `${groupBy.value}`,
-      onClick: () => {
-        this.addValueToParent(groupBy.value!, groupBy.text ?? String(groupBy.value));
-      },
-    }));
+  const recentDrilldowns: DrilldownPill[] | undefined = recentGrouping?.map((groupBy) => ({
+    label: `${groupBy.value}`,
+    onClick: () => {
+      model.addValueToParent(groupBy.value!, groupBy.text ?? String(groupBy.value));
+    },
+  }));
 
-    const recommendedDrilldowns: DrilldownPill[] | undefined = _recommendedGrouping?.map((groupBy) => ({
-      label: `${groupBy.value}`,
-      onClick: () => {
-        this.addValueToParent(groupBy.value!, groupBy.text ?? String(groupBy.value));
-      },
-    }));
+  const recommendedDrilldowns: DrilldownPill[] | undefined = recommendedGrouping?.map((groupBy) => ({
+    label: `${groupBy.value}`,
+    onClick: () => {
+      model.addValueToParent(groupBy.value!, groupBy.text ?? String(groupBy.value));
+    },
+  }));
 
-    return (
-      <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />
-    );
-  }
+  return <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />;
 }

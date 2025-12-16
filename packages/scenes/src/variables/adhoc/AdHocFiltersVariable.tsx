@@ -158,24 +158,6 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   applicabilityEnabled?: boolean;
 
   /**
-   * Value recommendations - manages recent and recommended filters
-   * @internal
-   */
-  _valueRecommendations?: AdHocFiltersRecommendations;
-
-  /**
-   * Recent filters loaded from storage
-   * @internal
-   */
-  _recentFilters?: AdHocFilterWithLabels[];
-
-  /**
-   * Recommended filters from datasource
-   * @internal
-   */
-  _recommendedFilters?: AdHocFilterWithLabels[];
-
-  /**
    * enables drilldown recommendations
    */
   drilldownRecommendationsEnabled?: boolean;
@@ -285,7 +267,16 @@ export class AdHocFiltersVariable
 
   private _debouncedVerifyApplicability = debounce(this._verifyApplicability, 100);
 
+  private _recommendations: AdHocFiltersRecommendations | undefined;
+
   public constructor(state: Partial<AdHocFiltersVariableState>) {
+    const behaviors = state.$behaviors ?? [];
+    const recommendations = state.drilldownRecommendationsEnabled ? new AdHocFiltersRecommendations() : undefined;
+
+    if (recommendations) {
+      behaviors.push(recommendations);
+    }
+
     super({
       type: 'adhoc',
       name: state.name ?? 'Filters',
@@ -296,7 +287,10 @@ export class AdHocFiltersVariable
         state.filterExpression ??
         renderExpression(state.expressionBuilder, [...(state.originFilters ?? []), ...(state.filters ?? [])]),
       ...state,
+      $behaviors: behaviors.length > 0 ? behaviors : undefined,
     });
+
+    this._recommendations = recommendations;
 
     if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
@@ -313,14 +307,7 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
-    let recommendationsDeact: (() => void) | undefined;
     this._debouncedVerifyApplicability();
-
-    if (this.state.drilldownRecommendationsEnabled && !this.state._valueRecommendations) {
-      const valueRecommendations = new AdHocFiltersRecommendations(this, this._scopedVars);
-      this.setState({ _valueRecommendations: valueRecommendations });
-      recommendationsDeact = valueRecommendations.init();
-    }
 
     return () => {
       this.state.originFilters?.forEach((filter) => {
@@ -330,10 +317,12 @@ export class AdHocFiltersVariable
       });
 
       this.setState({ applicabilityEnabled: false });
-
-      recommendationsDeact?.();
     };
   };
+
+  public getRecommendations(): AdHocFiltersRecommendations | undefined {
+    return this._recommendations;
+  }
 
   private _updateScopesFilters() {
     const scopes = sceneGraph.getScopes(this);
@@ -400,11 +389,7 @@ export class AdHocFiltersVariable
 
   private async verifyApplicabilityAndStoreRecentFilter(update: AdHocFilterWithLabels) {
     await this._verifyApplicability();
-    if (!this.state.drilldownRecommendationsEnabled || !this.state._valueRecommendations) {
-      return;
-    }
-
-    this.state._valueRecommendations.storeRecentFilter(update);
+    this._recommendations?.storeRecentFilter(update);
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
@@ -549,12 +534,10 @@ export class AdHocFiltersVariable
 
     this.setState({ filters: updatedFilters });
 
-    if (this.state._valueRecommendations) {
-      this.state._valueRecommendations.storeRecentFilter({
-        ...filter,
-        ...update,
-      });
-    }
+    this._recommendations?.storeRecentFilter({
+      ...filter,
+      ...update,
+    });
   }
 
   public updateToMatchAll(filter: AdHocFilterWithLabels) {

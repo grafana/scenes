@@ -41,8 +41,9 @@ describe('AdHocFiltersRecommendations', () => {
       });
 
       await waitFor(() => {
-        expect(filtersVar.state._valueRecommendations).toBeDefined();
-        expect(filtersVar.state._recentFilters).toEqual(recentFilters);
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recentFilters).toEqual(recentFilters);
       });
     });
 
@@ -52,8 +53,9 @@ describe('AdHocFiltersRecommendations', () => {
       });
 
       await waitFor(() => {
-        expect(filtersVar.state._valueRecommendations).toBeDefined();
-        expect(filtersVar.state._recentFilters).toEqual([]);
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recentFilters).toEqual([]);
       });
     });
   });
@@ -68,7 +70,7 @@ describe('AdHocFiltersRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: AdHocFiltersRecommendations | undefined;
       await waitFor(() => {
-        recommendations = filtersVar.state._valueRecommendations;
+        recommendations = filtersVar.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -90,7 +92,7 @@ describe('AdHocFiltersRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: AdHocFiltersRecommendations | undefined;
       await waitFor(() => {
-        recommendations = filtersVar.state._valueRecommendations;
+        recommendations = filtersVar.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -117,7 +119,7 @@ describe('AdHocFiltersRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: AdHocFiltersRecommendations | undefined;
       await waitFor(() => {
-        recommendations = filtersVar.state._valueRecommendations;
+        recommendations = filtersVar.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -130,7 +132,7 @@ describe('AdHocFiltersRecommendations', () => {
       }
 
       await waitFor(() => {
-        expect(filtersVar.state._recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+        expect(recommendations!.state.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
       });
     });
   });
@@ -145,7 +147,7 @@ describe('AdHocFiltersRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: AdHocFiltersRecommendations | undefined;
       await waitFor(() => {
-        recommendations = filtersVar.state._valueRecommendations;
+        recommendations = filtersVar.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -166,7 +168,7 @@ describe('AdHocFiltersRecommendations', () => {
 
       // Wait for recommendations to be available
       await waitFor(() => {
-        const recommendations = filtersVar.state._valueRecommendations;
+        const recommendations = filtersVar.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 

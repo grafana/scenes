@@ -34,8 +34,9 @@ describe('GroupByRecommendations', () => {
       });
 
       await waitFor(() => {
-        expect(variable.state._valueRecommendations).toBeDefined();
-        expect(variable.state._recentGrouping).toEqual(recentGroupings);
+        const recommendations = variable.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recentGrouping).toEqual(recentGroupings);
       });
     });
 
@@ -45,8 +46,9 @@ describe('GroupByRecommendations', () => {
       });
 
       await waitFor(() => {
-        expect(variable.state._valueRecommendations).toBeDefined();
-        expect(variable.state._recentGrouping).toEqual([]);
+        const recommendations = variable.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recentGrouping).toEqual([]);
       });
     });
   });
@@ -61,7 +63,7 @@ describe('GroupByRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: GroupByRecommendations | undefined;
       await waitFor(() => {
-        recommendations = variable.state._valueRecommendations;
+        recommendations = variable.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -81,7 +83,7 @@ describe('GroupByRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: GroupByRecommendations | undefined;
       await waitFor(() => {
-        recommendations = variable.state._valueRecommendations;
+        recommendations = variable.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -99,7 +101,7 @@ describe('GroupByRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: GroupByRecommendations | undefined;
       await waitFor(() => {
-        recommendations = variable.state._valueRecommendations;
+        recommendations = variable.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -126,7 +128,7 @@ describe('GroupByRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: GroupByRecommendations | undefined;
       await waitFor(() => {
-        recommendations = variable.state._valueRecommendations;
+        recommendations = variable.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -135,7 +137,7 @@ describe('GroupByRecommendations', () => {
       recommendations!.storeRecentGrouping(manyValues);
 
       await waitFor(() => {
-        expect(variable.state._recentGrouping!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+        expect(recommendations!.state.recentGrouping!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
       });
     });
 
@@ -147,7 +149,7 @@ describe('GroupByRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: GroupByRecommendations | undefined;
       await waitFor(() => {
-        recommendations = variable.state._valueRecommendations;
+        recommendations = variable.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -185,7 +187,7 @@ describe('GroupByRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: GroupByRecommendations | undefined;
       await waitFor(() => {
-        recommendations = variable.state._valueRecommendations;
+        recommendations = variable.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -205,7 +207,7 @@ describe('GroupByRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: GroupByRecommendations | undefined;
       await waitFor(() => {
-        recommendations = variable.state._valueRecommendations;
+        recommendations = variable.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -224,7 +226,7 @@ describe('GroupByRecommendations', () => {
       // Wait for recommendations to be available
       let recommendations: GroupByRecommendations | undefined;
       await waitFor(() => {
-        recommendations = variable.state._valueRecommendations;
+        recommendations = variable.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -251,7 +253,7 @@ describe('GroupByRecommendations', () => {
 
       // Wait for recommendations to be available
       await waitFor(() => {
-        const recommendations = variable.state._valueRecommendations;
+        const recommendations = variable.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
@@ -262,7 +264,7 @@ describe('GroupByRecommendations', () => {
         expect(storedGroupings).toBeDefined();
         expect(JSON.parse(storedGroupings!)[0]).toEqual({ value: 'value1', text: 'value1' });
 
-        expect(variable.state._recentGrouping).toHaveLength(1);
+        expect(variable.getRecommendations()?.state.recentGrouping).toHaveLength(1);
       });
     });
 
@@ -281,7 +283,7 @@ describe('GroupByRecommendations', () => {
 
       // Wait for recommendations to be available
       await waitFor(() => {
-        const recommendations = variable.state._valueRecommendations;
+        const recommendations = variable.getRecommendations();
         expect(recommendations).toBeDefined();
       });
 
