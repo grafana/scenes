@@ -1,12 +1,14 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, Icon, useStyles2 } from '@grafana/ui';
+import { Button, Icon, useStyles2, useTheme2 } from '@grafana/ui';
 import { t } from '@grafana/i18n';
-import React, { memo, useRef, useState, useEffect, useCallback } from 'react';
-import { useWindowSize } from 'react-use';
+import React, { memo, useRef, useState, useEffect } from 'react';
+import { useMeasure } from 'react-use';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
+
+const MAX_VISIBLE_FILTERS = 4;
 
 interface Props {
   controller: AdHocFiltersController;
@@ -15,9 +17,9 @@ interface Props {
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
   const { originFilters, filters, readOnly, collapsible } = controller.useState();
   const styles = useStyles2(getStyles);
+  const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
-  const [isMultiLine, setIsMultiLine] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [wrapperRef, { height: wrapperHeight }] = useMeasure<HTMLDivElement>();
 
   const clearAll = () => {
     controller.clearAll();
@@ -27,24 +29,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   // defined in the combobox component via useImperativeHandle
   const focusOnWipInputRef = useRef<() => void>();
 
-  const { width: windowWidth } = useWindowSize();
-
-  // Check if content has wrapped to multiple lines (only when collapsible)
-  const checkMultiLine = useCallback(() => {
-    if (!collapsible) {
-      setIsMultiLine(false);
-      return;
-    }
-    if (wrapperRef.current) {
-      // Single line height is approximately minHeight (32px = 4 spacing units)
-      const singleLineThreshold = 40; // slightly more than minHeight to account for padding
-      setIsMultiLine(wrapperRef.current.scrollHeight > singleLineThreshold);
-    }
-  }, [collapsible]);
-
-  useEffect(() => {
-    checkMultiLine();
-  }, [checkMultiLine, filters, originFilters, windowWidth, collapsed]);
+  // Single line height is approximately minHeight (4 spacing units) + small buffer
+  const singleLineThreshold = theme.spacing.gridSize * 5;
+  const isMultiLine = collapsible && wrapperHeight > singleLineThreshold;
 
   const handleCollapseToggle = (event: React.MouseEvent) => {
     event.stopPropagation();
@@ -65,17 +52,14 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     }
   };
 
-  // Combine all visible filters into one array for easier slicing
+  // Combine all visible filters into one array
   const visibleOriginFilters = originFilters?.filter((f) => f.origin) ?? [];
   const visibleFilters = filters.filter((f) => !f.hidden);
   const allFilters = [...visibleOriginFilters, ...visibleFilters];
   const totalFiltersCount = allFilters.length;
 
-  // When collapsed and collapsible, only show first 2 pills
-  const maxVisibleWhenCollapsed = 2;
-  const shouldCollapse = collapsible && collapsed;
-  const filtersToRender = shouldCollapse ? allFilters.slice(0, maxVisibleWhenCollapsed) : allFilters;
-  const hiddenCount = shouldCollapse ? Math.max(0, totalFiltersCount - maxVisibleWhenCollapsed) : 0;
+  const shouldCollapse = collapsible && collapsed && totalFiltersCount > 0;
+  const filtersToRender = shouldCollapse ? allFilters.slice(0, MAX_VISIBLE_FILTERS) : allFilters;
 
   // Reset collapsed state when there are no filters (only when collapsible)
   useEffect(() => {
@@ -92,8 +76,8 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       ref={wrapperRef}
       className={cx(styles.comboboxWrapper, {
         [styles.comboboxFocusOutline]: !readOnly,
-        [styles.collapsed]: collapsible && collapsed && hiddenCount > 0,
-        [styles.clickableCollapsed]: collapsible && collapsed && hiddenCount > 0,
+        [styles.collapsed]: shouldCollapse,
+        [styles.clickableCollapsed]: shouldCollapse,
       })}
       onClick={handleExpand}
     >
@@ -109,20 +93,16 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         />
       ))}
 
-      {hiddenCount > 0 && (
+      {shouldCollapse && totalFiltersCount > MAX_VISIBLE_FILTERS && (
         <span className={styles.moreIndicator}>
           {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.more-filters', '+{{count}} more', {
-            count: hiddenCount,
+            count: totalFiltersCount - MAX_VISIBLE_FILTERS,
           })}
         </span>
       )}
 
-      {!readOnly ? (
-        <AdHocFiltersAlwaysWipCombobox
-          controller={controller}
-          ref={focusOnWipInputRef}
-          onInputClick={collapsible && hiddenCount > 0 ? () => setCollapsed(false) : undefined}
-        />
+      {!readOnly && !shouldCollapse ? (
+        <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} />
       ) : null}
 
       {showCollapseButton && (
