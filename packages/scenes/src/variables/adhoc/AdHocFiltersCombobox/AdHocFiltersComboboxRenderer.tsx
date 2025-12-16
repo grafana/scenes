@@ -8,7 +8,7 @@ import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
 
-const MAX_VISIBLE_FILTERS = 4;
+const MAX_VISIBLE_FILTERS = 5;
 
 interface Props {
   controller: AdHocFiltersController;
@@ -93,36 +93,39 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         />
       ))}
 
-      {shouldCollapse && totalFiltersCount > MAX_VISIBLE_FILTERS && (
-        <span className={styles.moreIndicator}>
-          {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.more-filters', '+{{count}} more', {
-            count: totalFiltersCount - MAX_VISIBLE_FILTERS,
-          })}
-        </span>
-      )}
-
       {!readOnly && !shouldCollapse ? (
         <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} />
       ) : null}
 
-      {showCollapseButton && (
-        <Button
-          className={styles.collapseButton}
-          fill="text"
-          onClick={handleCollapseToggle}
-          aria-label={t(
-            'grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse-filters',
-            'Collapse filters'
-          )}
-          aria-expanded={!collapsed}
-        >
-          {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse', 'Collapse')}
-          <Icon name="angle-up" size="md" />
-        </Button>
-      )}
+      {/* Right-side controls: +X more, collapse button, and clear all */}
+      <div className={styles.rightControls}>
+        {shouldCollapse && totalFiltersCount > MAX_VISIBLE_FILTERS && (
+          <span className={styles.moreIndicator}>
+            {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.more-filters', '+{{count}} more', {
+              count: totalFiltersCount - MAX_VISIBLE_FILTERS,
+            })}
+          </span>
+        )}
 
-      <div className={styles.clearAllButton}>
-        <Icon name="times" size="md" onClick={clearAll} />
+        {showCollapseButton && (
+          <Button
+            className={styles.collapseButton}
+            fill="text"
+            onClick={handleCollapseToggle}
+            aria-label={t(
+              'grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse-filters',
+              'Collapse filters'
+            )}
+            aria-expanded={!collapsed}
+          >
+            {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse', 'Collapse')}
+            <Icon name="angle-up" size="md" />
+          </Button>
+        )}
+
+        <div className={styles.clearAllButton}>
+          <Icon name="times" size="md" onClick={clearAll} />
+        </div>
       </div>
     </div>
   );
@@ -142,6 +145,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     paddingInline: theme.spacing(1),
     paddingBlock: theme.spacing(0.5),
     flexGrow: 1,
+    width: '100%',
   }),
   comboboxFocusOutline: css({
     '&:focus-within': {
@@ -168,15 +172,20 @@ const getStyles = (theme: GrafanaTheme2) => ({
       borderColor: theme.colors.border.medium,
     },
   }),
+  rightControls: css({
+    display: 'flex',
+    alignItems: 'center',
+    gap: theme.spacing(1),
+    marginLeft: 'auto',
+    flexShrink: 0,
+  }),
   moreIndicator: css({
     color: theme.colors.text.secondary,
     whiteSpace: 'nowrap',
     ...theme.typography.bodySmall,
     fontStyle: 'italic',
-    marginLeft: theme.spacing(0.5),
   }),
   collapseButton: css({
-    marginLeft: 'auto',
     color: theme.colors.text.secondary,
     padding: 0,
     fontSize: theme.typography.bodySmall.fontSize,
