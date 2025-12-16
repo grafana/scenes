@@ -69,6 +69,8 @@ export class GroupByRecommendations {
           if (storedGroupings.length > 0) {
             this._verifyRecentGroupingsApplicability(storedGroupings);
           }
+
+          this._fetchRecommendedDrilldowns();
         }
       });
     }

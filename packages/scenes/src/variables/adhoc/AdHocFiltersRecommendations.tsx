@@ -68,6 +68,8 @@ export class AdHocFiltersRecommendations {
           if (storedFilters.length > 0) {
             this._verifyRecentFiltersApplicability(storedFilters);
           }
+
+          this._fetchRecommendedDrilldowns();
         }
       });
     }
