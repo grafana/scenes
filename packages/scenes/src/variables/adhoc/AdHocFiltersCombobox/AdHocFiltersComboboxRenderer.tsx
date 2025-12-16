@@ -99,14 +99,6 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
       {/* Right-side controls: +X more, collapse button, and clear all */}
       <div className={styles.rightControls}>
-        {shouldCollapse && totalFiltersCount > MAX_VISIBLE_FILTERS && (
-          <span className={styles.moreIndicator}>
-            {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.more-filters', '+{{count}} more', {
-              count: totalFiltersCount - MAX_VISIBLE_FILTERS,
-            })}
-          </span>
-        )}
-
         {showCollapseButton && (
           <Button
             className={styles.collapseButton}
@@ -126,6 +118,15 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         <div className={styles.clearAllButton}>
           <Icon name="times" size="md" onClick={clearAll} />
         </div>
+
+        {shouldCollapse && (
+          <>
+            {totalFiltersCount > MAX_VISIBLE_FILTERS && (
+              <span className={styles.moreIndicator}>(+{totalFiltersCount - MAX_VISIBLE_FILTERS})</span>
+            )}
+            <Icon name="angle-down" className={styles.dropdownIndicator} />
+          </>
+        )}
       </div>
     </div>
   );
@@ -175,15 +176,16 @@ const getStyles = (theme: GrafanaTheme2) => ({
   rightControls: css({
     display: 'flex',
     alignItems: 'center',
-    gap: theme.spacing(1),
     marginLeft: 'auto',
     flexShrink: 0,
   }),
   moreIndicator: css({
     color: theme.colors.text.secondary,
     whiteSpace: 'nowrap',
-    ...theme.typography.bodySmall,
-    fontStyle: 'italic',
+  }),
+  dropdownIndicator: css({
+    color: theme.colors.text.secondary,
+    flexShrink: 0,
   }),
   collapseButton: css({
     color: theme.colors.text.secondary,
