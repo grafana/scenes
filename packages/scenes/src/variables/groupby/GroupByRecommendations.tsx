@@ -39,7 +39,11 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
   }
 
   private get _groupBy(): GroupByVariable {
-    return this.parent as GroupByVariable;
+    if (!(this.parent instanceof GroupByVariable)) {
+      throw new Error('GroupByRecommendations must be a child of GroupByVariable');
+    }
+
+    return this.parent;
   }
 
   private get _scopedVars() {
