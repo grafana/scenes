@@ -109,6 +109,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
 
+  private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
+
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
       map((options) => {
@@ -145,11 +147,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     this.setState({ loading: true, error: null });
 
-    return from(
-      getDataSource(this.state.datasource, {
-        __sceneObject: wrapInSafeSerializableSceneObject(this),
-      })
-    ).pipe(
+    return from(getDataSource(this.state.datasource, this._scopedVars)).pipe(
       mergeMap((ds) => {
         return from(this._getKeys(ds)).pipe(
           tap((response) => {
@@ -215,9 +213,9 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     if (this.state.drilldownRecommendationsEnabled && !this.state._valueRecommendations) {
-      const valueRecommendations = new GroupByRecommendations(this);
+      const valueRecommendations = new GroupByRecommendations(this, this._scopedVars);
       this.setState({ _valueRecommendations: valueRecommendations });
-      valueRecommendations.activate();
+      valueRecommendations.init();
     }
 
     return () => {
@@ -226,6 +224,8 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       }
 
       this.setState({ applicabilityEnabled: false });
+
+      this.state._valueRecommendations?.deinit();
     };
   };
 
@@ -250,9 +250,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     value: VariableValue,
     queries: SceneDataQuery[]
   ): Promise<DrilldownsApplicability[] | undefined> {
-    const ds = await getDataSource(this.state.datasource, {
-      __sceneObject: wrapInSafeSerializableSceneObject(this),
-    });
+    const ds = await getDataSource(this.state.datasource, this._scopedVars);
 
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds.getDrilldownsApplicability) {
@@ -603,9 +601,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.recommendations}>
-        <_valueRecommendations.Component model={_valueRecommendations} />
-      </div>
+      <div className={styles.recommendations}>{_valueRecommendations.render()}</div>
 
       {select}
     </div>

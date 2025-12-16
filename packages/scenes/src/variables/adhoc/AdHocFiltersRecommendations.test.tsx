@@ -43,7 +43,7 @@ describe('AdHocFiltersRecommendations', () => {
       await waitFor(() => {
         const recommendations = filtersVar.state._valueRecommendations;
         expect(recommendations).toBeDefined();
-        expect(recommendations?.state.recentFilters).toEqual(recentFilters);
+        expect(recommendations?.recentFilters).toEqual(recentFilters);
       });
     });
 
@@ -55,7 +55,7 @@ describe('AdHocFiltersRecommendations', () => {
       await waitFor(() => {
         const recommendations = filtersVar.state._valueRecommendations;
         expect(recommendations).toBeDefined();
-        expect(recommendations?.state.recentFilters).toEqual([]);
+        expect(recommendations?.recentFilters).toEqual([]);
       });
     });
   });
@@ -132,7 +132,7 @@ describe('AdHocFiltersRecommendations', () => {
       }
 
       await waitFor(() => {
-        expect(recommendations?.state.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+        expect(recommendations?.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
       });
     });
   });

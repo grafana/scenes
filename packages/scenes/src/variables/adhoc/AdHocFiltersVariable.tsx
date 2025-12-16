@@ -304,9 +304,9 @@ export class AdHocFiltersVariable
     this._debouncedVerifyApplicability();
 
     if (this.state.drilldownRecommendationsEnabled && !this.state._valueRecommendations) {
-      const valueRecommendations = new AdHocFiltersRecommendations(this);
+      const valueRecommendations = new AdHocFiltersRecommendations(this, this._scopedVars);
       this.setState({ _valueRecommendations: valueRecommendations });
-      valueRecommendations.activate();
+      valueRecommendations.init();
     }
 
     return () => {
@@ -317,6 +317,8 @@ export class AdHocFiltersVariable
       });
 
       this.setState({ applicabilityEnabled: false });
+
+      this.state._valueRecommendations?.deinit();
     };
   };
 

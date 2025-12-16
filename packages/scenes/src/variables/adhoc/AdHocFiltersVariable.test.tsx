@@ -2537,7 +2537,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await waitFor(() => {
         const recommendations = filtersVar.state._valueRecommendations;
-        expect(recommendations?.state.recentFilters).toEqual(recentFilters);
+        expect(recommendations?.recentFilters).toEqual(recentFilters);
       });
     });
 
@@ -2566,7 +2566,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await waitFor(() => {
         const recommendations = filtersVar.state._valueRecommendations;
-        expect(recommendations?.state.recentFilters).toHaveLength(1);
+        expect(recommendations?.recentFilters).toHaveLength(1);
       });
     });
 
@@ -2586,7 +2586,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await waitFor(() => {
         const recommendations = filtersVar.state._valueRecommendations;
-        expect(recommendations?.state.recentFilters).toHaveLength(1);
+        expect(recommendations?.recentFilters).toHaveLength(1);
       });
     });
 
@@ -2615,7 +2615,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await waitFor(() => {
         const recommendations = filtersVar.state._valueRecommendations;
-        expect(recommendations?.state.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+        expect(recommendations?.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
       });
     });
 
@@ -2638,7 +2638,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await waitFor(() => {
         const recommendations = filtersVar.state._valueRecommendations;
-        expect(recommendations?.state.recentFilters).toHaveLength(2);
+        expect(recommendations?.recentFilters).toHaveLength(2);
       });
     });
   });

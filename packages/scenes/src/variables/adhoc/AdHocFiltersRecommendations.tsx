@@ -3,17 +3,14 @@ import { config } from '@grafana/runtime';
 import {
   // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
+  ScopedVar,
   store,
 } from '@grafana/data';
 import { Unsubscribable } from 'rxjs';
-import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneComponentProps, SceneDataQuery, SceneObjectState } from '../../core/types';
 import { sceneGraph } from '../../core/sceneGraph';
 import { getEnrichedDataRequest } from '../../querying/getEnrichedDataRequest';
 import { getQueriesForVariables } from '../utils';
-import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { getDataSource } from '../../utils/getDataSource';
-import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { DrilldownRecommendations, DrilldownPill } from '../components/DrilldownRecommendations';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../constants';
@@ -25,59 +22,45 @@ export const MAX_STORED_RECENT_DRILLDOWNS = 10;
 export const getRecentFiltersKey = (datasourceUid: string | undefined) =>
   `grafana.filters.recent.${datasourceUid ?? 'default'}`;
 
-export interface AdHocFiltersRecommendationsState extends SceneObjectState {
-  /** Recent filters */
-  recentFilters?: AdHocFilterWithLabels[];
-  /** Recommended filters */
-  recommendedFilters?: AdHocFilterWithLabels[];
-}
+export class AdHocFiltersRecommendations {
+  private _recentFilters?: AdHocFilterWithLabels[];
+  private _recommendedFilters?: AdHocFilterWithLabels[];
 
-/**
- * Scene object component that manages recommendations for AdHocFiltersVariable.
- * It handles fetching recommended drilldowns, verifying applicability of recent filters,
- * and storing/displaying recent filters.
- */
-export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRecommendationsState> {
-  static Component = AdHocFiltersRecommendationsRenderer;
+  private adHocFilter: AdHocFiltersVariable;
+  private scopesSubscription: Unsubscribable | undefined;
 
-  private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
+  private _scopedVars: { __sceneObject: ScopedVar };
 
-  // Store parent as a class property, not in state, to avoid circular parent references
-  private _parentVariable: AdHocFiltersVariable;
-
-  public constructor(parent: AdHocFiltersVariable) {
-    super({});
-    this._parentVariable = parent;
-    this.addActivationHandler(this._activationHandler);
+  public constructor(adHocFilter: AdHocFiltersVariable, scopedVars: { __sceneObject: ScopedVar }) {
+    this.adHocFilter = adHocFilter;
+    this._scopedVars = scopedVars;
   }
 
-  /**
-   * Get the parent variable
-   */
-  public get parent(): AdHocFiltersVariable {
-    return this._parentVariable;
+  public get recentFilters(): AdHocFilterWithLabels[] | undefined {
+    return this._recentFilters;
   }
 
-  private _activationHandler = () => {
+  public get recommendedFilters(): AdHocFilterWithLabels[] | undefined {
+    return this._recommendedFilters;
+  }
+
+  public init() {
     const json = store.get(this._getStorageKey());
     const storedFilters = json ? JSON.parse(json) : [];
 
-    // Verify applicability of stored recent filters
     if (storedFilters.length > 0) {
       this._verifyRecentFiltersApplicability(storedFilters);
     } else {
-      this.setState({ recentFilters: [] });
+      this._recentFilters = [];
     }
 
     this._fetchRecommendedDrilldowns();
 
-    // Subscribe to scopes variable changes
-    const scopesVariable = sceneGraph.lookupVariable(SCOPES_VARIABLE_NAME, this);
-    let scopesSubscription: Unsubscribable | undefined;
+    // Set up subscription to scopes variable
+    const scopesVariable = sceneGraph.lookupVariable(SCOPES_VARIABLE_NAME, this.adHocFilter);
 
     if (scopesVariable instanceof ScopesVariable) {
-      scopesSubscription = scopesVariable.subscribeToState((newState, prevState) => {
-        // Check if scopes have changed
+      this.scopesSubscription = scopesVariable.subscribeToState((newState, prevState) => {
         if (newState.scopes !== prevState.scopes) {
           const json = store.get(this._getStorageKey());
           const storedFilters = json ? JSON.parse(json) : [];
@@ -88,31 +71,31 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
         }
       });
     }
+  }
 
-    return () => {
-      scopesSubscription?.unsubscribe();
-    };
-  };
+  public deinit() {
+    this.scopesSubscription?.unsubscribe();
+  }
 
   private _getStorageKey(): string {
-    return getRecentFiltersKey(this._parentVariable.state.datasource?.uid);
+    return getRecentFiltersKey(this.adHocFilter.state.datasource?.uid);
   }
 
   private async _fetchRecommendedDrilldowns() {
-    const parent = this._parentVariable;
-    const ds = await getDataSource(parent.state.datasource, this._scopedVars);
+    const adhoc = this.adHocFilter;
+    const ds = await getDataSource(adhoc.state.datasource, this._scopedVars);
 
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getRecommendedDrilldowns) {
       return;
     }
 
-    const queries = parent.state.useQueriesAsFilterForOptions ? getQueriesForVariables(parent) : undefined;
-    const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const scopes = sceneGraph.getScopes(this);
-    const filters = [...(parent.state.originFilters ?? []), ...parent.state.filters];
+    const queries = adhoc.state.useQueriesAsFilterForOptions ? getQueriesForVariables(adhoc) : undefined;
+    const timeRange = sceneGraph.getTimeRange(adhoc).state.value;
+    const scopes = sceneGraph.getScopes(adhoc);
+    const filters = [...(adhoc.state.originFilters ?? []), ...adhoc.state.filters];
 
-    const enrichedRequest = getEnrichedDataRequest(this);
+    const enrichedRequest = getEnrichedDataRequest(adhoc);
     const dashboardUid = enrichedRequest?.dashboardUID;
 
     try {
@@ -127,7 +110,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
       });
 
       if (recommendedDrilldowns?.filters) {
-        this.setState({ recommendedFilters: recommendedDrilldowns.filters });
+        this._recommendedFilters = recommendedDrilldowns.filters;
       }
     } catch (error) {
       console.error('Failed to fetch recommended drilldowns:', error);
@@ -135,12 +118,12 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
   }
 
   private async _verifyRecentFiltersApplicability(storedFilters: AdHocFilterWithLabels[]) {
-    const parent = this._parentVariable;
-    const queries = parent.state.useQueriesAsFilterForOptions ? getQueriesForVariables(parent) : undefined;
-    const response = await this._getFiltersApplicabilityForQueries(storedFilters, queries ?? []);
+    const adhoc = this.adHocFilter;
+    const queries = adhoc.state.useQueriesAsFilterForOptions ? getQueriesForVariables(adhoc) : undefined;
+    const response = await adhoc.getFiltersApplicabilityForQueries(storedFilters, queries ?? []);
 
     if (!response) {
-      this.setState({ recentFilters: storedFilters.slice(-MAX_RECENT_DRILLDOWNS) });
+      this._recentFilters = storedFilters.slice(-MAX_RECENT_DRILLDOWNS);
       return;
     }
 
@@ -156,30 +139,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
       })
       .slice(-MAX_RECENT_DRILLDOWNS);
 
-    this.setState({ recentFilters: applicableFilters });
-  }
-
-  private async _getFiltersApplicabilityForQueries(
-    filters: AdHocFilterWithLabels[],
-    queries: SceneDataQuery[]
-  ): Promise<DrilldownsApplicability[] | undefined> {
-    const parent = this._parentVariable;
-    const ds = await getDataSource(parent.state.datasource, this._scopedVars);
-    // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds || !ds.getDrilldownsApplicability) {
-      return;
-    }
-
-    const timeRange = sceneGraph.getTimeRange(this).state.value;
-
-    // @ts-expect-error (temporary till we update grafana/data)
-    return await ds.getDrilldownsApplicability({
-      filters,
-      queries,
-      timeRange,
-      scopes: sceneGraph.getScopes(this),
-      ...getEnrichedFiltersRequest(this),
-    });
+    this._recentFilters = applicableFilters;
   }
 
   /**
@@ -194,50 +154,40 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const updatedStoredFilters = [...allRecentFilters, filter].slice(-MAX_STORED_RECENT_DRILLDOWNS);
     store.set(key, JSON.stringify(updatedStoredFilters));
 
-    const parent = this._parentVariable;
-    const existingFilter = parent.state.filters.find((f) => f.key === filter.key && !Boolean(f.nonApplicable));
+    const adhoc = this.adHocFilter;
+    const existingFilter = adhoc.state.filters.find((f) => f.key === filter.key && !Boolean(f.nonApplicable));
     if (existingFilter && !Boolean(existingFilter.nonApplicable)) {
-      this.setState({ recentFilters: updatedStoredFilters.slice(-MAX_RECENT_DRILLDOWNS) });
+      this._recentFilters = updatedStoredFilters.slice(-MAX_RECENT_DRILLDOWNS);
     }
   }
 
-  /**
-   * Get the current filters from the parent variable
-   */
-  public getParentFilters(): AdHocFilterWithLabels[] {
-    return this._parentVariable.state.filters;
-  }
-
-  /**
-   * Add a filter to the parent variable
-   */
   public addFilterToParent(filter: AdHocFilterWithLabels) {
-    const parent = this._parentVariable;
-    parent.updateFilters([...parent.state.filters, filter]);
+    this.adHocFilter.updateFilters([...this.adHocFilter.state.filters, filter]);
   }
-}
 
-function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHocFiltersRecommendations>) {
-  const { recentFilters, recommendedFilters } = model.useState();
-  const { filters } = model.parent.useState();
+  public render() {
+    const { filters } = this.adHocFilter.useState();
 
-  const recentDrilldowns: DrilldownPill[] | undefined = recentFilters?.map((filter) => ({
-    label: `${filter.key} ${filter.operator} ${filter.value}`,
-    onClick: () => {
-      model.addFilterToParent(filter);
-    },
-  }));
+    const recentDrilldowns: DrilldownPill[] | undefined = this.recentFilters?.map((filter) => ({
+      label: `${filter.key} ${filter.operator} ${filter.value}`,
+      onClick: () => {
+        this.addFilterToParent(filter);
+      },
+    }));
 
-  const recommendedDrilldowns: DrilldownPill[] | undefined = recommendedFilters?.map((filter) => ({
-    label: `${filter.key} ${filter.operator} ${filter.value}`,
-    onClick: () => {
-      // Check if filter already exists
-      const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
-      if (!exists) {
-        model.addFilterToParent(filter);
-      }
-    },
-  }));
+    const recommendedDrilldowns: DrilldownPill[] | undefined = this.recommendedFilters?.map((filter) => ({
+      label: `${filter.key} ${filter.operator} ${filter.value}`,
+      onClick: () => {
+        // Check if filter already exists
+        const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
+        if (!exists) {
+          this.addFilterToParent(filter);
+        }
+      },
+    }));
 
-  return <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />;
+    return (
+      <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />
+    );
+  }
 }

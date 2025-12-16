@@ -28,9 +28,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     >
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
-      {drilldownRecommendationsEnabled && valueRecommendations && (
-        <valueRecommendations.Component model={valueRecommendations} />
-      )}
+      {drilldownRecommendationsEnabled && valueRecommendations && valueRecommendations.render()}
 
       {originFilters?.map((filter, index) =>
         filter.origin ? (
