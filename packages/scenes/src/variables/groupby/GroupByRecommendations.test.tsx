@@ -34,9 +34,8 @@ describe('GroupByRecommendations', () => {
       });
 
       await waitFor(() => {
-        const recommendations = variable.state._valueRecommendations;
-        expect(recommendations).toBeDefined();
-        expect(recommendations?.recentGrouping).toEqual(recentGroupings);
+        expect(variable.state._valueRecommendations).toBeDefined();
+        expect(variable.state._recentGrouping).toEqual(recentGroupings);
       });
     });
 
@@ -46,9 +45,8 @@ describe('GroupByRecommendations', () => {
       });
 
       await waitFor(() => {
-        const recommendations = variable.state._valueRecommendations;
-        expect(recommendations).toBeDefined();
-        expect(recommendations?.recentGrouping).toEqual([]);
+        expect(variable.state._valueRecommendations).toBeDefined();
+        expect(variable.state._recentGrouping).toEqual([]);
       });
     });
   });
@@ -137,7 +135,7 @@ describe('GroupByRecommendations', () => {
       recommendations!.storeRecentGrouping(manyValues);
 
       await waitFor(() => {
-        expect(recommendations?.recentGrouping!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+        expect(variable.state._recentGrouping!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
       });
     });
 
@@ -264,8 +262,7 @@ describe('GroupByRecommendations', () => {
         expect(storedGroupings).toBeDefined();
         expect(JSON.parse(storedGroupings!)[0]).toEqual({ value: 'value1', text: 'value1' });
 
-        const recommendations = variable.state._valueRecommendations;
-        expect(recommendations?.recentGrouping).toHaveLength(1);
+        expect(variable.state._recentGrouping).toHaveLength(1);
       });
     });
 

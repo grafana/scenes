@@ -93,6 +93,18 @@ export interface GroupByVariableState extends MultiValueVariableState {
   _valueRecommendations?: GroupByRecommendations;
 
   /**
+   * Recent groupings loaded from storage
+   * @internal
+   */
+  _recentGrouping?: Array<SelectableValue<VariableValueSingle>>;
+
+  /**
+   * Recommended groupings from datasource
+   * @internal
+   */
+  _recommendedGrouping?: Array<SelectableValue<VariableValueSingle>>;
+
+  /**
    * enables drilldown recommendations
    */
   drilldownRecommendationsEnabled?: boolean;

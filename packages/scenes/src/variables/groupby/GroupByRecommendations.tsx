@@ -23,9 +23,6 @@ export const getRecentGroupingKey = (datasourceUid: string | undefined) =>
   `grafana.grouping.recent.${datasourceUid ?? 'default'}`;
 
 export class GroupByRecommendations {
-  private _recentGrouping?: Array<SelectableValue<VariableValueSingle>>;
-  private _recommendedGrouping?: Array<SelectableValue<VariableValueSingle>>;
-
   private groupBy: GroupByVariable;
 
   private _scopedVars: { __sceneObject: ScopedVar };
@@ -35,14 +32,6 @@ export class GroupByRecommendations {
     this._scopedVars = scopedVars;
   }
 
-  public get recentGrouping(): Array<SelectableValue<VariableValueSingle>> | undefined {
-    return this._recentGrouping;
-  }
-
-  public get recommendedGrouping(): Array<SelectableValue<VariableValueSingle>> | undefined {
-    return this._recommendedGrouping;
-  }
-
   public init() {
     const json = store.get(this._getStorageKey());
     const storedGroupings = json ? JSON.parse(json) : [];
@@ -50,7 +39,7 @@ export class GroupByRecommendations {
     if (storedGroupings.length > 0) {
       this._verifyRecentGroupingsApplicability(storedGroupings);
     } else {
-      this._recentGrouping = [];
+      this.groupBy.setState({ _recentGrouping: [] });
     }
 
     this._fetchRecommendedDrilldowns();
@@ -114,7 +103,9 @@ export class GroupByRecommendations {
       });
 
       if (recommendedDrilldowns?.groupByKeys) {
-        this._recommendedGrouping = recommendedDrilldowns.groupByKeys.map((key: string) => ({ value: key, text: key }));
+        this.groupBy.setState({
+          _recommendedGrouping: recommendedDrilldowns.groupByKeys.map((key: string) => ({ value: key, text: key })),
+        });
       }
     } catch (error) {
       console.error('Failed to fetch recommended drilldowns:', error);
@@ -127,7 +118,7 @@ export class GroupByRecommendations {
     const response = await this.groupBy.getGroupByApplicabilityForQueries(keys, queries);
 
     if (!response) {
-      this._recentGrouping = storedGroupings.slice(-MAX_RECENT_DRILLDOWNS);
+      this.groupBy.setState({ _recentGrouping: storedGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
       return;
     }
 
@@ -143,7 +134,7 @@ export class GroupByRecommendations {
       })
       .slice(-MAX_RECENT_DRILLDOWNS);
 
-    this._recentGrouping = applicableGroupings;
+    this.groupBy.setState({ _recentGrouping: applicableGroupings });
   }
 
   /**
@@ -173,7 +164,7 @@ export class GroupByRecommendations {
 
     store.set(key, JSON.stringify(limitedStoredGroupings));
 
-    this._recentGrouping = limitedStoredGroupings.slice(-MAX_RECENT_DRILLDOWNS);
+    this.groupBy.setState({ _recentGrouping: limitedStoredGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
   }
 
   /**
@@ -198,14 +189,16 @@ export class GroupByRecommendations {
   }
 
   public render() {
-    const recentDrilldowns: DrilldownPill[] | undefined = this.recentGrouping?.map((groupBy) => ({
+    const { _recentGrouping, _recommendedGrouping } = this.groupBy.useState();
+
+    const recentDrilldowns: DrilldownPill[] | undefined = _recentGrouping?.map((groupBy) => ({
       label: `${groupBy.value}`,
       onClick: () => {
         this.addValueToParent(groupBy.value!, groupBy.text ?? String(groupBy.value));
       },
     }));
 
-    const recommendedDrilldowns: DrilldownPill[] | undefined = this.recommendedGrouping?.map((groupBy) => ({
+    const recommendedDrilldowns: DrilldownPill[] | undefined = _recommendedGrouping?.map((groupBy) => ({
       label: `${groupBy.value}`,
       onClick: () => {
         this.addValueToParent(groupBy.value!, groupBy.text ?? String(groupBy.value));

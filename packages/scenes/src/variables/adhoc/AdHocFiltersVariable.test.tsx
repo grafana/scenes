@@ -2536,8 +2536,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
 
       await waitFor(() => {
-        const recommendations = filtersVar.state._valueRecommendations;
-        expect(recommendations?.recentFilters).toEqual(recentFilters);
+        expect(filtersVar.state._recentFilters).toEqual(recentFilters);
       });
     });
 
@@ -2565,8 +2564,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
 
       await waitFor(() => {
-        const recommendations = filtersVar.state._valueRecommendations;
-        expect(recommendations?.recentFilters).toHaveLength(1);
+        expect(filtersVar.state._recentFilters).toHaveLength(1);
       });
     });
 
@@ -2585,8 +2583,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(JSON.parse(storedFilters!)[0]).toEqual({ key: 'cluster', operator: '=', value: 'newValue' });
 
       await waitFor(() => {
-        const recommendations = filtersVar.state._valueRecommendations;
-        expect(recommendations?.recentFilters).toHaveLength(1);
+        expect(filtersVar.state._recentFilters).toHaveLength(1);
       });
     });
 
@@ -2614,8 +2611,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(JSON.parse(storedFilters!)).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
 
       await waitFor(() => {
-        const recommendations = filtersVar.state._valueRecommendations;
-        expect(recommendations?.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+        expect(filtersVar.state._recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
       });
     });
 
@@ -2637,8 +2633,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(JSON.parse(storedFilters!)).toHaveLength(2);
 
       await waitFor(() => {
-        const recommendations = filtersVar.state._valueRecommendations;
-        expect(recommendations?.recentFilters).toHaveLength(2);
+        expect(filtersVar.state._recentFilters).toHaveLength(2);
       });
     });
   });

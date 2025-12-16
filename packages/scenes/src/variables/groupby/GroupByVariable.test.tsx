@@ -789,8 +789,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       });
 
       await waitFor(() => {
-        const recommendations = variable.state._valueRecommendations;
-        expect(recommendations?.recentGrouping).toEqual(recentGrouping);
+        expect(variable.state._recentGrouping).toEqual(recentGrouping);
       });
     });
 
@@ -819,9 +818,8 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(JSON.parse(storedGroupings!)).toHaveLength(1);
       expect(JSON.parse(storedGroupings!)[0]).toEqual({ value: 'value1', text: 'value1' });
 
-      const recommendations = variable.state._valueRecommendations;
-      expect(recommendations?.recentGrouping).toHaveLength(1);
-      expect(recommendations?.recentGrouping![0]).toEqual({ value: 'value1', text: 'value1' });
+      expect(variable.state._recentGrouping).toHaveLength(1);
+      expect(variable.state._recentGrouping![0]).toEqual({ value: 'value1', text: 'value1' });
     });
 
     it('should not store non-applicable keys in recentGrouping', async () => {
@@ -848,8 +846,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       // Nothing should be stored since the only value is non-applicable
       expect(storedGroupings).toBeNull();
       // recentGrouping may be initialized on activation, so check it's empty or undefined
-      const recommendations = variable.state._valueRecommendations;
-      expect(recommendations?.recentGrouping?.length ?? 0).toBe(0);
+      expect(variable.state._recentGrouping?.length ?? 0).toBe(0);
     });
 
     it('should only store applicable keys when some are non-applicable', async () => {
@@ -882,8 +879,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(parsed).toHaveLength(2);
       expect(parsed.map((g: { value: string }) => g.value)).toEqual(['value1', 'value3']);
 
-      const recommendations = variable.state._valueRecommendations;
-      expect(recommendations?.recentGrouping).toHaveLength(2);
+      expect(variable.state._recentGrouping).toHaveLength(2);
     });
 
     it('should store up to MAX_STORED_RECENT_DRILLDOWNS in localStorage but display MAX_RECENT_DRILLDOWNS', async () => {
@@ -922,8 +918,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(storedGroupings).toBeDefined();
       expect(JSON.parse(storedGroupings!)).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
 
-      const recommendations = variable.state._valueRecommendations;
-      expect(recommendations?.recentGrouping!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+      expect(variable.state._recentGrouping!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
     });
 
     it('should set in browser storage with applicable values', async () => {

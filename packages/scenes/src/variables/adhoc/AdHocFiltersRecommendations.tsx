@@ -22,9 +22,6 @@ export const getRecentFiltersKey = (datasourceUid: string | undefined) =>
   `grafana.filters.recent.${datasourceUid ?? 'default'}`;
 
 export class AdHocFiltersRecommendations {
-  private _recentFilters?: AdHocFilterWithLabels[];
-  private _recommendedFilters?: AdHocFilterWithLabels[];
-
   private adHocFilter: AdHocFiltersVariable;
 
   private _scopedVars: { __sceneObject: ScopedVar };
@@ -34,14 +31,6 @@ export class AdHocFiltersRecommendations {
     this._scopedVars = scopedVars;
   }
 
-  public get recentFilters(): AdHocFilterWithLabels[] | undefined {
-    return this._recentFilters;
-  }
-
-  public get recommendedFilters(): AdHocFilterWithLabels[] | undefined {
-    return this._recommendedFilters;
-  }
-
   public init() {
     const json = store.get(this._getStorageKey());
     const storedFilters = json ? JSON.parse(json) : [];
@@ -49,7 +38,7 @@ export class AdHocFiltersRecommendations {
     if (storedFilters.length > 0) {
       this._verifyRecentFiltersApplicability(storedFilters);
     } else {
-      this._recentFilters = [];
+      this.adHocFilter.setState({ _recentFilters: [] });
     }
 
     this._fetchRecommendedDrilldowns();
@@ -110,9 +99,7 @@ export class AdHocFiltersRecommendations {
       });
 
       if (recommendedDrilldowns?.filters) {
-        this._recommendedFilters = recommendedDrilldowns.filters;
-        // Force re-render since render() subscribes to parent's state via useState()
-        this.adHocFilter.forceRender();
+        this.adHocFilter.setState({ _recommendedFilters: recommendedDrilldowns.filters });
       }
     } catch (error) {
       console.error('Failed to fetch recommended drilldowns:', error);
@@ -125,9 +112,7 @@ export class AdHocFiltersRecommendations {
     const response = await adhoc.getFiltersApplicabilityForQueries(storedFilters, queries ?? []);
 
     if (!response) {
-      this._recentFilters = storedFilters.slice(-MAX_RECENT_DRILLDOWNS);
-      // Force re-render since render() subscribes to parent's state via useState()
-      this.adHocFilter.forceRender();
+      this.adHocFilter.setState({ _recentFilters: storedFilters.slice(-MAX_RECENT_DRILLDOWNS) });
       return;
     }
 
@@ -143,9 +128,7 @@ export class AdHocFiltersRecommendations {
       })
       .slice(-MAX_RECENT_DRILLDOWNS);
 
-    this._recentFilters = applicableFilters;
-    // Force re-render since render() subscribes to parent's state via useState()
-    this.adHocFilter.forceRender();
+    this.adHocFilter.setState({ _recentFilters: applicableFilters });
   }
 
   /**
@@ -163,7 +146,7 @@ export class AdHocFiltersRecommendations {
     const adhoc = this.adHocFilter;
     const existingFilter = adhoc.state.filters.find((f) => f.key === filter.key && !Boolean(f.nonApplicable));
     if (existingFilter && !Boolean(existingFilter.nonApplicable)) {
-      this._recentFilters = updatedStoredFilters.slice(-MAX_RECENT_DRILLDOWNS);
+      this.adHocFilter.setState({ _recentFilters: updatedStoredFilters.slice(-MAX_RECENT_DRILLDOWNS) });
     }
   }
 
@@ -172,9 +155,9 @@ export class AdHocFiltersRecommendations {
   }
 
   public render() {
-    const { filters } = this.adHocFilter.useState();
+    const { filters, _recentFilters, _recommendedFilters } = this.adHocFilter.useState();
 
-    const recentDrilldowns: DrilldownPill[] | undefined = this.recentFilters?.map((filter) => ({
+    const recentDrilldowns: DrilldownPill[] | undefined = _recentFilters?.map((filter) => ({
       label: `${filter.key} ${filter.operator} ${
         filter.valueLabels?.length ? filter.valueLabels.join(', ') : filter.value
       }`,
@@ -186,7 +169,7 @@ export class AdHocFiltersRecommendations {
       },
     }));
 
-    const recommendedDrilldowns: DrilldownPill[] | undefined = this.recommendedFilters?.map((filter) => ({
+    const recommendedDrilldowns: DrilldownPill[] | undefined = _recommendedFilters?.map((filter) => ({
       label: `${filter.key} ${filter.operator} ${
         filter.valueLabels?.length ? filter.valueLabels.join(', ') : filter.value
       }`,

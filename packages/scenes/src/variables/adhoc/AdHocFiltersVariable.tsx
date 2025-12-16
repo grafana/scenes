@@ -164,6 +164,18 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   _valueRecommendations?: AdHocFiltersRecommendations;
 
   /**
+   * Recent filters loaded from storage
+   * @internal
+   */
+  _recentFilters?: AdHocFilterWithLabels[];
+
+  /**
+   * Recommended filters from datasource
+   * @internal
+   */
+  _recommendedFilters?: AdHocFilterWithLabels[];
+
+  /**
    * enables drilldown recommendations
    */
   drilldownRecommendationsEnabled?: boolean;
