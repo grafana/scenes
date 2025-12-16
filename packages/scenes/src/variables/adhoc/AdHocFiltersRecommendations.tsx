@@ -1,5 +1,4 @@
 import React from 'react';
-import { config } from '@grafana/runtime';
 import {
   // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
@@ -108,7 +107,6 @@ export class AdHocFiltersRecommendations {
         queries: queries ?? [],
         filters,
         scopes,
-        userId: config.bootData.user.id,
       });
 
       if (recommendedDrilldowns?.filters) {
@@ -171,16 +169,22 @@ export class AdHocFiltersRecommendations {
     const { filters } = this.adHocFilter.useState();
 
     const recentDrilldowns: DrilldownPill[] | undefined = this.recentFilters?.map((filter) => ({
-      label: `${filter.key} ${filter.operator} ${filter.value}`,
+      label: `${filter.key} ${filter.operator} ${
+        filter.valueLabels?.length ? filter.valueLabels.join(', ') : filter.value
+      }`,
       onClick: () => {
-        this.addFilterToParent(filter);
+        const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
+        if (!exists) {
+          this.addFilterToParent(filter);
+        }
       },
     }));
 
     const recommendedDrilldowns: DrilldownPill[] | undefined = this.recommendedFilters?.map((filter) => ({
-      label: `${filter.key} ${filter.operator} ${filter.value}`,
+      label: `${filter.key} ${filter.operator} ${
+        filter.valueLabels?.length ? filter.valueLabels.join(', ') : filter.value
+      }`,
       onClick: () => {
-        // Check if filter already exists
         const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
         if (!exists) {
           this.addFilterToParent(filter);

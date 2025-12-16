@@ -1,5 +1,4 @@
 import React from 'react';
-import { config } from '@grafana/runtime';
 import {
   // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
@@ -112,7 +111,6 @@ export class GroupByRecommendations {
         queries,
         groupByKeys,
         scopes,
-        userId: config.bootData.user.id,
       });
 
       if (recommendedDrilldowns?.groupByKeys) {
