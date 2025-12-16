@@ -564,6 +564,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
 const getStyles = (theme: GrafanaTheme2) => ({
   selectWrapper: css({
     display: 'flex',
+    minWidth: 0,
     width: '100%',
   }),
   // Fix for noMultiValueWrap grid layout - prevent pills from stretching
