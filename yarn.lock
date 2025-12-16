@@ -3659,12 +3659,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/data@link:/Users/harisr/dev/grafana/packages/grafana-data::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes":
-  version: 0.0.0-use.local
-  resolution: "@grafana/data@link:/Users/harisr/dev/grafana/packages/grafana-data::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes"
-  languageName: node
-  linkType: soft
-
 "@grafana/data@npm:11.6.1, @grafana/data@npm:^11.6.0":
   version: 11.6.1
   resolution: "@grafana/data@npm:11.6.1"
@@ -3699,12 +3693,6 @@ __metadata:
   checksum: 10/f26adc9efbd3b273ed09d6100cce6334dbbf91effb4de7bc4e8fad4c6666efc9e0e86a5c4a8e72d4186de1bc12e1ca97735dd3137767882291723055bd372b1d
   languageName: node
   linkType: hard
-
-"@grafana/e2e-selectors@link:/Users/harisr/dev/grafana/packages/grafana-e2e-selectors::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes":
-  version: 0.0.0-use.local
-  resolution: "@grafana/e2e-selectors@link:/Users/harisr/dev/grafana/packages/grafana-e2e-selectors::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes"
-  languageName: node
-  linkType: soft
 
 "@grafana/e2e-selectors@npm:11.6.1":
   version: 11.6.1
@@ -3812,18 +3800,6 @@ __metadata:
   checksum: 10/c4274f9b78dbb92dcf3bc40d8a2de982c0e72dbfe21e45ebd527d6bf4863d2145d67651a4d9573dd4771c9535afdb4ffa1451c6d2a758f24d00968b1d2b85240
   languageName: node
   linkType: hard
-
-"@grafana/i18n@link:/Users/harisr/dev/grafana/packages/grafana-i18n::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes":
-  version: 0.0.0-use.local
-  resolution: "@grafana/i18n@link:/Users/harisr/dev/grafana/packages/grafana-i18n::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes"
-  languageName: node
-  linkType: soft
-
-"@grafana/runtime@link:/Users/harisr/dev/grafana/packages/grafana-runtime::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes":
-  version: 0.0.0-use.local
-  resolution: "@grafana/runtime@link:/Users/harisr/dev/grafana/packages/grafana-runtime::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes"
-  languageName: node
-  linkType: soft
 
 "@grafana/runtime@npm:^11.6.0":
   version: 11.6.1
@@ -3945,14 +3921,8 @@ __metadata:
     "@eslint/compat": "npm:1.3.0"
     "@eslint/js": "npm:^9.28.0"
     "@floating-ui/react": "npm:^0.26.16"
-    "@grafana/data": "link:/Users/harisr/dev/grafana/packages/grafana-data"
-    "@grafana/e2e-selectors": "link:/Users/harisr/dev/grafana/packages/grafana-e2e-selectors"
     "@grafana/eslint-config": "npm:^8.1.0"
-    "@grafana/i18n": "link:/Users/harisr/dev/grafana/packages/grafana-i18n"
-    "@grafana/runtime": "link:/Users/harisr/dev/grafana/packages/grafana-runtime"
-    "@grafana/schema": "link:/Users/harisr/dev/grafana/packages/grafana-schema"
     "@grafana/tsconfig": "npm:^1.3.0-rc1"
-    "@grafana/ui": "link:/Users/harisr/dev/grafana/packages/grafana-ui"
     "@leeoniya/ufuzzy": "npm:^1.0.16"
     "@rollup/plugin-dynamic-import-vars": "npm:2.1.5"
     "@rollup/plugin-json": "npm:^6.1.0"
@@ -4022,12 +3992,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@grafana/schema@link:/Users/harisr/dev/grafana/packages/grafana-schema::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes":
-  version: 0.0.0-use.local
-  resolution: "@grafana/schema@link:/Users/harisr/dev/grafana/packages/grafana-schema::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes"
-  languageName: node
-  linkType: soft
-
 "@grafana/schema@npm:11.6.1, @grafana/schema@npm:^11.6.0":
   version: 11.6.1
   resolution: "@grafana/schema@npm:11.6.1"
@@ -4057,12 +4021,6 @@ __metadata:
   checksum: 10/81e3c07e2f3f01e70b3e73a5f7e71871dc3a14c683b1d760828e0c4d609f55adf5111ff72b9148b7a7af3cdeb6199af1fdd295140b003ef2ff74f01a8b77bd09
   languageName: node
   linkType: hard
-
-"@grafana/ui@link:/Users/harisr/dev/grafana/packages/grafana-ui::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes":
-  version: 0.0.0-use.local
-  resolution: "@grafana/ui@link:/Users/harisr/dev/grafana/packages/grafana-ui::locator=%40grafana%2Fscenes%40workspace%3Apackages%2Fscenes"
-  languageName: node
-  linkType: soft
 
 "@grafana/ui@npm:11.6.1, @grafana/ui@npm:^11.6.0":
   version: 11.6.1
