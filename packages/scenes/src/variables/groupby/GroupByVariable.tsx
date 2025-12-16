@@ -25,6 +25,7 @@ import {
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
+import { components, GroupBase, MenuProps } from 'react-select';
 import { InputActionMeta, MultiSelect, Select, useStyles2 } from '@grafana/ui';
 import { isArray, isEqual } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
@@ -481,75 +482,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
             model.changeValueTo([], undefined, true);
           }
 
-        setUncommittedValue(newValue);
-        setInputValue('');
-      }}
-      onOpenMenu={async () => {
-        const profiler = getInteractionTracker(model);
-        profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
           setUncommittedValue(newValue);
-        }}
-        onOpenMenu={async () => {
-          const profiler = getInteractionTracker(model);
-          profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
-
-          setIsFetchingOptions(true);
-          await lastValueFrom(model.validateAndUpdate());
-          setIsFetchingOptions(false);
-          setIsOptionsOpen(true);
-
-          profiler?.stopInteraction();
-        }}
-        onCloseMenu={() => {
-          setIsOptionsOpen(false);
-        }}
-      />
-    </div>
-  ) : (
-    <Select
-      aria-label={t(
-        'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
-        'Group by selector'
-      )}
-      data-testid={`GroupBySelect-${key}`}
-      id={key}
-      placeholder={t(
-        'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
-        'Group by label'
-      )}
-      width="auto"
-      inputValue={inputValue}
-      value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
-      allowCustomValue={allowCustomValue}
-      noMultiValueWrap={true}
-      maxVisibleValues={maxVisibleValues ?? 5}
-      tabSelectsValue={false}
-      virtualized
-      options={filteredOptions}
-      filterOption={filterNoOp}
-      closeMenuOnSelect={true}
-      isOpen={isOptionsOpen}
-      isClearable={true}
-      hideSelectedOptions={false}
-      noValueOnClear={true}
-      isLoading={isFetchingOptions}
-      components={{ Menu: WideMenu }}
-      onInputChange={onInputChange}
-      onChange={(newValue, action) => {
-        if (action.action === 'clear') {
-          setUncommittedValue([]);
-          if (noValueOnClear) {
-            model.changeValueTo([]);
-          }
-
-          model._verifyApplicability();
-        }}
-        onChange={(newValue, action) => {
-          if (action.action === 'clear' && noValueOnClear) {
-            model.changeValueTo([], undefined, true);
-          }
-
-          setUncommittedValue(newValue);
+          setInputValue('');
         }}
         onOpenMenu={async () => {
           const profiler = getInteractionTracker(model);
@@ -576,11 +510,11 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         )}
         data-testid={`GroupBySelect-${key}`}
         id={key}
-        className={styles.fullWidthMultiSelect}
         placeholder={t(
           'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
           'Group by label'
         )}
+        width="auto"
         inputValue={inputValue}
         value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
         allowCustomValue={allowCustomValue}
@@ -596,6 +530,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         hideSelectedOptions={false}
         noValueOnClear={true}
         isLoading={isFetchingOptions}
+        components={{ Menu: WideMenu }}
         onInputChange={onInputChange}
         onChange={(newValue, action) => {
           if (action.action === 'clear') {
