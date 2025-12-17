@@ -7,7 +7,6 @@ import {
   MetricFindValue,
   PanelData,
 } from '@grafana/data';
-import exp from 'constants';
 import { map, OperatorFunction } from 'rxjs';
 
 interface MetricFindValueWithOptionalProperties extends MetricFindValue {
