@@ -11,7 +11,7 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly } = controller.useState();
+  const { originFilters, filters, readOnly, valueRecommendations } = controller.useState();
   const styles = useStyles2(getStyles);
 
   // ref that focuses on the always wip filter input
@@ -26,6 +26,8 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       }}
     >
       <Icon name="filter" className={styles.filterIcon} size="lg" />
+
+      {valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 
       {originFilters?.map((filter, index) =>
         filter.origin ? (

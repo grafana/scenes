@@ -6,6 +6,7 @@ import {
   // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
   GetTagResponse,
+  GrafanaTheme2,
   MetricFindValue,
   SelectableValue,
 } from '@grafana/data';
@@ -23,7 +24,7 @@ import {
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
-import { InputActionMeta, MultiSelect, Select } from '@grafana/ui';
+import { InputActionMeta, MultiSelect, Select, useStyles2 } from '@grafana/ui';
 import { components, GroupBase, MenuProps } from 'react-select';
 import { isArray, isEqual } from 'lodash';
 import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
@@ -36,6 +37,8 @@ import { DefaultGroupByCustomIndicatorContainer } from './DefaultGroupByCustomIn
 import { GroupByValueContainer, GroupByContainerProps } from './GroupByValueContainer';
 import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTracker';
 import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionConstants';
+import { css, cx } from '@emotion/css';
+import { GroupByRecommendations } from './GroupByRecommendations';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -82,6 +85,11 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * state for checking whether drilldown applicability is enabled
    */
   applicabilityEnabled?: boolean;
+
+  /**
+   * enables drilldown recommendations
+   */
+  drilldownRecommendationsEnabled?: boolean;
 }
 
 export type getTagKeysProvider = (
@@ -94,6 +102,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   isLazy = true;
 
   protected _urlSync: SceneObjectUrlSyncHandler = new GroupByVariableUrlSyncHandler(this);
+
+  private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
+
+  private _recommendations: GroupByRecommendations | undefined;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -131,11 +143,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     this.setState({ loading: true, error: null });
 
-    return from(
-      getDataSource(this.state.datasource, {
-        __sceneObject: wrapInSafeSerializableSceneObject(this),
-      })
-    ).pipe(
+    return from(getDataSource(this.state.datasource, this._scopedVars)).pipe(
       mergeMap((ds) => {
         return from(this._getKeys(ds)).pipe(
           tap((response) => {
@@ -161,6 +169,13 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public constructor(initialState: Partial<GroupByVariableState>) {
+    const behaviors = initialState.$behaviors ?? [];
+    const recommendations = initialState.drilldownRecommendationsEnabled ? new GroupByRecommendations() : undefined;
+
+    if (recommendations) {
+      behaviors.push(recommendations);
+    }
+
     super({
       isMulti: true,
       name: '',
@@ -174,7 +189,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       type: 'groupby' as VariableType,
       ...initialState,
       noValueOnClear: true,
+      $behaviors: behaviors.length > 0 ? behaviors : undefined,
     });
+
+    this._recommendations = recommendations;
 
     if (this.state.defaultValue) {
       this.changeValueTo(this.state.defaultValue.value, this.state.defaultValue.text, false);
@@ -209,10 +227,17 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     };
   };
 
-  public getApplicableKeys(): VariableValue {
+  /**
+   * Gets the GroupByRecommendations behavior if it exists in $behaviors
+   */
+  public getRecommendations(): GroupByRecommendations | undefined {
+    return this._recommendations;
+  }
+
+  public getApplicableKeys(): string[] {
     const { value, keysApplicability } = this.state;
 
-    const valueArray = isArray(value) ? value : value ? [value] : [];
+    const valueArray = isArray(value) ? value.map(String) : value ? [String(value)] : [];
 
     if (!keysApplicability || keysApplicability.length === 0) {
       return valueArray;
@@ -230,9 +255,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     value: VariableValue,
     queries: SceneDataQuery[]
   ): Promise<DrilldownsApplicability[] | undefined> {
-    const ds = await getDataSource(this.state.datasource, {
-      __sceneObject: wrapInSafeSerializableSceneObject(this),
-    });
+    const ds = await getDataSource(this.state.datasource, this._scopedVars);
 
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds.getDrilldownsApplicability) {
@@ -345,6 +368,21 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return keys;
   };
 
+  public async _verifyApplicabilityAndStoreRecentGrouping() {
+    await this._verifyApplicability();
+
+    if (!this._recommendations) {
+      return;
+    }
+
+    const applicableValues = this.getApplicableKeys();
+    if (applicableValues.length === 0) {
+      return;
+    }
+
+    this._recommendations.storeRecentGrouping(applicableValues);
+  }
+
   /**
    * Allows clearing the value of the variable to an empty value. Overrides default behavior of a MultiValueVariable
    */
@@ -366,7 +404,12 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     allowCustomValue = true,
     defaultValue,
     keysApplicability,
+    drilldownRecommendationsEnabled,
   } = model.useState();
+
+  const recommendations = model.getRecommendations();
+
+  const styles = useStyles2(getStyles);
 
   const values = useMemo<Array<SelectableValue<VariableValueSingle>>>(() => {
     const arrayValue = isArray(value) ? value : [value];
@@ -416,7 +459,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     [optionSearcher, inputValue]
   );
 
-  return isMulti ? (
+  const select = isMulti ? (
     <MultiSelect<VariableValueSingle>
       aria-label={t(
         'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
@@ -429,6 +472,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         'Group by label'
       )}
       width="auto"
+      className={cx(drilldownRecommendationsEnabled && styles.selectStylesInWrapper)}
       allowCustomValue={allowCustomValue}
       inputValue={inputValue}
       value={uncommittedValue}
@@ -471,7 +515,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           model.setState({ restorable: restorable });
         }
 
-        model._verifyApplicability();
+        model._verifyApplicabilityAndStoreRecentGrouping();
       }}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
@@ -509,6 +553,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         'Group by label'
       )}
       width="auto"
+      className={cx(drilldownRecommendationsEnabled && styles.selectStylesInWrapper)}
       inputValue={inputValue}
       value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
       allowCustomValue={allowCustomValue}
@@ -555,6 +600,20 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
       }}
     />
   );
+
+  if (!recommendations) {
+    return select;
+  }
+
+  return (
+    <div className={styles.wrapper}>
+      <div className={styles.recommendations}>
+        <recommendations.Component model={recommendations} />
+      </div>
+
+      {select}
+    </div>
+  );
 }
 
 const filterNoOp = () => true;
@@ -583,3 +642,29 @@ function toSelectableValue(input: VariableValueOption): SelectableValue<Variable
 
   return result;
 }
+
+const getStyles = (theme: GrafanaTheme2) => ({
+  wrapper: css({
+    display: 'flex',
+  }),
+  selectStylesInWrapper: css({
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    border: `1px solid ${theme.colors.border.strong}`,
+    borderLeft: 'none',
+  }),
+  recommendations: css({
+    display: 'flex',
+    alignItems: 'center',
+    paddingInline: theme.spacing(0.5),
+    borderTop: `1px solid ${theme.colors.border.strong}`,
+    borderBottom: `1px solid ${theme.colors.border.strong}`,
+    backgroundColor: theme.components.input.background,
+    '& button': {
+      borderRadius: 0,
+      height: '100%',
+      margin: 0,
+      paddingInline: theme.spacing(0.5),
+    },
+  }),
+});
