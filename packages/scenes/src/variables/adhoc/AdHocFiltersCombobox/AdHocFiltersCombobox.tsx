@@ -818,6 +818,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 <MultiValueApplyButton
                   onApply={() => {
                     handleMultiValueFilterCommit(controller, filter!, filterMultiValues);
+                    handleResetWip();
+                    handleChangeViewMode?.();
+                    setOpen(false);
                   }}
                   floatingElement={refs.floating.current}
                   maxOptionWidth={maxOptionWidth}

@@ -37,6 +37,7 @@ import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
 import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
+import { AdHocFiltersRecommendations } from './AdHocFiltersRecommendations';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -160,6 +161,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Allows users to collapse the filter UI to save vertical space.
    */
   collapsible?: boolean;
+
+  /**
+   * enables drilldown recommendations
+   */
+  drilldownRecommendationsEnabled?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -266,7 +272,16 @@ export class AdHocFiltersVariable
 
   private _debouncedVerifyApplicability = debounce(this._verifyApplicability, 100);
 
+  private _recommendations: AdHocFiltersRecommendations | undefined;
+
   public constructor(state: Partial<AdHocFiltersVariableState>) {
+    const behaviors = state.$behaviors ?? [];
+    const recommendations = state.drilldownRecommendationsEnabled ? new AdHocFiltersRecommendations() : undefined;
+
+    if (recommendations) {
+      behaviors.push(recommendations);
+    }
+
     super({
       type: 'adhoc',
       name: state.name ?? 'Filters',
@@ -277,7 +292,10 @@ export class AdHocFiltersVariable
         state.filterExpression ??
         renderExpression(state.expressionBuilder, [...(state.originFilters ?? []), ...(state.filters ?? [])]),
       ...state,
+      $behaviors: behaviors.length > 0 ? behaviors : undefined,
     });
+
+    this._recommendations = recommendations;
 
     if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
@@ -306,6 +324,10 @@ export class AdHocFiltersVariable
       this.setState({ applicabilityEnabled: false });
     };
   };
+
+  public getRecommendations(): AdHocFiltersRecommendations | undefined {
+    return this._recommendations;
+  }
 
   private _updateScopesFilters() {
     const scopes = sceneGraph.getScopes(this);
@@ -368,6 +390,11 @@ export class AdHocFiltersVariable
     this._prevScopes = scopes;
 
     this._debouncedVerifyApplicability();
+  }
+
+  private async verifyApplicabilityAndStoreRecentFilter(update: AdHocFilterWithLabels) {
+    await this._verifyApplicability();
+    this._recommendations?.storeRecentFilter(update);
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
@@ -510,8 +537,11 @@ export class AdHocFiltersVariable
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
-        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
-        this._debouncedVerifyApplicability();
+        this.setState({
+          filters: [...filters, { ..._wip, ...update }],
+          _wip: undefined,
+        });
+        this.verifyApplicabilityAndStoreRecentFilter({ ..._wip, ...update });
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -523,6 +553,11 @@ export class AdHocFiltersVariable
     });
 
     this.setState({ filters: updatedFilters });
+
+    this._recommendations?.storeRecentFilter({
+      ...filter,
+      ...update,
+    });
   }
 
   public updateToMatchAll(filter: AdHocFilterWithLabels) {
@@ -777,7 +812,7 @@ export class AdHocFiltersVariable
           ...scope,
           spec: {
             ...scope.spec,
-            filters: scope.spec.filters.filter((f) => f.key !== filter.key),
+            filters: scope.spec.filters?.filter((f) => f.key !== filter.key),
           },
         };
       });

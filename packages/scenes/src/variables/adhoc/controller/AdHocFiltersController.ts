@@ -1,5 +1,6 @@
 import { SelectableValue } from '@grafana/data';
 import { AdHocFilterWithLabels, OnAddCustomValueFn } from '../AdHocFiltersVariable';
+import { AdHocFiltersRecommendations } from '../AdHocFiltersRecommendations';
 
 /**
  * Controller state returned by useState hook
@@ -17,6 +18,8 @@ export interface AdHocFiltersControllerState {
    * When true, enables a collapse button that appears when filters wrap to multiple lines.
    */
   collapsible?: boolean;
+  valueRecommendations?: AdHocFiltersRecommendations;
+  drilldownRecommendationsEnabled?: boolean;
 }
 
 /**
@@ -53,6 +56,19 @@ export interface AdHocFiltersController {
    * @param update - Partial filter properties to update
    */
   updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>): void;
+
+  /**
+   * Update filters list
+   * @param filters
+   * @param options
+   */
+  updateFilters?(
+    filters: AdHocFilterWithLabels[],
+    options?: {
+      skipPublish?: boolean;
+      forcePublish?: boolean;
+    }
+  ): void;
 
   /**
    * Update a filter to match all values (=~ .*)

@@ -15,7 +15,7 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, collapsible } = controller.useState();
+  const { originFilters, filters, readOnly, collapsible, valueRecommendations } = controller.useState();
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
@@ -82,6 +82,8 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       onClick={handleExpand}
     >
       <Icon name="filter" className={styles.filterIcon} size="lg" />
+
+      {valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 
       {filtersToRender.map((filter, index) => (
         <AdHocFilterPill

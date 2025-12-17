@@ -1,3 +1,21 @@
+# v6.50.0 (Wed Dec 17 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFilters/GroupBy: Support datasource drilldown recommendations and recent drilldowns [#1312](https://github.com/grafana/scenes/pull/1312) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupBy: Variable UI optimisations [#1314](https://github.com/grafana/scenes/pull/1314) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.49.0 (Fri Dec 05 2025)
 
 #### 🚀 Enhancement

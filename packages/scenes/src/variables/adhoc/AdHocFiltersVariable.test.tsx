@@ -3,6 +3,11 @@ import { act, getAllByRole, render, waitFor, screen } from '@testing-library/rea
 import { SceneVariable, SceneVariableValueChangedEvent } from '../types';
 import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
 import {
+  MAX_RECENT_DRILLDOWNS,
+  MAX_STORED_RECENT_DRILLDOWNS,
+  getRecentFiltersKey,
+} from './AdHocFiltersRecommendations';
+import {
   DataSourceSrv,
   config,
   locationService,
@@ -2503,6 +2508,133 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
 
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
+    });
+  });
+
+  describe('recent filters', () => {
+    const RECENT_FILTERS_KEY = getRecentFiltersKey('my-ds-uid');
+
+    beforeEach(() => {
+      localStorage.removeItem(RECENT_FILTERS_KEY);
+    });
+
+    it('should not create drilldown recommendations component if recommendations are disabled', () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: false,
+      });
+
+      expect(filtersVar.getRecommendations()).toBeUndefined();
+    });
+
+    it('should set recentFilters from browser storage on activation', async () => {
+      const recentFilters = [{ key: 'pod', operator: '=|', value: 'test1, test2', values: ['test1', 'test2'] }];
+
+      localStorage.setItem(RECENT_FILTERS_KEY, JSON.stringify(recentFilters));
+
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+      });
+
+      await waitFor(() => {
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toEqual(recentFilters);
+      });
+    });
+
+    it('should add filter to recentFilters and store in localStorage when adding new filter', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [],
+      });
+
+      const filter = {
+        key: 'cluster',
+        value: '1',
+        operator: '=',
+      };
+
+      filtersVar.setState({ _wip: filter });
+      filtersVar._updateFilter(filter, { value: 'newValue' });
+
+      // Wait for async verifyApplicabilityAndStoreRecentFilter to complete
+      await waitFor(() => {
+        const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+        expect(storedFilters).toBeDefined();
+        expect(JSON.parse(storedFilters!)).toHaveLength(1);
+        expect(JSON.parse(storedFilters!)[0]).toEqual({ key: 'cluster', operator: '=', value: 'newValue' });
+      });
+
+      await waitFor(() => {
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toHaveLength(1);
+      });
+    });
+
+    it('should add filter to recentFilters immediately when editing existing filter', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [{ key: 'cluster', value: '1', operator: '=' }],
+      });
+
+      // Update an existing filter (not WIP) - this stores immediately
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      expect(storedFilters).toBeDefined();
+      expect(JSON.parse(storedFilters!)).toHaveLength(1);
+      expect(JSON.parse(storedFilters!)[0]).toEqual({ key: 'cluster', operator: '=', value: 'newValue' });
+
+      await waitFor(() => {
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toHaveLength(1);
+      });
+    });
+
+    it('should store up to MAX_STORED_RECENT_DRILLDOWNS in localStorage but display MAX_RECENT_DRILLDOWNS', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [],
+      });
+
+      // For editing existing filters, storage is synchronous
+      // So we add filters first, then edit them
+      const initialFilters = [];
+      for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
+        initialFilters.push({ key: `key${i}`, value: `value${i}`, operator: '=' as const });
+      }
+      filtersVar.setState({ filters: initialFilters });
+
+      // Now edit each filter to trigger storeRecentFilter
+      for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
+        filtersVar._updateFilter(filtersVar.state.filters[i], { value: `newValue${i}` });
+      }
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      expect(storedFilters).toBeDefined();
+      expect(JSON.parse(storedFilters!)).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
+
+      await waitFor(() => {
+        expect(filtersVar.getRecommendations()?.state.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+      });
+    });
+
+    it('should set in browser storage when editing existing filters', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [
+          { key: 'cluster', value: '1', operator: '=' },
+          { key: 'cluster2', value: '2', operator: '=' },
+        ],
+      });
+
+      // Edit existing filters to trigger storeRecentFilter (synchronous for edits)
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+      filtersVar._updateFilter(filtersVar.state.filters[1], { value: 'newValue2' });
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      expect(storedFilters).toBeDefined();
+      expect(JSON.parse(storedFilters!)).toHaveLength(2);
+
+      await waitFor(() => {
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toHaveLength(2);
+      });
     });
   });
 
