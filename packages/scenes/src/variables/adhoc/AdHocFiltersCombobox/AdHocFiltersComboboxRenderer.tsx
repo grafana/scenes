@@ -22,7 +22,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   const [wrapperRef, { height: wrapperHeight }] = useMeasure<HTMLDivElement>();
 
   const clearAll = () => {
-    controller.clearAll();
+    controller.clearAll?.();
   };
 
   // ref that focuses on the always wip filter input
