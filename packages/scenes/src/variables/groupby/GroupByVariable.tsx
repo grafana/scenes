@@ -548,66 +548,6 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           setIsOptionsOpen(false);
         }}
       />
-      ) : (
-      <Select
-        aria-label={t(
-          'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
-          'Group by selector'
-        )}
-        data-testid={`GroupBySelect-${key}`}
-        id={key}
-        placeholder={t(
-          'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
-          'Group by label'
-        )}
-        width="auto"
-        className={cx(drilldownRecommendationsEnabled && styles.selectStylesInWrapper)}
-        inputValue={inputValue}
-        value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
-        allowCustomValue={allowCustomValue}
-        noMultiValueWrap={true}
-        maxVisibleValues={maxVisibleValues ?? 5}
-        tabSelectsValue={false}
-        virtualized
-        options={filteredOptions}
-        filterOption={filterNoOp}
-        closeMenuOnSelect={true}
-        isOpen={isOptionsOpen}
-        isClearable={true}
-        hideSelectedOptions={false}
-        noValueOnClear={true}
-        isLoading={isFetchingOptions}
-        components={{ Menu: WideMenu }}
-        onInputChange={onInputChange}
-        onChange={(newValue, action) => {
-          if (action.action === 'clear') {
-            setUncommittedValue([]);
-            if (noValueOnClear) {
-              model.changeValueTo([]);
-            }
-            return;
-          }
-          if (newValue?.value) {
-            setUncommittedValue([newValue]);
-
-            model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : undefined);
-          }
-        }}
-        onOpenMenu={async () => {
-          const profiler = getInteractionTracker(model);
-          profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
-
-          setIsFetchingOptions(true);
-          await lastValueFrom(model.validateAndUpdate());
-          setIsFetchingOptions(false);
-          setIsOptionsOpen(true);
-
-          profiler?.stopInteraction();
-        }}
-        onCloseMenu={() => {
-          setIsOptionsOpen(false);
-        }}
-      />
     </ConditionalWrapper>
   ) : (
     <ConditionalWrapper condition={model.state.wideInput ?? false} wrapper={WideInputWrapper}>
