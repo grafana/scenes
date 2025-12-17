@@ -95,9 +95,7 @@
       },
       "adhoc-filters-combobox-renderer": {
         "collapse": "Collapse",
-        "collapse-filters": "Collapse filters",
-        "more-filters_one": "+{{count}} more",
-        "more-filters_other": "+{{count}} more"
+        "collapse-filters": "Collapse filters"
       },
       "data-source-variable": {
         "label": {
