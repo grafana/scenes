@@ -1,7 +1,6 @@
 import { FieldType, toDataFrame } from '@grafana/data';
 import { lastValueFrom, of } from 'rxjs';
 import { toMetricFindValues } from './toMetricFindValues';
-import exp from 'constants';
 
 describe('toMetricFindValues', () => {
   describe('when called with 2 string fields, neither named named value', () => {
