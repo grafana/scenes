@@ -84,6 +84,11 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * state for checking whether drilldown applicability is enabled
    */
   applicabilityEnabled?: boolean;
+  /**
+   * Whether the input should be wide. For example, this is needed when dashboardAdHocAndGroupByWrapper feature toggle is enabled so that
+   * the input fills the remaining space in the row.
+   */
+  wideInput?: boolean;
 }
 
 export type getTagKeysProvider = (
@@ -420,8 +425,10 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     [optionSearcher, inputValue]
   );
 
+  const WideInputWrapper = (children: React.ReactNode) => <div className={styles.selectWrapper}>{children}</div>;
+
   return isMulti ? (
-    <div className={styles.selectWrapper}>
+    <ConditionalWrapper condition={model.state.wideInput ?? false} wrapper={WideInputWrapper}>
       <MultiSelect<VariableValueSingle>
         aria-label={t(
           'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
@@ -500,9 +507,9 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           setIsOptionsOpen(false);
         }}
       />
-    </div>
+    </ConditionalWrapper>
   ) : (
-    <div className={styles.selectWrapper}>
+    <ConditionalWrapper condition={model.state.wideInput ?? false} wrapper={WideInputWrapper}>
       <Select
         aria-label={t(
           'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
@@ -560,9 +567,21 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           setIsOptionsOpen(false);
         }}
       />
-    </div>
+    </ConditionalWrapper>
   );
 }
+
+const ConditionalWrapper = ({
+  condition,
+  wrapper,
+  children,
+}: {
+  condition: boolean;
+  wrapper: (children: React.ReactNode) => React.ReactElement;
+  children: React.ReactNode;
+}) => {
+  return condition ? wrapper(children) : <>{children}</>;
+};
 
 const getStyles = (theme: GrafanaTheme2) => ({
   selectWrapper: css({
