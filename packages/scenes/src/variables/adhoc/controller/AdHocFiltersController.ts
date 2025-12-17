@@ -91,7 +91,7 @@ export interface AdHocFiltersController {
   /**
    * Clear all user-added filters and restore origin filters to original values.
    */
-  clearAll(): void;
+  clearAll?(): void;
 
   /**
    * Optional: Start profiling an interaction (for performance tracking).
