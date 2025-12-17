@@ -17,12 +17,12 @@ describe('timeMacros', () => {
     expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now&timezone=browser');
   });
 
-  it('Can use use $__url_time_range when timezone is undefined', () => {
+  it('Can use use $__url_time_range when timezone is not explicitly set (defaults to browser)', () => {
     const scene = new TestScene({
-      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now', timeZone: 'browser' }),
+      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
     });
 
-    // Browser timezone should be preserved as "browser", not resolved to actual timezone
+    // When no timezone is specified, SceneTimeRange defaults to 'browser'
     expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now&timezone=browser');
   });
 
