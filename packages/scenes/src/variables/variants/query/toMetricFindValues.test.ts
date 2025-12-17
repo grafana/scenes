@@ -1,8 +1,27 @@
 import { FieldType, toDataFrame } from '@grafana/data';
-import { of } from 'rxjs';
+import { lastValueFrom, of } from 'rxjs';
 import { toMetricFindValues } from './toMetricFindValues';
 
 describe('toMetricFindValues', () => {
+  describe('when called with 2 string fields, neither named named value', () => {
+    it('Returns metric find values', async () => {
+      const frameWithStringField = toDataFrame({
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['A', 'B'] },
+          { name: 'id2', type: FieldType.string, values: ['A2', 'B2'] },
+        ],
+      });
+
+      const panelData: any = { series: [frameWithStringField] };
+      const values = await lastValueFrom(of(panelData).pipe(toMetricFindValues(undefined, undefined)));
+
+      expect(values).toEqual([
+        { text: 'A', value: 'A' },
+        { text: 'B', value: 'B' },
+      ]);
+    });
+  });
+
   describe('series without properties', () => {
     const frameWithTextField = toDataFrame({
       fields: [{ name: 'text', type: FieldType.string, values: ['A', 'B', 'C'] }],
@@ -123,6 +142,7 @@ describe('toMetricFindValues', () => {
         },
       ],
     });
+
     const frameWithValueAndPropertiesField = toDataFrame({
       fields: [...frameWithPropertiesField.fields, { name: 'value', type: FieldType.string, values: ['1', '2', '3'] }],
     });
@@ -236,12 +256,16 @@ describe('toMetricFindValues', () => {
 
     describe('when called with no string fields', () => {
       it('then the observable throws', async () => {
+        const frameWithPropertiesField = toDataFrame({
+          fields: [{ name: 'id', type: FieldType.number, values: [1, 1, 3] }],
+        });
+
         const panelData: any = { series: [frameWithPropertiesField] };
         const observable = of(panelData).pipe(toMetricFindValues(undefined, undefined));
 
         await expect(observable).toEmitValuesWith((received) => {
           const value = received[0];
-          expect(value).toEqual(new Error('Properties found in series but missing valueProp and textProp'));
+          expect(value).toEqual(new Error("Couldn't find any field of type string in the results"));
         });
       });
     });

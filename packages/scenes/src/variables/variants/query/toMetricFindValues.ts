@@ -134,13 +134,9 @@ function validateIndices(indices: Indices, valueProp?: string, textProp?: string
   }
 
   // A single field of type string that is neither named "value" nor "text" is considered as "value"
-  if (hasNoValueOrText && indices.properties.length === 1) {
+  if (hasNoValueOrText) {
     indices.value = indices.properties[0].index;
     indices.properties = [];
-  }
-
-  if (hasNoValueOrText && indices.properties.length && !valueProp && !textProp) {
-    throw new Error('Properties found in series but missing valueProp and textProp');
   }
 
   return indices;
