@@ -1,3 +1,17 @@
+# v6.51.0 (Thu Dec 18 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Fix breaking behavior in toMetricFindValues [#1319](https://github.com/grafana/scenes/pull/1319) ([@torkelo](https://github.com/torkelo) [@grafakus](https://github.com/grafakus))
+
+#### Authors: 2
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v6.50.0 (Wed Dec 17 2025)
 
 #### 🚀 Enhancement
