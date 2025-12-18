@@ -1,3 +1,17 @@
+# v6.52.0 (Thu Dec 18 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocVariable: Add collapse button and clear all option [#1316](https://github.com/grafana/scenes/pull/1316) ([@harisrozajac](https://github.com/harisrozajac) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.51.0 (Thu Dec 18 2025)
 
 #### 🚀 Enhancement
