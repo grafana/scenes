@@ -133,6 +133,12 @@ export class SimpleController implements AdHocFiltersController {
   restoreOriginalFilter(filter: AdHocFilterWithLabels): void {
     // Not applicable for this simple demo
   }
+
+  clearAll(): void {
+    // Clear all filters
+    this.setFilters([]);
+    this.setWip(undefined);
+  }
 }
 
 /**

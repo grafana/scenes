@@ -14,6 +14,10 @@ export interface AdHocFiltersControllerState {
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
   inputPlaceholder?: string;
+  /**
+   * When true, enables a collapse button that appears when filters wrap to multiple lines.
+   */
+  collapsible?: boolean;
   valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
 }
@@ -99,6 +103,11 @@ export interface AdHocFiltersController {
    * @param filter - The filter to restore
    */
   restoreOriginalFilter(filter: AdHocFilterWithLabels): void;
+
+  /**
+   * Clear all user-added filters and restore origin filters to original values.
+   */
+  clearAll?(): void;
 
   /**
    * Optional: Start profiling an interaction (for performance tracking).

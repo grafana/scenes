@@ -22,6 +22,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       supportsMultiValueOperators: state.supportsMultiValueOperators,
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
+      collapsible: state.collapsible,
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
     };
@@ -75,6 +76,10 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels): void {
     this.model.restoreOriginalFilter(filter);
+  }
+
+  public clearAll(): void {
+    this.model.clearAll();
   }
 
   public startProfile(name: string): void {

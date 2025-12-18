@@ -100,6 +100,10 @@
           "placeholder-select-value": "Select value"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "Collapse",
+        "collapse-filters": "Collapse filters"
+      },
       "data-source-variable": {
         "label": {
           "default": "default"
