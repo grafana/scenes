@@ -52,7 +52,7 @@ export function toMetricFindValues(
               properties[p.name] = fieldValue(p.index);
             }
 
-            let result: MetricFindValueWithOptionalProperties = { value, text, properties: properties };
+            const result: MetricFindValueWithOptionalProperties = { value, text, properties: properties };
 
             if (expandable !== undefined) {
               result.expandable = Boolean(expandable);
