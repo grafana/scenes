@@ -185,9 +185,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         variable.validateAndUpdate().subscribe({
           next: () => {
             expect(variable.state.options).toEqual([
-              { label: 'val1', value: 'val1' },
-              { label: 'val2', value: 'val2' },
-              { label: 'val11', value: 'val11' },
+              { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+              { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+              { label: 'val11', value: 'val11', properties: { text: 'val11' } },
             ]);
             expect(variable.state.loading).toEqual(false);
             done();
@@ -363,8 +363,8 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         await lastValueFrom(variable.validateAndUpdate());
 
         expect(variable.state.options).toEqual([
-          { label: 'val1', value: 'val1' },
-          { label: 'val11', value: 'val11' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
         ]);
       });
 
@@ -384,8 +384,8 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         await lastValueFrom(variable.validateAndUpdate());
 
         expect(variable.state.options).toEqual([
-          { label: 'Display1', value: 'val1' },
-          { label: 'Display11', value: 'val11' },
+          { label: 'Display1', value: 'val1', properties: { text: 'Display1', value: 'val1' } },
+          { label: 'Display11', value: 'val11', properties: { text: 'Display11', value: 'val11' } },
         ]);
       });
 
@@ -403,7 +403,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
 
         await lastValueFrom(variable.validateAndUpdate());
 
-        expect(variable.state.options).toEqual([{ label: 'Display2', value: 'val2' }]);
+        expect(variable.state.options).toEqual([
+          { label: 'Display2', value: 'val2', properties: { text: 'Display2', value: 'val2' } },
+        ]);
       });
     });
 
@@ -423,9 +425,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         await lastValueFrom(variable.validateAndUpdate());
 
         expect(variable.state.options).toEqual([
-          { label: 'val11', value: 'val11' },
-          { label: 'val2', value: 'val2' },
-          { label: 'val1', value: 'val1' },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
         ]);
       });
 
@@ -440,9 +442,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         await lastValueFrom(variable.validateAndUpdate());
 
         expect(variable.state.options).toEqual([
-          { label: 'val1', value: 'val1' },
-          { label: 'val2', value: 'val2' },
-          { label: 'val11', value: 'val11' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
         ]);
       });
 
@@ -457,9 +459,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         await lastValueFrom(variable.validateAndUpdate());
 
         expect(variable.state.options).toEqual([
-          { label: 'val1', value: 'val1' },
-          { label: 'val11', value: 'val11' },
-          { label: 'val2', value: 'val2' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
         ]);
       });
     });
@@ -546,9 +548,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
           { label: 'A', value: 'A' },
           { label: 'B', value: 'B' },
           { label: 'C', value: 'C' },
-          { label: 'val1', value: 'val1' },
-          { label: 'val2', value: 'val2' },
-          { label: 'val11', value: 'val11' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
         ]);
       });
 
@@ -571,9 +573,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
           { label: 'A', value: 'A' },
           { label: 'B', value: 'B' },
           { label: 'C', value: 'C' },
-          { label: 'val1', value: 'val1' },
-          { label: 'val2', value: 'val2' },
-          { label: 'val11', value: 'val11' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
         ]);
       });
 
@@ -593,9 +595,9 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         await lastValueFrom(variable.validateAndUpdate());
 
         expect(variable.state.options).toEqual([
-          { label: 'val1', value: 'val1' },
-          { label: 'val2', value: 'val2' },
-          { label: 'val11', value: 'val11' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
           { label: 'A', value: 'A' },
           { label: 'B', value: 'B' },
           { label: 'C', value: 'C' },
@@ -621,10 +623,10 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         expect(variable.state.options).toEqual([
           { label: 'A', value: 'A' },
           { label: 'B', value: 'B' },
-          { label: 'val1', value: 'val1' },
-          { label: 'val11', value: 'val11' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
           { label: 'val12', value: 'val12' },
-          { label: 'val2', value: 'val2' },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
         ]);
       });
 
@@ -644,8 +646,8 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         expect(variable.state.options).toEqual([
           { label: 'A', value: 'A' },
           { label: 'val3', value: 'val11' },
-          { label: 'val1', value: 'val1' },
-          { label: 'val2', value: 'val2' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
         ]);
       });
     });

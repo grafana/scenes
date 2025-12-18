@@ -1,8 +1,27 @@
 import { FieldType, toDataFrame } from '@grafana/data';
-import { of } from 'rxjs';
+import { lastValueFrom, of } from 'rxjs';
 import { toMetricFindValues } from './toMetricFindValues';
 
 describe('toMetricFindValues', () => {
+  describe('when called with 2 string fields, neither named named value', () => {
+    it('Returns metric find values', async () => {
+      const frameWithStringField = toDataFrame({
+        fields: [
+          { name: 'id', type: FieldType.string, values: ['A', 'B'] },
+          { name: 'id2', type: FieldType.string, values: ['A2', 'B2'] },
+        ],
+      });
+
+      const panelData: any = { series: [frameWithStringField] };
+      const values = await lastValueFrom(of(panelData).pipe(toMetricFindValues(undefined, undefined)));
+
+      expect(values).toEqual([
+        { text: 'A', value: 'A', properties: { id: 'A', id2: 'A2' } },
+        { text: 'B', value: 'B', properties: { id: 'B', id2: 'B2' } },
+      ]);
+    });
+  });
+
   describe('series without properties', () => {
     const frameWithTextField = toDataFrame({
       fields: [{ name: 'text', type: FieldType.string, values: ['A', 'B', 'C'] }],
@@ -36,41 +55,41 @@ describe('toMetricFindValues', () => {
       {
         series: [frameWithTextField],
         expected: [
-          { text: 'A', value: 'A' },
-          { text: 'B', value: 'B' },
-          { text: 'C', value: 'C' },
+          { text: 'A', value: 'A', properties: { text: 'A' } },
+          { text: 'B', value: 'B', properties: { text: 'B' } },
+          { text: 'C', value: 'C', properties: { text: 'C' } },
         ],
       },
       {
         series: [frameWithValueField],
         expected: [
-          { text: 'A', value: 'A' },
-          { text: 'B', value: 'B' },
-          { text: 'C', value: 'C' },
+          { text: 'A', value: 'A', properties: { value: 'A' } },
+          { text: 'B', value: 'B', properties: { value: 'B' } },
+          { text: 'C', value: 'C', properties: { value: 'C' } },
         ],
       },
       {
         series: [frameWithTextAndValueField],
         expected: [
-          { text: 'TA', value: 'VA' },
-          { text: 'TB', value: 'VB' },
-          { text: 'TC', value: 'VC' },
+          { text: 'TA', value: 'VA', properties: { text: 'TA', value: 'VA' } },
+          { text: 'TB', value: 'VB', properties: { text: 'TB', value: 'VB' } },
+          { text: 'TC', value: 'VC', properties: { text: 'TC', value: 'VC' } },
         ],
       },
       {
         series: [frameWithAStringField],
         expected: [
-          { text: 'A', value: 'A' },
-          { text: 'B', value: 'B' },
-          { text: 'C', value: 'C' },
+          { text: 'A', value: 'A', properties: { label: 'A' } },
+          { text: 'B', value: 'B', properties: { label: 'B' } },
+          { text: 'C', value: 'C', properties: { label: 'C' } },
         ],
       },
       {
         series: [frameWithExpandableField],
         expected: [
-          { text: 'A', value: 'A', expandable: true },
-          { text: 'B', value: 'B', expandable: false },
-          { text: 'C', value: 'C', expandable: true },
+          { text: 'A', value: 'A', expandable: true, properties: { label: 'A' } },
+          { text: 'B', value: 'B', expandable: false, properties: { label: 'B' } },
+          { text: 'C', value: 'C', expandable: true, properties: { label: 'C' } },
         ],
       },
     ].forEach((scenario) => {
@@ -123,6 +142,7 @@ describe('toMetricFindValues', () => {
         },
       ],
     });
+
     const frameWithValueAndPropertiesField = toDataFrame({
       fields: [...frameWithPropertiesField.fields, { name: 'value', type: FieldType.string, values: ['1', '2', '3'] }],
     });
@@ -145,18 +165,42 @@ describe('toMetricFindValues', () => {
         valueProp: 'id',
         textProp: 'display_name',
         expected: [
-          { text: 'Development', value: 'dev', properties: { id: 'dev', display_name: 'Development', location: 'US' } },
-          { text: 'Staging', value: 'staging', properties: { id: 'staging', display_name: 'Staging', location: 'SG' } },
-          { text: 'Production', value: 'prod', properties: { id: 'prod', display_name: 'Production', location: 'EU' } },
+          {
+            text: 'Development',
+            value: 'dev',
+            properties: { id: 'dev', display_name: 'Development', location: 'US' },
+          },
+          {
+            text: 'Staging',
+            value: 'staging',
+            properties: { id: 'staging', display_name: 'Staging', location: 'SG' },
+          },
+          {
+            text: 'Production',
+            value: 'prod',
+            properties: { id: 'prod', display_name: 'Production', location: 'EU' },
+          },
         ],
       },
       {
         series: [frameWithPropertiesField],
         valueProp: 'id',
         expected: [
-          { text: 'dev', value: 'dev', properties: { id: 'dev', display_name: 'Development', location: 'US' } },
-          { text: 'staging', value: 'staging', properties: { id: 'staging', display_name: 'Staging', location: 'SG' } },
-          { text: 'prod', value: 'prod', properties: { id: 'prod', display_name: 'Production', location: 'EU' } },
+          {
+            text: 'dev',
+            value: 'dev',
+            properties: { id: 'dev', display_name: 'Development', location: 'US' },
+          },
+          {
+            text: 'staging',
+            value: 'staging',
+            properties: { id: 'staging', display_name: 'Staging', location: 'SG' },
+          },
+          {
+            text: 'prod',
+            value: 'prod',
+            properties: { id: 'prod', display_name: 'Production', location: 'EU' },
+          },
         ],
       },
       {
@@ -206,9 +250,21 @@ describe('toMetricFindValues', () => {
         valueProp: 'id',
         textProp: 'display_name',
         expected: [
-          { text: 'Development', value: '1', properties: { id: 'dev', display_name: 'Development', location: 'US' } },
-          { text: 'Staging', value: '2', properties: { id: 'staging', display_name: 'Staging', location: 'SG' } },
-          { text: 'Production', value: '3', properties: { id: 'prod', display_name: 'Production', location: 'EU' } },
+          {
+            text: 'Development',
+            value: 'dev',
+            properties: { id: 'dev', display_name: 'Development', location: 'US', value: '1' },
+          },
+          {
+            text: 'Staging',
+            value: 'staging',
+            properties: { id: 'staging', display_name: 'Staging', location: 'SG', value: '2' },
+          },
+          {
+            text: 'Production',
+            value: 'prod',
+            properties: { id: 'prod', display_name: 'Production', location: 'EU', value: '3' },
+          },
         ],
       },
       {
@@ -216,9 +272,21 @@ describe('toMetricFindValues', () => {
         valueProp: 'id',
         textProp: 'display_name',
         expected: [
-          { text: 'Dev', value: '1', properties: { id: 'dev', display_name: 'Development', location: 'US' } },
-          { text: 'Stag', value: '2', properties: { id: 'staging', display_name: 'Staging', location: 'SG' } },
-          { text: 'Prod', value: '3', properties: { id: 'prod', display_name: 'Production', location: 'EU' } },
+          {
+            text: 'Development',
+            value: 'dev',
+            properties: { id: 'dev', display_name: 'Development', location: 'US', text: 'Dev', value: '1' },
+          },
+          {
+            text: 'Staging',
+            value: 'staging',
+            properties: { id: 'staging', display_name: 'Staging', location: 'SG', text: 'Stag', value: '2' },
+          },
+          {
+            text: 'Production',
+            value: 'prod',
+            properties: { id: 'prod', display_name: 'Production', location: 'EU', text: 'Prod', value: '3' },
+          },
         ],
       },
     ].forEach((scenario) => {
@@ -236,12 +304,16 @@ describe('toMetricFindValues', () => {
 
     describe('when called with no string fields', () => {
       it('then the observable throws', async () => {
+        const frameWithPropertiesField = toDataFrame({
+          fields: [{ name: 'id', type: FieldType.number, values: [1, 1, 3] }],
+        });
+
         const panelData: any = { series: [frameWithPropertiesField] };
         const observable = of(panelData).pipe(toMetricFindValues(undefined, undefined));
 
         await expect(observable).toEmitValuesWith((received) => {
           const value = received[0];
-          expect(value).toEqual(new Error('Properties found in series but missing valueProp and textProp'));
+          expect(value).toEqual(new Error("Couldn't find any field of type string in the results"));
         });
       });
     });
