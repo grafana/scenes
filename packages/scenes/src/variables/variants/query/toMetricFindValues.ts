@@ -128,7 +128,6 @@ function validateIndices(indices: Indices): Indices {
     throw new Error("Couldn't find any field of type string in the results");
   }
 
-  // A single field of type string that is neither named "value" nor "text" is considered as "value"
   if (hasNoValueOrText) {
     indices.value = indices.properties[0].index;
     indices.text = indices.properties[0].index;
