@@ -83,7 +83,7 @@ function VariableLabel({ variable, layout, hideLabel }: VariableSelectProps) {
       isLoading={state.loading}
       onCancel={() => variable.onCancel?.()}
       label={labelOrName}
-      error={state.error}
+      error={state.error?.message || state.error}
       layout={layout}
       description={state.description ?? undefined}
     />
