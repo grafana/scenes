@@ -11,6 +11,13 @@
         "remove-filter-value": "Odebrat hodnotu filtru – {{itemLabel}}",
         "use-custom-value": "Použít vlastní hodnotu: {{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "Pokud jste se sem dostali pomocí odkazu, může se jednat o chybu v této aplikaci.",
         "subTitle": "Adresa URL neodpovídá žádné stránce",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "Vybrat hodnotu"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {

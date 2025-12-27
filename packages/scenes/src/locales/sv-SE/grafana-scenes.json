@@ -11,6 +11,13 @@
         "remove-filter-value": "Ta bort filtervärde – {{itemLabel}}",
         "use-custom-value": "Använd anpassat värde: {{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "Om du kom hit via en länk kan det finnas en bugg i den här applikationen.",
         "subTitle": "Webbadressen matchade ingen sida",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "Välj värde"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {

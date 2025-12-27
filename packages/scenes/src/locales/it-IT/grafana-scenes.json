@@ -11,6 +11,13 @@
         "remove-filter-value": "Rimuovi valore filtro - {{itemLabel}}",
         "use-custom-value": "Usa il valore personalizzato: {{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "Se un link ti ha portato qui, potrebbe esserci un bug in questa applicazione.",
         "subTitle": "L'URL non corrispondeva a nessuna pagina",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "Seleziona valore"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {
