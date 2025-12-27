@@ -11,6 +11,13 @@
         "remove-filter-value": "Szűrőérték eltávolítása – {{itemLabel}}",
         "use-custom-value": "Egyéni érték használata: {{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "Ha egy hivatkozáson keresztül lépett ide, akkor lehet, hogy hiba van ebben az alkalmazásban.",
         "subTitle": "Az URL-cím nem egyezett egyetlen oldallal sem",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "Érték kiválasztása"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {
