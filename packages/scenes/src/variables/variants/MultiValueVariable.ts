@@ -256,9 +256,35 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     return (MultiValueVariable.fieldAccessorCache[fieldPath] = property(fieldPath));
   }
 
-  public getValueText(): string {
+  public getValueText(fieldPath?: string): string {
     if (this.hasAllValue()) {
       return ALL_VARIABLE_TEXT;
+    }
+
+    if (fieldPath != null) {
+      const accessor = this.getFieldAccessor(fieldPath);
+
+      if (Array.isArray(this.state.value)) {
+        const index = parseInt(fieldPath, 10);
+        if (!isNaN(index) && index >= 0 && index < this.state.value.length) {
+          const option = this.state.options[index];
+          if (option) {
+            return String(option.label);
+          }
+        }
+
+        return this.state.value
+          .map((v) => {
+            const option = this.state.options.find((o) => o.value === v);
+            return option ? accessor(option.properties) : v;
+          })
+          .join(' + ');
+      } else {
+        const option = this.state.options.find((o) => o.value === this.state.value);
+        if (option) {
+          return String(accessor(option.properties));
+        }
+      }
     }
 
     if (Array.isArray(this.state.text)) {

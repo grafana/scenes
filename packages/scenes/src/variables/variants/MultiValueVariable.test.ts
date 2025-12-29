@@ -415,8 +415,8 @@ describe('MultiValueVariable', () => {
     });
   });
 
-  describe('getValue and getValueText', () => {
-    it('GetValueText should return text', async () => {
+  describe('getValueText', () => {
+    it('getValueText should return text', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
@@ -430,7 +430,7 @@ describe('MultiValueVariable', () => {
       expect(variable.getValueText()).toBe('A');
     });
 
-    it('GetValueText should return All text when value is $__all', async () => {
+    it('getValueText should return All text when value is $__all', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
@@ -443,7 +443,60 @@ describe('MultiValueVariable', () => {
       expect(variable.getValueText()).toBe(ALL_VARIABLE_TEXT);
     });
 
-    it('GetValue should return all options as an array when value is $__all', async () => {
+    it('getValueText should join text array with plus separator', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [],
+        value: ['1', '2'],
+        text: ['Hello', 'World'],
+        delayMs: 0,
+        isMulti: true,
+      });
+
+      expect(variable.getValueText()).toBe('Hello + World');
+    });
+
+    describe('When option properties are present', () => {
+      it('getValueText should support fieldPath', () => {
+        const variable = new TestVariable({
+          name: 'user',
+          isMulti: true,
+          value: ['10'],
+          text: ['Clementina DuBuque'],
+          options: [
+            { label: 'Clementina DuBuque', value: '10', properties: { username: 'Moriah.Stanton' } },
+            { label: 'Leanne Graham', value: '11', properties: { username: 'Bret' } },
+          ],
+          optionsToReturn: [],
+          delayMs: 0,
+        });
+
+        expect(variable.getValueText('username')).toBe('Moriah.Stanton');
+      });
+
+      it('getValueText should support fieldPath for multi values', () => {
+        const variable = new TestVariable({
+          name: 'user',
+          isMulti: true,
+          value: ['10', '11'],
+          text: ['Clementina DuBuque', 'Leanne Graham'],
+          options: [
+            { label: 'Clementina DuBuque', value: '10', properties: { username: 'Moriah.Stanton' } },
+            { label: 'Leanne Graham', value: '11', properties: { username: 'Bret' } },
+          ],
+          optionsToReturn: [],
+          delayMs: 0,
+        });
+
+        expect(variable.getValueText('username')).toBe('Moriah.Stanton + Bret');
+        expect(variable.getValueText('1')).toBe('Leanne Graham');
+      });
+    });
+  });
+
+  describe('getValue', () => {
+    it('getValue should return all options as an array when value is $__all', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [
@@ -459,7 +512,7 @@ describe('MultiValueVariable', () => {
       expect(variable.getValue()).toEqual(['1', '2']);
     });
 
-    it('GetValue should return allValue when value is $__all', async () => {
+    it('getValue should return allValue when value is $__all', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
@@ -480,7 +533,7 @@ describe('MultiValueVariable', () => {
       expect(value.formatter(VariableFormatID.PercentEncode)).toBe('.%2A');
     });
 
-    it('GetValue should support index fieldPath', async () => {
+    it('getValue should support index fieldPath', async () => {
       const variable = new TestVariable({
         name: 'test',
         value: ['1', '2'],
