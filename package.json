@@ -53,13 +53,13 @@
     "docusaurus/website"
   ],
   "devDependencies": {
-    "@auto-it/omit-commits": "^11.0.7",
-    "@auto-it/released": "^11.0.7",
-    "@testing-library/react": "^14.1.2",
-    "auto": "^11.0.7",
-    "lerna": "^9.0.0",
-    "lint-staged": "^13.2.0",
+    "@auto-it/omit-commits": "11.0.7",
+    "@auto-it/released": "11.0.7",
+    "@testing-library/react": "14.2.1",
+    "auto": "11.0.7",
+    "lerna": "9.0.0",
+    "lint-staged": "13.2.3",
     "prettier": "2.5.1",
-    "turbo": "^2.5.8"
+    "turbo": "2.5.8"
   }
 }
