@@ -430,7 +430,7 @@ describe('MultiValueVariable', () => {
       expect(variable.getValueText()).toBe('A');
     });
 
-    it('getValueText should return All text when value is $__all', async () => {
+    it('getValueText should return "All" text when value is $__all', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
@@ -443,7 +443,7 @@ describe('MultiValueVariable', () => {
       expect(variable.getValueText()).toBe(ALL_VARIABLE_TEXT);
     });
 
-    it('getValueText should join text array with plus separator', async () => {
+    it('getValueText should join text array with the "plus" separator', async () => {
       const variable = new TestVariable({
         name: 'test',
         options: [],
