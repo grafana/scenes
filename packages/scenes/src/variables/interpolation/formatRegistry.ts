@@ -317,11 +317,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.Text,
       name: 'Text',
       description: 'Format variables in their text representation. Example in multi-variable scenario A + B + C.',
-      formatter: (value, _args, variable) => {
+      formatter: (value, _args, variable, fieldPath) => {
         if (variable.getValueText) {
-          return variable.getValueText();
+          return variable.getValueText(fieldPath);
         }
-
         return String(value);
       },
     },

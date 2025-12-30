@@ -39,10 +39,43 @@ export function getVariableWithObjectValuesDemo(defaults: SceneAppPageState) {
         body: new SceneFlexLayout({
           children: [
             new SceneFlexItem({
-              body: PanelBuilders.text().setTitle('AWS').setOption('content', '${envs.aws_environment}').build(),
+              body: PanelBuilders.text()
+                .setTitle('Environment')
+                .setOption(
+                  'content',
+                  `
+- Current value = \${envs}
+- Value formatter = \${envs:value}
+- Text formatter = \${envs:text}
+`
+                )
+                .build(),
             }),
             new SceneFlexItem({
-              body: PanelBuilders.text().setTitle('Azure').setOption('content', '${envs.azure_environment}').build(),
+              body: PanelBuilders.text()
+                .setTitle('AWS environment')
+                .setOption(
+                  'content',
+                  `
+- Current value = \${envs.aws_environment}
+- Value formatter = \${envs.aws_environment:value}
+- Text formatter = \${envs.aws_environment:text}
+`
+                )
+                .build(),
+            }),
+            new SceneFlexItem({
+              body: PanelBuilders.text()
+                .setTitle('Azure environment')
+                .setOption(
+                  'content',
+                  `
+- Current value = \${envs.azure_environment}
+- Value formatter = \${envs.azure_environment:value}
+- Text formatter = \${envs.azure_environment:text}
+`
+                )
+                .build(),
             }),
           ],
         }),
