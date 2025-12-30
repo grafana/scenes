@@ -117,7 +117,7 @@ function SwitchVariableRenderer({ model }: SceneComponentProps<SwitchVariable>) 
   return (
     <div className={styles.container}>
       <Switch
-        id={`var-${state.key}`}
+        id={`var-switch-${state.key}`}
         value={state.value === state.enabledValue}
         onChange={(event) => {
           model.setValue(event!.currentTarget.checked ? state.enabledValue : state.disabledValue);
