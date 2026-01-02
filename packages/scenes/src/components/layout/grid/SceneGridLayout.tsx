@@ -28,6 +28,7 @@ interface SceneGridLayoutState extends SceneObjectState {
    */
   UNSAFE_fitPanels?: boolean;
   children: SceneGridItemLike[];
+  _placeholderItem: SceneGridItemLike | null;
 }
 
 export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> implements SceneLayout {
@@ -37,10 +38,11 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   private _oldLayout: ReactGridLayout.Layout[] = [];
   private _loadOldLayout = false;
 
-  public constructor(state: SceneGridLayoutState) {
+  public constructor(state: Omit<SceneGridLayoutState, '_placeholderItem'>) {
     super({
       ...state,
       children: sortChildrenByPosition(state.children),
+      _placeholderItem: null,
     });
   }
 
@@ -189,6 +191,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
    * Will also scan row children and return child of the row
    */
   public getSceneLayoutChild(key: string): SceneGridItemLike {
+    if (key === this.state._placeholderItem?.state.key) {
+      return this.state._placeholderItem!;
+    }
+
     for (const child of this.state.children) {
       if (child.state.key === key) {
         return child;
@@ -312,12 +318,14 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     return rootChildren;
   }
 
-  public onDragStart: ReactGridLayout.ItemCallback = (gridLayout) => {
-    this._oldLayout = [...gridLayout];
-  };
-
-  public onDragStop: ReactGridLayout.ItemCallback = (gridLayout, o, updatedItem) => {
+  public onDragStop = (gridLayout: ReactGridLayout.Layout[], updatedItem: ReactGridLayout.Layout) => {
     const sceneChild = this.getSceneLayoutChild(updatedItem.i)!;
+
+    // gridLayout contains both the original item and the updated item
+    // we need to remove the original item
+    gridLayout = gridLayout.filter(
+      (item) => item.i !== updatedItem.i || (item.i === updatedItem.i && item === updatedItem)
+    );
 
     // Need to resort the grid layout based on new position (needed to find the new parent)
     gridLayout = sortGridLayout(gridLayout);
@@ -361,7 +369,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       newChildren = this.moveChildTo(sceneChild, newParent);
     }
 
-    this.setState({ children: sortChildrenByPosition(newChildren) });
+    this.setState({ children: sortChildrenByPosition(newChildren), _placeholderItem: null });
     this._skipOnLayoutChange = true;
   };
 
@@ -419,6 +427,12 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     this._skipOnLayoutChange = false;
 
     return cells;
+  }
+
+  public setPlaceholder(placeholderItem: SceneGridItemLike | null) {
+    if (this.state._placeholderItem !== placeholderItem) {
+      this.setState({ _placeholderItem: placeholderItem });
+    }
   }
 }
 

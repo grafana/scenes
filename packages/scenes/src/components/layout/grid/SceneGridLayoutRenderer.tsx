@@ -11,7 +11,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useMeasure } from 'react-use';
 
 export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGridLayout>) {
-  const { children, isLazy, isDraggable, isResizable } = model.useState();
+  const { children, isLazy, isDraggable, isResizable, _placeholderItem } = model.useState();
   const [outerDivRef, { width, height }] = useMeasure();
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -45,7 +45,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
                 moving panels. https://github.com/grafana/grafana/issues/18497
                 theme.breakpoints.md = 769
            */
-          isDraggable={isDraggable && width > 768}
+          isDraggable={false}
           isResizable={isResizable ?? false}
           containerPadding={[0, 0]}
           useCSSTransforms={true}
@@ -55,12 +55,21 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
           draggableHandle={`.grid-drag-handle-${model.state.key}`}
           draggableCancel=".grid-drag-cancel"
           layout={layout}
-          onDragStart={model.onDragStart}
-          onDragStop={model.onDragStop}
+          droppingItem={
+            _placeholderItem
+              ? {
+                  i: _placeholderItem.state.key!,
+                  w: _placeholderItem.state.width!,
+                  h: _placeholderItem.state.height!,
+                }
+              : undefined
+          }
           onResizeStop={model.onResizeStop}
           onLayoutChange={model.onLayoutChange}
           isBounded={false}
           resizeHandle={<ResizeHandle />}
+          isDroppable={true}
+          onDrop={model.onDragStop}
         >
           {layout.map((gridItem, index) => (
             <GridItemWrapper
