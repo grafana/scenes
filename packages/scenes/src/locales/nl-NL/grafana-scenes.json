@@ -11,6 +11,13 @@
         "remove-filter-value": "Filterwaarde verwijderen - {{itemLabel}}",
         "use-custom-value": "Aangepaste waarde gebruiken: {{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "Als je hier bent gekomen via een link, dan kan er een bug in deze applicatie zijn.",
         "subTitle": "De URL kwam met geen enkele pagina overeen",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "Waarde selecteren"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {

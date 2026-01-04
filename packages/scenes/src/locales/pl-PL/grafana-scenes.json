@@ -11,6 +11,13 @@
         "remove-filter-value": "Usuń wartość filtra – {{itemLabel}}",
         "use-custom-value": "Użyj wartości niestandardowej: {{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "Jeśli doprowadził Cię tutaj link, może to oznaczać błąd w aplikacji.",
         "subTitle": "Adres URL nie pasuje do żadnej strony",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "Wybierz wartość"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {

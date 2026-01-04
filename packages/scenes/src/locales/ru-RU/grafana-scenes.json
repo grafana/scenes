@@ -11,6 +11,13 @@
         "remove-filter-value": "Удалить значение фильтра ({{itemLabel}})",
         "use-custom-value": "Использовать пользовательское значение: {{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "Если вы попали сюда по ссылке, возможна ошибка в приложении.",
         "subTitle": "URL-адрес не соответствует ни одной странице",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "Выбрать значение"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {

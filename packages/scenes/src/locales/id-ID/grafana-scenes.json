@@ -11,6 +11,13 @@
         "remove-filter-value": "Hapus nilai filter - {{itemLabel}}",
         "use-custom-value": "Gunakan nilai kustom: {{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "Jika Anda diarahkan ke sini menggunakan tautan, mungkin ada bug dalam aplikasi ini.",
         "subTitle": "URL tidak cocok dengan halaman mana pun",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "Pilih nilai"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {
