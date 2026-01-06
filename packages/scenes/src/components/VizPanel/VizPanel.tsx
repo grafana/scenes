@@ -356,8 +356,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
       return evaluateTimeRange(
-        sceneTimeRange.state.from,
-        sceneTimeRange.state.to,
+        sceneTimeRange.state.value.from,
+        sceneTimeRange.state.value.to,
         sceneTimeRange.getTimeZone(),
         sceneTimeRange.state.fiscalYearStartMonth,
         sceneTimeRange.state.UNSAFE_nowDelay,
