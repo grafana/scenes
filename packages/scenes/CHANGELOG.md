@@ -1,3 +1,17 @@
+# v6.52.1 (Tue Jan 06 2026)
+
+#### 🐛 Bug Fix
+
+- Variables: Fix text formatter for variables with multi-props [#1323](https://github.com/grafana/scenes/pull/1323) ([@grafakus](https://github.com/grafakus))
+- DD: Change Switch variable ID to not overlap with the dashboard control label [#1324](https://github.com/grafana/scenes/pull/1324) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 2
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
 # v6.52.0 (Thu Dec 18 2025)
 
 #### 🚀 Enhancement
