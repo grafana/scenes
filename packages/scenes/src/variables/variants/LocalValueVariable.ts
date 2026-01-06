@@ -51,7 +51,14 @@ export class LocalValueVariable
     return (LocalValueVariable.fieldAccessorCache[fieldPath] = property(fieldPath));
   }
 
-  public getValueText(): string {
+  public getValueText(fieldPath?: string): string {
+    if (fieldPath && this.state.properties) {
+      const value = this.getFieldAccessor(fieldPath)(this.state.properties);
+      if (value != null) {
+        return String(value);
+      }
+    }
+
     return this.state.text.toString();
   }
 

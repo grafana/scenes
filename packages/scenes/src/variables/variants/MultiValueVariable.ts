@@ -224,27 +224,50 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     if (fieldPath != null) {
-      if (Array.isArray(value)) {
-        const index = parseInt(fieldPath, 10);
-        if (!isNaN(index) && index >= 0 && index < value.length) {
-          return value[index];
-        }
-
-        const accesor = this.getFieldAccessor(fieldPath);
-        return value.map((v) => {
-          const o = this.state.options.find((o) => o.value === v);
-          return o ? accesor(o.properties) : v;
-        });
-      }
-
-      const accesor = this.getFieldAccessor(fieldPath);
-      const o = this.state.options.find((o) => o.value === value);
-      if (o) {
-        return accesor(o.properties);
-      }
+      return this.getFieldAtPath(value, fieldPath);
     }
 
     return value;
+  }
+
+  public getValueText(fieldPath?: string): string {
+    if (this.hasAllValue()) {
+      return ALL_VARIABLE_TEXT;
+    }
+
+    const text = fieldPath != null ? this.getFieldAtPath(this.state.value, fieldPath, true) : this.state.text;
+
+    return Array.isArray(text) ? text.join(' + ') : String(text);
+  }
+
+  private getFieldAtPath(value: VariableValue, fieldPath: string, returnText = false) {
+    const accesor = this.getFieldAccessor(fieldPath);
+
+    if (Array.isArray(value)) {
+      const index = parseInt(fieldPath, 10);
+
+      if (!isNaN(index) && index >= 0 && index < value.length) {
+        const v = value[index];
+        if (!returnText) {
+          return v;
+        }
+
+        const o = this.state.options.find((o) => o.value === v);
+        return o ? o.label : String(v);
+      }
+
+      return value.map((v) => {
+        const o = this.state.options.find((o) => o.value === v);
+        return o ? accesor(o.properties) : v;
+      });
+    }
+
+    const o = this.state.options.find((o) => o.value === value);
+    if (o) {
+      return accesor(o.properties);
+    }
+
+    return returnText ? this.state.text : value;
   }
 
   private getFieldAccessor(fieldPath: string) {
@@ -254,18 +277,6 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     return (MultiValueVariable.fieldAccessorCache[fieldPath] = property(fieldPath));
-  }
-
-  public getValueText(): string {
-    if (this.hasAllValue()) {
-      return ALL_VARIABLE_TEXT;
-    }
-
-    if (Array.isArray(this.state.text)) {
-      return this.state.text.join(' + ');
-    }
-
-    return String(this.state.text);
   }
 
   public hasAllValue() {

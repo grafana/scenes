@@ -126,6 +126,29 @@ describe('formatRegistry', () => {
     );
   });
 
+  describe('text format', () => {
+    it("should use variable's getValueText with fieldPath", () => {
+      const variable = new TestVariable({
+        name: 'user',
+        value: '10',
+        text: 'Clementina DuBuque',
+        options: [{ label: 'Clementina DuBuque', value: '10', properties: { username: 'alice' } }],
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+
+      const getValueText = jest
+        .spyOn(variable, 'getValueText')
+        .mockImplementation((fieldPath?: string) => (fieldPath === 'username' ? 'alice' : 'Clementina DuBuque'));
+
+      const { formatter } = formatRegistry.get(VariableFormatID.Text);
+
+      const result = formatter('10', [], variable, 'username');
+      expect(getValueText).toHaveBeenCalledWith('username');
+      expect(result).toBe('alice');
+    });
+  });
+
   describe('queryparam', () => {
     it('should url encode value', () => {
       const result = formatValue(VariableFormatID.QueryParam, 'helloAZ%=');
