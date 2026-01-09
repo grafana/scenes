@@ -19,7 +19,7 @@
   "devDependencies": {
     "@babel/core": "^7.16.7",
     "@eslint/compat": "1.3.0",
-    "@grafana/e2e": "9.2.1",
+    "@grafana/e2e": "9.5.21",
     "@grafana/e2e-selectors": "^11.5.0",
     "@grafana/eslint-config": "8.1.0",
     "@grafana/tsconfig": "1.3.0-rc1",
