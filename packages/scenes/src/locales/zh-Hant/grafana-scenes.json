@@ -11,6 +11,13 @@
         "remove-filter-value": "移除篩選條件值 - {{itemLabel}}",
         "use-custom-value": "使用自訂值：{{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "如果您使用連結找到此處，則此應用程式中可能存在錯誤。",
         "subTitle": "URL 與任何頁面都不相符",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "選擇值"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {
