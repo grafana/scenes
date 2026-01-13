@@ -1,3 +1,16 @@
+# v6.52.2 (Tue Jan 13 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanelMenuRenderer: Provide PanelMenuItem.target [#1331](https://github.com/grafana/scenes/pull/1331) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.52.1 (Tue Jan 06 2026)
 
 #### 🐛 Bug Fix
