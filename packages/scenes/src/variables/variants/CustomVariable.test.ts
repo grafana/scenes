@@ -370,6 +370,10 @@ label-3 : value-3,`,
 
       await lastValueFrom(variable.validateAndUpdate());
 
+      expect(variable.state.options).toEqual([
+        { value: 'test', label: 'Test', properties: { value: 'test', text: 'Test', location: 'US' } },
+        { value: 'prod', label: 'Prod', properties: { value: 'prod', text: 'Prod', location: 'EU' } },
+      ]);
       expect(variable.getValue()).toEqual('prod');
       expect(variable.getValue('location')).toEqual('EU');
     });
