@@ -5,10 +5,9 @@ import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
-import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
-import { sceneGraph } from '../../core/sceneGraph';
 import React from 'react';
-import { omit } from 'lodash';
+import { sceneGraph } from '../../core/sceneGraph';
+import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;
@@ -68,7 +67,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
     return parsedOptions.map((o) => ({
       label: String(o[textProp] || o[valueProp])?.trim(),
       value: String(o[valueProp]).trim(),
-      properties: omit(o, [textProp, valueProp]),
+      properties: o,
     }));
   }
 
