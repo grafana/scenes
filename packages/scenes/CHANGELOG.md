@@ -1,3 +1,15 @@
+# v6.52.3 (Thu Jan 15 2026)
+
+#### 🐛 Bug Fix
+
+- CustomVariable: Preserve all JSON properties in options [#1332](https://github.com/grafana/scenes/pull/1332) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
 # v6.52.2 (Tue Jan 13 2026)
 
 #### 🐛 Bug Fix
