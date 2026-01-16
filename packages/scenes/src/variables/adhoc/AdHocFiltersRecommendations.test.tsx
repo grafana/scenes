@@ -183,6 +183,34 @@ describe('AdHocFiltersRecommendations', () => {
       });
     });
   });
+
+  describe('subscriptions', () => {
+    it('should recompute recommendations and recent filters when filters change', async () => {
+      const recentFilters = [{ key: 'pod', operator: '=|', value: 'test1, test2', values: ['test1', 'test2'] }];
+      localStorage.setItem(RECENT_FILTERS_KEY, JSON.stringify(recentFilters));
+
+      const { filtersVar, getRecommendedDrilldownsSpy, getDrilldownsApplicabilitySpy } = setup({
+        drilldownRecommendationsEnabled: true,
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      const initialRecommendedCalls = getRecommendedDrilldownsSpy.mock.calls.length;
+      const initialApplicabilityCalls = getDrilldownsApplicabilitySpy.mock.calls.length;
+
+      filtersVar.setState({
+        filters: [{ key: 'key1', operator: '=', value: 'newVal' }],
+      });
+
+      await waitFor(() => {
+        expect(getRecommendedDrilldownsSpy.mock.calls.length).toBeGreaterThan(initialRecommendedCalls);
+        expect(getDrilldownsApplicabilitySpy.mock.calls.length).toBeGreaterThan(initialApplicabilityCalls);
+      });
+    });
+  });
 });
 
 const runRequestMock = {

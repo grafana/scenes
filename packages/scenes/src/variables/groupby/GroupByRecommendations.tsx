@@ -65,6 +65,7 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
     // Subscribe to scopes variable changes
     const scopesVariable = sceneGraph.lookupVariable(SCOPES_VARIABLE_NAME, this._groupBy);
     let scopesSubscription: Unsubscribable | undefined;
+    let groupBySubscription: Unsubscribable | undefined;
 
     if (scopesVariable instanceof ScopesVariable) {
       this._subs.add(
@@ -83,8 +84,24 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
       );
     }
 
+    this._subs.add(
+      (groupBySubscription = this._groupBy.subscribeToState((newState, prevState) => {
+        if (newState.value !== prevState.value) {
+          const json = store.get(this._getStorageKey());
+          const storedGroupings = json ? JSON.parse(json) : [];
+
+          if (storedGroupings.length > 0) {
+            this._verifyRecentGroupingsApplicability(storedGroupings);
+          }
+
+          this._fetchRecommendedDrilldowns();
+        }
+      }))
+    );
+
     return () => {
       scopesSubscription?.unsubscribe();
+      groupBySubscription?.unsubscribe();
     };
   };
 

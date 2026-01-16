@@ -64,6 +64,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     // Set up subscription to scopes variable
     const scopesVariable = sceneGraph.lookupVariable(SCOPES_VARIABLE_NAME, this._adHocFilter);
     let scopesSubscription: Unsubscribable | undefined;
+    let adHocSubscription: Unsubscribable | undefined;
 
     if (scopesVariable instanceof ScopesVariable) {
       this._subs.add(
@@ -82,8 +83,24 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
       );
     }
 
+    this._subs.add(
+      (adHocSubscription = this._adHocFilter.subscribeToState((newState, prevState) => {
+        if (newState.filters !== prevState.filters) {
+          const json = store.get(this._getStorageKey());
+          const storedFilters = json ? JSON.parse(json) : [];
+
+          if (storedFilters.length > 0) {
+            this._verifyRecentFiltersApplicability(storedFilters);
+          }
+
+          this._fetchRecommendedDrilldowns();
+        }
+      }))
+    );
+
     return () => {
       scopesSubscription?.unsubscribe();
+      adHocSubscription?.unsubscribe();
     };
   };
 
