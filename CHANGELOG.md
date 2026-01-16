@@ -1,3 +1,15 @@
+# v6.52.4 (Fri Jan 16 2026)
+
+#### 🐛 Bug Fix
+
+- chore: fix js-yaml vulnerability & upgrade docusaurus [#1333](https://github.com/grafana/scenes/pull/1333) ([@anaivanov](https://github.com/anaivanov))
+
+#### Authors: 1
+
+- Ana Ivanov ([@anaivanov](https://github.com/anaivanov))
+
+---
+
 # v6.52.3 (Thu Jan 15 2026)
 
 #### 🐛 Bug Fix
