@@ -1,3 +1,16 @@
+# v6.52.5 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - feat: add requestIdPrefix option to SceneQueryRunner [#1336](https://github.com/grafana/scenes/pull/1336) ([@svennergr](https://github.com/svennergr))
+
+#### Authors: 1
+
+- Sven Grossmann ([@svennergr](https://github.com/svennergr))
+
+---
+
 # v6.52.4 (Fri Jan 16 2026)
 
 #### 🐛 Bug Fix
