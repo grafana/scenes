@@ -1,3 +1,15 @@
+# v6.52.6 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- Filtering recommendations: Add subs to filters and grouping changes [#1334](https://github.com/grafana/scenes/pull/1334) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.52.5 (Mon Jan 19 2026)
 
 #### 🐛 Bug Fix
