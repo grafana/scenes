@@ -51,8 +51,8 @@ import { DrilldownDependenciesManager } from '../variables/DrilldownDependencies
 
 let counter = 100;
 
-export function getNextRequestId() {
-  return 'SQR' + counter++;
+export function getNextRequestId(prefix = 'SQR') {
+  return prefix + counter++;
 }
 
 export interface QueryRunnerState extends SceneObjectState {
@@ -72,6 +72,11 @@ export interface QueryRunnerState extends SceneObjectState {
   runQueriesMode?: 'auto' | 'manual';
   // Filters to be applied to data layer results before combining them with SQR results
   dataLayerFilter?: DataLayerFilter;
+  /**
+   * Optional prefix for the requestId. When set, request IDs will be formatted as `{requestIdPrefix}{counter}`.
+   * Useful for identifying requests from specific panels or components.
+   */
+  requestIdPrefix?: string;
   // Private runtime state
   _hasFetchedData?: boolean;
 }
@@ -528,11 +533,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private prepareRequests(timeRange: SceneTimeRangeLike, ds: DataSourceApi): PreparedRequests {
-    const { minInterval, queries } = this.state;
+    const { minInterval, queries, requestIdPrefix } = this.state;
 
     let request: DataQueryRequest<DataQueryExtended> = {
       app: 'scenes',
-      requestId: getNextRequestId(),
+      requestId: getNextRequestId(requestIdPrefix),
       timezone: timeRange.getTimeZone(),
       range: timeRange.state.value,
       interval: '1s',
@@ -598,7 +603,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     let secondaryProcessors = new Map();
     for (const provider of this.getClosestExtraQueryProviders() ?? []) {
       for (const { req, processor } of provider.getExtraQueries(request)) {
-        const requestId = getNextRequestId();
+        const requestId = getNextRequestId(requestIdPrefix);
         secondaryRequests.push({ ...req, requestId });
         secondaryProcessors.set(requestId, processor ?? passthroughProcessor);
       }

@@ -193,6 +193,35 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       `);
       expect(request).toMatchSnapshot();
     });
+
+    it('should use requestIdPrefix when provided', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        requestIdPrefix: 'my-panel-',
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest).toBeDefined();
+      expect(sentRequest!.requestId).toMatch(/^my-panel-\d+$/);
+    });
+
+    it('should use default SQR prefix when requestIdPrefix is not provided', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest).toBeDefined();
+      expect(sentRequest!.requestId).toMatch(/^SQR\d+$/);
+    });
   });
 
   describe('when result has annotations', () => {
