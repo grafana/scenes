@@ -1,3 +1,15 @@
+# v6.52.7 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocVar: Fix setting active index for grouped labels [#1335](https://github.com/grafana/scenes/pull/1335) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.52.6 (Mon Jan 19 2026)
 
 #### 🐛 Bug Fix
