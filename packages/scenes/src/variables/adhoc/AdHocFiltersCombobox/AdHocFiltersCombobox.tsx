@@ -362,6 +362,23 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           return;
         }
 
+        if (filterInputType === 'operator') {
+          event.preventDefault();
+          setInputValue('');
+          if (filter) {
+            controller.updateFilter(filter, {
+              key: '',
+              keyLabel: '',
+              operator: '',
+              value: '',
+              valueLabels: [],
+              values: undefined,
+            });
+          }
+          switchInputType('key', setInputType, undefined, refs.domReference.current);
+          return;
+        }
+
         // focus back on alway wip input when you delete filter with backspace
         focusOnWipInputRef?.();
 
@@ -369,6 +386,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           controller.startProfile?.(FILTER_REMOVED_INTERACTION);
         }
 
+        setOpen(false);
         controller.handleComboboxBackspace(filter!);
 
         if (isAlwaysWip) {
@@ -379,12 +397,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     [
       inputValue,
       filterInputType,
-      controller,
+      focusOnWipInputRef,
       filter,
+      controller,
       isAlwaysWip,
       filterMultiValues.length,
+      refs.domReference,
       handleResetWip,
-      focusOnWipInputRef,
     ]
   );
 

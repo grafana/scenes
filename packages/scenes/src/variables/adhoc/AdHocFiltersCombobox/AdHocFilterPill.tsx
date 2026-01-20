@@ -63,6 +63,13 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
     }
   }, [viewMode]);
 
+  useEffect(() => {
+    if (viewMode && !readOnly && !filter.origin && !filter.key && !filter.operator && !filter.value) {
+      controller.removeFilter(filter);
+      setTimeout(() => focusOnWipInputRef?.());
+    }
+  }, [controller, filter, focusOnWipInputRef, readOnly, viewMode]);
+
   const getOriginFilterTooltips = (origin: FilterOrigin): { info: string; restore: string } => {
     if (origin === 'dashboard') {
       return {
