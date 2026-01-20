@@ -35,6 +35,12 @@ describe('toMetricFindValues', () => {
         { name: 'value', type: FieldType.string, values: ['VA', 'VB', 'VC'] },
       ],
     });
+    const frameWithTextAndNumericValueField = toDataFrame({
+      fields: [
+        { name: 'text', type: FieldType.string, values: ['TA', 'TB', 'TC'] },
+        { name: 'value', type: FieldType.number, values: [1, 2, 3] },
+      ],
+    });
     const frameWithAStringField = toDataFrame({
       fields: [{ name: 'label', type: FieldType.string, values: ['A', 'B', 'C'] }],
     });
@@ -74,6 +80,14 @@ describe('toMetricFindValues', () => {
           { text: 'TA', value: 'VA', properties: { text: 'TA', value: 'VA' } },
           { text: 'TB', value: 'VB', properties: { text: 'TB', value: 'VB' } },
           { text: 'TC', value: 'VC', properties: { text: 'TC', value: 'VC' } },
+        ],
+      },
+      {
+        series: [frameWithTextAndNumericValueField],
+        expected: [
+          { text: 'TA', value: 1, properties: { text: 'TA' } },
+          { text: 'TB', value: 2, properties: { text: 'TB' } },
+          { text: 'TC', value: 3, properties: { text: 'TC' } },
         ],
       },
       {
