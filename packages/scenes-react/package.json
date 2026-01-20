@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes-react",
-  "version": "6.8.5",
+  "version": "6.8.6",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "AGPL-3.0-only",
@@ -37,7 +37,7 @@
     "url": "https://github.com/grafana/scenes/issues"
   },
   "dependencies": {
-    "@grafana/scenes": "6.8.5",
+    "@grafana/scenes": "6.8.6",
     "lru-cache": "^10.2.2",
     "react-use": "^17.4.0"
   },
