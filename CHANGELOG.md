@@ -1,3 +1,16 @@
+# v6.52.8 (Tue Jan 20 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - QueryVariable: Allow numeric value fields in MetricFindValue parsing [#1338](https://github.com/grafana/scenes/pull/1338) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
 # v6.52.7 (Mon Jan 19 2026)
 
 #### 🐛 Bug Fix
