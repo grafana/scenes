@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes",
-  "version": "6.52.1",
+  "version": "6.52.7",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "Apache-2.0",

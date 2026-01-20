@@ -294,6 +294,35 @@ describe('GroupByRecommendations', () => {
       expect(storedGroupings).toBeNull();
     });
   });
+
+  describe('subscriptions', () => {
+    it('should recompute recommendations and recent groupings when value changes', async () => {
+      const recentGroupings = [{ value: 'value1', text: 'value1' }];
+      localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(recentGroupings));
+
+      const { variable, getRecommendedDrilldownsSpy, getDrilldownsApplicabilitySpy } = setupTest({
+        drilldownRecommendationsEnabled: true,
+      });
+
+      await waitFor(() => {
+        const recommendations = variable.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      const initialRecommendedCalls = getRecommendedDrilldownsSpy.mock.calls.length;
+      const initialApplicabilityCalls = getDrilldownsApplicabilitySpy.mock.calls.length;
+
+      variable.setState({
+        value: ['newValue'],
+        text: ['newValue'],
+      });
+
+      await waitFor(() => {
+        expect(getRecommendedDrilldownsSpy.mock.calls.length).toBeGreaterThan(initialRecommendedCalls);
+        expect(getDrilldownsApplicabilitySpy.mock.calls.length).toBeGreaterThan(initialApplicabilityCalls);
+      });
+    });
+  });
 });
 
 const runRequestMock = {

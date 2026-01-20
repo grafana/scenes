@@ -1,3 +1,63 @@
+# v6.52.7 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocVar: Fix setting active index for grouped labels [#1335](https://github.com/grafana/scenes/pull/1335) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.52.6 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- Filtering recommendations: Add subs to filters and grouping changes [#1334](https://github.com/grafana/scenes/pull/1334) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.52.5 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- feat: add requestIdPrefix option to SceneQueryRunner [#1336](https://github.com/grafana/scenes/pull/1336) ([@svennergr](https://github.com/svennergr))
+
+#### Authors: 1
+
+- Sven Grossmann ([@svennergr](https://github.com/svennergr))
+
+---
+
+# v6.52.3 (Thu Jan 15 2026)
+
+#### 🐛 Bug Fix
+
+- CustomVariable: Preserve all JSON properties in options [#1332](https://github.com/grafana/scenes/pull/1332) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
+# v6.52.2 (Tue Jan 13 2026)
+
+#### 🐛 Bug Fix
+
+- VizPanelMenuRenderer: Provide PanelMenuItem.target [#1331](https://github.com/grafana/scenes/pull/1331) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v6.52.1 (Tue Jan 06 2026)
 
 #### 🐛 Bug Fix

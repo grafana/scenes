@@ -230,7 +230,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setInputValue(value);
-    setActiveIndex(0);
+    const nextFilteredItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(value)));
+    if (!nextFilteredItems.length && allowCustomValue) {
+      setActiveIndex(0);
+    } else {
+      setActiveIndex(getFirstSelectableIndex(nextFilteredItems));
+    }
     if (preventFiltering) {
       setPreventFiltering(false);
     }
@@ -249,6 +254,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const filteredDropDownItems = flattenOptionGroups(
     handleOptionGroups(optionsSearcher(preventFiltering ? '' : inputValue))
   );
+
+  const getFirstSelectableIndex = useCallback((items: Array<SelectableValue<string>>) => {
+    const index = items.findIndex((item) => !item.options);
+    return index >= 0 ? index : null;
+  }, []);
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
   if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
