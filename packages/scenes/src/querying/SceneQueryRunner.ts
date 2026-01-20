@@ -72,6 +72,7 @@ export interface QueryRunnerState extends SceneObjectState {
   runQueriesMode?: 'auto' | 'manual';
   // Filters to be applied to data layer results before combining them with SQR results
   dataLayerFilter?: DataLayerFilter;
+  dataProcessor?: (queryRunner: SceneQueryRunner, data: PanelData) => PanelData;
   /**
    * Optional prefix for the requestId. When set, request IDs will be formatted as `{requestIdPrefix}{counter}`.
    * Useful for identifying requests from specific panels or components.
@@ -620,12 +621,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._resultAnnotations = data.annotations;
 
     // Will combine annotations & alert state from data layer providers
-    const dataWithLayersApplied = this._combineDataLayers(preProcessedData);
+    let dataWithLayersApplied = this._combineDataLayers(preProcessedData);
 
     let hasFetchedData = this.state._hasFetchedData;
 
     if (!hasFetchedData && preProcessedData.state !== LoadingState.Loading) {
       hasFetchedData = true;
+    }
+
+    if (this.state.dataProcessor) {
+      dataWithLayersApplied = this.state.dataProcessor(this, dataWithLayersApplied);
     }
 
     this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
