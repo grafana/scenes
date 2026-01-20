@@ -81,23 +81,26 @@ function findFieldsIndices(frames: DataFrame[], valueProp?: string, textProp?: s
     expandable: -1,
     properties: [],
   };
-
   for (const frame of getProcessedDataFrames(frames)) {
     for (let index = 0; index < frame.fields.length; index++) {
       const field = frame.fields[index];
       const fieldName = getFieldDisplayName(field, frame, frames).toLowerCase();
 
-      if (field.type === FieldType.string) {
+      // value field
+      if (field.type === FieldType.string || field.type === FieldType.number) {
         if (valueProp && fieldName === valueProp) {
           indices.value = index;
         }
 
-        if (textProp && fieldName === textProp) {
-          indices.text = index;
-        }
-
         if (fieldName === 'value' && indices.value === -1) {
           indices.value = index;
+        }
+      }
+
+      // text and properties fields
+      if (field.type === FieldType.string) {
+        if (textProp && fieldName === textProp) {
+          indices.text = index;
         }
 
         if (fieldName === 'text' && indices.text === -1) {
