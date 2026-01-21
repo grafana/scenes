@@ -1,3 +1,15 @@
+# v6.52.10 (Wed Jan 21 2026)
+
+#### 🐛 Bug Fix
+
+- SceneQueryRunner: handle undefined state.data in cancelQuery [#1337](https://github.com/grafana/scenes/pull/1337) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v6.52.9 (Wed Jan 21 2026)
 
 #### 🐛 Bug Fix
