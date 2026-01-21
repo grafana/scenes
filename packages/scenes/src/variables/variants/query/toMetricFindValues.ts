@@ -95,6 +95,8 @@ function findFieldsIndices(frames: DataFrame[], valueProp?: string, textProp?: s
         if (fieldName === 'value' && indices.value === -1) {
           indices.value = index;
         }
+
+        indices.properties.push({ name: fieldName, index });
       }
 
       // text and properties fields
@@ -128,7 +130,7 @@ function validateIndices(indices: Indices): Indices {
   const hasNoValueOrText = indices.value === -1 && indices.text === -1;
 
   if (!indices.properties.length) {
-    throw new Error("Couldn't find any field of type string in the results");
+    throw new Error("Couldn't find any field of type string or number in the results");
   }
 
   if (hasNoValueOrText) {
