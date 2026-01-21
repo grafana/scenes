@@ -1,28 +1,9 @@
 import { FieldType, toDataFrame } from '@grafana/data';
-import { lastValueFrom, of } from 'rxjs';
+import { of } from 'rxjs';
 import { toMetricFindValues } from './toMetricFindValues';
 
-describe('toMetricFindValues', () => {
-  describe('when called with 2 string fields, neither named named value', () => {
-    it('Returns metric find values', async () => {
-      const frameWithStringField = toDataFrame({
-        fields: [
-          { name: 'id', type: FieldType.string, values: ['A', 'B'] },
-          { name: 'id2', type: FieldType.string, values: ['A2', 'B2'] },
-        ],
-      });
-
-      const panelData: any = { series: [frameWithStringField] };
-      const values = await lastValueFrom(of(panelData).pipe(toMetricFindValues(undefined, undefined)));
-
-      expect(values).toEqual([
-        { text: 'A', value: 'A', properties: { id: 'A', id2: 'A2' } },
-        { text: 'B', value: 'B', properties: { id: 'B', id2: 'B2' } },
-      ]);
-    });
-  });
-
-  describe('series without properties', () => {
+describe('toMetricFindValues(valueProp,textProp)', () => {
+  describe('when valueProp/textProp are not passed', () => {
     const frameWithTextField = toDataFrame({
       fields: [{ name: 'text', type: FieldType.string, values: ['A', 'B', 'C'] }],
     });
@@ -41,7 +22,7 @@ describe('toMetricFindValues', () => {
         { name: 'value', type: FieldType.number, values: [1, 2, 3] },
       ],
     });
-    const frameWithAStringField = toDataFrame({
+    const frameWithArbitraryStringField = toDataFrame({
       fields: [{ name: 'label', type: FieldType.string, values: ['A', 'B', 'C'] }],
     });
     const frameWithExpandableField = toDataFrame({
@@ -53,12 +34,13 @@ describe('toMetricFindValues', () => {
 
     // it.each wouldn't work here as we need the done callback
     [
-      { series: null, expected: [] },
-      { series: undefined, expected: [] },
-      { series: [], expected: [] },
-      { series: [{ text: '' }], expected: [{ text: '' }] },
-      { series: [{ value: '' }], expected: [{ value: '' }] },
+      { name: 'null series', series: null, expected: [] },
+      { name: 'undefined series', series: undefined, expected: [] },
+      { name: 'empty series', series: [], expected: [] },
+      { name: 'MetricFindValue array: text only', series: [{ text: '' }], expected: [{ text: '' }] },
+      { name: 'MetricFindValue array: value only', series: [{ value: '' }], expected: [{ value: '' }] },
       {
+        name: "single frame: 'text' field only",
         series: [frameWithTextField],
         expected: [
           { text: 'A', value: 'A', properties: { text: 'A' } },
@@ -67,6 +49,7 @@ describe('toMetricFindValues', () => {
         ],
       },
       {
+        name: "single frame: 'value' field only",
         series: [frameWithValueField],
         expected: [
           { text: 'A', value: 'A', properties: { value: 'A' } },
@@ -75,6 +58,7 @@ describe('toMetricFindValues', () => {
         ],
       },
       {
+        name: "single frame: 'text' + 'value' fields",
         series: [frameWithTextAndValueField],
         expected: [
           { text: 'TA', value: 'VA', properties: { text: 'TA', value: 'VA' } },
@@ -83,15 +67,17 @@ describe('toMetricFindValues', () => {
         ],
       },
       {
+        name: "single frame: 'text' + numeric 'value' field",
         series: [frameWithTextAndNumericValueField],
         expected: [
-          { text: 'TA', value: 1, properties: { text: 'TA' } },
-          { text: 'TB', value: 2, properties: { text: 'TB' } },
-          { text: 'TC', value: 3, properties: { text: 'TC' } },
+          { text: 'TA', value: 1, properties: { text: 'TA', value: 1 } },
+          { text: 'TB', value: 2, properties: { text: 'TB', value: 2 } },
+          { text: 'TC', value: 3, properties: { text: 'TC', value: 3 } },
         ],
       },
       {
-        series: [frameWithAStringField],
+        name: 'single frame: arbitrary string field',
+        series: [frameWithArbitraryStringField],
         expected: [
           { text: 'A', value: 'A', properties: { label: 'A' } },
           { text: 'B', value: 'B', properties: { label: 'B' } },
@@ -99,6 +85,7 @@ describe('toMetricFindValues', () => {
         ],
       },
       {
+        name: "single frame: string field with 'expandable' flag",
         series: [frameWithExpandableField],
         expected: [
           { text: 'A', value: 'A', expandable: true, properties: { label: 'A' } },
@@ -107,7 +94,7 @@ describe('toMetricFindValues', () => {
         ],
       },
     ].forEach((scenario) => {
-      it(`when called with series:${JSON.stringify(scenario.series, null, 0)}`, async () => {
+      it(scenario.name, async () => {
         const { series, expected } = scenario;
         const panelData: any = { series };
         const observable = of(panelData).pipe(toMetricFindValues());
@@ -119,7 +106,7 @@ describe('toMetricFindValues', () => {
       });
     });
 
-    describe('when called with no string fields', () => {
+    describe('when called with no string or number fields', () => {
       it('then the observable throws', async () => {
         const frameWithTimeField = toDataFrame({
           fields: [{ name: 'time', type: FieldType.time, values: [1, 2, 3] }],
@@ -130,13 +117,13 @@ describe('toMetricFindValues', () => {
 
         await expect(observable).toEmitValuesWith((received) => {
           const value = received[0];
-          expect(value).toEqual(new Error("Couldn't find any field of type string in the results"));
+          expect(value).toEqual(new Error("Couldn't find any field of type string or number in the results"));
         });
       });
     });
   });
 
-  describe('series with properties', () => {
+  describe('when valueProp/textProp are passed', () => {
     const frameWithPropertiesField = toDataFrame({
       fields: [
         {
@@ -175,6 +162,7 @@ describe('toMetricFindValues', () => {
 
     [
       {
+        name: "valueProp='id' and textProp='display_name'",
         series: [frameWithPropertiesField],
         valueProp: 'id',
         textProp: 'display_name',
@@ -197,6 +185,7 @@ describe('toMetricFindValues', () => {
         ],
       },
       {
+        name: "valueProp='id' only",
         series: [frameWithPropertiesField],
         valueProp: 'id',
         expected: [
@@ -218,6 +207,7 @@ describe('toMetricFindValues', () => {
         ],
       },
       {
+        name: "textProp='display_name' only",
         series: [frameWithPropertiesField],
         textProp: 'display_name',
         expected: [
@@ -235,6 +225,7 @@ describe('toMetricFindValues', () => {
         ],
       },
       {
+        name: "valueProp='id' and textProp='display_name' with 'expandable' flag",
         series: [frameWithPropertiesAndExpandableField],
         valueProp: 'id',
         textProp: 'display_name',
@@ -260,6 +251,7 @@ describe('toMetricFindValues', () => {
         ],
       },
       {
+        name: "valueProp='id' and textProp='display_name' with 'value' field",
         series: [frameWithValueAndPropertiesField],
         valueProp: 'id',
         textProp: 'display_name',
@@ -282,6 +274,7 @@ describe('toMetricFindValues', () => {
         ],
       },
       {
+        name: "valueProp='id' and textProp='display_name' with 'value' and 'text' fields",
         series: [frameWithValueTextAndPropertiesField],
         valueProp: 'id',
         textProp: 'display_name',
@@ -304,7 +297,7 @@ describe('toMetricFindValues', () => {
         ],
       },
     ].forEach((scenario) => {
-      it(`when called with series:${JSON.stringify(scenario.series, null, 0)}`, async () => {
+      it(scenario.name, async () => {
         const { series, valueProp, textProp, expected } = scenario;
         const panelData: any = { series };
         const observable = of(panelData).pipe(toMetricFindValues(valueProp, textProp));
@@ -316,10 +309,10 @@ describe('toMetricFindValues', () => {
       });
     });
 
-    describe('when called with no string fields', () => {
+    describe('when called with no string nor number fields', () => {
       it('then the observable throws', async () => {
         const frameWithPropertiesField = toDataFrame({
-          fields: [{ name: 'id', type: FieldType.number, values: [1, 1, 3] }],
+          fields: [{ name: 'id', type: FieldType.other, values: [null, null, null] }],
         });
 
         const panelData: any = { series: [frameWithPropertiesField] };
@@ -327,7 +320,7 @@ describe('toMetricFindValues', () => {
 
         await expect(observable).toEmitValuesWith((received) => {
           const value = received[0];
-          expect(value).toEqual(new Error("Couldn't find any field of type string in the results"));
+          expect(value).toEqual(new Error("Couldn't find any field of type string or number in the results"));
         });
       });
     });
