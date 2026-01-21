@@ -421,7 +421,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     this.setState({
-      data: { ...this.state.data!, state: LoadingState.Done },
+      data: { ...(this.state.data ?? emptyPanelData), state: LoadingState.Done },
     });
   }
 
