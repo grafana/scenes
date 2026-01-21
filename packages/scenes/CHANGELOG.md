@@ -1,3 +1,15 @@
+# v6.52.9 (Wed Jan 21 2026)
+
+#### 🐛 Bug Fix
+
+- QueryVariable: Ensure numeric value field is always added to MetricFindValue properties when parsing data frames [#1341](https://github.com/grafana/scenes/pull/1341) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
 # v6.52.8 (Tue Jan 20 2026)
 
 #### 🐛 Bug Fix
