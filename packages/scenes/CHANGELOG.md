@@ -1,3 +1,15 @@
+# v6.52.11 (Mon Jan 26 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Fixes backspace key not removing filters properly [#1339](https://github.com/grafana/scenes/pull/1339) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.52.10 (Wed Jan 21 2026)
 
 #### 🐛 Bug Fix
