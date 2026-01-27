@@ -43,6 +43,7 @@ import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 import { getSeriesLimitTest } from './seriesLimit';
 import { getScopesDemo } from './scopesDemo';
 import { getVariableWithObjectValuesDemo } from './variableWithObjectValuesDemo';
+import { getPanelRepeaterByProcessorDemo } from './panelRepeaterByProcessor';
 
 export interface DemoDescriptor {
   title: string;
@@ -82,6 +83,12 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Here we use the SceneByFrameRepeater to dynamically build a layout for each frame',
       getPage: getPanelRepeaterTest,
       getSourceCodeModule: () => import('!!raw-loader!../demos/panelRepeater'),
+    },
+    {
+      title: 'Repeat layout by series (using data processor)',
+      description: 'Here we use repeat a panel using a data processor',
+      getPage: getPanelRepeaterByProcessorDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/panelRepeaterByProcessor'),
     },
     {
       title: 'Repeat layout by variable',
