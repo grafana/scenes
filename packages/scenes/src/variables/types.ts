@@ -5,6 +5,12 @@ import { VariableType, VariableHide } from '@grafana/schema';
 
 import { SceneObject, SceneObjectState } from '../core/types';
 
+export interface ControlSourceRef {
+  uid: string;
+  sourceId: string; // E.g. "prometheus"
+  sourceType: string; // E.g. "datasource"
+}
+
 export interface SceneVariableState extends SceneObjectState {
   type: VariableType;
   name: string;
@@ -14,6 +20,8 @@ export interface SceneVariableState extends SceneObjectState {
   loading?: boolean;
   error?: any | null;
   description?: string | null;
+  // Tells which source registered the variable.
+  source?: ControlSourceRef;
 }
 
 export interface SceneVariable<TState extends SceneVariableState = SceneVariableState> extends SceneObject<TState> {
