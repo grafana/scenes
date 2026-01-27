@@ -832,7 +832,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                               ? t(
                                   'grafana-scenes.components.adhoc-filters-combobox.use-custom-value',
                                   'Use custom value: {{itemLabel}}',
-                                  { itemLabel }
+                                  { itemLabel, interpolation: { escapeValue: false } }
                                 )
                               : itemLabel}
                           </span>
