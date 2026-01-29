@@ -11,6 +11,13 @@
         "remove-filter-value": "フィルター値を削除 - {{itemLabel}}",
         "use-custom-value": "カスタム値を使用：{{itemLabel}} "
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "リンクからこのページにアクセスした場合、アプリケーションにバグがある可能性があります。",
         "subTitle": "URLがどのページにも一致しません",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "値を選択"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {
