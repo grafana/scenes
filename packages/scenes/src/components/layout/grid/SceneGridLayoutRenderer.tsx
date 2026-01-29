@@ -37,7 +37,11 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
        * in an element that has the calculated size given by the AutoSizer. The AutoSizer
        * has a width of 0 and will let its content overflow its div.
        */
-      <div ref={ref} style={{ width: `${width}px`, height: '100%' }} className="react-grid-layout">
+      <div
+        ref={ref}
+        style={{ width: `${width}px`, height: layout.length > 0 ? '100%' : '0' }}
+        className="react-grid-layout"
+      >
         <ReactGridLayout
           width={width}
           /**
