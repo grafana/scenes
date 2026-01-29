@@ -11,6 +11,13 @@
         "remove-filter-value": "Filtre değerini kaldır - {{itemLabel}}",
         "use-custom-value": "Özel değer kullan: {{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "",
+        "recent-empty": "",
+        "recommended": "",
+        "recommended-empty": "",
+        "tooltip": ""
+      },
       "fallback-page": {
         "content": "Buraya bir bağlantı aracılığıyla ulaştıysanız uygulamada bir hata olabilir.",
         "subTitle": "URL hiçbir sayfayla eşleşmedi.",
@@ -92,6 +99,10 @@
         "value-select": {
           "placeholder-select-value": "Değer seçin"
         }
+      },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "",
+        "collapse-filters": ""
       },
       "data-source-variable": {
         "label": {
