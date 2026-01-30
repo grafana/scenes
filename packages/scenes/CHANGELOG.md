@@ -1,3 +1,17 @@
+# v6.52.12 (Fri Jan 30 2026)
+
+#### 🐛 Bug Fix
+
+- SceneGridLayout: Remove height when grid is empty [#1344](https://github.com/grafana/scenes/pull/1344) ([@grafakus](https://github.com/grafakus))
+- Adhoc filters: Don't escape filter values in Preview [#1343](https://github.com/grafana/scenes/pull/1343) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 2
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
 # v6.52.11 (Mon Jan 26 2026)
 
 #### 🐛 Bug Fix
