@@ -8,7 +8,7 @@ import {
   isFilterComplete,
 } from '../variables/adhoc/AdHocFiltersVariable';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
-import { SceneObjectState } from '../core/types';
+import { SceneObject, SceneObjectState } from '../core/types';
 
 /**
  * Manages ad-hoc filters and group-by variables for data providers
@@ -25,9 +25,9 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   /**
    * Walk up scene graph and find the closest filterset with matching data source
    */
-  public findAndSubscribeToDrilldowns(interpolatedUid: string | undefined) {
-    const filtersVar = findActiveAdHocFilterVariableByUid(interpolatedUid);
-    const groupByVar = findActiveGroupByVariablesByUid(interpolatedUid);
+  public findAndSubscribeToDrilldowns(interpolatedUid: string | undefined, sceneObject: SceneObject) {
+    const filtersVar = findActiveAdHocFilterVariableByUid(interpolatedUid, sceneObject);
+    const groupByVar = findActiveGroupByVariablesByUid(interpolatedUid, sceneObject);
 
     let hasChanges = false;
 
