@@ -23,6 +23,7 @@ const plugins = [
 export default [
   {
     input: 'src/index.ts',
+    treeshake: env === 'development' ? false : true,
     plugins: env === 'development' ? [...plugins] : plugins,
     output: [
       {
@@ -37,6 +38,7 @@ export default [
         sourcemap: env === 'production' ? true : 'inline',
         dir: path.dirname(pkg.module),
         preserveModules: true,
+        preserveModulesRoot: path.join(process.cwd(), 'src'),
       },
     ],
     watch: {
