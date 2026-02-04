@@ -44,7 +44,7 @@ export function fuzzyFind<T extends SelectableValue | VariableValueOption>(
     // too long (often copy-paste from somewhere)
     needle.length > maxNeedleLength ||
     // skip fuzzy searching if too many terms
-    (terms?.length ?? 0) > maxFuzzyTerms ||
+    terms.length > maxFuzzyTerms ||
     // if these differ then special chars exist in the input
     keptChars !== inputChars
   ) {
