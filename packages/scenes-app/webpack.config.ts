@@ -19,11 +19,7 @@ const config = (env: any): Configuration => {
       uniqueName: pluginId,
     },
     resolve: {
-      modules: [
-        path.join(workspaceRoot, 'node_modules'),
-        path.join(__dirname, 'node_modules'),
-        'node_modules',
-      ],
+      modules: [path.join(workspaceRoot, 'node_modules'), path.join(__dirname, 'node_modules'), 'node_modules'],
       fallback: {
         fs: false,
         'fs/promises': false,

@@ -100,7 +100,13 @@ export class HandlerDrilldownViewBehavior extends SceneObjectBase<HandlerDrilldo
         )
         .setTitle(`Handler: ${handler} details`)
         .setHeaderActions(
-          <Button size="sm" variant="secondary" icon="times" aria-label="Close" onClick={() => this.setState({ handler: undefined })} />
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="times"
+            aria-label="Close"
+            onClick={() => this.setState({ handler: undefined })}
+          />
         )
         .build(),
     });
