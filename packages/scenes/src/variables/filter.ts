@@ -28,7 +28,7 @@ export function fuzzyFind<T extends SelectableValue | VariableValueOption>(
 
   const terms = uf.split(needle);
   // chars maintained by ufuzzy after stripping special chars
-  const keptChars = terms?.join('').length ?? 0;
+  const keptChars = terms.join('').length;
   // overall input chars without whitespace
   const inputChars = needle.replace(/\s/g, '').length;
 
