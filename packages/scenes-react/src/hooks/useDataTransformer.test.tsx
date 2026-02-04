@@ -66,6 +66,8 @@ describe('useDataTransformer', () => {
           );
         },
       },
+      imageDark: '',
+      imageLight: '',
     });
   });
 

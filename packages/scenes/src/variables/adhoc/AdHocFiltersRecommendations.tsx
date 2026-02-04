@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-  // @ts-expect-error (temporary till we update grafana/data)
-  DrilldownsApplicability,
-  store,
-} from '@grafana/data';
+import { DrilldownsApplicability, store } from '@grafana/data';
 import { sceneGraph } from '../../core/sceneGraph';
 import { getEnrichedDataRequest } from '../../querying/getEnrichedDataRequest';
 import { getQueriesForVariables } from '../utils';

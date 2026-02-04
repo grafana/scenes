@@ -2718,9 +2718,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
             metadata: { name: 'Scope 1' },
             spec: {
               title: 'Scope 1',
-              type: 'test',
-              description: 'Test scope',
-              category: 'test',
               filters: [],
             },
           },
@@ -2743,7 +2740,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         metadata: { name: 'Scope 1' },
         spec: {
           title: 'Scope 1',
-          type: 'test',
         },
       });
     });
