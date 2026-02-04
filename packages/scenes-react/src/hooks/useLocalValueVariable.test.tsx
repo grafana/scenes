@@ -41,4 +41,3 @@ describe('useLocalValueVariable', () => {
     expect(variable?.state.value).toBe('B');
   });
 });
-

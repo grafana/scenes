@@ -67,4 +67,3 @@ export function useLocalValueVariable(options: LocalValueVariableOptions): Local
 
   return variable;
 }
-

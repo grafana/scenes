@@ -52,4 +52,3 @@ describe('useAdHocFiltersVariable', () => {
     expect(variable?.state.filters).toEqual([{ key: 'job', operator: '=', value: 'grafana', condition: '' }]);
   });
 });
-

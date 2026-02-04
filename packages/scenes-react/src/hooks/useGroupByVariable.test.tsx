@@ -50,4 +50,3 @@ describe('useGroupByVariable', () => {
     expect(variable?.state.readOnly).toBe(false);
   });
 });
-
