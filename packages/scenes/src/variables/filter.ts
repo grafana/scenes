@@ -26,6 +26,12 @@ export function fuzzyFind<T extends SelectableValue | VariableValueOption>(
 ) {
   let matches: T[] = [];
 
+  const terms = uf.split(needle);
+  // chars maintained by ufuzzy after stripping special chars
+  const keptChars = terms?.join('').length ?? 0;
+  // overall input chars without whitespace
+  const inputChars = needle.replace(/\s/g, '').length;
+
   if (needle === '') {
     matches = options;
   }
@@ -37,7 +43,10 @@ export function fuzzyFind<T extends SelectableValue | VariableValueOption>(
     REGEXP_ONLY_SYMBOLS.test(needle) ||
     // too long (often copy-paste from somewhere)
     needle.length > maxNeedleLength ||
-    uf.split(needle).length > maxFuzzyTerms
+    // skip fuzzy searching if too many terms
+    (terms?.length ?? 0) > maxFuzzyTerms ||
+    // if these differ then special chars exist in the input
+    keptChars !== inputChars
   ) {
     for (let i = 0; i < haystack.length; i++) {
       let item = haystack[i];
