@@ -130,8 +130,7 @@ describe('filter', () => {
       const matches = fuzzyFind(options, stringOptions, needle);
 
       // Fuzzy matching should find matches with characters in order
-      expect(matches.length).toBeGreaterThan(0);
-      expect(matches.map((m) => m.value)).toContain('foobar');
+      expect(matches.map((m) => m.value)).toEqual(['foobar', 'foobarbaz']);
     });
 
     it('should handle mixed special characters in needle', () => {
