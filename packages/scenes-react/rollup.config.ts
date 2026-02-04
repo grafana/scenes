@@ -38,7 +38,6 @@ export default [
         sourcemap: env === 'production' ? true : 'inline',
         dir: path.dirname(pkg.module),
         preserveModules: true,
-        preserveModulesRoot: path.join(process.cwd(), 'src'),
       },
     ],
     watch: {
