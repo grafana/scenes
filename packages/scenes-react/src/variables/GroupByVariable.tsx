@@ -20,6 +20,16 @@ export interface GroupByVariableProps extends VariableProps {
   getTagKeysProvider?: any;
   wideInput?: boolean;
   drilldownRecommendationsEnabled?: boolean;
+  /** Allow typing custom values in the selector. Defaults to true in scenes. */
+  allowCustomValue?: boolean;
+  /** Allow selecting multiple keys. Defaults to true in scenes. */
+  isMulti?: boolean;
+  /** Include an "All" option. */
+  includeAll?: boolean;
+  /** How many values to show before collapsing to +N. Defaults to 5 in scenes. */
+  maxVisibleValues?: number;
+  /** When clearing selection, set value to [] instead of keeping previous. Defaults to true in scenes. */
+  noValueOnClear?: boolean;
   children: React.ReactNode;
 }
 
@@ -28,6 +38,7 @@ export function GroupByVariable({
   label,
   hide,
   skipUrlSync,
+  initialValue,
   datasource = null,
   baseFilters,
   defaultOptions,
@@ -40,6 +51,11 @@ export function GroupByVariable({
   getTagKeysProvider,
   wideInput,
   drilldownRecommendationsEnabled,
+  allowCustomValue,
+  isMulti,
+  includeAll,
+  maxVisibleValues,
+  noValueOnClear,
   children,
 }: GroupByVariableProps): React.ReactNode {
   const scene = useSceneContext();
@@ -54,6 +70,9 @@ export function GroupByVariable({
       hide,
       skipUrlSync,
       datasource,
+      ...(initialValue !== undefined && {
+        value: Array.isArray(initialValue) ? initialValue : [initialValue],
+      }),
       baseFilters,
       defaultOptions,
       defaultValue,
@@ -65,6 +84,11 @@ export function GroupByVariable({
       getTagKeysProvider,
       wideInput,
       drilldownRecommendationsEnabled,
+      allowCustomValue,
+      isMulti,
+      includeAll,
+      maxVisibleValues,
+      noValueOnClear,
     });
   }
 
@@ -95,7 +119,12 @@ export function GroupByVariable({
       isEqual(variable.state.tagKeyRegexFilter, tagKeyRegexFilter) &&
       variable.state.getTagKeysProvider === getTagKeysProvider &&
       variable.state.wideInput === wideInput &&
-      variable.state.drilldownRecommendationsEnabled === drilldownRecommendationsEnabled
+      variable.state.drilldownRecommendationsEnabled === drilldownRecommendationsEnabled &&
+      variable.state.allowCustomValue === allowCustomValue &&
+      variable.state.isMulti === isMulti &&
+      variable.state.includeAll === includeAll &&
+      variable.state.maxVisibleValues === maxVisibleValues &&
+      variable.state.noValueOnClear === noValueOnClear
     ) {
       return;
     }
@@ -117,10 +146,16 @@ export function GroupByVariable({
       getTagKeysProvider,
       wideInput,
       drilldownRecommendationsEnabled,
+      allowCustomValue,
+      isMulti,
+      includeAll,
+      maxVisibleValues,
+      noValueOnClear,
     });
 
     variable.refreshOptions();
   }, [
+    allowCustomValue,
     applyMode,
     baseFilters,
     datasource,
@@ -129,9 +164,13 @@ export function GroupByVariable({
     drilldownRecommendationsEnabled,
     getTagKeysProvider,
     hide,
+    includeAll,
+    isMulti,
     label,
     layout,
+    maxVisibleValues,
     name,
+    noValueOnClear,
     readOnly,
     restorable,
     skipUrlSync,
