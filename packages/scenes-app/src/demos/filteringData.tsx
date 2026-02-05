@@ -11,8 +11,10 @@ import {
   SceneObjectBase,
   SceneObjectState,
   SceneQueryRunner,
+  SceneObjectRef,
+  VizPanel,
 } from '@grafana/scenes';
-import { Input } from '@grafana/ui';
+import { Input, InlineSwitch } from '@grafana/ui';
 import { getEmbeddedSceneDefaults } from './utils';
 import { ControlsLabel } from '@grafana/scenes/src/utils/ControlsLabel';
 import { DataTransformerConfig, MatcherConfig } from '@grafana/schema';
@@ -52,6 +54,10 @@ export function getDataFilteringTest(defaults: SceneAppPageState) {
 
   const tablePanel = PanelBuilders.table().setData(filteredData).build();
 
+  const paginationControl = new PaginationControl({
+    vizPanelRef: new SceneObjectRef(tablePanel),
+  });
+
   return new SceneAppPage({
     ...defaults,
     getScene: () => {
@@ -68,10 +74,54 @@ export function getDataFilteringTest(defaults: SceneAppPageState) {
           ],
         }),
 
-        controls: [searchBox],
+        controls: [searchBox, paginationControl],
       });
     },
   });
+}
+
+interface PaginationControlState extends SceneObjectState {
+  vizPanelRef: SceneObjectRef<VizPanel>;
+  isEnabled: boolean;
+}
+
+class PaginationControl extends SceneObjectBase<PaginationControlState> {
+  static Component = PaginationControlRenderer;
+
+  public constructor(initialState: Omit<PaginationControlState, 'isEnabled'> & { isEnabled?: boolean }) {
+    super({
+      isEnabled: false,
+      ...initialState,
+    });
+  }
+
+  onChange = () => {
+    const isEnabled = !this.state.isEnabled;
+    this.setState({ isEnabled });
+
+    const panel = this.state.vizPanelRef.resolve();
+    const currentOptions = panel.state.options as Record<string, unknown>;
+    const nextOptions = {
+      ...currentOptions,
+      enablePagination: isEnabled,
+      // Legacy path: some table panel versions still read from footer.enablePagination
+      footer: {
+        ...(typeof currentOptions.footer === 'object' && currentOptions.footer ? currentOptions.footer : {}),
+        enablePagination: isEnabled,
+      },
+    };
+    panel.onOptionsChange(nextOptions, true);
+  };
+}
+
+function PaginationControlRenderer({ model }: SceneComponentProps<PaginationControl>) {
+  const { isEnabled } = model.useState();
+  return (
+    <div style={{ display: 'flex' }}>
+      <ControlsLabel label="Enable pagination" htmlFor={'items-per-page-select'} />
+      <InlineSwitch id="items-per-page-select" value={isEnabled} onChange={model.onChange} />
+    </div>
+  );
 }
 
 export interface SearchBoxState extends SceneObjectState {
