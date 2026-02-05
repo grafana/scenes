@@ -1,3 +1,15 @@
+# v6.52.13 (Thu Feb 05 2026)
+
+#### 🐛 Bug Fix
+
+- Variables: Stricter input matching on options search [#1347](https://github.com/grafana/scenes/pull/1347) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.52.12 (Fri Jan 30 2026)
 
 #### 🐛 Bug Fix
