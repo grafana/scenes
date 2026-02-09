@@ -93,6 +93,25 @@ describe('toMetricFindValues(valueProp,textProp)', () => {
           { text: 'C', value: 'C', expandable: true, properties: { label: 'C' } },
         ],
       },
+      {
+        name: 'several frames: single string field',
+        series: [
+          toDataFrame({
+            fields: [{ name: 'text', type: FieldType.string, values: ['A', 'B', 'C'] }],
+          }),
+          toDataFrame({
+            fields: [{ name: 'text', type: FieldType.string, values: ['D', 'E', 'F'] }],
+          }),
+        ],
+        expected: [
+          { text: 'A', value: 'A', properties: { text: 'A' } },
+          { text: 'B', value: 'B', properties: { text: 'B' } },
+          { text: 'C', value: 'C', properties: { text: 'C' } },
+          { text: 'D', value: 'D', properties: { text: 'D' } },
+          { text: 'E', value: 'E', properties: { text: 'E' } },
+          { text: 'F', value: 'F', properties: { text: 'F' } },
+        ],
+      },
     ].forEach((scenario) => {
       it(scenario.name, async () => {
         const { series, expected } = scenario;
