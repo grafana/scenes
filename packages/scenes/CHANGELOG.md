@@ -1,3 +1,15 @@
+# v6.52.14 (Tue Feb 10 2026)
+
+#### 🐛 Bug Fix
+
+- QueryVariable: Deduplicate properties indices in toMetricFindValues [#1356](https://github.com/grafana/scenes/pull/1356) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
 # v6.52.13 (Thu Feb 05 2026)
 
 #### 🐛 Bug Fix
