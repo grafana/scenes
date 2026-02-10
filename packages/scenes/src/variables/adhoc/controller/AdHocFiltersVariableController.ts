@@ -22,6 +22,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       supportsMultiValueOperators: state.supportsMultiValueOperators,
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
+      inputPlaceholder: state.inputPlaceholder,
       collapsible: state.collapsible,
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
