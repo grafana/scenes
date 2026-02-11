@@ -2,6 +2,7 @@ import { getDataSourceSrv, getTemplateSrv } from '@grafana/runtime';
 import { AdHocVariableFilter } from '@grafana/data';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { interpolate } from '../../core/sceneGraph/sceneGraph';
+import { SceneObject } from '../../core/types';
 
 let originalGetAdhocFilters: any = undefined;
 export const allActiveFilterSets = new Set<AdHocFiltersVariable>();
@@ -44,7 +45,26 @@ export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {
   }.bind(templateSrv);
 }
 
-export function findActiveAdHocFilterVariableByUid(dsUid: string | undefined): AdHocFiltersVariable | undefined {
+export function findActiveAdHocFilterVariableByUid(
+  dsUid: string | undefined,
+  sceneObject?: SceneObject
+): AdHocFiltersVariable | undefined {
+  if (sceneObject) {
+    let current: SceneObject | undefined = sceneObject;
+    while (current) {
+      const variables = current.state.$variables?.state.variables ?? [];
+      for (const variable of variables) {
+        if (
+          variable instanceof AdHocFiltersVariable &&
+          interpolate(variable, variable.state.datasource?.uid) === dsUid
+        ) {
+          return variable;
+        }
+      }
+      current = current.parent;
+    }
+  }
+
   for (const filter of allActiveFilterSets.values()) {
     if (interpolate(filter, filter.state.datasource?.uid) === dsUid) {
       return filter;
