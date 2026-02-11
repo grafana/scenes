@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, config } from '@grafana/runtime';
 import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
 import { Observable, of } from 'rxjs';
@@ -67,7 +67,9 @@ describe('GroupByRecommendations', () => {
         expect(recommendations).toBeDefined();
       });
 
-      recommendations!.storeRecentGrouping(['value1']);
+      act(() => {
+        recommendations!.storeRecentGrouping(['value1']);
+      });
 
       const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
       expect(storedGroupings).toBeDefined();
@@ -87,7 +89,9 @@ describe('GroupByRecommendations', () => {
         expect(recommendations).toBeDefined();
       });
 
-      recommendations!.storeRecentGrouping([]);
+      act(() => {
+        recommendations!.storeRecentGrouping([]);
+      });
 
       const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
       expect(storedGroupings).toBeNull();
@@ -113,7 +117,9 @@ describe('GroupByRecommendations', () => {
       localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(existingGroupings));
 
       // Store more groupings than the limit
-      recommendations!.storeRecentGrouping(['newValue1', 'newValue2', 'newValue3']);
+      act(() => {
+        recommendations!.storeRecentGrouping(['newValue1', 'newValue2', 'newValue3']);
+      });
 
       const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
       expect(storedGroupings).toBeDefined();
@@ -133,8 +139,10 @@ describe('GroupByRecommendations', () => {
       });
 
       // Store more groupings than the display limit
-      const manyValues = Array.from({ length: MAX_RECENT_DRILLDOWNS + 2 }, (_, i) => `value${i}`);
-      recommendations!.storeRecentGrouping(manyValues);
+      act(() => {
+        const manyValues = Array.from({ length: MAX_RECENT_DRILLDOWNS + 2 }, (_, i) => `value${i}`);
+        recommendations!.storeRecentGrouping(manyValues);
+      });
 
       await waitFor(() => {
         expect(recommendations!.state.recentGrouping!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
@@ -163,7 +171,9 @@ describe('GroupByRecommendations', () => {
       );
 
       // Store a value that already exists
-      recommendations!.storeRecentGrouping(['value1', 'value3']);
+      act(() => {
+        recommendations!.storeRecentGrouping(['value1', 'value3']);
+      });
 
       const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
       expect(storedGroupings).toBeDefined();
@@ -178,11 +188,17 @@ describe('GroupByRecommendations', () => {
 
   describe('addValueToParent', () => {
     it('should add value to parent variable', async () => {
-      const { variable } = setupTest({
-        drilldownRecommendationsEnabled: true,
-        value: ['existing'],
-        text: ['existing'],
-      });
+      const getRecommendedDrilldowns = jest.fn().mockResolvedValue(undefined);
+      const getDrilldownsApplicability = jest.fn().mockResolvedValue(undefined);
+
+      const { variable } = setupTest(
+        {
+          drilldownRecommendationsEnabled: true,
+          value: ['existing'],
+          text: ['existing'],
+        },
+        { getRecommendedDrilldowns, getDrilldownsApplicability }
+      );
 
       // Wait for recommendations to be available
       let recommendations: GroupByRecommendations | undefined;
@@ -191,7 +207,9 @@ describe('GroupByRecommendations', () => {
         expect(recommendations).toBeDefined();
       });
 
-      recommendations!.addValueToParent('newValue', 'newLabel');
+      act(() => {
+        recommendations!.addValueToParent('newValue', 'newLabel');
+      });
 
       expect(variable.state.value).toEqual(['existing', 'newValue']);
       expect(variable.state.text).toEqual(['existing', 'newLabel']);
@@ -211,7 +229,9 @@ describe('GroupByRecommendations', () => {
         expect(recommendations).toBeDefined();
       });
 
-      recommendations!.addValueToParent('existing', 'existing');
+      act(() => {
+        recommendations!.addValueToParent('existing', 'existing');
+      });
 
       expect(variable.state.value).toEqual(['existing']);
     });
@@ -230,7 +250,9 @@ describe('GroupByRecommendations', () => {
         expect(recommendations).toBeDefined();
       });
 
-      recommendations!.addValueToParent('newValue', 'newLabel');
+      act(() => {
+        recommendations!.addValueToParent('newValue', 'newLabel');
+      });
 
       expect(variable.state.value).toEqual(['newValue']);
       expect(variable.state.text).toEqual(['newLabel']);
@@ -257,7 +279,9 @@ describe('GroupByRecommendations', () => {
         expect(recommendations).toBeDefined();
       });
 
-      await variable._verifyApplicabilityAndStoreRecentGrouping();
+      await act(async () => {
+        await variable._verifyApplicabilityAndStoreRecentGrouping();
+      });
 
       await waitFor(() => {
         const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
@@ -287,7 +311,9 @@ describe('GroupByRecommendations', () => {
         expect(recommendations).toBeDefined();
       });
 
-      await variable._verifyApplicabilityAndStoreRecentGrouping();
+      await act(async () => {
+        await variable._verifyApplicabilityAndStoreRecentGrouping();
+      });
 
       const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
       // Nothing should be stored since the only value is non-applicable
@@ -312,9 +338,11 @@ describe('GroupByRecommendations', () => {
       const initialRecommendedCalls = getRecommendedDrilldownsSpy.mock.calls.length;
       const initialApplicabilityCalls = getDrilldownsApplicabilitySpy.mock.calls.length;
 
-      variable.setState({
-        value: ['newValue'],
-        text: ['newValue'],
+      act(() => {
+        variable.setState({
+          value: ['newValue'],
+          text: ['newValue'],
+        });
       });
 
       await waitFor(() => {
@@ -338,9 +366,9 @@ interface DsOverrides {
 
 function setupTest(overrides?: Partial<GroupByVariableState>, dsOverrides?: DsOverrides) {
   const getTagKeysSpy = jest.fn().mockResolvedValue([{ text: 'key3', value: 'key3' }]);
-  const getDrilldownsApplicabilitySpy = dsOverrides?.getDrilldownsApplicability ?? jest.fn().mockResolvedValue([]);
-  const getRecommendedDrilldownsSpy =
-    dsOverrides?.getRecommendedDrilldowns ?? jest.fn().mockResolvedValue({ groupByKeys: [] });
+  const getDrilldownsApplicabilitySpy =
+    dsOverrides?.getDrilldownsApplicability ?? jest.fn().mockResolvedValue(undefined);
+  const getRecommendedDrilldownsSpy = dsOverrides?.getRecommendedDrilldowns ?? jest.fn().mockResolvedValue(undefined);
 
   setDataSourceSrv({
     get() {

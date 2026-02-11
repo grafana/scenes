@@ -18,6 +18,7 @@ import {
   MAX_RECENT_DRILLDOWNS,
   MAX_STORED_RECENT_DRILLDOWNS,
 } from './AdHocFiltersRecommendations';
+import { act } from 'react-dom/test-utils';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
@@ -96,14 +97,16 @@ describe('AdHocFiltersRecommendations', () => {
         expect(recommendations).toBeDefined();
       });
 
-      // Add more filters than the limit
-      for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
-        // Update filters in parent to ensure applicability check passes
-        filtersVar.setState({
-          filters: [{ key: `key${i}`, value: `value${i}`, operator: '=' }],
-        });
-        recommendations!.storeRecentFilter({ key: `key${i}`, value: `value${i}`, operator: '=' });
-      }
+      act(() => {
+        // Add more filters than the limit
+        for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
+          // Update filters in parent to ensure applicability check passes
+          filtersVar.setState({
+            filters: [{ key: `key${i}`, value: `value${i}`, operator: '=' }],
+          });
+          recommendations!.storeRecentFilter({ key: `key${i}`, value: `value${i}`, operator: '=' });
+        }
+      });
 
       const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
       expect(storedFilters).toBeDefined();
@@ -123,13 +126,15 @@ describe('AdHocFiltersRecommendations', () => {
         expect(recommendations).toBeDefined();
       });
 
-      // Add more filters than the display limit
-      for (let i = 0; i < MAX_RECENT_DRILLDOWNS + 2; i++) {
-        filtersVar.setState({
-          filters: [{ key: `key${i}`, value: `value${i}`, operator: '=' }],
-        });
-        recommendations!.storeRecentFilter({ key: `key${i}`, value: `value${i}`, operator: '=' });
-      }
+      act(() => {
+        // Add more filters than the display limit
+        for (let i = 0; i < MAX_RECENT_DRILLDOWNS + 2; i++) {
+          filtersVar.setState({
+            filters: [{ key: `key${i}`, value: `value${i}`, operator: '=' }],
+          });
+          recommendations!.storeRecentFilter({ key: `key${i}`, value: `value${i}`, operator: '=' });
+        }
+      });
 
       await waitFor(() => {
         expect(recommendations!.state.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
@@ -152,7 +157,10 @@ describe('AdHocFiltersRecommendations', () => {
       });
 
       const newFilter: AdHocFilterWithLabels = { key: 'newKey', value: 'newVal', operator: '=' };
-      recommendations!.addFilterToParent(newFilter);
+
+      act(() => {
+        recommendations!.addFilterToParent(newFilter);
+      });
 
       expect(filtersVar.state.filters).toHaveLength(2);
       expect(filtersVar.state.filters[1]).toEqual(newFilter);
@@ -172,8 +180,10 @@ describe('AdHocFiltersRecommendations', () => {
         expect(recommendations).toBeDefined();
       });
 
-      // Update an existing filter - this should trigger storeRecentFilter via the parent
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+      act(() => {
+        // Update an existing filter - this should trigger storeRecentFilter via the parent
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+      });
 
       await waitFor(() => {
         const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
@@ -201,8 +211,10 @@ describe('AdHocFiltersRecommendations', () => {
       const initialRecommendedCalls = getRecommendedDrilldownsSpy.mock.calls.length;
       const initialApplicabilityCalls = getDrilldownsApplicabilitySpy.mock.calls.length;
 
-      filtersVar.setState({
-        filters: [{ key: 'key1', operator: '=', value: 'newVal' }],
+      act(() => {
+        filtersVar.setState({
+          filters: [{ key: 'key1', operator: '=', value: 'newVal' }],
+        });
       });
 
       await waitFor(() => {

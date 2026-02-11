@@ -9,7 +9,9 @@ import {
 } from './AdHocFiltersRecommendations';
 import {
   DataSourceSrv,
+  TemplateSrv,
   config,
+  getTemplateSrv,
   locationService,
   setDataSourceSrv,
   setRunRequest,
@@ -41,19 +43,12 @@ import { FiltersRequestEnricher } from '../../core/types';
 import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 import { ScopesVariable } from '../variants/ScopesVariable';
 
-const templateSrv = {
-  getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
-} as any;
-
-describe('templateSrv.getAdhocFilters patch ', () => {
-  it('calls original when scene object is not active', async () => {
-    const { unmount } = setup();
-    unmount();
-
-    const result = templateSrv.getAdhocFilters('name');
-    expect(result[0].key).toBe('origKey');
-  });
-});
+function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariableFilter[] {
+  setTemplateSrv({
+    getAdhocFilters: jest.fn().mockReturnValue(filters),
+  } as any);
+  return filters;
+}
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
@@ -61,6 +56,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   beforeEach(() => {
     config.buildInfo.version = v;
   });
+
   it('renders filters', async () => {
     setup();
     expect(screen.getByText('key1')).toBeInTheDocument();
@@ -2061,10 +2057,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [
+        filters: setTemplateSrvWithFilters([
           { key: 'key1', operator: '=', value: 'val1' },
           { key: 'key2', operator: '=~', value: '[val2]' },
-        ],
+        ]),
       });
 
       variable.activate();
@@ -2076,7 +2072,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2095,7 +2091,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       expect(variable.getValue()).toBe(`key1="val1"`);
@@ -2103,7 +2099,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable2 = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key2', operator: '=', value: 'val2' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key2', operator: '=', value: 'val2' }]),
         originFilters: [{ key: 'originKey1', operator: '=', value: 'originVal1', origin: 'scope' }],
       });
 
@@ -2112,6 +2108,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable3 = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([]),
         originFilters: [{ key: 'originKey3', operator: '=', value: 'originVal3', origin: 'scope' }],
       });
 
@@ -2122,7 +2119,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2148,10 +2145,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         datasource: { uid: 'hello' },
         applyMode: 'manual',
         expressionBuilder,
-        filters: [
+        filters: setTemplateSrvWithFilters([
           { key: 'key1', operator: '=', value: 'val1' },
           { key: 'key2', operator: '=~', value: '[val2]' },
-        ],
+        ]),
       });
 
       variable.activate();
@@ -2163,7 +2160,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',
         datasource: { uid: 'hello' },
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       const evtHandler = jest.fn();
@@ -2177,7 +2174,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',
         datasource: { uid: 'hello' },
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       const evtHandler = jest.fn();
@@ -2191,7 +2188,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2208,7 +2205,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
         filterExpression: '',
       });
 
@@ -2227,7 +2224,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
         filterExpression: 'hello filter expression!',
       });
 
@@ -2246,7 +2243,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2263,7 +2260,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2281,7 +2278,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2299,7 +2296,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
         filterExpression: 'hello filter expression',
       });
 
@@ -2318,7 +2315,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2335,12 +2332,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('Should create variable with applyMode as manual by default and it allows to override it', () => {
       const defaultVariable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [],
+        filters: setTemplateSrvWithFilters([]),
       });
 
       const manualDataSource = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [],
+        filters: setTemplateSrvWithFilters([]),
         applyMode: 'manual',
       });
 
@@ -2388,10 +2385,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
-      // account for applicability check debounce
-      await new Promise((r) => setTimeout(r, 150));
+      await waitFor(() => {
+        expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
+      });
 
-      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[0].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[1].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
@@ -2401,7 +2398,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     it('should filter out non-applicable filters during getKeys call', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getTagKeysSpy } = setup(
+      const { filtersVar, getDrilldownsApplicabilitySpy, getTagKeysSpy } = setup(
         {
           filters: [
             {
@@ -2434,8 +2431,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
-      // account for applicability check debounce
-      await new Promise((r) => setTimeout(r, 150));
+      await waitFor(() => {
+        expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
+      });
 
       filtersVar._getKeys(null);
 
@@ -2495,17 +2493,22 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
-      await new Promise((r) => setTimeout(r, 150));
+      await waitFor(() => {
+        expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
+      });
 
-      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
 
-      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      act(() => {
+        filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      });
 
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(false);
 
-      filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
+      act(() => {
+        filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
+      });
 
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
     });
@@ -2552,8 +2555,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         operator: '=',
       };
 
-      filtersVar.setState({ _wip: filter });
-      filtersVar._updateFilter(filter, { value: 'newValue' });
+      act(() => {
+        filtersVar.setState({ _wip: filter });
+        filtersVar._updateFilter(filter, { value: 'newValue' });
+      });
 
       // Wait for async verifyApplicabilityAndStoreRecentFilter to complete
       await waitFor(() => {
@@ -2574,8 +2579,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         filters: [{ key: 'cluster', value: '1', operator: '=' }],
       });
 
-      // Update an existing filter (not WIP) - this stores immediately
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+      act(() => {
+        // Update an existing filter (not WIP) - this stores immediately
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+      });
 
       const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
       expect(storedFilters).toBeDefined();
@@ -2593,18 +2600,20 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         filters: [],
       });
 
-      // For editing existing filters, storage is synchronous
-      // So we add filters first, then edit them
-      const initialFilters = [];
-      for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
-        initialFilters.push({ key: `key${i}`, value: `value${i}`, operator: '=' as const });
-      }
-      filtersVar.setState({ filters: initialFilters });
+      act(() => {
+        // For editing existing filters, storage is synchronous
+        // So we add filters first, then edit them
+        const initialFilters = [];
+        for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
+          initialFilters.push({ key: `key${i}`, value: `value${i}`, operator: '=' as const });
+        }
+        filtersVar.setState({ filters: initialFilters });
 
-      // Now edit each filter to trigger storeRecentFilter
-      for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
-        filtersVar._updateFilter(filtersVar.state.filters[i], { value: `newValue${i}` });
-      }
+        // Now edit each filter to trigger storeRecentFilter
+        for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
+          filtersVar._updateFilter(filtersVar.state.filters[i], { value: `newValue${i}` });
+        }
+      });
 
       const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
       expect(storedFilters).toBeDefined();
@@ -2624,9 +2633,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         ],
       });
 
-      // Edit existing filters to trigger storeRecentFilter (synchronous for edits)
-      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
-      filtersVar._updateFilter(filtersVar.state.filters[1], { value: 'newValue2' });
+      act(() => {
+        // Edit existing filters to trigger storeRecentFilter (synchronous for edits)
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+        filtersVar._updateFilter(filtersVar.state.filters[1], { value: 'newValue2' });
+      });
 
       const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
       expect(storedFilters).toBeDefined();
@@ -2639,27 +2650,34 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   describe('Component', () => {
+    const filters = [{ key: 'key1', operator: '=', value: 'val1' }];
+
+    beforeEach(() => {
+      setTemplateSrvWithFilters(filters);
+    });
+
     it('should use the model.state.set.Component to ensure the state filterset is activated', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters(filters),
       });
 
       render(<variable.Component model={variable} />);
 
       expect(variable.isActive).toBe(true);
     });
+
     it('should render key, value and operator in vertical adhoc layout', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [{ key: 'key1', operator: '!=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters(filters),
         layout: 'vertical',
       });
 
       render(<variable.Component model={variable} />);
-      expect(screen.getByText('!=')).toBeInTheDocument();
-      expect(screen.getByText('key1')).toBeInTheDocument();
-      expect(screen.getByText('val1')).toBeInTheDocument();
+      expect(screen.getByText(filters[0].key)).toBeInTheDocument();
+      expect(screen.getByText(filters[0].value)).toBeInTheDocument();
+      expect(screen.getByText(filters[0].operator)).toBeInTheDocument();
     });
   });
 
@@ -2679,19 +2697,19 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
-      const podElement = await screen.findByText('pod = val1');
-      const staticElement = await screen.findByText('static = val2');
-      const containerElement = await screen.findByText('container = val3');
+      await waitFor(async () => {
+        const podElement = await screen.findByText('pod = val1');
+        const staticElement = await screen.findByText('static = val2');
+        const containerElement = await screen.findByText('container = val3');
 
-      await new Promise((r) => setTimeout(r, 150));
+        expect(podElement).toBeInTheDocument();
+        expect(staticElement).toBeInTheDocument();
+        expect(containerElement).toBeInTheDocument();
 
-      expect(podElement).toBeInTheDocument();
-      expect(staticElement).toBeInTheDocument();
-      expect(containerElement).toBeInTheDocument();
-
-      expect(podElement).toHaveStyle('text-decoration: line-through');
-      expect(staticElement).toHaveStyle('text-decoration: line-through');
-      expect(containerElement).not.toHaveStyle('text-decoration: line-through');
+        expect(podElement).toHaveStyle('text-decoration: line-through');
+        expect(staticElement).toHaveStyle('text-decoration: line-through');
+        expect(containerElement).not.toHaveStyle('text-decoration: line-through');
+      });
     });
   });
 
@@ -3094,6 +3112,20 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       ]);
     });
   });
+
+  describe('templateSrv.getAdhocFilters patch ', () => {
+    it('calls original when scene object is not active', async () => {
+      const { unmount } = setup();
+      unmount();
+
+      type TemplateSrvWithAdhocFilters = TemplateSrv & {
+        getAdhocFilters: (dsName: string) => AdHocVariableFilter[];
+      };
+      const result = (getTemplateSrv() as TemplateSrvWithAdhocFilters).getAdhocFilters('name');
+
+      expect(result[0].key).toBe('key1');
+    });
+  });
 });
 
 const runRequestMock = {
@@ -3154,15 +3186,13 @@ function setup(
     });
   }
 
-  setTemplateSrv(templateSrv);
-
   const filtersVar = new AdHocFiltersVariable({
     datasource: { uid: 'my-ds-uid' },
     name: 'filters',
-    filters: [
+    filters: setTemplateSrvWithFilters([
       { key: 'key1', operator: '=', value: 'val1' },
       { key: 'key2', operator: '=', value: 'val2' },
-    ],
+    ]),
     ...overrides,
   });
 
@@ -3199,7 +3229,9 @@ function setup(
     (scene as EmbeddedScene & FiltersRequestEnricher).enrichFiltersRequest = filtersRequestEnricher;
   }
 
-  locationService.push('/');
+  act(() => {
+    locationService.push('/');
+  });
 
   const { unmount } = render(
     <TestContextProvider scene={scene}>

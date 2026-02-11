@@ -260,7 +260,9 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.text).toEqual(['val1']);
       expect(variable.state.restorable).toBe(true);
 
-      variable.restoreDefaultValues();
+      act(() => {
+        variable.restoreDefaultValues();
+      });
 
       expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
       expect(variable.state.text).toEqual(['defaultVal1', 'defaultVal2']);

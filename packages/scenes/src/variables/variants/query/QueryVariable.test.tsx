@@ -467,9 +467,17 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
     });
 
     describe('Query with __searchFilter', () => {
+      let user: ReturnType<typeof userEvent.setup>;
+
       beforeEach(() => {
         runRequestMock.mockClear();
         setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+
+        jest.useFakeTimers();
+        user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      });
+      afterEach(() => {
+        jest.useRealTimers();
       });
 
       it('Should trigger new query and show new options', async () => {
@@ -487,17 +495,17 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
 
         render(<scene.Component model={scene} />);
 
-        await act(() => new Promise((r) => setTimeout(r, 10)));
+        await act(() => jest.advanceTimersByTime(10));
 
         const select = await screen.findByRole('combobox');
 
-        await userEvent.click(select);
-        await userEvent.type(select, 'muu!');
+        await user.click(select);
+        await user.type(select, 'muu!');
 
-        // wait for debounce
-        await act(() => new Promise((r) => setTimeout(r, 500)));
+        // wait for debounce (QueryVariable uses 400ms)
+        await act(() => jest.advanceTimersByTime(400));
 
-        expect(runRequestMock).toBeCalledTimes(2);
+        expect(runRequestMock).toHaveBeenCalledTimes(2);
         expect(runRequestMock.mock.calls[1][1].scopedVars.__searchFilter.value).toEqual('muu!');
       });
 
@@ -516,16 +524,16 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
 
         render(<scene.Component model={scene} />);
 
-        await act(() => new Promise((r) => setTimeout(r, 10)));
+        await act(() => jest.advanceTimersByTime(10));
 
         const select = await screen.findByRole('combobox');
-        await userEvent.click(select);
-        await userEvent.type(select, 'muu!');
+        await user.click(select);
+        await user.type(select, 'muu!');
 
-        // wait for debounce
-        await new Promise((r) => setTimeout(r, 500));
+        // wait for debounce (QueryVariable uses 400ms)
+        await act(() => jest.advanceTimersByTime(400));
 
-        expect(runRequestMock).toBeCalledTimes(1);
+        expect(runRequestMock).toHaveBeenCalledTimes(1);
       });
     });
 
