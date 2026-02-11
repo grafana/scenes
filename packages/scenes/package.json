@@ -100,7 +100,7 @@
     "jest-canvas-mock": "^2.5.2",
     "jest-environment-jsdom": "29.7.0",
     "jest-matcher-utils": "29.7.0",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "prettier": "2.5.1",
     "react-router-dom": "^6.28.0",
     "react-select-event": "^5.5.1",
