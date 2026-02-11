@@ -419,6 +419,52 @@ export class AdHocFiltersVariable
     }
   }
 
+  public validateOriginFilters(filters: AdHocFilterWithLabels[]): AdHocFilterWithLabels[] {
+    return filters.map((filter) => {
+      if (!filter.origin) {
+        return filter;
+      }
+
+      const originalValues = this._originalValues.get(`${filter.key}-${filter.origin}`);
+      if (!originalValues) {
+        return filter;
+      }
+
+      const updateValues = filter.values || (filter.value ? [filter.value] : undefined);
+      if (!updateValues) {
+        return {
+          ...filter,
+          operator: '=~',
+          value: '.*',
+          values: ['.*'],
+          valueLabels: ['All'],
+          matchAllFilter: true,
+          nonApplicable: false,
+          restorable: true,
+        };
+      }
+
+      if (
+        (updateValues && !isEqual(updateValues, originalValues?.value)) ||
+        (filter.operator && filter.operator !== originalValues?.operator)
+      ) {
+        const matchAllFilter = filter.operator === '=~' && filter.value === '.*';
+        return { ...filter, restorable: true, matchAllFilter };
+      }
+
+      if (updateValues && isEqual(updateValues, originalValues?.value)) {
+        const matchAllFilter = filter.operator === '=~' && filter.value === '.*';
+        return { ...filter, restorable: false, matchAllFilter };
+      }
+
+      if (filter.operator !== '=~' || filter.value !== '.*') {
+        return { ...filter, matchAllFilter: false };
+      }
+
+      return filter;
+    });
+  }
+
   /**
    * Updates the variable's `filters` and `filterExpression` state.
    * If `skipPublish` option is true, this will not emit the `SceneVariableValueChangedEvent`,
