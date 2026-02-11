@@ -1,3 +1,16 @@
+# v6.52.15 (Wed Feb 11 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`
+  - ScenesReact: Add allValue to variables [#1254](https://github.com/grafana/scenes/pull/1254) ([@slaughtlaught](https://github.com/slaughtlaught))
+
+#### Authors: 1
+
+- Bogdan Tiet ([@slaughtlaught](https://github.com/slaughtlaught))
+
+---
+
 # v6.52.14 (Tue Feb 10 2026)
 
 #### 🐛 Bug Fix
