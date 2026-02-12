@@ -110,8 +110,6 @@ export function GroupByVariable({
       variable.state.skipUrlSync === skipUrlSync &&
       isEqual(variable.state.datasource, datasource) &&
       isEqual(variable.state.baseFilters, baseFilters) &&
-      isEqual(variable.state.defaultOptions, defaultOptions) &&
-      isEqual(variable.state.defaultValue, defaultValue) &&
       variable.state.restorable === restorable &&
       variable.state.readOnly === readOnly &&
       variable.state.layout === layout &&
@@ -136,8 +134,6 @@ export function GroupByVariable({
       skipUrlSync,
       datasource,
       baseFilters,
-      defaultOptions,
-      defaultValue,
       restorable,
       readOnly,
       layout,
@@ -152,15 +148,11 @@ export function GroupByVariable({
       maxVisibleValues,
       noValueOnClear,
     });
-
-    variable.refreshOptions();
   }, [
     allowCustomValue,
     applyMode,
     baseFilters,
     datasource,
-    defaultOptions,
-    defaultValue,
     drilldownRecommendationsEnabled,
     getTagKeysProvider,
     hide,

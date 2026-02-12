@@ -17,9 +17,9 @@ import { AnnotationDemoPage } from './AnnotationsDemoPage';
 import { TransformationsDemoPage } from './TransformationsDemoPage';
 import { UseQueryVariableHookPage } from './UseQueryVariableHookPage';
 import { FlexLayoutDemoPage } from './FlexLayoutDemoPage';
-import { AdHocFiltersVariableHookPage } from './AdHocFiltersVariableHookPage';
-import { GroupByVariableHookPage } from './GroupByVariableHookPage';
-import { LocalValueVariableHookPage } from './LocalValueVariableHookPage';
+import { AdHocFiltersVariablePage } from './AdHocFiltersVariablePage';
+import { GroupByVariablePage } from './GroupByVariablePage';
+import { LocalValueVariablePage } from './LocalValueVariablePage';
 
 export function ReactDemoPage() {
   return (
@@ -36,9 +36,9 @@ export function ReactDemoPage() {
           <Route path={`/interpolation-hook`} Component={InterpolationHookPage} />
           <Route path={`/query-var-hook`} Component={UseQueryVariableHookPage} />
           <Route path={`/flex-layout`} Component={FlexLayoutDemoPage} />
-          <Route path={`/adhoc-var-hook`} Component={AdHocFiltersVariableHookPage} />
-          <Route path={`/groupby-var-hook`} Component={GroupByVariableHookPage} />
-          <Route path={`/local-var-hook`} Component={LocalValueVariableHookPage} />
+          <Route path={`/adhoc-var`} Component={AdHocFiltersVariablePage} />
+          <Route path={`/groupby-var`} Component={GroupByVariablePage} />
+          <Route path={`/local-var`} Component={LocalValueVariablePage} />
           <Route path={`/drilldown/*`} Component={DrilldownDemoPage} />
           <Route path={`/annotations`} Component={AnnotationDemoPage} />
           <Route path={`/transformations`} Component={TransformationsDemoPage} />
@@ -65,9 +65,9 @@ function HomePage() {
         <TextLink href={`${urlBase}/interpolation-hook`}>Interpolation hook</TextLink>
         <TextLink href={`${urlBase}/query-var-hook`}>Query variable hook</TextLink>
         <TextLink href={`${urlBase}/flex-layout`}>Flex layout (scenes-react)</TextLink>
-        <TextLink href={`${urlBase}/adhoc-var-hook`}>Ad hoc filters hook</TextLink>
-        <TextLink href={`${urlBase}/groupby-var-hook`}>Group by hook</TextLink>
-        <TextLink href={`${urlBase}/local-var-hook`}>Local value hook</TextLink>
+        <TextLink href={`${urlBase}/adhoc-var`}>Ad hoc filters</TextLink>
+        <TextLink href={`${urlBase}/groupby-var`}>Group by</TextLink>
+        <TextLink href={`${urlBase}/local-var`}>Local value</TextLink>
         <TextLink href={`${urlBase}/drilldown`}>Drilldown demo</TextLink>
         <TextLink href={`${urlBase}/annotations`}>Annotations demo page</TextLink>
         <TextLink href={`${urlBase}/drilldown?from=now-5m&to=now&var-env=prod`}>

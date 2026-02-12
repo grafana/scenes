@@ -3,11 +3,12 @@ import { DemoSubTitle } from '../pages/DemoSubTitle';
 import { PageWrapper } from './PageWrapper';
 import {
   GroupByVariable,
+  GroupByVariableClass,
   VariableControl,
   useVariableInterpolator,
   useSceneContext,
+  sceneGraph,
 } from '@grafana/scenes-react';
-import { sceneGraph } from '@grafana/scenes';
 import { Stack } from '@grafana/ui';
 import type { MetricFindValue } from '@grafana/data';
 
@@ -18,14 +19,14 @@ const defaultOptions: MetricFindValue[] = [
   { text: 'component', value: 'component' },
 ];
 
-export function GroupByVariableHookPage() {
+export function GroupByVariablePage() {
   return (
     <PageWrapper
       title="GroupByVariable"
       subTitle={
         <DemoSubTitle
           text={'Variables added via JSX, use VariableControl to render the UI.'}
-          getSourceCodeModule={() => import('!!raw-loader!./GroupByVariableHookPage')}
+          getSourceCodeModule={() => import('!!raw-loader!./GroupByVariablePage')}
         />
       }
     >
@@ -46,7 +47,7 @@ export function GroupByVariableHookPage() {
 function GroupByVariableContent() {
   const scene = useSceneContext();
   const variable = sceneGraph.lookupVariable('groupby', scene);
-  const [state] = variable?.useState?.() ?? [];
+  const state = variable instanceof GroupByVariableClass ? variable.useState() : undefined;
   const interpolate = useVariableInterpolator({ variables: ['groupby'] });
 
   return (

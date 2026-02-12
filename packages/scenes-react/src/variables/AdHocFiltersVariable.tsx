@@ -47,7 +47,7 @@ export function AdHocFiltersVariable({
   skipUrlSync,
   children,
   datasource = null,
-  filters = [],
+  filters,
   baseFilters,
   originFilters,
   readOnly,
@@ -79,7 +79,7 @@ export function AdHocFiltersVariable({
       hide,
       skipUrlSync,
       datasource,
-      filters,
+      filters: filters ?? [],
       baseFilters,
       originFilters,
       applyMode,
@@ -118,9 +118,8 @@ export function AdHocFiltersVariable({
       variable.state.hide === hide &&
       variable.state.skipUrlSync === skipUrlSync &&
       isEqual(variable.state.datasource, datasource) &&
-      isEqual(variable.state.filters, filters) &&
       isEqual(variable.state.baseFilters, baseFilters) &&
-      isEqual(variable.state.originFilters, originFilters) &&
+      (filters === undefined || isEqual(variable.state.filters, filters)) &&
       variable.state.readOnly === readOnly &&
       variable.state.layout === layout &&
       variable.state.addFilterButtonText === addFilterButtonText &&
@@ -146,9 +145,8 @@ export function AdHocFiltersVariable({
       hide,
       skipUrlSync,
       datasource,
-      filters,
+      ...(filters !== undefined && { filters }),
       baseFilters,
-      originFilters,
       readOnly,
       layout,
       addFilterButtonText,
@@ -169,12 +167,12 @@ export function AdHocFiltersVariable({
     addFilterButtonText,
     allowCustomValue,
     baseFilters,
+    filters,
     collapsible,
     datasource,
     defaultKeys,
     drilldownRecommendationsEnabled,
     expressionBuilder,
-    filters,
     getTagKeysProvider,
     getTagValuesProvider,
     hide,
@@ -182,7 +180,6 @@ export function AdHocFiltersVariable({
     layout,
     name,
     onAddCustomValue,
-    originFilters,
     readOnly,
     filterExpression,
     skipUrlSync,

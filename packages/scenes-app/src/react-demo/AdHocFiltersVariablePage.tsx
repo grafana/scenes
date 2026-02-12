@@ -3,11 +3,13 @@ import { DemoSubTitle } from '../pages/DemoSubTitle';
 import { PageWrapper } from './PageWrapper';
 import {
   AdHocFiltersVariable,
+  AdHocFiltersVariableClass,
+  CustomVariable,
   VariableControl,
   useVariableInterpolator,
   useSceneContext,
+  sceneGraph,
 } from '@grafana/scenes-react';
-import { sceneGraph } from '@grafana/scenes';
 import { Stack } from '@grafana/ui';
 import { DemoVizLayout } from './utils';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
@@ -43,34 +45,39 @@ const getTagValuesProvider = async (_variable: unknown, filter: { key: string })
   return { replace: true, values: valuesByKey[filter.key] ?? [] };
 };
 
-export function AdHocFiltersVariableHookPage() {
+export function AdHocFiltersVariablePage() {
   return (
     <PageWrapper
       title="AdHocFiltersVariable"
       subTitle={
         <DemoSubTitle
           text={'Variables added via JSX, use VariableControl to render the UI.'}
-          getSourceCodeModule={() => import('!!raw-loader!./AdHocFiltersVariableHookPage')}
+          getSourceCodeModule={() => import('!!raw-loader!./AdHocFiltersVariablePage')}
         />
       }
     >
-      <AdHocFiltersVariable
-        name="adhoc"
-        datasource={{ uid: 'gdev-testdata', type: 'testdata' }}
-        layout="combobox"
-        getTagKeysProvider={getTagKeysProvider}
-        getTagValuesProvider={getTagValuesProvider}
-      >
-        <Stack direction="column" gap={2}>
-          <AdHocFiltersVariableContent />
-          <DemoVizLayout>
-            <PlainGraphWithRandomWalk title="A Panel" queryAlias="adhoc = $adhoc" />
-            <PlainGraphWithRandomWalk title="B Panel" queryAlias="adhoc = $adhoc" />
-            <PlainGraphWithRandomWalk title="C Panel" queryAlias="adhoc = $adhoc" />
-            <PlainGraphWithRandomWalk title="D Panel" queryAlias="adhoc = $adhoc" />
-          </DemoVizLayout>
-        </Stack>
-      </AdHocFiltersVariable>
+      <CustomVariable name="job" query="A, B, C" initialValue="A">
+        <AdHocFiltersVariable
+          name="adhoc"
+          datasource={{ uid: 'gdev-testdata', type: 'testdata' }}
+          layout="combobox"
+          getTagKeysProvider={getTagKeysProvider}
+          getTagValuesProvider={getTagValuesProvider}
+        >
+          <Stack direction="column" gap={2}>
+            <Stack>
+              <VariableControl name="job" />
+            </Stack>
+            <AdHocFiltersVariableContent />
+            <DemoVizLayout>
+              <PlainGraphWithRandomWalk title="A Panel: job = $job" queryAlias="job = $job" />
+              <PlainGraphWithRandomWalk title="B Panel: job = $job" queryAlias="job = $job" />
+              <PlainGraphWithRandomWalk title="C Panel: job = $job" queryAlias="job = $job" />
+              <PlainGraphWithRandomWalk title="D Panel: job = $job" queryAlias="job = $job" />
+            </DemoVizLayout>
+          </Stack>
+        </AdHocFiltersVariable>
+      </CustomVariable>
     </PageWrapper>
   );
 }
@@ -78,12 +85,16 @@ export function AdHocFiltersVariableHookPage() {
 function AdHocFiltersVariableContent() {
   const scene = useSceneContext();
   const variable = sceneGraph.lookupVariable('adhoc', scene);
-  const [state] = variable?.useState?.() ?? [];
+  const state = variable instanceof AdHocFiltersVariableClass ? variable.useState() : undefined;
   const interpolate = useVariableInterpolator({ variables: ['adhoc'] });
+
+  const filters = state?.filters ?? [];
+  const wip = state?._wip;
 
   return (
     <Stack direction="column" gap={2}>
-      <div>Filters: {JSON.stringify(state?.filters ?? [])}</div>
+      <div>Filters: {JSON.stringify(filters)}</div>
+      {wip && <div>Building: {JSON.stringify(wip)}</div>}
       <div>Interpolated example: {interpolate('filters=$adhoc')}</div>
       <VariableControl name="adhoc" />
     </Stack>

@@ -5,7 +5,7 @@ import { PageWrapper } from './PageWrapper';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
 import { LocalValueVariable, useVariableInterpolator } from '@grafana/scenes-react';
 
-export function LocalValueVariableHookPage() {
+export function LocalValueVariablePage() {
   const [value, setValue] = React.useState('alpha');
 
   return (
@@ -14,7 +14,7 @@ export function LocalValueVariableHookPage() {
       subTitle={
         <DemoSubTitle
           text={'Variables added via JSX, use them in panel aliases ($local).'}
-          getSourceCodeModule={() => import('!!raw-loader!./LocalValueVariableHookPage')}
+          getSourceCodeModule={() => import('!!raw-loader!./LocalValueVariablePage')}
         />
       }
     >
