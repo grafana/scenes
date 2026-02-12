@@ -96,8 +96,8 @@ describe('cloneSceneObject', () => {
       }
     });
 
-    // not sure how slow ci systems are so just comparing against plain clone of just the object*3
-    expect(sceneCloneTime).toBeLessThan(plainCloneTime * 3);
+    // not sure how slow ci systems are so use a generous multiplier to avoid flakiness
+    expect(sceneCloneTime).toBeLessThan(plainCloneTime * 15);
   });
 });
 

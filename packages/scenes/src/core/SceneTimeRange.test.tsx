@@ -406,12 +406,9 @@ describe('SceneTimeRange', () => {
 
       expect(timeRange.getTimeZone()).toBe('Africa/Addis_Ababa');
 
-      // Verify the time start panel reads the correct start time
-      expect(timeRange.state.value.from.format('YYYY-MM-DD HH:mm:ss')).toBe('2025-01-01 00:00:00');
-
-      // Verify the time picker tooltip reads the correct start time
-      const tooltipStartTime = timeRange.state.value.from.format('HH:mm:ss');
-      expect(tooltipStartTime).toBe('00:00:00');
+      // Assert on UTC so the test is deterministic regardless of the runner's local timezone
+      expect(timeRange.state.value.from.utc().format('YYYY-MM-DD HH:mm:ss')).toBe('2025-01-01 00:00:00');
+      expect(timeRange.state.value.from.utc().format('HH:mm:ss')).toBe('00:00:00');
     });
   });
 });

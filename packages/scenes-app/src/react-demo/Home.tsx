@@ -16,6 +16,10 @@ import { DrilldownDemoPage } from './DrilldownDemoPage';
 import { AnnotationDemoPage } from './AnnotationsDemoPage';
 import { TransformationsDemoPage } from './TransformationsDemoPage';
 import { UseQueryVariableHookPage } from './UseQueryVariableHookPage';
+import { FlexLayoutDemoPage } from './FlexLayoutDemoPage';
+import { AdHocFiltersVariablePage } from './AdHocFiltersVariablePage';
+import { GroupByVariablePage } from './GroupByVariablePage';
+import { LocalValueVariablePage } from './LocalValueVariablePage';
 
 export function ReactDemoPage() {
   return (
@@ -31,6 +35,10 @@ export function ReactDemoPage() {
           <Route path={`/nested-context`} Component={NestedContextsPage} />
           <Route path={`/interpolation-hook`} Component={InterpolationHookPage} />
           <Route path={`/query-var-hook`} Component={UseQueryVariableHookPage} />
+          <Route path={`/flex-layout`} Component={FlexLayoutDemoPage} />
+          <Route path={`/adhoc-var`} Component={AdHocFiltersVariablePage} />
+          <Route path={`/groupby-var`} Component={GroupByVariablePage} />
+          <Route path={`/local-var`} Component={LocalValueVariablePage} />
           <Route path={`/drilldown/*`} Component={DrilldownDemoPage} />
           <Route path={`/annotations`} Component={AnnotationDemoPage} />
           <Route path={`/transformations`} Component={TransformationsDemoPage} />
@@ -56,6 +64,10 @@ function HomePage() {
         <TextLink href={`${urlBase}/nested-context`}>Nested contexts</TextLink>
         <TextLink href={`${urlBase}/interpolation-hook`}>Interpolation hook</TextLink>
         <TextLink href={`${urlBase}/query-var-hook`}>Query variable hook</TextLink>
+        <TextLink href={`${urlBase}/flex-layout`}>Flex layout (scenes-react)</TextLink>
+        <TextLink href={`${urlBase}/adhoc-var`}>Ad hoc filters</TextLink>
+        <TextLink href={`${urlBase}/groupby-var`}>Group by</TextLink>
+        <TextLink href={`${urlBase}/local-var`}>Local value</TextLink>
         <TextLink href={`${urlBase}/drilldown`}>Drilldown demo</TextLink>
         <TextLink href={`${urlBase}/annotations`}>Annotations demo page</TextLink>
         <TextLink href={`${urlBase}/drilldown?from=now-5m&to=now&var-env=prod`}>

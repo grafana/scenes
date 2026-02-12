@@ -112,6 +112,7 @@ export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export {
   SceneFlexLayout,
   SceneFlexItem,
+  type SceneFlexItemPlacement,
   type SceneFlexItemState,
   type SceneFlexItemLike,
 } from './components/layout/SceneFlexLayout';

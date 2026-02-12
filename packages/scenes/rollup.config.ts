@@ -27,6 +27,7 @@ const plugins = [
 export default [
   {
     input: 'src/index.ts',
+    treeshake: env === 'development' ? false : true,
     plugins: env === 'development' ? [...plugins] : plugins,
     output: [
       {
