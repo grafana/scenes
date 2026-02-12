@@ -17,9 +17,9 @@ import { AnnotationDemoPage } from './AnnotationsDemoPage';
 import { TransformationsDemoPage } from './TransformationsDemoPage';
 import { UseQueryVariableHookPage } from './UseQueryVariableHookPage';
 import { FlexLayoutDemoPage } from './FlexLayoutDemoPage';
-import { UseAdHocFiltersVariableHookPage } from './UseAdHocFiltersVariableHookPage';
-import { UseGroupByVariableHookPage } from './UseGroupByVariableHookPage';
-import { UseLocalValueVariableHookPage } from './UseLocalValueVariableHookPage';
+import { AdHocFiltersVariableHookPage } from './AdHocFiltersVariableHookPage';
+import { GroupByVariableHookPage } from './GroupByVariableHookPage';
+import { LocalValueVariableHookPage } from './LocalValueVariableHookPage';
 
 export function ReactDemoPage() {
   return (
@@ -36,9 +36,9 @@ export function ReactDemoPage() {
           <Route path={`/interpolation-hook`} Component={InterpolationHookPage} />
           <Route path={`/query-var-hook`} Component={UseQueryVariableHookPage} />
           <Route path={`/flex-layout`} Component={FlexLayoutDemoPage} />
-          <Route path={`/adhoc-var-hook`} Component={UseAdHocFiltersVariableHookPage} />
-          <Route path={`/groupby-var-hook`} Component={UseGroupByVariableHookPage} />
-          <Route path={`/local-var-hook`} Component={UseLocalValueVariableHookPage} />
+          <Route path={`/adhoc-var-hook`} Component={AdHocFiltersVariableHookPage} />
+          <Route path={`/groupby-var-hook`} Component={GroupByVariableHookPage} />
+          <Route path={`/local-var-hook`} Component={LocalValueVariableHookPage} />
           <Route path={`/drilldown/*`} Component={DrilldownDemoPage} />
           <Route path={`/annotations`} Component={AnnotationDemoPage} />
           <Route path={`/transformations`} Component={TransformationsDemoPage} />
