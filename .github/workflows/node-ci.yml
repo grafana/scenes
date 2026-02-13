@@ -97,3 +97,8 @@ jobs:
         run: yarn auto shipit
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          # Disable hardened mode so Lerna's `yarn install --mode update-lockfile`
+          # can access .yarn/cache. Hardened mode runs resolution in a sandbox where
+          # the react-data-grid git dependency artifact never reaches the cache,
+          # causing ENOENT during the Fetch step.
+          YARN_ENABLE_HARDENED_MODE: '0'
