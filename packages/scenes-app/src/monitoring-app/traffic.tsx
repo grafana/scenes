@@ -29,13 +29,10 @@ export function getTrafficScene(): EmbeddedScene {
       })
     )
     .setTitle('Handlers')
-    .setOption('footer', { enablePagination: true })
     .setOverrides((b) =>
       b
         .matchFieldsWithNameByRegex('.*')
         .overrideFilterable(false)
-        .matchFieldsWithName('Time')
-        .overrideCustomFieldConfig('hidden', true)
         .matchFieldsWithName('Value')
         .overrideDisplayName('Duration (Avg)')
         .matchFieldsWithName('handler')
@@ -103,7 +100,13 @@ export class HandlerDrilldownViewBehavior extends SceneObjectBase<HandlerDrilldo
         )
         .setTitle(`Handler: ${handler} details`)
         .setHeaderActions(
-          <Button size="sm" variant="secondary" icon="times" onClick={() => this.setState({ handler: undefined })} />
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="times"
+            aria-label="Close"
+            onClick={() => this.setState({ handler: undefined })}
+          />
         )
         .build(),
     });

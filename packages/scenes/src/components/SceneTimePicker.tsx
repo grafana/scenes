@@ -109,7 +109,6 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       fiscalYearStartMonth={timeRangeState.fiscalYearStartMonth}
       onMoveBackward={model.onMoveBackward}
       onMoveForward={model.onMoveForward}
-      // @ts-expect-error (temporary till we update grafana/ui)
       moveForwardTooltip={
         moveForwardDuration
           ? t('grafana-scenes.components.time-picker.move-forward-tooltip', 'Move {{moveForwardDuration}} forward', {

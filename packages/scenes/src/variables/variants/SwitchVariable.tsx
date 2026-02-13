@@ -26,8 +26,6 @@ export class SwitchVariable extends SceneObjectBase<SwitchVariableState> impleme
 
   public constructor(initialState: Partial<SwitchVariableState>) {
     super({
-      // TODO: remove this once switch is in the schema @leventebalogh
-      // @ts-expect-error - switch is a valid variable type, but not in the schema yet
       type: 'switch',
       value: 'false',
       enabledValue: 'true',

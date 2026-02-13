@@ -288,11 +288,6 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 exports[`VizPanelBuilder options and field config standard panels defaults provides table defaults 1`] = `
 {
   "cellHeight": "sm",
-  "footer": {
-    "countRows": false,
-    "reducer": [],
-    "show": false,
-  },
   "frameIndex": 0,
   "showHeader": true,
   "showTypeIcons": false,

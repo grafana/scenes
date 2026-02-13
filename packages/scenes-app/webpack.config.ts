@@ -1,3 +1,4 @@
+import path from 'path';
 import type { Configuration } from 'webpack';
 import { merge } from 'webpack-merge';
 import grafanaConfig from './.config/webpack/webpack.config';
@@ -13,6 +14,13 @@ const config = (env: any): Configuration => {
     output: {
       publicPath: `public/plugins/${pluginId}/`,
       uniqueName: pluginId,
+    },
+    resolve: {
+      fallback: {
+        fs: false,
+        'fs/promises': false,
+        path: false,
+      },
     },
     module: {
       rules: [
