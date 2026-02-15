@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Edit filter dengan kunci {{keyLabel}}",
         "managed-filter": "Filter {{origin}} yang dikelola",
-        "non-applicable": "",
+        "non-applicable": "Filter tidak berlaku",
         "remove-filter-with-key": "Hapus filter dengan kunci {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Hapus nilai filter - {{itemLabel}}",
         "use-custom-value": "Gunakan nilai kustom: {{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Terbaru",
+        "recent-empty": "Tidak ada nilai terbaru",
+        "recommended": "Disarankan",
+        "recommended-empty": "Tidak ada nilai yang direkomendasikan",
+        "tooltip": "Tampilkan rekomendasi"
       },
       "fallback-page": {
         "content": "Jika Anda diarahkan ke sini menggunakan tautan, mungkin ada bug dalam aplikasi ini.",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "Batalkan",
         "text-refresh": "Muat ulang",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Batalkan semua kueri"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Perbandingan",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "Widget pengubah ukuran panel"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Geser mundur {{moveBackwardDuration}}",
+        "move-forward-tooltip": "Geser maju {{moveForwardDuration}}"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "Pilih nilai"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "Ciutkan",
+        "collapse-filters": "Ciutkan filter"
+      },
       "data-source-variable": {
         "label": {
           "default": "default"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "Format tanggal dengan berbagai cara yang berbeda",
             "format-multivalued-variables-using-syntax-example": "Format variabel multi-nilai menggunakan sintaks glob, contoh {value1, value2}",
             "html-escaping-of-values": "Nilai HTML escaping",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Gabungkan nilai dengan koma",
             "json-stringify-value": "Nilai stringify JSON",
             "keep-value-as-is": "Pertahankan nilai apa adanya",
             "multiple-values-are-formatted-like-variablevalue": "Beberapa nilai diformat seperti variabel=nilai",
