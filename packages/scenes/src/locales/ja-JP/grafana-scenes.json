@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}}キーでフィルターを編集 ",
         "managed-filter": "{{origin}}管理フィルター",
-        "non-applicable": "",
+        "non-applicable": "フィルターは適用されません",
         "remove-filter-with-key": "{{keyLabel}}キーでフィルターを削除 "
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "フィルター値を削除 - {{itemLabel}}",
         "use-custom-value": "カスタム値を使用：{{itemLabel}} "
+      },
+      "drilldown-recommendations": {
+        "recent": "最近",
+        "recent-empty": "最近の値がありません",
+        "recommended": "推奨",
+        "recommended-empty": "推奨値がありません",
+        "tooltip": "推奨事項を表示する"
       },
       "fallback-page": {
         "content": "リンクからこのページにアクセスした場合、アプリケーションにバグがある可能性があります。",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "キャンセル",
         "text-refresh": "更新",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "すべてのクエリを取り消し"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "比較",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "ペインリサイズウィジェット"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "{{moveBackwardDuration}}前に戻る",
+        "move-forward-tooltip": "{{moveForwardDuration}}先に進む"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "値を選択"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "折りたたみ表示",
+        "collapse-filters": "フィルターを折りたたむ"
+      },
       "data-source-variable": {
         "label": {
           "default": "デフォルト"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "日付を様々な形式でフォーマット",
             "format-multivalued-variables-using-syntax-example": "glob構文を使用して複数値変数をフォーマット（例: {value1,value2}）",
             "html-escaping-of-values": "値のHTMLエスケープ",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "値をコンマで結合します",
             "json-stringify-value": "JSON文字列化値",
             "keep-value-as-is": "値をそのまま保持",
             "multiple-values-are-formatted-like-variablevalue": "複数の値は変数=値の形式でフォーマットされます",

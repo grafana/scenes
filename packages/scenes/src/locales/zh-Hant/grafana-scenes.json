@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "使用鍵 {{keyLabel}} 編輯篩選條件",
         "managed-filter": "{{origin}} 受管理的篩選條件",
-        "non-applicable": "",
+        "non-applicable": "篩選條件不適用",
         "remove-filter-with-key": "使用鍵 {{keyLabel}} 移除篩選條件"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "移除篩選條件值 - {{itemLabel}}",
         "use-custom-value": "使用自訂值：{{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "最近",
+        "recent-empty": "沒有最近的值",
+        "recommended": "建議",
+        "recommended-empty": "沒有建議值",
+        "tooltip": "顯示建議"
       },
       "fallback-page": {
         "content": "如果您使用連結找到此處，則此應用程式中可能存在錯誤。",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "取消",
         "text-refresh": "更新",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "取消所有查詢"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "比較",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "窗格調整大小小工具"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "將「{{moveBackwardDuration}}」往後移動",
+        "move-forward-tooltip": "將「{{moveForwardDuration}}」向前移動"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "選擇值"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "收起",
+        "collapse-filters": "收起篩選條件"
+      },
       "data-source-variable": {
         "label": {
           "default": "預設值"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "以不同方式格式化日期",
             "format-multivalued-variables-using-syntax-example": "使用 glob 語法格式化多值變數，例如 {value1,value2}",
             "html-escaping-of-values": "值的 HTML 轉義",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "請使用逗號連接多個值",
             "json-stringify-value": "JSON 字串化值",
             "keep-value-as-is": "按原樣保留值",
             "multiple-values-are-formatted-like-variablevalue": "多個值按「變數=值」的方式格式化",
