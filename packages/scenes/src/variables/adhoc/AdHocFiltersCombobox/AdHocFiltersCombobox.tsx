@@ -14,7 +14,13 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, isFilterComplete, isMultiValueOperator, OPERATORS } from '../AdHocFiltersVariable';
+import {
+  AdHocFilterWithLabels,
+  GROUP_BY_OPERATOR_VALUE,
+  isFilterComplete,
+  isMultiValueOperator,
+  OPERATORS,
+} from '../AdHocFiltersVariable';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -379,6 +385,18 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           return;
         }
 
+        // Check if the last pill is a GroupBy -- if so, backspace into it
+        // by removing it and pre-filling the WIP with its key at the operator step
+        if (isAlwaysWip && controller.getLastPillType?.() === 'groupby') {
+          const removed = controller.popLastGroupByValue?.();
+          if (removed) {
+            controller.updateFilter(filter!, { key: removed.key, keyLabel: removed.keyLabel });
+            setInputValue('');
+            switchInputType('operator', setInputType, undefined, refs.domReference.current);
+            return;
+          }
+        }
+
         // focus back on alway wip input when you delete filter with backspace
         focusOnWipInputRef?.();
 
@@ -459,6 +477,23 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         }
         const selectedItem = filteredDropDownItems[activeIndex];
 
+        // Handle "Group by" operator selection: short-circuit the pill flow
+        if (filterInputType === 'operator' && selectedItem.value === GROUP_BY_OPERATOR_VALUE) {
+          if (!isAlwaysWip && filter) {
+            // Editing an existing filter: convert it to a groupBy (replaces in-place in pillOrder)
+            controller.convertFilterToGroupBy?.(filter);
+          } else {
+            // WIP filter: just add the groupBy
+            controller.addGroupByValue?.(filter!.key, filter!.keyLabel);
+          }
+          handleResetWip();
+          handleChangeViewMode?.();
+          setOpen(false);
+          setInputValue('');
+          focusOnWipInputRef?.();
+          return;
+        }
+
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
           setInputValue('');
@@ -508,8 +543,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       controller,
       filter,
       filterInputType,
+      isAlwaysWip,
       populateInputOnEdit,
       handleChangeViewMode,
+      handleResetWip,
       refs.domReference,
       isLastFilter,
       focusOnWipInputRef,
@@ -774,6 +811,24 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                             onClick(event) {
                               if (filterInputType !== 'value') {
                                 event.stopPropagation();
+                              }
+
+                              // Handle "Group by" operator selection via click
+                              if (filterInputType === 'operator' && item.value === GROUP_BY_OPERATOR_VALUE) {
+                                event.stopPropagation();
+                                if (!isAlwaysWip && filter) {
+                                  // Editing an existing filter: convert it to a groupBy
+                                  controller.convertFilterToGroupBy?.(filter);
+                                } else {
+                                  // WIP filter: just add the groupBy
+                                  controller.addGroupByValue?.(filter!.key, filter!.keyLabel);
+                                }
+                                handleResetWip();
+                                handleChangeViewMode?.();
+                                setOpen(false);
+                                setInputValue('');
+                                focusOnWipInputRef?.();
+                                return;
                               }
 
                               if (isMultiValueEdit) {

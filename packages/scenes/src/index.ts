@@ -78,7 +78,12 @@ export {
 } from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
-export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
+export {
+  AdHocFiltersVariable,
+  OPERATORS,
+  GROUP_BY_OPERATOR_VALUE,
+  type OperatorDefinition,
+} from './variables/adhoc/AdHocFiltersVariable';
 export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
 export type {
   AdHocFiltersController,

@@ -2,6 +2,7 @@ import React from 'react';
 import {
   // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
+  SelectableValue,
   store,
 } from '@grafana/data';
 import { sceneGraph } from '../../core/sceneGraph';
@@ -16,6 +17,8 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { Unsubscribable } from 'rxjs';
+import { VariableValueSingle } from '../types';
+import { isArray } from 'lodash';
 
 export const MAX_RECENT_DRILLDOWNS = 3;
 export const MAX_STORED_RECENT_DRILLDOWNS = 10;
@@ -26,6 +29,10 @@ export const getRecentFiltersKey = (datasourceUid: string | undefined) =>
 export interface AdHocFiltersRecommendationsState extends SceneObjectState {
   recentFilters?: AdHocFilterWithLabels[];
   recommendedFilters?: AdHocFilterWithLabels[];
+  /** GroupBy recent groupings, mirrored from GroupByRecommendations state */
+  recentGroupings?: Array<SelectableValue<VariableValueSingle>>;
+  /** GroupBy recommended groupings, mirrored from GroupByRecommendations state */
+  recommendedGroupings?: Array<SelectableValue<VariableValueSingle>>;
 }
 
 export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRecommendationsState> {
@@ -65,6 +72,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const scopesVariable = sceneGraph.lookupVariable(SCOPES_VARIABLE_NAME, this._adHocFilter);
     let scopesSubscription: Unsubscribable | undefined;
     let adHocSubscription: Unsubscribable | undefined;
+    let groupByRecsSubscription: Unsubscribable | undefined;
 
     if (scopesVariable instanceof ScopesVariable) {
       this._subs.add(
@@ -98,9 +106,33 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
       }))
     );
 
+    // Subscribe to GroupBy recommendations if a GroupByVariable is linked
+    const groupByVariable = this._adHocFilter.state.groupByVariable;
+    if (groupByVariable) {
+      const groupByRecs = groupByVariable.getRecommendations();
+      if (groupByRecs) {
+        // Initialize with current GroupBy recommendation state
+        this.setState({
+          recentGroupings: groupByRecs.state.recentGrouping,
+          recommendedGroupings: groupByRecs.state.recommendedGrouping,
+        });
+
+        // Subscribe to changes
+        this._subs.add(
+          (groupByRecsSubscription = groupByRecs.subscribeToState((newState) => {
+            this.setState({
+              recentGroupings: newState.recentGrouping,
+              recommendedGroupings: newState.recommendedGrouping,
+            });
+          }))
+        );
+      }
+    }
+
     return () => {
       scopesSubscription?.unsubscribe();
       adHocSubscription?.unsubscribe();
+      groupByRecsSubscription?.unsubscribe();
     };
   };
 
@@ -193,28 +225,83 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
 }
 
 function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHocFiltersRecommendations>) {
-  const { recentFilters, recommendedFilters } = model.useState();
-  const { filters } = model._adHocFilter.useState();
+  const { recentFilters, recommendedFilters, recentGroupings, recommendedGroupings } = model.useState();
+  const { filters, groupByVariable } = model._adHocFilter.useState();
 
-  const recentDrilldowns: DrilldownPill[] | undefined = recentFilters?.map((filter) => ({
-    label: `${filter.key} ${filter.operator} ${filter.value}`,
-    onClick: () => {
-      const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
-      if (!exists) {
-        model.addFilterToParent(filter);
-      }
-    },
-  }));
+  // Build filter drilldown pills
+  const recentFilterPills: DrilldownPill[] =
+    recentFilters?.map((filter) => ({
+      label: `${filter.key} ${filter.operator} ${filter.value}`,
+      onClick: () => {
+        const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
+        if (!exists) {
+          model.addFilterToParent(filter);
+        }
+      },
+    })) ?? [];
 
-  const recommendedDrilldowns: DrilldownPill[] | undefined = recommendedFilters?.map((filter) => ({
-    label: `${filter.key} ${filter.operator} ${filter.value}`,
-    onClick: () => {
-      const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
-      if (!exists) {
-        model.addFilterToParent(filter);
-      }
-    },
-  }));
+  const recommendedFilterPills: DrilldownPill[] =
+    recommendedFilters?.map((filter) => ({
+      label: `${filter.key} ${filter.operator} ${filter.value}`,
+      onClick: () => {
+        const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
+        if (!exists) {
+          model.addFilterToParent(filter);
+        }
+      },
+    })) ?? [];
 
-  return <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />;
+  // Build GroupBy drilldown pills (if linked)
+  const recentGroupByPills: DrilldownPill[] =
+    groupByVariable && recentGroupings
+      ? recentGroupings.map((grouping) => ({
+          label: `↗ ${grouping.value}`,
+          onClick: () => {
+            const currentValues = isArray(groupByVariable.state.value)
+              ? groupByVariable.state.value.map(String)
+              : groupByVariable.state.value
+              ? [String(groupByVariable.state.value)]
+              : [];
+            if (!currentValues.includes(String(grouping.value))) {
+              groupByVariable.changeValueTo(
+                [...currentValues.filter((v) => v !== ''), grouping.value!],
+                undefined,
+                true
+              );
+            }
+          },
+        }))
+      : [];
+
+  const recommendedGroupByPills: DrilldownPill[] =
+    groupByVariable && recommendedGroupings
+      ? recommendedGroupings.map((grouping) => ({
+          label: `↗ ${grouping.value}`,
+          onClick: () => {
+            const currentValues = isArray(groupByVariable.state.value)
+              ? groupByVariable.state.value.map(String)
+              : groupByVariable.state.value
+              ? [String(groupByVariable.state.value)]
+              : [];
+            if (!currentValues.includes(String(grouping.value))) {
+              groupByVariable.changeValueTo(
+                [...currentValues.filter((v) => v !== ''), grouping.value!],
+                undefined,
+                true
+              );
+            }
+          },
+        }))
+      : [];
+
+  // Combine filter and GroupBy pills
+  const recentDrilldowns = [...recentFilterPills, ...recentGroupByPills];
+  const recommendedDrilldowns = [...recommendedFilterPills, ...recommendedGroupByPills];
+
+  return (
+    <DrilldownRecommendations
+      recentDrilldowns={recentDrilldowns.length > 0 ? recentDrilldowns : undefined}
+      recommendedDrilldowns={recommendedDrilldowns.length > 0 ? recommendedDrilldowns : undefined}
+    />
+  );
 }

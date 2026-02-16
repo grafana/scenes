@@ -1,6 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import { AdHocFilterWithLabels, OnAddCustomValueFn } from '../AdHocFiltersVariable';
 import { AdHocFiltersRecommendations } from '../AdHocFiltersRecommendations';
+import type { GroupByVariable } from '../../groupby/GroupByVariable';
 
 /**
  * Controller state returned by useState hook
@@ -20,6 +21,10 @@ export interface AdHocFiltersControllerState {
   collapsible?: boolean;
   valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
+  /**
+   * Tracks insertion order of user-added filters and groupBy entries.
+   */
+  pillOrder?: Array<'filter' | 'groupby'>;
 }
 
 /**
@@ -125,4 +130,41 @@ export interface AdHocFiltersController {
    * Optional: Stop tracking the current interaction.
    */
   stopInteraction?(): void;
+
+  /**
+   * Get the linked GroupByVariable, if any.
+   */
+  getGroupByVariable?(): GroupByVariable | undefined;
+
+  /**
+   * Add a key to the linked GroupByVariable.
+   * @param key - The key to add as a group-by dimension
+   * @param keyLabel - Optional display label for the key
+   */
+  addGroupByValue?(key: string, keyLabel?: string): void;
+
+  /**
+   * Remove a key from the linked GroupByVariable.
+   * @param key - The key to remove
+   */
+  removeGroupByValue?(key: string): void;
+
+  /**
+   * Convert an existing filter into a GroupBy entry.
+   * Removes the filter, replaces its pillOrder position with 'groupby',
+   * and adds the key to the GroupByVariable.
+   */
+  convertFilterToGroupBy?(filter: AdHocFilterWithLabels): void;
+
+  /**
+   * Returns the type of the last pill in pillOrder ('filter' | 'groupby'),
+   * or undefined if there are no pills.
+   */
+  getLastPillType?(): 'filter' | 'groupby' | undefined;
+
+  /**
+   * Removes the last GroupBy value and returns its key and label.
+   * Used when backspacing into a GroupBy pill from the WIP input.
+   */
+  popLastGroupByValue?(): { key: string; keyLabel: string } | undefined;
 }

@@ -28,6 +28,7 @@ import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler, toArray } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
+import { t } from '@grafana/i18n';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
@@ -38,6 +39,7 @@ import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
 import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
 import { AdHocFiltersRecommendations } from './AdHocFiltersRecommendations';
+import type { GroupByVariable } from '../groupby/GroupByVariable';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -166,6 +168,22 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * enables drilldown recommendations
    */
   drilldownRecommendationsEnabled?: boolean;
+
+  /**
+   * Optional reference to a GroupByVariable. When set, the operator dropdown will include
+   * a "Group by" option, and selecting it will add the key to this GroupByVariable instead
+   * of creating a filter. GroupBy pills will be rendered alongside filter pills in the UI.
+   */
+  groupByVariable?: GroupByVariable;
+
+  /**
+   * Tracks the insertion order of user-added filters and groupBy entries.
+   * Each element is either 'filter' or 'groupby'. The Nth 'filter' maps to filters[N],
+   * the Nth 'groupby' maps to the Nth GroupBy value. This allows the UI to render pills
+   * in the order they were added rather than grouping by type.
+   * @internal
+   */
+  pillOrder?: Array<'filter' | 'groupby'>;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -193,6 +211,13 @@ export type OperatorDefinition = {
   isMulti?: Boolean;
   isRegex?: Boolean;
 };
+
+/**
+ * Special operator value used to indicate a "Group by" selection in the operator dropdown.
+ * When selected, the pill-building flow is short-circuited: the key is added to the linked
+ * GroupByVariable instead of creating a filter with operator + value.
+ */
+export const GROUP_BY_OPERATOR_VALUE = '__groupBy__';
 
 export const OPERATORS: OperatorDefinition[] = [
   {
@@ -477,7 +502,8 @@ export class AdHocFiltersVariable
   }
 
   /**
-   * Clear all user-added filters and restore origin filters to their original values.
+   * Clear all user-added filters, restore origin filters to their original values,
+   * and clear the linked GroupByVariable if present.
    */
   public clearAll(): void {
     // Restore all restorable origin filters to their original values
@@ -487,8 +513,18 @@ export class AdHocFiltersVariable
       }
     });
 
-    // Clear all user-added filters
-    this.setState({ filters: [] });
+    // Clear all user-added filters and reset pill order
+    this.setState({ filters: [], pillOrder: [] });
+
+    // Clear GroupBy values if linked
+    if (this.state.groupByVariable) {
+      const groupBy = this.state.groupByVariable;
+      if (groupBy.state.defaultValue) {
+        groupBy.restoreDefaultValues();
+      } else {
+        groupBy.changeValueTo([], [], true);
+      }
+    }
   }
 
   public getValue(fieldPath?: string): VariableValue | undefined {
@@ -537,9 +573,11 @@ export class AdHocFiltersVariable
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
+        const basePillOrder = this._getOrInitPillOrder();
         this.setState({
           filters: [...filters, { ..._wip, ...update }],
           _wip: undefined,
+          pillOrder: [...basePillOrder, 'filter'],
         });
         this.verifyApplicabilityAndStoreRecentFilter({ ..._wip, ...update });
       } else {
@@ -580,7 +618,14 @@ export class AdHocFiltersVariable
     const queryController = getQueryController(this);
     queryController?.startProfile(FILTER_REMOVED_INTERACTION);
 
-    this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
+    const filterIndex = this.state.filters.indexOf(filter);
+    const basePillOrder = this._getOrInitPillOrder();
+    const updatedPillOrder = removeNthOccurrence(basePillOrder, 'filter', filterIndex);
+
+    this.setState({
+      filters: this.state.filters.filter((f) => f !== filter),
+      pillOrder: updatedPillOrder,
+    });
     this._debouncedVerifyApplicability();
   }
 
@@ -845,10 +890,39 @@ export class AdHocFiltersVariable
     });
   }
 
-  public _getOperators() {
-    const { supportsMultiValueOperators, allowCustomValue = true } = this.state;
+  /**
+   * Returns the current pillOrder, initializing it from existing state if needed.
+   * When pillOrder is undefined (e.g. dashboard just loaded), this seeds it with
+   * entries for all existing filters and groupBy values so new items are appended
+   * in the correct position.
+   */
+  public _getOrInitPillOrder(): Array<'filter' | 'groupby'> {
+    if (this.state.pillOrder && this.state.pillOrder.length > 0) {
+      return this.state.pillOrder;
+    }
 
-    return OPERATORS.filter(({ isMulti, isRegex }) => {
+    const filterEntries: Array<'filter' | 'groupby'> = this.state.filters
+      .filter((f) => !f.hidden)
+      .map(() => 'filter' as const);
+
+    const groupBy = this.state.groupByVariable;
+    let groupByEntries: Array<'filter' | 'groupby'> = [];
+    if (groupBy) {
+      const values = Array.isArray(groupBy.state.value)
+        ? groupBy.state.value.map(String).filter((v) => v !== '')
+        : groupBy.state.value
+        ? [String(groupBy.state.value)]
+        : [];
+      groupByEntries = values.map(() => 'groupby' as const);
+    }
+
+    return [...filterEntries, ...groupByEntries];
+  }
+
+  public _getOperators() {
+    const { supportsMultiValueOperators, allowCustomValue = true, groupByVariable } = this.state;
+
+    const operators = OPERATORS.filter(({ isMulti, isRegex }) => {
       if (!supportsMultiValueOperators && isMulti) {
         return false;
       }
@@ -861,6 +935,20 @@ export class AdHocFiltersVariable
       value,
       description,
     }));
+
+    // Add "Group by" option when a GroupByVariable is linked
+    if (groupByVariable) {
+      operators.unshift({
+        label: t('grafana-scenes.variables.adhoc.group-by-operator-label', 'Group by'),
+        value: GROUP_BY_OPERATOR_VALUE,
+        description: t(
+          'grafana-scenes.variables.adhoc.group-by-operator-description',
+          'Group by this label instead of filtering'
+        ),
+      });
+    }
+
+    return operators;
   }
 }
 
@@ -949,4 +1037,27 @@ export function isMultiValueOperator(operatorValue: string): boolean {
     return false;
   }
   return Boolean(operator.isMulti);
+}
+
+/**
+ * Removes the Nth occurrence of `target` from a pill order array.
+ * Used to keep pillOrder in sync when a filter or groupBy is removed.
+ */
+export function removeNthOccurrence(
+  pillOrder: Array<'filter' | 'groupby'>,
+  target: 'filter' | 'groupby',
+  n: number
+): Array<'filter' | 'groupby'> {
+  const result = [...pillOrder];
+  let count = 0;
+  for (let i = 0; i < result.length; i++) {
+    if (result[i] === target) {
+      if (count === n) {
+        result.splice(i, 1);
+        return result;
+      }
+      count++;
+    }
+  }
+  return result;
 }
