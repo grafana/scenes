@@ -1,13 +1,13 @@
 import { Observable } from 'rxjs';
 
 import { BusEventWithPayload } from '@grafana/data';
-import { VariableType, VariableHide, DataSourceRef } from '@grafana/schema';
+import { VariableType, VariableHide } from '@grafana/schema';
 
 import { SceneObject, SceneObjectState } from '../core/types';
 
 export interface DataSourceControlRef {
   type: 'datasource';
-  ref: DataSourceRef;
+  ref: { group?: string };
 }
 
 export type ControlSourceRef = DataSourceControlRef;
