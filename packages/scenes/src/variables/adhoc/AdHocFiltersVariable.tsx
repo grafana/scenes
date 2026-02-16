@@ -38,6 +38,8 @@ import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
 import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
 import { AdHocFiltersRecommendations } from './AdHocFiltersRecommendations';
+import { t } from '@grafana/i18n';
+import type { GroupByVariable } from '../groupby/GroupByVariable';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -166,6 +168,12 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * enables drilldown recommendations
    */
   drilldownRecommendationsEnabled?: boolean;
+
+  /** Optional reference to a GroupByVariable for unified UI. */
+  groupByVariable?: GroupByVariable;
+
+  /** @internal Flag to trigger edit mode on the GroupBy pill via keyboard navigation */
+  _forceEditGroupBy?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -193,6 +201,8 @@ export type OperatorDefinition = {
   isMulti?: Boolean;
   isRegex?: Boolean;
 };
+
+export const GROUP_BY_OPERATOR_VALUE = '__groupBy__';
 
 export const OPERATORS: OperatorDefinition[] = [
   {
@@ -489,6 +499,16 @@ export class AdHocFiltersVariable
 
     // Clear all user-added filters
     this.setState({ filters: [] });
+
+    // Clear GroupBy values if linked
+    if (this.state.groupByVariable) {
+      const groupBy = this.state.groupByVariable;
+      if (groupBy.state.defaultValue) {
+        groupBy.restoreDefaultValues();
+      } else {
+        groupBy.changeValueTo([], [], true);
+      }
+    }
   }
 
   public getValue(fieldPath?: string): VariableValue | undefined {
@@ -653,6 +673,9 @@ export class AdHocFiltersVariable
           return [...acc, f];
         }, []),
       });
+    } else if (this.state.groupByVariable && filter === this.state._wip) {
+      // No filters or origin filters left — navigate into GroupBy pill
+      this.setState({ _forceEditGroupBy: true });
     }
   }
 
@@ -846,9 +869,9 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const { supportsMultiValueOperators, allowCustomValue = true } = this.state;
+    const { supportsMultiValueOperators, allowCustomValue = true, groupByVariable } = this.state;
 
-    return OPERATORS.filter(({ isMulti, isRegex }) => {
+    const operators = OPERATORS.filter(({ isMulti, isRegex }) => {
       if (!supportsMultiValueOperators && isMulti) {
         return false;
       }
@@ -861,6 +884,19 @@ export class AdHocFiltersVariable
       value,
       description,
     }));
+
+    if (groupByVariable) {
+      operators.unshift({
+        label: t('grafana-scenes.variables.adhoc.group-by-operator-label', 'Group by'),
+        value: GROUP_BY_OPERATOR_VALUE,
+        description: t(
+          'grafana-scenes.variables.adhoc.group-by-operator-description',
+          'Group by this label instead of filtering'
+        ),
+      });
+    }
+
+    return operators;
   }
 }
 

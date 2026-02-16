@@ -1,8 +1,10 @@
 import { SelectableValue } from '@grafana/data';
+import { isArray } from 'lodash';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { AdHocFiltersController, AdHocFiltersControllerState } from './AdHocFiltersController';
 import { getQueryController } from '../../../core/sceneGraph/getQueryController';
 import { getInteractionTracker } from '../../../core/sceneGraph/getInteractionTracker';
+import type { GroupByVariable } from '../../groupby/GroupByVariable';
 
 /**
  * Adapter that wraps AdHocFiltersVariable to implement the AdHocFiltersController interface.
@@ -25,6 +27,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       collapsible: state.collapsible,
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
+      forceEditGroupBy: state._forceEditGroupBy,
     };
   }
 
@@ -95,5 +98,68 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
   public stopInteraction(): void {
     const interactionTracker = getInteractionTracker(this.model);
     interactionTracker?.stopInteraction();
+  }
+
+  public getGroupByVariable(): GroupByVariable | undefined {
+    return this.model.state.groupByVariable;
+  }
+
+  public clearForceEditGroupBy(): void {
+    this.model.setState({ _forceEditGroupBy: false });
+  }
+
+  public addGroupByValue(key: string, keyLabel?: string): void {
+    const groupBy = this.model.state.groupByVariable;
+    if (!groupBy) {
+      return;
+    }
+
+    const currentValues = isArray(groupBy.state.value)
+      ? groupBy.state.value.map(String)
+      : groupBy.state.value
+      ? [String(groupBy.state.value)]
+      : [];
+    const currentTexts = isArray(groupBy.state.text)
+      ? groupBy.state.text.map(String)
+      : groupBy.state.text
+      ? [String(groupBy.state.text)]
+      : [];
+
+    if (!currentValues.includes(key)) {
+      const newValues = [...currentValues.filter((v) => v !== ''), key];
+      const newTexts = [...currentTexts.filter((t) => t !== ''), keyLabel ?? key];
+      groupBy.changeValueTo(newValues, newTexts, true);
+      this._syncGroupByAfterChange(groupBy, newValues);
+    }
+  }
+
+  public removeGroupByValue(key: string): void {
+    const groupBy = this.model.state.groupByVariable;
+    if (!groupBy) {
+      return;
+    }
+
+    const currentValues = isArray(groupBy.state.value) ? groupBy.state.value.map(String) : [];
+    const currentTexts = isArray(groupBy.state.text) ? groupBy.state.text.map(String) : [];
+
+    const idx = currentValues.indexOf(key);
+    if (idx >= 0) {
+      const newValues = [...currentValues];
+      const newTexts = [...currentTexts];
+      newValues.splice(idx, 1);
+      newTexts.splice(idx, 1);
+      groupBy.changeValueTo(newValues, newTexts, true);
+      this._syncGroupByAfterChange(groupBy, newValues);
+    }
+  }
+
+  private _syncGroupByAfterChange(groupBy: GroupByVariable, newValues: string[]): void {
+    if (groupBy.state.defaultValue) {
+      const restorable = groupBy.checkIfRestorable(newValues);
+      if (restorable !== groupBy.state.restorable) {
+        groupBy.setState({ restorable });
+      }
+    }
+    groupBy._verifyApplicabilityAndStoreRecentGrouping();
   }
 }

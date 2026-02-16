@@ -1,6 +1,7 @@
 import { SelectableValue } from '@grafana/data';
 import { AdHocFilterWithLabels, OnAddCustomValueFn } from '../AdHocFiltersVariable';
 import { AdHocFiltersRecommendations } from '../AdHocFiltersRecommendations';
+import type { GroupByVariable } from '../../groupby/GroupByVariable';
 
 /**
  * Controller state returned by useState hook
@@ -20,6 +21,7 @@ export interface AdHocFiltersControllerState {
   collapsible?: boolean;
   valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
+  forceEditGroupBy?: boolean;
 }
 
 /**
@@ -125,4 +127,11 @@ export interface AdHocFiltersController {
    * Optional: Stop tracking the current interaction.
    */
   stopInteraction?(): void;
+
+  getGroupByVariable?(): GroupByVariable | undefined;
+  addGroupByValue?(key: string, keyLabel?: string): void;
+  removeGroupByValue?(key: string): void;
+
+  /** Clear the forceEditGroupBy flag after the GroupBy pill has consumed it */
+  clearForceEditGroupBy?(): void;
 }
