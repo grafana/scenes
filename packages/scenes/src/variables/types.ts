@@ -1,15 +1,16 @@
 import { Observable } from 'rxjs';
 
 import { BusEventWithPayload } from '@grafana/data';
-import { VariableType, VariableHide } from '@grafana/schema';
+import { VariableType, VariableHide, DataSourceRef } from '@grafana/schema';
 
 import { SceneObject, SceneObjectState } from '../core/types';
 
-export interface ControlSourceRef {
-  uid: string;
-  sourceId: string; // E.g. "prometheus"
-  sourceType: string; // E.g. "datasource"
+export interface DataSourceControlRef {
+  type: 'datasource';
+  ref: DataSourceRef;
 }
+
+export type ControlSourceRef = DataSourceControlRef;
 
 export interface SceneVariableState extends SceneObjectState {
   type: VariableType;
