@@ -3,13 +3,12 @@ import { DemoSubTitle } from '../pages/DemoSubTitle';
 import { PageWrapper } from './PageWrapper';
 import {
   AdHocFiltersVariable,
-  AdHocFiltersVariableClass,
   CustomVariable,
   VariableControl,
   useVariableInterpolator,
   useSceneContext,
-  sceneGraph,
 } from '@grafana/scenes-react';
+import { AdHocFiltersVariable as AdHocFiltersVariableClass, sceneGraph } from '@grafana/scenes';
 import { Stack } from '@grafana/ui';
 import { DemoVizLayout } from './utils';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';

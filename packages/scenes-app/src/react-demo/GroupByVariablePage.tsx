@@ -1,14 +1,8 @@
 import React from 'react';
 import { DemoSubTitle } from '../pages/DemoSubTitle';
 import { PageWrapper } from './PageWrapper';
-import {
-  GroupByVariable,
-  GroupByVariableClass,
-  VariableControl,
-  useVariableInterpolator,
-  useSceneContext,
-  sceneGraph,
-} from '@grafana/scenes-react';
+import { GroupByVariable, VariableControl, useVariableInterpolator, useSceneContext } from '@grafana/scenes-react';
+import { GroupByVariable as GroupByVariableClass, sceneGraph } from '@grafana/scenes';
 import { Stack } from '@grafana/ui';
 import type { MetricFindValue } from '@grafana/data';
 
