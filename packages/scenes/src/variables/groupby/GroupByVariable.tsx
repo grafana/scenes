@@ -330,7 +330,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public _getKeys = async (ds: DataSourceApi) => {
-    // TODO: provide current dimensions?
+    // TODO:  provide current dimensions?
     const override = await this.state.getTagKeysProvider?.(this, null);
 
     if (override && override.replace) {
