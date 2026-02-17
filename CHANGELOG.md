@@ -1,3 +1,16 @@
+# v6.53.0 (Tue Feb 17 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: add custom placeholder support [#1357](https://github.com/grafana/scenes/pull/1357) ([@matyax](https://github.com/matyax))
+
+#### Authors: 1
+
+- Matias Chomicki ([@matyax](https://github.com/matyax))
+
+---
+
 # v6.52.15 (Wed Feb 11 2026)
 
 #### 🐛 Bug Fix
