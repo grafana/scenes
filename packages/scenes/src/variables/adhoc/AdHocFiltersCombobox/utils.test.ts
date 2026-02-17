@@ -1,7 +1,7 @@
 import { generatePlaceholder, INPUT_PLACEHOLDER_DEFAULT } from './utils';
 import { AdHocFilterWithLabels } from '../AdHocFiltersVariable';
 
-describe.only('generatePlaceholder', () => {
+describe('generatePlaceholder', () => {
   const defaultFilter: AdHocFilterWithLabels = {
     key: 'testKey',
     operator: '=',
