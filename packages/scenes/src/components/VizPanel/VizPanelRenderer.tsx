@@ -38,7 +38,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     collapsed,
     _renderCounter = 0,
   } = model.useState();
-  const [ref, { width, height }] = useMeasure();
+  let [ref, { width, height }] = useMeasure();
   const appEvents = useMemo(() => getAppEvents(), []);
 
   const setPanelAttention = useCallback(() => {
@@ -230,76 +230,82 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const context = model.getPanelContext();
   const panelId = model.getLegacyPanelId();
 
+  if (width === 0) {
+    width = 100;
+  }
+
+  if (height === 0) {
+    height = 100;
+  }
+
   return (
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
-        {width > 0 && height > 0 && (
-          <PanelChrome
-            title={titleInterpolated}
-            description={description?.trim() ? model.getDescription : undefined}
-            loadingState={data.state}
-            statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
-            statusMessageOnClick={model.onStatusMessageClick}
-            width={width}
-            height={height}
-            selectionId={model.state.key}
-            displayMode={displayMode}
-            titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
-            dragClass={dragClass}
-            actions={actionsElement}
-            dragClassCancel={dragClassCancel}
-            padding={plugin.noPadding ? 'none' : 'md'}
-            menu={panelMenu}
-            onCancelQuery={model.onCancelQuery}
-            onFocus={setPanelAttention}
-            onMouseEnter={setPanelAttention}
-            onMouseMove={debouncedMouseMove}
-            // @ts-expect-error remove this on next grafana/ui update
-            subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
-            onDragStart={(e: React.PointerEvent) => {
-              dragHooks.onDragStart?.(e, model);
-            }}
-            showMenuAlways={showMenuAlways}
-            {...(collapsible
-              ? {
-                  collapsible: Boolean(collapsible),
-                  collapsed,
-                  onToggleCollapse: model.onToggleCollapse,
-                }
-              : { hoverHeader, hoverHeaderOffset })}
-          >
-            {(innerWidth, innerHeight) => (
-              <>
-                <ErrorBoundaryAlert dependencies={[plugin, data]}>
-                  <PluginContextProvider meta={plugin.meta}>
-                    <PanelContextProvider value={context}>
-                      {isReadyToRender && (
-                        <PanelComponent
-                          id={panelId}
-                          data={data}
-                          title={title}
-                          timeRange={timeRange}
-                          timeZone={timeZone}
-                          options={options}
-                          fieldConfig={fieldConfig}
-                          transparent={displayMode === 'transparent'}
-                          width={innerWidth}
-                          height={innerHeight}
-                          renderCounter={_renderCounter}
-                          replaceVariables={model.interpolate}
-                          onOptionsChange={model.onOptionsChange}
-                          onFieldConfigChange={model.onFieldConfigChange}
-                          onChangeTimeRange={model.onTimeRangeChange}
-                          eventBus={context.eventBus}
-                        />
-                      )}
-                    </PanelContextProvider>
-                  </PluginContextProvider>
-                </ErrorBoundaryAlert>
-              </>
-            )}
-          </PanelChrome>
-        )}
+        <PanelChrome
+          title={titleInterpolated}
+          description={description?.trim() ? model.getDescription : undefined}
+          loadingState={data.state}
+          statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
+          statusMessageOnClick={model.onStatusMessageClick}
+          width={width}
+          height={height}
+          selectionId={model.state.key}
+          displayMode={displayMode}
+          titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
+          dragClass={dragClass}
+          actions={actionsElement}
+          dragClassCancel={dragClassCancel}
+          padding={plugin.noPadding ? 'none' : 'md'}
+          menu={panelMenu}
+          onCancelQuery={model.onCancelQuery}
+          onFocus={setPanelAttention}
+          onMouseEnter={setPanelAttention}
+          onMouseMove={debouncedMouseMove}
+          // @ts-expect-error remove this on next grafana/ui update
+          subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
+          onDragStart={(e: React.PointerEvent) => {
+            dragHooks.onDragStart?.(e, model);
+          }}
+          showMenuAlways={showMenuAlways}
+          {...(collapsible
+            ? {
+                collapsible: Boolean(collapsible),
+                collapsed,
+                onToggleCollapse: model.onToggleCollapse,
+              }
+            : { hoverHeader, hoverHeaderOffset })}
+        >
+          {(innerWidth, innerHeight) => (
+            <>
+              <ErrorBoundaryAlert dependencies={[plugin, data]}>
+                <PluginContextProvider meta={plugin.meta}>
+                  <PanelContextProvider value={context}>
+                    {isReadyToRender && (
+                      <PanelComponent
+                        id={panelId}
+                        data={data}
+                        title={title}
+                        timeRange={timeRange}
+                        timeZone={timeZone}
+                        options={options}
+                        fieldConfig={fieldConfig}
+                        transparent={displayMode === 'transparent'}
+                        width={innerWidth}
+                        height={innerHeight}
+                        renderCounter={_renderCounter}
+                        replaceVariables={model.interpolate}
+                        onOptionsChange={model.onOptionsChange}
+                        onFieldConfigChange={model.onFieldConfigChange}
+                        onChangeTimeRange={model.onTimeRangeChange}
+                        eventBus={context.eventBus}
+                      />
+                    )}
+                  </PanelContextProvider>
+                </PluginContextProvider>
+              </ErrorBoundaryAlert>
+            </>
+          )}
+        </PanelChrome>
       </div>
     </div>
   );
