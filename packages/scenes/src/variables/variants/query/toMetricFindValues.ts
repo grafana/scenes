@@ -7,6 +7,7 @@ import {
   MetricFindValue,
   PanelData,
 } from '@grafana/data';
+import { isEqual, uniqWith } from 'lodash';
 import { map, OperatorFunction } from 'rxjs';
 
 interface MetricFindValueWithOptionalProperties extends MetricFindValue {
@@ -108,8 +109,6 @@ function findFieldsIndices(frames: DataFrame[], valueProp?: string, textProp?: s
         if (fieldName === 'text' && indices.text === -1) {
           indices.text = index;
         }
-
-        indices.properties.push({ name: fieldName, index });
         continue;
       }
 
@@ -122,6 +121,9 @@ function findFieldsIndices(frames: DataFrame[], valueProp?: string, textProp?: s
       }
     }
   }
+
+  // optimization: dedupe across data frames
+  indices.properties = uniqWith(indices.properties, isEqual);
 
   return indices;
 }

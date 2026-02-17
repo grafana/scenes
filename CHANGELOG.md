@@ -1,3 +1,55 @@
+# v6.53.0 (Tue Feb 17 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: add custom placeholder support [#1357](https://github.com/grafana/scenes/pull/1357) ([@matyax](https://github.com/matyax))
+
+#### Authors: 1
+
+- Matias Chomicki ([@matyax](https://github.com/matyax))
+
+---
+
+# v6.52.15 (Wed Feb 11 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`
+  - ScenesReact: Add allValue to variables [#1254](https://github.com/grafana/scenes/pull/1254) ([@slaughtlaught](https://github.com/slaughtlaught))
+
+#### Authors: 1
+
+- Bogdan Tiet ([@slaughtlaught](https://github.com/slaughtlaught))
+
+---
+
+# v6.52.14 (Tue Feb 10 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - QueryVariable: Deduplicate properties indices in toMetricFindValues [#1356](https://github.com/grafana/scenes/pull/1356) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
+# v6.52.13 (Thu Feb 05 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Stricter input matching on options search [#1347](https://github.com/grafana/scenes/pull/1347) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.52.12 (Fri Jan 30 2026)
 
 #### 🐛 Bug Fix

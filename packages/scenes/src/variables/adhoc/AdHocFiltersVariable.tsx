@@ -71,6 +71,8 @@ export type FilterOrigin = 'dashboard' | 'scope' | string;
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
   addFilterButtonText?: string;
+  /** Optional placeholder text for the filter input field */
+  inputPlaceholder?: string;
   /** The visible filters */
   filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
