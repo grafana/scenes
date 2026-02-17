@@ -43,7 +43,7 @@ export function getAdHocFiltersFromScopes(scopes: Scope[]): AdHocFilterWithLabel
 function processFilter(
   formattedFilters: Map<string, AdHocFilterWithLabels>,
   duplicatedFilters: AdHocFilterWithLabels[],
-  filter: ScopeSpecFilter
+  filter: ScopeSpecFilter | undefined
 ) {
   if (!filter) {
     return;

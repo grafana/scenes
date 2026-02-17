@@ -81,6 +81,14 @@ jobs:
 
       - name: Install dependencies
         uses: ./.github/actions/yarn-nm-install
+        with:
+          # Disable node_modules and install-state cache to avoid ENOENT when
+          # .yarn/cache (e.g. react-data-grid git dependency zip) is missing.
+          # The release job runs on a fresh runner; restoring node_modules without
+          # the matching .yarn/cache causes "stat .../react-data-grid-https-*.zip"
+          # to fail during the Fetch step.
+          cache-node-modules: false
+          cache-install-state: false
 
       - name: Build library
         run: yarn run lerna run build --no-private
@@ -89,3 +97,8 @@ jobs:
         run: yarn auto shipit
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          # Disable hardened mode so Lerna's `yarn install --mode update-lockfile`
+          # can access .yarn/cache. Hardened mode runs resolution in a sandbox where
+          # the react-data-grid git dependency artifact never reaches the cache,
+          # causing ENOENT during the Fetch step.
+          YARN_ENABLE_HARDENED_MODE: '0'

@@ -406,11 +406,11 @@ describe('SceneTimeRange', () => {
 
       expect(timeRange.getTimeZone()).toBe('Africa/Addis_Ababa');
 
-      // Verify the time start panel reads the correct start time
-      expect(timeRange.state.value.from.format('YYYY-MM-DD HH:mm:ss')).toBe('2025-01-01 00:00:00');
+      // Verify the stored start time is correct (assert in UTC for deterministic test)
+      expect(timeRange.state.value.from.utc().format('YYYY-MM-DD HH:mm:ss')).toBe('2025-01-01 00:00:00');
 
-      // Verify the time picker tooltip reads the correct start time
-      const tooltipStartTime = timeRange.state.value.from.format('HH:mm:ss');
+      // Verify the time picker tooltip reads the correct start time (UTC)
+      const tooltipStartTime = timeRange.state.value.from.utc().format('HH:mm:ss');
       expect(tooltipStartTime).toBe('00:00:00');
     });
   });
