@@ -24,15 +24,18 @@ jest.mock('../../utils/utils', () => ({
 }));
 
 describe('SceneApp', () => {
-  const original = console.error;
+  const originalError = console.error;
+  const originalWarn = console.warn;
 
   beforeEach(() => {
     console.error = jest.fn();
+    console.warn = jest.fn(); // Prevent "You rendered descendant <Routes> (or called `useRoutes()`) at "/test/" (under <Route path="">) but the parent route path has no trailing "*". This means if you navigate deeper, the parent won't match anymore and therefore the child routes will never render."
     jest.mocked(PluginPage).mockClear();
   });
 
   afterEach(() => {
-    console.error = original;
+    console.error = originalError;
+    console.warn = originalWarn;
   });
 
   it('should error when rendered outside of a router context', () => {

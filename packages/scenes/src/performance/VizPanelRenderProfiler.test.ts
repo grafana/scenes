@@ -3,6 +3,40 @@ import { VizPanelRenderProfiler } from './VizPanelRenderProfiler';
 import { SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { SceneDataTransformer } from '../querying/SceneDataTransformer';
+import { DataSourceApi, DataQueryRequest, PanelData, DataQueryResponse, LoadingState } from '@grafana/data';
+import { Observable, map, of } from 'rxjs';
+
+const getDataSourceMock = {
+  get: jest.fn(async () => ({
+    query: () => of({} as DataQueryResponse),
+    getRef: () => ({ uid: 'test' }),
+  })),
+};
+
+const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
+  const result: PanelData = {
+    request,
+    timeRange: request.range,
+    state: LoadingState.Loading,
+    series: [],
+    annotations: [],
+  };
+
+  return (ds.query(request) as Observable<DataQueryResponse>).pipe(
+    map(() => {
+      result.state = LoadingState.Done;
+      result.series = [];
+      result.annotations = [];
+      return result;
+    })
+  );
+});
+
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  getDataSourceSrv: () => getDataSourceMock,
+  getRunRequest: () => (ds: DataSourceApi, request: DataQueryRequest) => runRequestMock(ds, request),
+}));
 
 // Mock writeSceneLog
 jest.mock('../utils/writeSceneLog', () => ({
