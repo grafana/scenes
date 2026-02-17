@@ -23,6 +23,11 @@
         "subTitle": "The url did not match any page",
         "title": "Not found"
       },
+      "group-by-pill": {
+        "group-by-key": "Group by {{label}}",
+        "non-applicable": "Group by is not applicable",
+        "remove-group-by": "Remove group by {{label}}"
+      },
       "lazy-loader": {
         "placeholder": "\u00a0"
       },
@@ -99,6 +104,10 @@
         "value-select": {
           "placeholder-select-value": "Select value"
         }
+      },
+      "adhoc": {
+        "group-by-operator-description": "Group by this label instead of filtering",
+        "group-by-operator-label": "Group by"
       },
       "adhoc-filters-combobox-renderer": {
         "collapse": "Collapse",

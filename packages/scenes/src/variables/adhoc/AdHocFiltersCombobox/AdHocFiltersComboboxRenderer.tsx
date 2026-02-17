@@ -117,7 +117,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           visibleFilters={visibleFilters}
           pillOrder={pillOrder}
           readOnly={readOnly}
-          shouldCollapse={shouldCollapse}
+          shouldCollapse={shouldCollapse ?? false}
           focusOnWipInputRef={focusOnWipInputRef.current}
         />
       ) : (
