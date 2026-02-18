@@ -1,9 +1,18 @@
 import { Trans } from '@grafana/i18n';
-import React, { RefCallback, useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
+import React, { memo, RefCallback, useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
 // @ts-ignore
-import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider, SetPanelAttentionEvent } from '@grafana/data';
+import {
+  AlertState,
+  GrafanaTheme2,
+  PanelData,
+  PanelPlugin,
+  PanelProps,
+  PluginContextProvider,
+  PluginType,
+  SetPanelAttentionEvent,
+} from '@grafana/data';
 
 import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
@@ -78,7 +87,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     }
   });
 
-  const plugin = model.getPlugin();
+  const plugin = model.getPlugin() ?? getLoadingPlugin();
 
   const { dragClass, dragClassCancel } = getDragClasses(model);
   const dragHooks = getDragHooks(model);
@@ -102,16 +111,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
   const alertStateStyles = useStyles2(getAlertStateStyles);
-
-  if (!plugin) {
-    return (
-      <div>
-        <Trans i18nKey="grafana-scenes.components.viz-panel-renderer.loading-plugin-panel">
-          Loading plugin panel...
-        </Trans>
-      </div>
-    );
-  }
 
   if (!plugin.panel) {
     return (
@@ -230,14 +229,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const context = model.getPanelContext();
   const panelId = model.getLegacyPanelId();
 
-  if (width === 0) {
-    width = 100;
-  }
-
-  if (height === 0) {
-    height = 100;
-  }
-
   return (
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
@@ -247,8 +238,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           loadingState={data.state}
           statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
           statusMessageOnClick={model.onStatusMessageClick}
-          width={width}
-          height={height}
+          width={width === 0 ? undefined : width}
+          height={height === 0 ? undefined : height}
           selectionId={model.state.key}
           displayMode={displayMode}
           titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
@@ -275,8 +266,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
               }
             : { hoverHeader, hoverHeaderOffset })}
         >
-          {(innerWidth, innerHeight) => (
-            <>
+          {(innerWidth, innerHeight) => {
+            if (innerWidth === 0 || innerHeight === 0) {
+              return null;
+            }
+
+            return (
               <ErrorBoundaryAlert dependencies={[plugin, data]}>
                 <PluginContextProvider meta={plugin.meta}>
                   <PanelContextProvider value={context}>
@@ -303,8 +298,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                   </PanelContextProvider>
                 </PluginContextProvider>
               </ErrorBoundaryAlert>
-            </>
-          )}
+            );
+          }}
         </PanelChrome>
       </div>
     </div>
@@ -406,3 +401,50 @@ const getAlertStateStyles = (theme: GrafanaTheme2) => {
     }),
   };
 };
+
+let loadingPluginInstance: PanelPlugin | null = null;
+
+export function getLoadingPlugin(): PanelPlugin {
+  if (loadingPluginInstance) {
+    return loadingPluginInstance;
+  }
+
+  const LoadingPluginComp = memo<PanelProps>(() => {
+    return (
+      <div>
+        <Trans i18nKey="grafana-scenes.components.viz-panel-renderer.loading-plugin-panel">
+          Loading plugin panel...
+        </Trans>
+      </div>
+    );
+  });
+
+  LoadingPluginComp.displayName = 'LoadingPlugin';
+
+  loadingPluginInstance = new PanelPlugin(LoadingPluginComp);
+
+  loadingPluginInstance.meta = {
+    id: 'loading-plugin',
+    name: 'Loading Plugin',
+    sort: 100,
+    type: PluginType.panel,
+    module: '',
+    baseUrl: '',
+    info: {
+      author: {
+        name: '',
+      },
+      description: '',
+      links: [],
+      logos: {
+        large: '',
+        small: '',
+      },
+      screenshots: [],
+      updated: '',
+      version: '',
+    },
+  };
+
+  return loadingPluginInstance;
+}

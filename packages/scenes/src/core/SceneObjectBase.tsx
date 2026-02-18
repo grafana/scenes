@@ -35,7 +35,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
   protected _refCount = 0;
-  protected _renderBeforeActivation = false;
+  protected _renderBeforeActivation = true;
 
   protected _variableDependency: SceneVariableDependencyConfigLike | undefined;
   protected _urlSync: SceneObjectUrlSyncHandler | undefined;
