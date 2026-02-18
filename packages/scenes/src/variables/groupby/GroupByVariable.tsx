@@ -225,15 +225,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const sub = this.subscribeToState((newState, prevState) => {
       if (newState.defaultValue !== prevState.defaultValue && newState.defaultValue) {
-        const toArray = (value: VariableValue | undefined): VariableValueSingle[] =>
-          isArray(value) ? value : value ? [value] : [];
-
-        const oldDefaults = toArray(prevState.defaultValue?.value);
-        const newDefaults = toArray(newState.defaultValue.value);
-        const customValues = toArray(newState.value).filter((v) => !oldDefaults.includes(v));
-        const mergedValues = [...newDefaults, ...customValues];
-
-        this.changeValueTo(mergedValues);
+        this.changeValueTo(newState.defaultValue.value, newState.defaultValue.text, false);
       }
     });
 

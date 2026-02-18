@@ -283,21 +283,10 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
     });
 
-    it('should merge new defaultValue with custom user values', async () => {
-      const { variable } = setupTest({
-        defaultValue: {
-          value: ['defaultVal1'],
-          text: ['defaultVal1'],
-        },
-      });
+    it('should apply defaultValue to value when defaultValue is set on an active variable', async () => {
+      const { variable } = setupTest({});
 
-      expect(variable.state.value).toEqual(['defaultVal1']);
-
-      act(() => {
-        variable.changeValueTo(['defaultVal1', 'customVal'], undefined, true);
-      });
-
-      expect(variable.state.value).toEqual(['defaultVal1', 'customVal']);
+      expect(variable.state.value).toEqual('');
 
       act(() => {
         variable.setState({
@@ -308,7 +297,31 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         });
       });
 
-      expect(variable.state.value).toEqual(['newDefault', 'customVal']);
+      expect(variable.state.value).toEqual(['newDefault']);
+      expect(variable.state.text).toEqual(['newDefault']);
+    });
+
+    it('should update value when defaultValue changes on an active variable', async () => {
+      const { variable } = setupTest({
+        defaultValue: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1']);
+
+      act(() => {
+        variable.setState({
+          defaultValue: {
+            value: ['newDefault'],
+            text: ['newDefault'],
+          },
+        });
+      });
+
+      expect(variable.state.value).toEqual(['newDefault']);
+      expect(variable.state.text).toEqual(['newDefault']);
     });
 
     it('should not change value when defaultValue is cleared', async () => {
