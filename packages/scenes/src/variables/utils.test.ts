@@ -1,4 +1,6 @@
 import { DataSourceRef } from '@grafana/schema';
+import { getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
+import { of } from 'rxjs';
 import { EmbeddedScene } from '../components/EmbeddedScene';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../core/SceneObjectBase';
@@ -8,6 +10,41 @@ import { escapeURLDelimiters, getQueriesForVariables } from './utils';
 import { SceneVariableSet } from './sets/SceneVariableSet';
 import { DataSourceVariable } from './variants/DataSourceVariable';
 import { GetDataSourceListFilters } from '@grafana/runtime';
+
+const getDataSourceListMock = jest.fn().mockImplementation((filters: GetDataSourceListFilters) => {
+  if (filters.pluginId === 'prometheus') {
+    return [
+      {
+        id: 1,
+        uid: 'interpolatedDs',
+        type: 'prometheus',
+        name: 'interpolatedDs-name',
+        isDefault: true,
+      },
+    ];
+  }
+
+  return [];
+});
+
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  getDataSourceSrv: () => {
+    return {
+      get: jest.fn().mockResolvedValue({
+        uid: 'test-uid',
+        getRef: () => ({ uid: 'test-uid' }),
+      }),
+      getList: getDataSourceListMock,
+    };
+  },
+  getRunRequest: () => () =>
+    of<PanelData>({
+      series: [],
+      state: LoadingState.Done,
+      timeRange: getDefaultTimeRange(),
+    }),
+}));
 
 describe('getQueriesForVariables', () => {
   it('should resolve queries', () => {
@@ -79,7 +116,7 @@ describe('getQueriesForVariables', () => {
     expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'B' }]);
   });
 
-  it('should ignore inactive runner if an active one with the same key exist ', () => {
+  it('should ignore inactive runner if an active one with the same key exist', () => {
     const runner1 = new SceneQueryRunner({
       key: 'runner-one',
       datasource: {
@@ -105,6 +142,7 @@ describe('getQueriesForVariables', () => {
     });
 
     const source = new TestObject({ datasource: { uid: 'test-uid' } });
+    const runner2Source = new TestObject({ datasource: { uid: 'test-uid' } });
     new EmbeddedScene({
       $data: runner1,
       body: new SceneFlexLayout({
@@ -115,7 +153,7 @@ describe('getQueriesForVariables', () => {
           }),
           new SceneFlexItem({
             $data: runner2,
-            body: source,
+            body: runner2Source,
           }),
         ],
       }),
@@ -154,6 +192,7 @@ describe('getQueriesForVariables', () => {
     });
 
     const source = new TestObject({ datasource: { uid: 'test-uid' } });
+    const runner2Source = new TestObject({ datasource: { uid: 'test-uid' } });
     new EmbeddedScene({
       $data: runner1,
       body: new SceneFlexLayout({
@@ -164,7 +203,7 @@ describe('getQueriesForVariables', () => {
           }),
           new SceneFlexItem({
             $data: runner2,
-            body: source,
+            body: runner2Source,
           }),
         ],
       }),
@@ -208,31 +247,6 @@ describe('getQueriesForVariables', () => {
     expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }]);
   });
 });
-
-const getDataSourceListMock = jest.fn().mockImplementation((filters: GetDataSourceListFilters) => {
-  if (filters.pluginId === 'prometheus') {
-    return [
-      {
-        id: 1,
-        uid: 'interpolatedDs',
-        type: 'prometheus',
-        name: 'interpolatedDs-name',
-        isDefault: true,
-      },
-    ];
-  }
-
-  return [];
-});
-
-jest.mock('@grafana/runtime', () => ({
-  ...jest.requireActual('@grafana/runtime'),
-  getDataSourceSrv: () => {
-    return {
-      getList: getDataSourceListMock,
-    };
-  },
-}));
 
 describe('getQueriesForVariables', () => {
   const original = console.error;

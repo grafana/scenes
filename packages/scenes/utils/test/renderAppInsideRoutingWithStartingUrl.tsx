@@ -1,6 +1,7 @@
 import React from 'react';
 import { locationService } from '@grafana/runtime';
 import { render } from '@testing-library/react';
+import { Route, Routes } from 'react-router-dom';
 import { SceneApp } from '../../src/components/SceneApp/SceneApp';
 import { TestContextProviderBase } from './TestContextProvider';
 
@@ -9,7 +10,9 @@ export function renderAppInsideRouterWithStartingUrl(app: SceneApp, startingUrl:
 
   return render(
     <TestContextProviderBase>
-      <app.Component model={app} />
+      <Routes>
+        <Route path="/*" element={<app.Component model={app} />} />
+      </Routes>
     </TestContextProviderBase>
   );
 }
