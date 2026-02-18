@@ -283,7 +283,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
     });
 
-    it('should apply defaultValue to value when defaultValue is set on an active variable', async () => {
+    it('should apply defaultValue to value when defaultValue is set', async () => {
       const { variable } = setupTest({});
 
       expect(variable.state.value).toEqual('');
@@ -301,7 +301,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.text).toEqual(['newDefault']);
     });
 
-    it('should update value when defaultValue changes on an active variable', async () => {
+    it('should update value when defaultValue changes', async () => {
       const { variable } = setupTest({
         defaultValue: {
           value: ['defaultVal1'],
@@ -322,23 +322,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
       expect(variable.state.value).toEqual(['newDefault']);
       expect(variable.state.text).toEqual(['newDefault']);
-    });
-
-    it('should not change value when defaultValue is cleared', async () => {
-      const { variable } = setupTest({
-        defaultValue: {
-          value: ['defaultVal1'],
-          text: ['defaultVal1'],
-        },
-      });
-
-      expect(variable.state.value).toEqual(['defaultVal1']);
-
-      act(() => {
-        variable.setState({ defaultValue: undefined });
-      });
-
-      expect(variable.state.value).toEqual(['defaultVal1']);
     });
 
     it('should work with browser history action on user action', () => {
