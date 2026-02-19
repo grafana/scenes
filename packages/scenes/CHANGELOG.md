@@ -1,3 +1,15 @@
+# v6.55.0 (Thu Feb 19 2026)
+
+#### 🚀 Enhancement
+
+- GroupByVariable: Use new DS API method [#1358](https://github.com/grafana/scenes/pull/1358) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.54.1 (Thu Feb 19 2026)
 
 #### 🐛 Bug Fix
