@@ -347,7 +347,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const keyMethod = ds.getGroupByKeys || ds.getTagKeys;
+    const keyMethod = (ds.getGroupByKeys || ds.getTagKeys).bind(ds);
 
     const queries = getQueriesForVariables(this);
 
