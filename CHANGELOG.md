@@ -1,3 +1,16 @@
+# v6.54.1 (Thu Feb 19 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Get datasource from queries if not on panel in `getQueriesForVariables` [#1352](https://github.com/grafana/scenes/pull/1352) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.54.0 (Wed Feb 18 2026)
 
 #### 🚀 Enhancement
