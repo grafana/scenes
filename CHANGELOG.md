@@ -1,3 +1,16 @@
+# v6.55.1 (Thu Feb 19 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupBy: Default to old key retrieval method [#1364](https://github.com/grafana/scenes/pull/1364) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.55.0 (Thu Feb 19 2026)
 
 #### 🚀 Enhancement
