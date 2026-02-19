@@ -27,7 +27,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
   });
 
   it('should not resolve values from the data source if default options provided', async () => {
-    const { variable, getTagKeysSpy } = setupTest({
+    const { variable, getGroupByKeysSpy } = setupTest({
       defaultOptions: [
         { text: 'a', value: 'a' },
         { text: 'b', value: 'b' },
@@ -42,16 +42,16 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         { label: 'a', value: 'a' },
         { label: 'b', value: 'b' },
       ]);
-      expect(getTagKeysSpy).not.toHaveBeenCalled();
+      expect(getGroupByKeysSpy).not.toHaveBeenCalled();
     });
   });
 
   it('should resolve values from the data source if default options not provided', async () => {
-    const { variable, getTagKeysSpy } = setupTest();
+    const { variable, getGroupByKeysSpy } = setupTest();
 
     await act(async () => {
       await lastValueFrom(variable.validateAndUpdate());
-      expect(getTagKeysSpy).toHaveBeenCalled();
+      expect(getGroupByKeysSpy).toHaveBeenCalled();
       expect(variable.state.value).toEqual('');
       expect(variable.state.text).toEqual('');
       expect(variable.state.options).toEqual([{ label: 'key3', value: 'key3' }]);
@@ -358,17 +358,17 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
   });
 
   it('Should collect and pass respective data source queries to getTagKeys call', async () => {
-    const { variable, getTagKeysSpy, timeRange } = setupTest();
+    const { variable, getGroupByKeysSpy, timeRange } = setupTest();
 
     await act(async () => {
       await lastValueFrom(variable.validateAndUpdate());
-      expect(getTagKeysSpy).toHaveBeenCalled();
+      expect(getGroupByKeysSpy).toHaveBeenCalled();
       expect(variable.state.value).toEqual('');
       expect(variable.state.text).toEqual('');
       expect(variable.state.options).toEqual([{ label: 'key3', value: 'key3' }]);
     });
 
-    expect(getTagKeysSpy).toBeCalledWith({
+    expect(getGroupByKeysSpy).toBeCalledWith({
       filters: [],
       queries: [
         {
@@ -381,19 +381,19 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
   });
 
   it('Should apply the filters request enricher to getTagKeys call', async () => {
-    const { variable, getTagKeysSpy, timeRange } = setupTest(undefined, () => ({
+    const { variable, getGroupByKeysSpy, timeRange } = setupTest(undefined, () => ({
       key: 'overwrittenKey',
     }));
 
     await act(async () => {
       await lastValueFrom(variable.validateAndUpdate());
-      expect(getTagKeysSpy).toHaveBeenCalled();
+      expect(getGroupByKeysSpy).toHaveBeenCalled();
       expect(variable.state.value).toEqual('');
       expect(variable.state.text).toEqual('');
       expect(variable.state.options).toEqual([{ label: 'key3', value: 'key3' }]);
     });
 
-    expect(getTagKeysSpy).toHaveBeenCalledWith({
+    expect(getGroupByKeysSpy).toHaveBeenCalledWith({
       filters: [],
       queries: [
         {
@@ -487,15 +487,15 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
   describe('component', () => {
     it('should fetch dimensions when Select is opened', async () => {
-      const { variable, getTagKeysSpy } = setupTest();
+      const { variable, getGroupByKeysSpy } = setupTest();
 
       expect(variable.isActive).toBe(true);
-      expect(getTagKeysSpy).not.toHaveBeenCalled();
+      expect(getGroupByKeysSpy).not.toHaveBeenCalled();
 
       const selects = getAllByRole(screen.getByTestId('GroupBySelect-testGroupBy'), 'combobox');
       await userEvent.click(selects[0]);
 
-      expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+      expect(getGroupByKeysSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should clear input value when selecting an option from the dropdown', async () => {
@@ -990,12 +990,12 @@ export function setupTest(
   path?: string,
   dataSourceOverrides?: Partial<DataSourceApi>
 ) {
-  const getTagKeysSpy = jest.fn();
+  const getGroupByKeysSpy = jest.fn();
   setDataSourceSrv({
     get() {
       return {
-        getTagKeys(options: any) {
-          getTagKeysSpy(options);
+        getGroupByKeys(options: any) {
+          getGroupByKeysSpy(options);
           return [{ text: 'key3' }];
         },
         getRef() {
@@ -1067,5 +1067,5 @@ export function setupTest(
     </TestContextProvider>
   );
 
-  return { scene, variable, getTagKeysSpy, timeRange, runRequest: runRequestMock.fn };
+  return { scene, variable, getGroupByKeysSpy, timeRange, runRequest: runRequestMock.fn };
 }

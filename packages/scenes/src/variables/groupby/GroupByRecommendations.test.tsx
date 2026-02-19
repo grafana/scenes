@@ -365,7 +365,7 @@ interface DsOverrides {
 }
 
 function setupTest(overrides?: Partial<GroupByVariableState>, dsOverrides?: DsOverrides) {
-  const getTagKeysSpy = jest.fn().mockResolvedValue([{ text: 'key3', value: 'key3' }]);
+  const getGroupByKeysSpy = jest.fn().mockResolvedValue([{ text: 'key3', value: 'key3' }]);
   const getDrilldownsApplicabilitySpy =
     dsOverrides?.getDrilldownsApplicability ?? jest.fn().mockResolvedValue(undefined);
   const getRecommendedDrilldownsSpy = dsOverrides?.getRecommendedDrilldowns ?? jest.fn().mockResolvedValue(undefined);
@@ -373,8 +373,8 @@ function setupTest(overrides?: Partial<GroupByVariableState>, dsOverrides?: DsOv
   setDataSourceSrv({
     get() {
       return {
-        getTagKeys(options: any) {
-          getTagKeysSpy(options);
+        getGroupByKeys(options: any) {
+          getGroupByKeysSpy(options);
           return [{ text: 'key3', value: 'key3' }];
         },
         getRef() {
@@ -443,7 +443,7 @@ function setupTest(overrides?: Partial<GroupByVariableState>, dsOverrides?: DsOv
     variable,
     unmount,
     runRequest: runRequestMock.fn,
-    getTagKeysSpy,
+    getGroupByKeysSpy,
     getDrilldownsApplicabilitySpy,
     getRecommendedDrilldownsSpy,
     timeRange,
