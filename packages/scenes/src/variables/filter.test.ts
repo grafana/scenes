@@ -71,4 +71,90 @@ describe('filter', () => {
       expect(matches.map((m) => m.value)).toEqual(['=', '<=']);
     });
   });
+
+  describe('special characters in needle', () => {
+    it('should fall back to substring match when needle contains @ symbol', () => {
+      const needle = 'foo@bar';
+
+      const stringOptions = ['foo@bar.com', 'foobar', 'foo@baz', 'test@bar', 'other'];
+      const options = stringOptions.map((value) => ({ value }));
+
+      const matches = fuzzyFind(options, stringOptions, needle);
+
+      // Should only match strings that contain the exact substring 'foo@bar'
+      expect(matches.map((m) => m.value)).toEqual(['foo@bar.com']);
+    });
+
+    it('should fall back to substring match when needle contains # symbol', () => {
+      const needle = 'issue#123';
+
+      const stringOptions = ['issue#123', 'issue#1234', 'issue123', 'issue#12', 'other'];
+      const options = stringOptions.map((value) => ({ value }));
+
+      const matches = fuzzyFind(options, stringOptions, needle);
+
+      // Should match strings containing 'issue#123'
+      expect(matches.map((m) => m.value)).toEqual(['issue#123', 'issue#1234']);
+    });
+
+    it('should fall back to substring match when needle contains / symbol', () => {
+      const needle = 'src/components';
+
+      const stringOptions = ['src/components/Button', 'src/components', 'srccomponents', 'src/utils', 'other'];
+      const options = stringOptions.map((value) => ({ value }));
+
+      const matches = fuzzyFind(options, stringOptions, needle);
+
+      // Should match strings containing 'src/components'
+      expect(matches.map((m) => m.value)).toEqual(['src/components/Button', 'src/components']);
+    });
+
+    it('should fall back to substring match when needle contains $ symbol', () => {
+      const needle = '$var';
+
+      const stringOptions = ['$variable', '$var', 'var', '$other', 'some$var'];
+      const options = stringOptions.map((value) => ({ value }));
+
+      const matches = fuzzyFind(options, stringOptions, needle);
+
+      // Should match strings containing '$var'
+      expect(matches.map((m) => m.value)).toEqual(['$variable', '$var', 'some$var']);
+    });
+
+    it('should still do fuzzy match when needle has no special characters', () => {
+      const needle = 'foobar';
+
+      const stringOptions = ['foobar', 'foo_bar', 'foobarbaz', 'fo_ob_ar', 'other'];
+      const options = stringOptions.map((value) => ({ value }));
+
+      const matches = fuzzyFind(options, stringOptions, needle);
+
+      // Fuzzy matching should find matches with characters in order
+      expect(matches.map((m) => m.value)).toEqual(['foobar', 'foobarbaz']);
+    });
+
+    it('should handle mixed special characters in needle', () => {
+      const needle = 'user@example.com';
+
+      const stringOptions = ['user@example.com', 'userexamplecom', 'user@example.org', 'other'];
+      const options = stringOptions.map((value) => ({ value }));
+
+      const matches = fuzzyFind(options, stringOptions, needle);
+
+      // Should only match exact substring
+      expect(matches.map((m) => m.value)).toEqual(['user@example.com']);
+    });
+
+    it('should fall back to substring match when needle contains backslash', () => {
+      const needle = 'path\\to';
+
+      const stringOptions = ['path\\to\\file', 'path\\to', 'pathto', 'other\\path'];
+      const options = stringOptions.map((value) => ({ value }));
+
+      const matches = fuzzyFind(options, stringOptions, needle);
+
+      // Should match strings containing 'path\to'
+      expect(matches.map((m) => m.value)).toEqual(['path\\to\\file', 'path\\to']);
+    });
+  });
 });

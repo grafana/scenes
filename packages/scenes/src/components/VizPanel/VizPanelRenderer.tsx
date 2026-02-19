@@ -1,5 +1,5 @@
 import { Trans } from '@grafana/i18n';
-import React, { RefCallback, useCallback, useEffect, useMemo } from 'react';
+import React, { RefCallback, useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
 // @ts-ignore
@@ -29,6 +29,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     hoverHeaderOffset,
     menu,
     headerActions,
+    subHeader,
     titleItems,
     seriesLimit,
     seriesLimitShowAll,
@@ -50,6 +51,32 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
     [setPanelAttention]
   );
+
+  // S3.0 RENDER TRACKING: Simple timing for performance measurement
+  const profiler = useMemo(() => model.getProfiler(), [model]);
+
+  // Capture render start time immediately when component function runs
+  const currentRenderStart = performance.now();
+
+  const endRenderCallbackRef = React.useRef<((endTimestamp: number, duration: number) => void) | null>(null);
+
+  useLayoutEffect(() => {
+    if (profiler) {
+      const callback = profiler.onSimpleRenderStart(currentRenderStart);
+      endRenderCallbackRef.current = callback || null;
+    }
+  });
+
+  // Use useEffect (after DOM updates) to measure complete render cycle timing
+  useEffect(() => {
+    if (endRenderCallbackRef.current) {
+      const timestamp = performance.now();
+      // Measure from component start to after DOM updates AND effects (complete render cycle)
+      const duration = timestamp - currentRenderStart;
+      endRenderCallbackRef.current(timestamp, duration);
+      endRenderCallbackRef.current = null; // Clear callback after use
+    }
+  });
 
   const plugin = model.getPlugin();
 
@@ -101,6 +128,22 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // If we have a query runner on our level inform it of the container width (used to set auto max data points)
   if (dataObject && dataObject.setContainerWidth) {
     dataObject.setContainerWidth(Math.round(width));
+  }
+
+  let subHeaderElement: React.ReactNode[] = [];
+
+  if (subHeader) {
+    if (Array.isArray(subHeader)) {
+      subHeaderElement = subHeaderElement.concat(
+        subHeader.map((subHeaderItem) => {
+          return <subHeaderItem.Component model={subHeaderItem} key={`${subHeaderItem.state.key}`} />;
+        })
+      );
+    } else if (isSceneObject(subHeader)) {
+      subHeaderElement.push(<subHeader.Component model={subHeader} key={`${subHeader.state.key}`} />);
+    } else {
+      subHeaderElement.push(subHeader);
+    }
   }
 
   let titleItemsElement: React.ReactNode[] = [];
@@ -191,7 +234,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
-          // @ts-expect-error showMenuAlways remove when updating to @grafana/ui@12 fixed in https://github.com/grafana/grafana/pull/103553
           <PanelChrome
             title={titleInterpolated}
             description={description?.trim() ? model.getDescription : undefined}
@@ -202,7 +244,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             height={height}
             selectionId={model.state.key}
             displayMode={displayMode}
-            titleItems={titleItemsElement}
+            titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
             dragClass={dragClass}
             actions={actionsElement}
             dragClassCancel={dragClassCancel}
@@ -212,6 +254,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onFocus={setPanelAttention}
             onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
+            // @ts-expect-error remove this on next grafana/ui update
+            subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
             onDragStart={(e: React.PointerEvent) => {
               dragHooks.onDragStart?.(e, model);
             }}

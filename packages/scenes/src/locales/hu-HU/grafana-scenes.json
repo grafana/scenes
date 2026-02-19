@@ -33,12 +33,21 @@
         "collapse-row": "Sor összecsukása",
         "expand-row": "Sor kibontása"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Mégse",
+        "text-refresh": "Frissítés",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Összehasonlítás",
         "button-tooltip": "Időkeret-összehasonlítás engedélyezése"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Ablaktábla-átméretezési widget"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {
@@ -102,6 +111,7 @@
             "format-date-in-different-ways": "Dátum formázása különböző módokon",
             "format-multivalued-variables-using-syntax-example": "Többértékű változók formázása glob szintaxissal, például: {érték1,érték2}",
             "html-escaping-of-values": "Értékek módosított HTML-értelmezése",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "A JSON stringify értéke",
             "keep-value-as-is": "Érték megtartása adott állapotban",
             "multiple-values-are-formatted-like-variablevalue": "Több érték formázása változó=érték formátumban",

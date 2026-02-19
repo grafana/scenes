@@ -1,14 +1,23 @@
 import {
+  DataFrame,
   FieldType,
   getFieldDisplayName,
+  getProcessedDataFrames,
   isDataFrame,
   MetricFindValue,
   PanelData,
-  getProcessedDataFrames,
 } from '@grafana/data';
+import { isEqual, uniqWith } from 'lodash';
 import { map, OperatorFunction } from 'rxjs';
 
-export function toMetricFindValues(): OperatorFunction<PanelData, MetricFindValue[]> {
+interface MetricFindValueWithOptionalProperties extends MetricFindValue {
+  properties?: Record<string, string>;
+}
+
+export function toMetricFindValues(
+  valueProp?: string,
+  textProp?: string
+): OperatorFunction<PanelData, MetricFindValueWithOptionalProperties[]> {
   return (source) =>
     source.pipe(
       map((panelData) => {
@@ -25,74 +34,121 @@ export function toMetricFindValues(): OperatorFunction<PanelData, MetricFindValu
           return [];
         }
 
-        const processedDataFrames = getProcessedDataFrames(frames);
-        const metrics: MetricFindValue[] = [];
+        const indices = validateIndices(findFieldsIndices(frames, valueProp, textProp));
 
-        let valueIndex = -1;
-        let textIndex = -1;
-        let stringIndex = -1;
-        let expandableIndex = -1;
-
-        for (const frame of processedDataFrames) {
-          for (let index = 0; index < frame.fields.length; index++) {
-            const field = frame.fields[index];
-            const fieldName = getFieldDisplayName(field, frame, frames).toLowerCase();
-
-            if (field.type === FieldType.string && stringIndex === -1) {
-              stringIndex = index;
-            }
-
-            if (fieldName === 'text' && field.type === FieldType.string && textIndex === -1) {
-              textIndex = index;
-            }
-
-            if (fieldName === 'value' && field.type === FieldType.string && valueIndex === -1) {
-              valueIndex = index;
-            }
-
-            if (
-              fieldName === 'expandable' &&
-              (field.type === FieldType.boolean || field.type === FieldType.number) &&
-              expandableIndex === -1
-            ) {
-              expandableIndex = index;
-            }
-          }
-        }
-
-        if (stringIndex === -1) {
-          throw new Error("Couldn't find any field of type string in the results.");
-        }
+        const metrics: MetricFindValueWithOptionalProperties[] = [];
 
         for (const frame of frames) {
           for (let index = 0; index < frame.length; index++) {
-            const expandable = expandableIndex !== -1 ? frame.fields[expandableIndex].values.get(index) : undefined;
-            const string = frame.fields[stringIndex].values.get(index);
-            const text = textIndex !== -1 ? frame.fields[textIndex].values.get(index) : '';
-            const value = valueIndex !== -1 ? frame.fields[valueIndex].values.get(index) : '';
+            const fieldValue = (fieldIndex: number) =>
+              fieldIndex !== -1 ? frame.fields[fieldIndex].values.get(index) : undefined;
 
-            if (valueIndex === -1 && textIndex === -1) {
-              metrics.push({ text: string, value: string, expandable });
-              continue;
+            const value = fieldValue(indices.value);
+            const text = fieldValue(indices.text);
+            const expandable = fieldValue(indices.expandable);
+
+            const properties: MetricFindValueWithOptionalProperties['properties'] = {};
+
+            for (const p of indices.properties) {
+              properties[p.name] = fieldValue(p.index);
             }
 
-            if (valueIndex === -1 && textIndex !== -1) {
-              metrics.push({ text, value: text, expandable });
-              continue;
+            const result: MetricFindValueWithOptionalProperties = { value, text, properties: properties };
+
+            if (expandable !== undefined) {
+              result.expandable = Boolean(expandable);
             }
 
-            if (valueIndex !== -1 && textIndex === -1) {
-              metrics.push({ text: value, value, expandable });
-              continue;
-            }
-
-            metrics.push({ text, value, expandable });
+            metrics.push(result);
           }
         }
 
         return metrics;
       })
     );
+}
+
+type Indices = {
+  value: number;
+  text: number;
+  properties: Array<{ name: string; index: number }>;
+  expandable: number;
+};
+
+function findFieldsIndices(frames: DataFrame[], valueProp?: string, textProp?: string): Indices {
+  const indices: Indices = {
+    value: -1,
+    text: -1,
+    expandable: -1,
+    properties: [],
+  };
+  for (const frame of getProcessedDataFrames(frames)) {
+    for (let index = 0; index < frame.fields.length; index++) {
+      const field = frame.fields[index];
+      const fieldName = getFieldDisplayName(field, frame, frames).toLowerCase();
+
+      // value field
+      if (field.type === FieldType.string || field.type === FieldType.number) {
+        if (valueProp && fieldName === valueProp) {
+          indices.value = index;
+        }
+
+        if (fieldName === 'value' && indices.value === -1) {
+          indices.value = index;
+        }
+
+        indices.properties.push({ name: fieldName, index });
+      }
+
+      // text and properties fields
+      if (field.type === FieldType.string) {
+        if (textProp && fieldName === textProp) {
+          indices.text = index;
+        }
+
+        if (fieldName === 'text' && indices.text === -1) {
+          indices.text = index;
+        }
+        continue;
+      }
+
+      if (
+        fieldName === 'expandable' &&
+        (field.type === FieldType.boolean || field.type === FieldType.number) &&
+        indices.expandable === -1
+      ) {
+        indices.expandable = index;
+      }
+    }
+  }
+
+  // optimization: dedupe across data frames
+  indices.properties = uniqWith(indices.properties, isEqual);
+
+  return indices;
+}
+
+function validateIndices(indices: Indices): Indices {
+  const hasNoValueOrText = indices.value === -1 && indices.text === -1;
+
+  if (!indices.properties.length) {
+    throw new Error("Couldn't find any field of type string or number in the results");
+  }
+
+  if (hasNoValueOrText) {
+    indices.value = indices.properties[0].index;
+    indices.text = indices.properties[0].index;
+  }
+
+  if (indices.value === -1 && indices.text !== -1) {
+    indices.value = indices.text;
+  }
+
+  if (indices.text === -1 && indices.value !== -1) {
+    indices.text = indices.value;
+  }
+
+  return indices;
 }
 
 function areMetricFindValues(data: any[]): data is MetricFindValue[] {
@@ -115,11 +171,8 @@ function areMetricFindValues(data: any[]): data is MetricFindValue[] {
       continue;
     }
 
-    if (
-      firstValue[firstValueKey] !== null &&
-      typeof firstValue[firstValueKey] !== 'string' &&
-      typeof firstValue[firstValueKey] !== 'number'
-    ) {
+    const value = firstValue[firstValueKey];
+    if (value !== null && typeof value !== 'string' && typeof value !== 'number') {
       continue;
     }
 

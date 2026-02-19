@@ -33,12 +33,21 @@
         "collapse-row": "Contraer fila",
         "expand-row": "Expandir fila"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Cancelar",
+        "text-refresh": "Actualizar",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparación",
         "button-tooltip": "Habilitar comparación de intervalos de tiempo"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widget de cambio de tamaño del panel"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {
@@ -102,6 +111,7 @@
             "format-date-in-different-ways": "Dar formato a la fecha de diferentes maneras",
             "format-multivalued-variables-using-syntax-example": "Dar formato a las variables de múltiples valores con la sintaxis glob, por ejemplo, {value1,value2}",
             "html-escaping-of-values": "Escape HTML de valores",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "Valor de JSON stringify",
             "keep-value-as-is": "Mantener el valor tal cual",
             "multiple-values-are-formatted-like-variablevalue": "Los valores múltiples tienen el formato variable=valor",

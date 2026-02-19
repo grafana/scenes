@@ -1,4 +1,5 @@
 import {
+  CustomTransformOperator,
   DataFrame,
   DataTopic,
   DataTransformerConfig,
@@ -14,6 +15,7 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
+import { findPanelProfiler } from '../utils/findPanelProfiler';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
@@ -102,6 +104,41 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     this.transform(this.getSourceData().state.data, true);
   }
 
+  /**
+   * S3.1: Calculate transformation complexity metrics
+   */
+  private _calculateTransformationMetrics(
+    data: PanelData,
+    transformations: Array<DataTransformerConfig | CustomTransformerDefinition>
+  ): {
+    transformationCount: number;
+    seriesTransformationCount: number;
+    annotationTransformationCount: number;
+  } {
+    const transformationCount = transformations.length;
+
+    // Count transformations by topic (series vs annotations)
+    const seriesTransformationCount = transformations.filter((transformation) => {
+      if ('options' in transformation || 'topic' in transformation) {
+        return transformation.topic == null || transformation.topic === DataTopic.Series;
+      }
+      return true; // Custom transformations default to series
+    }).length;
+
+    const annotationTransformationCount = transformations.filter((transformation) => {
+      if ('options' in transformation || 'topic' in transformation) {
+        return transformation.topic === DataTopic.Annotations;
+      }
+      return false;
+    }).length;
+
+    return {
+      transformationCount,
+      seriesTransformationCount,
+      annotationTransformationCount,
+    };
+  }
+
   public cancelQuery() {
     this.getSourceData().cancelQuery?.();
   }
@@ -150,6 +187,24 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   private transform(data: PanelData | undefined, force = false) {
+    const timestamp = performance.now();
+    // S3.1: Performance tracking entry point
+    const profiler = findPanelProfiler(this);
+    const transformStartTime = performance.now();
+    let transformationId: string | undefined;
+    let endTransformCallback:
+      | ((
+          endTimestamp: number,
+          duration: number,
+          success: boolean,
+          result?: {
+            outputSeriesCount?: number;
+            outputAnnotationsCount?: number;
+            error?: string;
+          }
+        ) => void)
+      | null = null;
+
     if (this.state.transformations.length === 0 || !data) {
       this._prevDataFromSource = data;
       this.setState({ data });
@@ -165,27 +220,49 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       return;
     }
 
-    let interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
+    // S3.1: Start transformation tracking
+    if (profiler) {
+      // Create meaningful transformation identifier from actual transformations
+      const transformationTypes = this.state.transformations
+        .map((t) => {
+          if ('id' in t) {
+            // Standard DataTransformerConfig
+            return t.id;
+          } else {
+            // CustomTransformerDefinition
+            return 'customTransformation';
+          }
+        })
+        .join('+');
+      transformationId = transformationTypes || 'no-transforms';
 
-    const seriesTransformations = interpolatedTransformations
-      .filter((transformation) => {
+      // Calculate transformation complexity metrics
+      const metrics = this._calculateTransformationMetrics(data, this.state.transformations);
+
+      // Start the DataProcessing phase with centralized logging - get end callback
+      endTransformCallback = profiler.onDataTransformStart(timestamp, transformationId, metrics);
+    }
+
+    const interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
+
+    const seriesTransformations = this._filterAndPrepareTransformationsByTopic(
+      interpolatedTransformations,
+      (transformation) => {
         if ('options' in transformation || 'topic' in transformation) {
           return transformation.topic == null || transformation.topic === DataTopic.Series;
         }
-
         return true;
-      })
-      .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
-
-    const annotationsTransformations = interpolatedTransformations
-      .filter((transformation) => {
+      }
+    );
+    const annotationsTransformations = this._filterAndPrepareTransformationsByTopic(
+      interpolatedTransformations,
+      (transformation) => {
         if ('options' in transformation || 'topic' in transformation) {
           return transformation.topic === DataTopic.Annotations;
         }
-
         return false;
-      })
-      .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
+      }
+    );
 
     if (this._transformSub) {
       this._transformSub.unsubscribe();
@@ -197,16 +274,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       },
     };
 
-    let streams = [transformDataFrame(seriesTransformations, data.series, ctx)];
-
-    if (data.annotations && data.annotations.length > 0 && annotationsTransformations.length > 0) {
-      streams.push(transformDataFrame(annotationsTransformations, data.annotations ?? []));
-    }
+    const seriesStream = transformDataFrame(seriesTransformations, data.series, ctx);
+    const annotationsStream = transformDataFrame(annotationsTransformations, data.annotations ?? []);
 
     let series: DataFrame[] = [];
     let annotations: DataFrame[] = [];
 
-    this._transformSub = forkJoin(streams)
+    this._transformSub = forkJoin([seriesStream, annotationsStream])
       .pipe(
         map((results) => {
           // this strategy allows transformations to take in series frames and produce anno frames
@@ -224,6 +298,17 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
           return { ...data, series, annotations };
         }),
         catchError((err) => {
+          const timestamp = performance.now();
+          // S3.1: Performance tracking for transformation errors
+          const duration = timestamp - transformStartTime;
+
+          if (endTransformCallback) {
+            // End the DataProcessing phase with centralized logging using callback
+            endTransformCallback(timestamp, duration, false, {
+              error: err.message || err,
+            });
+          }
+
           console.error('Error transforming data: ', err);
           const sourceErr = this.getSourceData().state.data?.errors || [];
 
@@ -241,6 +326,15 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         })
       )
       .subscribe((transformedData) => {
+        const timestamp = performance.now();
+        const duration = timestamp - transformStartTime;
+        if (endTransformCallback) {
+          // End the DataProcessing phase with centralized logging using callback
+          endTransformCallback(timestamp, duration, true, {
+            outputSeriesCount: transformedData.series.length,
+            outputAnnotationsCount: transformedData.annotations?.length || 0,
+          });
+        }
         this.setState({ data: transformedData });
         this._results.next({ origin: this, data: transformedData });
         this._prevDataFromSource = data;
@@ -268,5 +362,14 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         ? JSON.parse(sceneGraph.interpolate(this, JSON.stringify(t), data.request?.scopedVars))
         : t;
     });
+  }
+
+  private _filterAndPrepareTransformationsByTopic(
+    interpolatedTransformations: Array<DataTransformerConfig<any> | CustomTransformerDefinition>,
+    transformationFilter: (transformation: DataTransformerConfig<any> | CustomTransformerDefinition) => boolean
+  ): Array<DataTransformerConfig<any> | CustomTransformOperator> {
+    return interpolatedTransformations
+      .filter(transformationFilter)
+      .map((transformation) => ('operator' in transformation ? transformation.operator : transformation));
   }
 }

@@ -261,6 +261,7 @@ export interface SceneDataLayerProviderState extends SceneDataState {
   description?: string;
   isEnabled?: boolean;
   isHidden?: boolean;
+  placement?: 'inControlsMenu';
 }
 
 export interface SceneDataLayerProvider extends SceneDataProvider<SceneDataLayerProviderState> {

@@ -33,12 +33,21 @@
         "collapse-row": "Свернуть строку",
         "expand-row": "Развернуть строку"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Отмена",
+        "text-refresh": "Обновить",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Сравнение",
         "button-tooltip": "Включить сравнение временных рамок"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Виджет изменения размера панелей"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {
@@ -102,6 +111,7 @@
             "format-date-in-different-ways": "Форматируйте дату разными способами",
             "format-multivalued-variables-using-syntax-example": "Форматируйте многозначные переменные с использованием синтаксиса glob, например {value1,value2}",
             "html-escaping-of-values": "HTML-экранирование значений",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "Значение преобразования JSON в строку",
             "keep-value-as-is": "Сохраните значение как есть",
             "multiple-values-are-formatted-like-variablevalue": "Несколько значений форматируются как «переменная=значение»",

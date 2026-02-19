@@ -19,6 +19,7 @@ import { getQueryCancellationTest } from './queryCancellation';
 import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
 import { getTimeRangeComparisonTest } from './timeRangeComparison';
+import { getTimeCompareManyPanels } from './timeCompareManyPanels';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
 import { getAdhocFiltersDemo } from './adhocFiltersDemo';
@@ -41,6 +42,7 @@ import { getMlDemo } from './ml';
 import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 import { getSeriesLimitTest } from './seriesLimit';
 import { getScopesDemo } from './scopesDemo';
+import { getVariableWithObjectValuesDemo } from './variableWithObjectValuesDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -197,6 +199,12 @@ export function getDemos(): DemoDescriptor[] {
       getSourceCodeModule: () => import('!!raw-loader!../demos/timeRangeComparison'),
     },
     {
+      title: 'Time range compare many panels',
+      description: 'Performance test with per panel time compare and many panels ',
+      getPage: getTimeCompareManyPanels,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/timeCompareManyPanels'),
+    },
+    {
       title: 'Data layers',
       description: 'A simple demo of different flex layout options',
       getPage: getAnnotationsDemo,
@@ -304,6 +312,12 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Test scopes',
       getPage: getScopesDemo,
       getSourceCodeModule: () => import('!!raw-loader!../demos/scopesDemo'),
+    },
+    {
+      title: 'Variables with object values',
+      description: '',
+      getPage: getVariableWithObjectValuesDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/variableWithObjectValuesDemo.tsx'),
     },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }

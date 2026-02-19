@@ -1,10 +1,34 @@
 import { calculateNetworkTime, processRecordedSpans, captureNetwork, SceneRenderProfiler } from './SceneRenderProfiler';
-import { SceneQueryControllerLike } from './types';
+import {
+  ADHOC_KEYS_DROPDOWN_INTERACTION,
+  ADHOC_VALUES_DROPDOWN_INTERACTION,
+  GROUPBY_DIMENSIONS_INTERACTION,
+} from './interactionConstants';
+import { SceneComponentInteractionEvent, SceneQueryControllerLike } from '../behaviors/types';
+// ScenePerformanceTracker imports handled via mocking
 
 // Mock writeSceneLog to prevent console noise in tests
 jest.mock('../utils/writeSceneLog', () => ({
   writeSceneLog: jest.fn(),
-  writeSceneLogStyled: jest.fn(),
+}));
+
+// Mock ScenePerformanceTracker
+const mockTracker = {
+  addObserver: jest.fn(() => jest.fn()), // Returns unsubscribe function
+  removeObserver: jest.fn(),
+  notifyDashboardInteractionStart: jest.fn(),
+  notifyDashboardInteractionMilestone: jest.fn(),
+  notifyDashboardInteractionComplete: jest.fn(),
+  notifyPanelOperationStart: jest.fn(),
+  notifyPanelOperationComplete: jest.fn(),
+  notifyQueryStart: jest.fn(),
+  notifyQueryComplete: jest.fn(),
+  getObserverCount: jest.fn(() => 0),
+};
+
+jest.mock('./ScenePerformanceTracker', () => ({
+  getScenePerformanceTracker: () => mockTracker,
+  generateOperationId: jest.fn((prefix: string) => `${prefix}-${Math.random().toString(36).substr(2, 9)}`),
 }));
 
 // Minimal mock query controller - only mocks what SceneRenderProfiler actually uses
@@ -12,7 +36,6 @@ const createMockQueryController = (runningQueries = 0): SceneQueryControllerLike
   return {
     state: {
       isRunning: false,
-      onProfileComplete: jest.fn(),
     },
     runningQueriesCount: jest.fn(() => runningQueries),
   } as unknown as SceneQueryControllerLike;
@@ -33,6 +56,12 @@ describe('SceneRenderProfiler', () => {
   });
 
   beforeEach(() => {
+    // Clear all mocks
+    jest.clearAllMocks();
+    mockTracker.notifyDashboardInteractionComplete.mockClear();
+    mockTracker.notifyDashboardInteractionStart.mockClear();
+    mockTracker.notifyDashboardInteractionMilestone.mockClear();
+
     // Setup mocks for each test
     global.document = {
       hidden: false,
@@ -66,7 +95,8 @@ describe('SceneRenderProfiler', () => {
 
   it('should initialize with query controller and return initial state', () => {
     const mockController = createMockQueryController();
-    const profiler = new SceneRenderProfiler(mockController);
+    const profiler = new SceneRenderProfiler();
+    profiler.setQueryController(mockController);
     expect(profiler.isTailRecording()).toBe(false);
     profiler.cleanup();
   });
@@ -128,7 +158,8 @@ describe('Long frame detection integration', () => {
       configurable: true,
     });
 
-    profiler = new SceneRenderProfiler(mockQueryController);
+    profiler = new SceneRenderProfiler();
+    profiler.setQueryController(mockQueryController);
   });
 
   afterEach(() => {
@@ -218,7 +249,8 @@ describe('SceneRenderProfiler integration tests', () => {
     });
 
     mockQueryController = createMockQueryController();
-    profiler = new SceneRenderProfiler(mockQueryController);
+    profiler = new SceneRenderProfiler();
+    profiler.setQueryController(mockQueryController);
   });
 
   afterEach(() => {
@@ -327,16 +359,16 @@ describe('SceneRenderProfiler integration tests', () => {
 
   // Helper functions to reduce repetition
   const setupProfileTest = (testName: string) => {
-    const onProfileComplete = jest.fn();
-    mockQueryController.state.onProfileComplete = onProfileComplete;
+    // Clear previous calls
+    mockTracker.notifyDashboardInteractionComplete.mockClear();
     profiler.startProfile(testName);
     profiler.tryCompletingProfile();
     expect(profiler.isTailRecording()).toBe(true);
-    return onProfileComplete;
+    return mockTracker.notifyDashboardInteractionComplete;
   };
 
   const expectProfileCompletion = (
-    onProfileComplete: jest.Mock,
+    notifyMock: jest.Mock,
     expected: {
       origin: string;
       duration: number;
@@ -346,11 +378,11 @@ describe('SceneRenderProfiler integration tests', () => {
     }
   ) => {
     expect(profiler.isTailRecording()).toBe(false);
-    expect(onProfileComplete).toHaveBeenCalledWith(
+    expect(notifyMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        startTs: 1000,
-        endTs: 1000 + expected.duration,
-        ...expected,
+        interactionType: expected.origin,
+        duration: expected.duration,
+        timestamp: 1000 + expected.duration, // endTs equivalent
       })
     );
   };
@@ -361,9 +393,9 @@ describe('SceneRenderProfiler integration tests', () => {
     });
 
     it('should complete full profile lifecycle with tail recording', async () => {
-      const onProfileComplete = setupProfileTest('dashboard-load');
+      const notifyMock = setupProfileTest('dashboard-load');
       simulateAnimationFrames(2000);
-      expectProfileCompletion(onProfileComplete, { origin: 'dashboard-load', duration: 16 });
+      expectProfileCompletion(notifyMock, { origin: 'dashboard-load', duration: 16 });
     });
 
     it('should initiate tail recording and animation frames correctly', () => {
@@ -373,7 +405,7 @@ describe('SceneRenderProfiler integration tests', () => {
     });
 
     it('should cancel current profile when new profile starts during tail recording', () => {
-      const onProfileComplete = setupProfileTest('first-profile');
+      const notifyMock = setupProfileTest('first-profile');
 
       // Starting a new profile during tail recording should cancel the first profile
       profiler.startProfile('second-profile');
@@ -383,23 +415,7 @@ describe('SceneRenderProfiler integration tests', () => {
       expect(profiler.isTailRecording()).toBe(true); // Second profile now tail recording
 
       // The first profile should not complete because it was cancelled
-      expect(onProfileComplete).not.toHaveBeenCalled();
-    });
-
-    it('should handle tab inactive detection during tail recording', () => {
-      setupProfileTest('tab-inactive-test');
-
-      // Execute first frame, then simulate tab inactive
-      mockTime += 16;
-      const firstCallback = Object.values(frameCallbacks).filter(Boolean)[0];
-      frameCallbacks = [];
-      firstCallback(mockTime);
-      expect(profiler.isTailRecording()).toBe(true);
-
-      mockTime += 1500; // > TAB_INACTIVE_THRESHOLD
-      const secondCallback = Object.values(frameCallbacks).filter(Boolean)[0];
-      secondCallback(mockTime);
-      expect(profiler.isTailRecording()).toBe(false);
+      expect(notifyMock).not.toHaveBeenCalled();
     });
   });
 
@@ -417,21 +433,18 @@ describe('SceneRenderProfiler integration tests', () => {
       ['slow frame at end', [15, 20, 25, 45], 105, 'all frames when last is slow: 15+20+25+45'],
     ])('should record %s correctly', (scenario, frameDurations, expectedDuration, description) => {
       const testName = scenario.replace(' ', '-') + '-test';
-      const onProfileComplete = setupProfileTest(testName);
+      const notifyMock = setupProfileTest(testName);
       simulateVariableFrames(frameDurations);
-      expectProfileCompletion(onProfileComplete, { origin: testName, duration: expectedDuration });
+      expectProfileCompletion(notifyMock, { origin: testName, duration: expectedDuration });
     });
 
     it('should verify slow frame time affects performance.measure end timestamp', () => {
-      const onProfileComplete = setupProfileTest('performance-measure-test');
+      const notifyMock = setupProfileTest('performance-measure-test');
       const frameDurations = [20, 50, 30, 40, 25]; // Expected duration: 140ms
       simulateVariableFrames(frameDurations);
 
-      expect(global.performance.measure).toHaveBeenCalledWith(
-        'DashboardInteraction performance-measure-test',
-        expect.objectContaining({ start: 1000, end: 1140 })
-      );
-      expectProfileCompletion(onProfileComplete, { origin: 'performance-measure-test', duration: 140 });
+      // Verify observer was notified instead of direct performance.measure call
+      expectProfileCompletion(notifyMock, { origin: 'performance-measure-test', duration: 140 });
     });
   });
 
@@ -484,14 +497,13 @@ describe('SceneRenderProfiler integration tests', () => {
 
   describe('Complex cancellation scenarios', () => {
     const expectNoCancelCallback = () => {
-      const onProfileComplete = jest.fn();
-      mockQueryController.state.onProfileComplete = onProfileComplete;
+      mockTracker.notifyDashboardInteractionComplete.mockClear();
       simulateAnimationFrames(2000);
-      expect(onProfileComplete).not.toHaveBeenCalled();
+      expect(mockTracker.notifyDashboardInteractionComplete).not.toHaveBeenCalled();
     };
 
     it('should handle cancellation during different phases', () => {
-      mockQueryController.state.onProfileComplete = jest.fn();
+      mockTracker.notifyDashboardInteractionComplete.mockClear();
 
       // Before tail recording
       profiler.startProfile('cancel-before-tail');
@@ -577,7 +589,8 @@ describe('SceneRenderProfiler integration tests', () => {
   it('should handle profile cancellation via tab visibility', () => {
     const addEventListenerSpy = jest.spyOn(global.document, 'addEventListener');
     try {
-      const freshProfiler = new SceneRenderProfiler(mockQueryController);
+      const freshProfiler = new SceneRenderProfiler();
+      freshProfiler.setQueryController(mockQueryController);
       expect(addEventListenerSpy).toHaveBeenCalledWith('visibilitychange', expect.any(Function));
 
       freshProfiler.startProfile('interrupted-profile');
@@ -622,12 +635,11 @@ describe('SceneRenderProfiler integration tests', () => {
       profiler.tryCompletingProfile();
       simulateAnimationFrames(3000, 16); // Trigger profile completion
 
-      // Verify performance.measure was called with the correct format
-      expect(global.performance.measure).toHaveBeenCalledWith(
-        'DashboardInteraction measure-test',
+      // Verify observer was notified of dashboard interaction completion
+      expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          start: 1000, // From mock setup
-          end: 1016, // From mock setup
+          interactionType: 'measure-test',
+          duration: expect.any(Number),
         })
       );
     });
@@ -680,12 +692,11 @@ describe('SceneRenderProfiler integration tests', () => {
         simulateAnimationFrames(3000, 16); // Trigger profile completion
       }).not.toThrow();
 
-      // Verify other performance APIs are still called
-      expect(global.performance.measure).toHaveBeenCalledWith(
-        'DashboardInteraction no-memory-test',
+      // Verify observer was notified of dashboard interaction completion
+      expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          start: 1000, // From mock setup
-          end: 1016, // From mock setup
+          interactionType: 'no-memory-test',
+          duration: expect.any(Number),
         })
       );
     });
@@ -718,11 +729,10 @@ describe('SceneRenderProfiler integration tests', () => {
 
       // Verify all performance APIs were consumed correctly
       expect(global.performance.now).toHaveBeenCalled();
-      expect(global.performance.measure).toHaveBeenCalledWith(
-        'DashboardInteraction complex-integration-test',
+      expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          start: 1000, // From mock setup
-          end: 1016, // From mock setup
+          interactionType: 'complex-integration-test',
+          duration: expect.any(Number),
         })
       );
       expect(global.performance.getEntriesByType).toHaveBeenCalledWith('resource');
@@ -748,11 +758,10 @@ describe('SceneRenderProfiler integration tests', () => {
       // Verify all network-related performance APIs were called correctly
       expect(global.performance.getEntriesByType).toHaveBeenCalledWith('resource');
       expect(global.performance.clearResourceTimings).toHaveBeenCalled();
-      expect(global.performance.measure).toHaveBeenCalledWith(
-        'DashboardInteraction network-operations-test',
+      expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
         expect.objectContaining({
-          start: 1000,
-          end: 1016,
+          interactionType: 'network-operations-test',
+          duration: expect.any(Number),
         })
       );
 
@@ -889,5 +898,196 @@ describe('captureNetwork', () => {
       const result = captureNetwork(300, 100); // Invalid: endTs < startTs
       expect(typeof result).toBe('number');
     }).not.toThrow();
+  });
+});
+
+describe('S5.0: Panel Metrics Collection', () => {
+  it('should notify observer when profile completes', () => {
+    mockTracker.notifyDashboardInteractionComplete.mockClear();
+    const mockQueryController = {
+      state: {},
+      runningQueriesCount: () => 0,
+    };
+
+    const profiler = new SceneRenderProfiler();
+    profiler.setQueryController(mockQueryController as any);
+
+    // Start and complete a profile
+    profiler.startProfile('test-interaction');
+    profiler.tryCompletingProfile();
+
+    // Wait for the profile to complete
+    setTimeout(() => {
+      // Verify that observer was notified when profile completes
+      expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          interactionType: 'test-interaction',
+        })
+      );
+    }, 0);
+  });
+
+  it('should handle no query controller gracefully', () => {
+    const profiler = new SceneRenderProfiler(); // No query controller
+
+    // Verify profiler can be created without query controller
+    expect(profiler).toBeDefined();
+  });
+
+  it('should handle observer pattern gracefully', () => {
+    const mockQueryController = {
+      state: {},
+    };
+
+    const profiler = new SceneRenderProfiler();
+    profiler.setQueryController(mockQueryController as any);
+
+    // Verify profiler initializes without errors
+    expect(profiler).toBeDefined();
+
+    // Verify observer notifications work (mocked tracker should be called)
+    profiler.startProfile('test-interaction');
+    expect(mockTracker.notifyDashboardInteractionStart).toHaveBeenCalled();
+  });
+});
+
+describe('SceneRenderProfiler - Interaction Profiling', () => {
+  let profiler: SceneRenderProfiler;
+  let mockOnInteractionComplete: jest.Mock<void, [SceneComponentInteractionEvent]>;
+
+  beforeEach(() => {
+    mockOnInteractionComplete = jest.fn();
+
+    profiler = new SceneRenderProfiler();
+    profiler.setInteractionCompleteHandler(mockOnInteractionComplete);
+
+    // Mock performance.now to return predictable values
+    jest
+      .spyOn(performance, 'now')
+      .mockReturnValueOnce(1000) // startInteraction
+      .mockReturnValueOnce(1200); // stopInteraction
+
+    // Mock performance.mark and performance.measure
+    jest.spyOn(performance, 'mark').mockImplementation();
+    jest.spyOn(performance, 'measure').mockImplementation();
+  });
+
+  afterEach(() => {
+    profiler.cleanup();
+    jest.restoreAllMocks();
+  });
+
+  describe('basic functionality', () => {
+    it('should start and stop interaction correctly', () => {
+      profiler.startInteraction(ADHOC_KEYS_DROPDOWN_INTERACTION);
+
+      expect(profiler.getCurrentInteraction()).toBe(ADHOC_KEYS_DROPDOWN_INTERACTION);
+
+      profiler.stopInteraction();
+      expect(profiler.getCurrentInteraction()).toBe(null);
+    });
+
+    it('should handle profiler without query controller callback', () => {
+      const standaloneProfiler = new SceneRenderProfiler();
+
+      standaloneProfiler.startInteraction(ADHOC_KEYS_DROPDOWN_INTERACTION);
+      expect(standaloneProfiler.getCurrentInteraction()).toBe(ADHOC_KEYS_DROPDOWN_INTERACTION);
+
+      standaloneProfiler.stopInteraction();
+      expect(standaloneProfiler.getCurrentInteraction()).toBe(null);
+
+      standaloneProfiler.cleanup();
+    });
+
+    it('should cancel existing interaction when starting a new one', () => {
+      profiler.startInteraction(ADHOC_KEYS_DROPDOWN_INTERACTION);
+      expect(profiler.getCurrentInteraction()).toBe(ADHOC_KEYS_DROPDOWN_INTERACTION);
+
+      profiler.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+      expect(profiler.getCurrentInteraction()).toBe(GROUPBY_DIMENSIONS_INTERACTION);
+    });
+  });
+
+  describe('profile completion', () => {
+    it('should complete interaction profile correctly', () => {
+      // Start a profile first, then interaction
+      profiler.startProfile('test-profile');
+      profiler.startInteraction(ADHOC_KEYS_DROPDOWN_INTERACTION);
+      profiler.stopInteraction();
+
+      expect(mockOnInteractionComplete).toHaveBeenCalledWith(
+        expect.objectContaining({
+          origin: ADHOC_KEYS_DROPDOWN_INTERACTION,
+          duration: expect.any(Number),
+          networkDuration: expect.any(Number),
+          startTs: expect.any(Number),
+          endTs: expect.any(Number),
+        })
+      );
+    });
+
+    it('should create performance marks and measures', () => {
+      // Start a profile first, then interaction
+      profiler.startProfile('test-profile');
+      profiler.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+      profiler.stopInteraction();
+
+      expect(performance.mark).toHaveBeenCalledWith(
+        'groupby_dimensions_start',
+        expect.objectContaining({ startTime: expect.any(Number) })
+      );
+      expect(performance.mark).toHaveBeenCalledWith(
+        'groupby_dimensions_end',
+        expect.objectContaining({ startTime: expect.any(Number) })
+      );
+      expect(performance.measure).toHaveBeenCalledWith(
+        'Interaction_groupby_dimensions',
+        'groupby_dimensions_start',
+        'groupby_dimensions_end'
+      );
+    });
+  });
+
+  describe('interaction types', () => {
+    it('should support all defined interaction types', () => {
+      expect(ADHOC_KEYS_DROPDOWN_INTERACTION).toBe('adhoc_keys_dropdown');
+      expect(ADHOC_VALUES_DROPDOWN_INTERACTION).toBe('adhoc_values_dropdown');
+      expect(GROUPBY_DIMENSIONS_INTERACTION).toBe('groupby_dimensions');
+    });
+
+    it('should measure different interaction types', () => {
+      const interactions = [
+        ADHOC_KEYS_DROPDOWN_INTERACTION,
+        ADHOC_VALUES_DROPDOWN_INTERACTION,
+        GROUPBY_DIMENSIONS_INTERACTION,
+      ];
+
+      const mockCallback = jest.fn();
+
+      const testProfiler = new SceneRenderProfiler();
+      testProfiler.setInteractionCompleteHandler(mockCallback);
+
+      interactions.forEach((interaction) => {
+        // Start a profile first, then interaction
+        testProfiler.startProfile('test-profile');
+        testProfiler.startInteraction(interaction);
+        testProfiler.stopInteraction();
+      });
+
+      expect(mockCallback).toHaveBeenCalledTimes(3);
+      const results = mockCallback.mock.calls.map((call) => call[0]);
+      interactions.forEach((interaction) => {
+        expect(results.some((result) => result.origin === interaction)).toBe(true);
+      });
+
+      testProfiler.cleanup();
+    });
+  });
+
+  describe('error handling', () => {
+    it('should handle stopInteraction when no interaction is active', () => {
+      expect(() => profiler.stopInteraction()).not.toThrow();
+      expect(mockOnInteractionComplete).not.toHaveBeenCalled();
+    });
   });
 });

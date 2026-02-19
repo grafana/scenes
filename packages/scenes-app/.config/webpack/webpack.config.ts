@@ -118,7 +118,7 @@ const config = (env): Configuration => ({
   },
 
   output: {
-    clean: true,
+    // clean: true,
     filename: '[name].js',
     libraryTarget: 'amd',
     path: path.resolve(process.cwd(), DIST_DIR),

@@ -149,6 +149,51 @@ describe('sceneInterpolator', () => {
     expect(sceneInterpolator(scene, '${test:text}')).toBe('hello + world');
   });
 
+  describe('Text formatting with option properties', () => {
+    it('Can format text with fieldPath', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new TestVariable({
+              name: 'user',
+              isMulti: true,
+              value: ['10'],
+              text: ['Clementina DuBuque'],
+              options: [{ label: 'Clementina DuBuque', value: '10', properties: { username: 'Moriah.Stanton' } }],
+              optionsToReturn: [],
+              delayMs: 0,
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '${user.username:text}')).toBe('Moriah.Stanton');
+    });
+
+    it('Can format multi valued text with fieldPath', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new TestVariable({
+              name: 'user',
+              isMulti: true,
+              value: ['10', '11'],
+              text: ['Clementina DuBuque', 'Leanne Graham'],
+              options: [
+                { label: 'Clementina DuBuque', value: '10', properties: { username: 'Moriah.Stanton' } },
+                { label: 'Leanne Graham', value: '11', properties: { username: 'Bret' } },
+              ],
+              optionsToReturn: [],
+              delayMs: 0,
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '${user.username:text}')).toBe('Moriah.Stanton + Bret');
+    });
+  });
+
   it('Can use formats with arguments', () => {
     const scene = new TestScene({
       $variables: new SceneVariableSet({
@@ -221,14 +266,26 @@ describe('sceneInterpolator', () => {
     expect(sceneInterpolator(scene, '$__all_variables', {}, VariableFormatID.PercentEncode)).toBe('var-cluster=A');
   });
 
-  it('Can use use $__url_time_range with browser timezone', () => {
+  it('Can use use $__url_time_range with explicit browser timezone', () => {
+    const scene = new TestScene({
+      $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now', timeZone: 'browser' }),
+    });
+
+    // Browser timezone should be preserved as "browser", not resolved to actual timezone
+    expect(sceneInterpolator(scene, '$__url_time_range')).toBe('from=now-5m&to=now&timezone=browser');
+  });
+
+  it('Can use use $__url_time_range when timezone is undefined', () => {
     const scene = new TestScene({
       $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
     });
 
-    expect(sceneInterpolator(scene, '$__url_time_range')).toBe(
-      `from=now-5m&to=now&timezone=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`
-    );
+    // When timezone is undefined, getUrlState() will use getTimeZone() which resolves to browser default
+    // This should include the resolved timezone in the URL
+    const result = sceneInterpolator(scene, '$__url_time_range');
+    expect(result).toContain('from=now-5m');
+    expect(result).toContain('to=now');
+    expect(result).toContain('timezone=');
   });
 
   it('Can use use $__url_time_range with custom timezone', () => {

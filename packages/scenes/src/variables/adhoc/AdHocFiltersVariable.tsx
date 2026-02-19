@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   AdHocVariableFilter,
   GetTagResponse,
@@ -11,16 +11,22 @@ import {
 } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
-import { ControlsLayout, SceneComponentProps } from '../../core/types';
+import { ControlsLayout, SceneComponentProps, SceneDataQuery } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
-import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
+import {
+  dataFromResponse,
+  escapeOriginFilterUrlDelimiters,
+  getQueriesForVariables,
+  renderPrometheusLabelFilters,
+  responseHasError,
+} from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { getDataSourceSrv } from '@grafana/runtime';
-import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
+import { AdHocFiltersVariableUrlSyncHandler, toArray } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
@@ -29,7 +35,9 @@ import { debounce, isEqual } from 'lodash';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
-import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
+import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
+import { AdHocFiltersRecommendations } from './AdHocFiltersRecommendations';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -54,6 +62,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   nonApplicableReason?: string;
 }
 
+const ORIGIN_FILTERS_KEY: keyof AdHocFiltersVariableState = 'originFilters';
+
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
 export type FilterOrigin = 'dashboard' | 'scope' | string;
@@ -61,6 +71,8 @@ export type FilterOrigin = 'dashboard' | 'scope' | string;
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
   addFilterButtonText?: string;
+  /** Optional placeholder text for the filter input field */
+  inputPlaceholder?: string;
   /** The visible filters */
   filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
@@ -142,6 +154,20 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Allows custom formatting of a value before saving to filter state
    */
   onAddCustomValue?: OnAddCustomValueFn;
+  /**
+   * state for checking whether drilldown applicability is enabled
+   */
+  applicabilityEnabled?: boolean;
+  /**
+   * When true, enables a collapse button that appears when filters wrap to multiple lines.
+   * Allows users to collapse the filter UI to save vertical space.
+   */
+  collapsible?: boolean;
+
+  /**
+   * enables drilldown recommendations
+   */
+  drilldownRecommendationsEnabled?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -248,7 +274,16 @@ export class AdHocFiltersVariable
 
   private _debouncedVerifyApplicability = debounce(this._verifyApplicability, 100);
 
+  private _recommendations: AdHocFiltersRecommendations | undefined;
+
   public constructor(state: Partial<AdHocFiltersVariableState>) {
+    const behaviors = state.$behaviors ?? [];
+    const recommendations = state.drilldownRecommendationsEnabled ? new AdHocFiltersRecommendations() : undefined;
+
+    if (recommendations) {
+      behaviors.push(recommendations);
+    }
+
     super({
       type: 'adhoc',
       name: state.name ?? 'Filters',
@@ -259,7 +294,10 @@ export class AdHocFiltersVariable
         state.filterExpression ??
         renderExpression(state.expressionBuilder, [...(state.originFilters ?? []), ...(state.filters ?? [])]),
       ...state,
+      $behaviors: behaviors.length > 0 ? behaviors : undefined,
     });
+
+    this._recommendations = recommendations;
 
     if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
@@ -284,8 +322,14 @@ export class AdHocFiltersVariable
           this.restoreOriginalFilter(filter);
         }
       });
+
+      this.setState({ applicabilityEnabled: false });
     };
   };
+
+  public getRecommendations(): AdHocFiltersRecommendations | undefined {
+    return this._recommendations;
+  }
 
   private _updateScopesFilters() {
     const scopes = sceneGraph.getScopes(this);
@@ -348,6 +392,11 @@ export class AdHocFiltersVariable
     this._prevScopes = scopes;
 
     this._debouncedVerifyApplicability();
+  }
+
+  private async verifyApplicabilityAndStoreRecentFilter(update: AdHocFilterWithLabels) {
+    await this._verifyApplicability();
+    this._recommendations?.storeRecentFilter(update);
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
@@ -429,7 +478,36 @@ export class AdHocFiltersVariable
     }
   }
 
-  public getValue(): VariableValue | undefined {
+  /**
+   * Clear all user-added filters and restore origin filters to their original values.
+   */
+  public clearAll(): void {
+    // Restore all restorable origin filters to their original values
+    this.state.originFilters?.forEach((filter) => {
+      if (filter.restorable) {
+        this.restoreOriginalFilter(filter);
+      }
+    });
+
+    // Clear all user-added filters
+    this.setState({ filters: [] });
+  }
+
+  public getValue(fieldPath?: string): VariableValue | undefined {
+    if (fieldPath === ORIGIN_FILTERS_KEY) {
+      const originFilters = this.state.originFilters;
+
+      if (!originFilters || originFilters?.length === 0) {
+        return [];
+      }
+
+      return [
+        ...originFilters.map((filter) =>
+          toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}`)
+        ),
+      ];
+    }
+
     return this.state.filterExpression;
   }
 
@@ -461,8 +539,11 @@ export class AdHocFiltersVariable
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
-        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
-        this._debouncedVerifyApplicability();
+        this.setState({
+          filters: [...filters, { ..._wip, ...update }],
+          _wip: undefined,
+        });
+        this.verifyApplicabilityAndStoreRecentFilter({ ..._wip, ...update });
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -474,6 +555,11 @@ export class AdHocFiltersVariable
     });
 
     this.setState({ filters: updatedFilters });
+
+    this._recommendations?.storeRecentFilter({
+      ...filter,
+      ...update,
+    });
   }
 
   public updateToMatchAll(filter: AdHocFilterWithLabels) {
@@ -572,37 +658,45 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async _verifyApplicability() {
-    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
-
+  public async getFiltersApplicabilityForQueries(
+    filters: AdHocFilterWithLabels[],
+    queries: SceneDataQuery[]
+  ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getDrilldownsApplicability) {
       return;
     }
 
-    if (!filters) {
-      return;
-    }
-
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    const response: DrilldownsApplicability[] = await ds.getDrilldownsApplicability({
+    return await ds.getDrilldownsApplicability({
       filters,
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
+  }
+
+  public async _verifyApplicability() {
+    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
+
+    if (!response) {
+      return;
+    }
 
     const responseMap = new Map<string, DrilldownsApplicability>();
-    response.forEach((filter) => {
+    response.forEach((filter: DrilldownsApplicability) => {
       responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
     });
 
     const update = {
+      applicabilityEnabled: true,
       filters: [...this.state.filters],
       originFilters: [...(this.state.originFilters ?? [])],
     };
@@ -720,7 +814,7 @@ export class AdHocFiltersVariable
           ...scope,
           spec: {
             ...scope.spec,
-            filters: scope.spec.filters.filter((f) => f.key !== filter.key),
+            filters: scope.spec.filters?.filter((f) => f.key !== filter.key),
           },
         };
       });
@@ -783,8 +877,14 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
 
-  if (model.state.layout === 'combobox') {
-    return <AdHocFiltersComboboxRenderer model={model} />;
+  // Create controller adapter for combobox mode
+  const controller = useMemo(
+    () => (model.state.layout === 'combobox' ? new AdHocFiltersVariableController(model) : undefined),
+    [model]
+  );
+
+  if (controller) {
+    return <AdHocFiltersComboboxRenderer controller={controller} />;
   }
 
   return (

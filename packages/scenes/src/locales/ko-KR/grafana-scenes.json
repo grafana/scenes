@@ -33,12 +33,21 @@
         "collapse-row": "행 접기",
         "expand-row": "행 펼치기"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "취소",
+        "text-refresh": "새로 고침",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "비교",
         "button-tooltip": "시간 범위 비교 활성화"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "창 크기 조정 위젯"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {
@@ -102,6 +111,7 @@
             "format-date-in-different-ways": "다양한 방식으로 날짜 형식 지정",
             "format-multivalued-variables-using-syntax-example": "glob 구문을 사용하여 다중 값 변수 형식 지정, 예: {value1,value2}",
             "html-escaping-of-values": "값의 HTML 이스케이프",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "JSON 문자열화 값",
             "keep-value-as-is": "값을 그대로 유지",
             "multiple-values-are-formatted-like-variablevalue": "여러 값은 variable=value와 같은 형식으로 지정됩니다.",

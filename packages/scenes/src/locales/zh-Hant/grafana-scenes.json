@@ -33,12 +33,21 @@
         "collapse-row": "收闔列",
         "expand-row": "展開列"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "取消",
+        "text-refresh": "更新",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "比較",
         "button-tooltip": "啟用時間範圍比較"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "窗格調整大小小工具"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {
@@ -102,6 +111,7 @@
             "format-date-in-different-ways": "以不同方式格式化日期",
             "format-multivalued-variables-using-syntax-example": "使用 glob 語法格式化多值變數，例如 {value1,value2}",
             "html-escaping-of-values": "值的 HTML 轉義",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "JSON 字串化值",
             "keep-value-as-is": "按原樣保留值",
             "multiple-values-are-formatted-like-variablevalue": "多個值按「變數=值」的方式格式化",

@@ -8,7 +8,8 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObject, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
-import { REFRESH_INTERACTION } from '../behaviors/SceneRenderProfiler';
+import { REFRESH_INTERACTION } from '../performance/interactionConstants';
+import { t } from '@grafana/i18n';
 
 export const DEFAULT_INTERVALS = ['5s', '10s', '30s', '1m', '5m', '15m', '30m', '1h', '2h', '1d'];
 
@@ -128,8 +129,8 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
         this.setState({ refresh });
       } else {
         this.setState({
-          // Default to the first refresh interval if the interval from the URL is not allowed, just like in the old architecture.
-          refresh: intervals ? intervals[0] : undefined,
+          // Round down to the largest allowed refresh interval <= the URL interval if the interval from the URL is not allowed.
+          refresh: intervals ? findClosestInterval(refresh, intervals) : undefined,
         });
       }
     }
@@ -211,15 +212,20 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   const { refresh, intervals, autoEnabled, autoValue, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
-  let text = refresh === RefreshPicker.autoOption?.value ? autoValue : withText ? 'Refresh' : undefined;
+  let text =
+    refresh === RefreshPicker.autoOption?.value
+      ? autoValue
+      : withText
+      ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
+      : undefined;
   let tooltip: string | undefined;
   let width: string | undefined;
 
   if (isRunning) {
-    tooltip = 'Cancel all queries';
+    tooltip = t('grafana-scenes.components.scene-refresh-picker.tooltip-cancel', 'Cancel all queries');
 
     if (withText) {
-      text = 'Cancel';
+      text = t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel');
     }
   }
 
@@ -262,4 +268,24 @@ function isIntervalString(str: string): boolean {
   } catch {
     return false;
   }
+}
+
+function findClosestInterval(userInterval: string, allowedIntervals: string[]): string | undefined {
+  if (allowedIntervals.length === 0) {
+    return undefined;
+  }
+
+  const userIntervalMs = rangeUtil.intervalToMs(userInterval);
+  let selectedInterval = allowedIntervals[0];
+
+  for (let i = 1; i < allowedIntervals.length; i++) {
+    const intervalMs = rangeUtil.intervalToMs(allowedIntervals[i]);
+
+    if (intervalMs > userIntervalMs) {
+      break;
+    }
+
+    selectedInterval = allowedIntervals[i];
+  }
+  return selectedInterval;
 }

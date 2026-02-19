@@ -1,7 +1,7 @@
 import { t } from '@grafana/i18n';
 import React, { useMemo, useState } from 'react';
 
-import { AdHocFiltersVariable, AdHocFilterWithLabels, isMultiValueOperator } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFilterWithLabels, isMultiValueOperator, OPERATORS } from './AdHocFiltersVariable';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { Button, Field, InputActionMeta, Select, useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
@@ -112,10 +112,13 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
     },
   };
 
+  const operatorDefinition = OPERATORS.find((op) => filter.operator === op.value);
+
   const valueSelect = (
     <Select
       virtualized
       allowCustomValue={model.state.allowCustomValue ?? true}
+      createOptionPosition={operatorDefinition?.isRegex ? 'first' : 'last'}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       allowCreateWhileLoading
       formatCreateLabel={(inputValue) => `Use custom value: ${inputValue}`}
@@ -178,6 +181,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       className={cx(styles.key, isKeysOpen ? styles.widthWhenOpen : undefined)}
       width="auto"
       allowCustomValue={model.state.allowCustomValue ?? true}
+      createOptionPosition={operatorDefinition?.isRegex ? 'first' : 'last'}
       value={keyValue}
       placeholder={t(
         'grafana-scenes.variables.ad-hoc-filter-renderer.key-select.placeholder-select-label',
@@ -289,6 +293,12 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   wrapper: css({
     display: 'flex',
+    '&:first-child': {
+      '> :first-child': {
+        borderBottomLeftRadius: 0,
+        borderTopLeftRadius: 0,
+      },
+    },
     '> *': {
       '&:not(:first-child)': {
         // Negative margin hides the double-border on adjacent selects

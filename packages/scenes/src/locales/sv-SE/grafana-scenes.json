@@ -33,12 +33,21 @@
         "collapse-row": "Dölj rad",
         "expand-row": "Expandera rad"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Avbryt",
+        "text-refresh": "Uppdatera",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Jämförelse",
         "button-tooltip": "Aktivera jämförelse av tidsram"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widget för storleksändring av ruta"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {
@@ -102,6 +111,7 @@
             "format-date-in-different-ways": "Formatera datum på olika sätt",
             "format-multivalued-variables-using-syntax-example": "Formatera flervärdesvariabler med globsyntax, till exempel {value1,value2}",
             "html-escaping-of-values": "HTML-undantagstecken för värden",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "JSON stringify-värde",
             "keep-value-as-is": "Behåll värdet som det är",
             "multiple-values-are-formatted-like-variablevalue": "Flera värden formateras som variabel=värde",

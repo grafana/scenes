@@ -2,7 +2,7 @@
 cleanup() {
     cd $scenespath
     # have to use `npm pkg delete` instead of `yarn remove` else it will remove it from peerDeps as well
-    npm pkg delete devDependencies.@grafana/runtime devDependencies.@grafana/data devDependencies.@grafana/ui devDependencies.@grafana/schema devDependencies.@grafana/e2e-selectors
+    npm pkg delete devDependencies.@grafana/runtime devDependencies.@grafana/data devDependencies.@grafana/ui devDependencies.@grafana/schema devDependencies.@grafana/e2e-selectors devDependencies.@grafana/i18n
     cd $rootpath
     yarn install
 }
@@ -25,6 +25,7 @@ yarn workspace @grafana/scenes add -D '@grafana/data'@link:$GRAFANA_PATH/package
 yarn workspace @grafana/scenes add -D '@grafana/ui'@link:$GRAFANA_PATH/packages/grafana-ui
 yarn workspace @grafana/scenes add -D '@grafana/schema'@link:$GRAFANA_PATH/packages/grafana-schema
 yarn workspace @grafana/scenes add -D '@grafana/e2e-selectors'@link:$GRAFANA_PATH/packages/grafana-e2e-selectors
+yarn workspace @grafana/scenes add -D '@grafana/i18n'@link:$GRAFANA_PATH/packages/grafana-i18n
 
 yarn install
 

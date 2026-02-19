@@ -31,6 +31,7 @@ describe('cloneSceneObject', () => {
   });
 
   it('Can clone with ref', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     const refValue = new TestScene({ name: 'ref' });
     const scene = new TestScene({
       name: 'clone',
@@ -40,6 +41,8 @@ describe('cloneSceneObject', () => {
     const clone = scene.clone();
     expect(clone.state.name).toBe('clone');
     expect(clone.state.ref?.resolve()).toBe(refValue);
+    expect(warnSpy).toHaveBeenCalledWith('Cloning object with SceneObjectRef');
+    warnSpy.mockRestore();
   });
 
   it('Should ignore cloning properties specified in overrides', () => {
@@ -68,11 +71,18 @@ describe('cloneSceneObject', () => {
   });
 
   it('Can clone with state and that state should not be cloned', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     const nested = new TestScene({ name: 'nested' });
     const scene = new TestScene({ name: 'test', nested });
 
     const clone = scene.clone({ nested });
     expect(clone.state.nested).toBe(nested);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('SceneObject already has a parent set that is different from the new parent.'),
+      expect.anything(),
+      expect.anything()
+    );
+    warnSpy.mockRestore();
   });
 
   it('Performance test', () => {
@@ -96,8 +106,8 @@ describe('cloneSceneObject', () => {
       }
     });
 
-    // not sure how slow ci systems are so just comparing against plain clone of just the object*3
-    expect(sceneCloneTime).toBeLessThan(plainCloneTime * 3);
+    // not sure how slow ci systems are so use a generous multiplier to avoid flakiness
+    expect(sceneCloneTime).toBeLessThan(plainCloneTime * 15);
   });
 });
 

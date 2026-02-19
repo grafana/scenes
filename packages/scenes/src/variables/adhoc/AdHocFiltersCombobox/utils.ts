@@ -163,16 +163,17 @@ export const generateFilterUpdatePayload = ({
   };
 };
 
-const INPUT_PLACEHOLDER = 'Filter by label values';
+export const INPUT_PLACEHOLDER_DEFAULT = 'Filter by label values';
 
 export const generatePlaceholder = (
   filter: AdHocFilterWithLabels,
   filterInputType: AdHocInputType,
   isMultiValueEdit: boolean,
-  isAlwaysWip?: boolean
+  isAlwaysWip?: boolean,
+  inputPlaceholder?: string
 ) => {
   if (filterInputType === 'key') {
-    return INPUT_PLACEHOLDER;
+    return inputPlaceholder || INPUT_PLACEHOLDER_DEFAULT;
   }
   if (filterInputType === 'value') {
     if (isMultiValueEdit) {
@@ -181,7 +182,15 @@ export const generatePlaceholder = (
     return filter.valueLabels?.[0] || '';
   }
 
-  return filter[filterInputType] && !isAlwaysWip ? `${filter[filterInputType]}` : INPUT_PLACEHOLDER;
+  // When in WIP mode and selecting operator (key already selected),
+  // don't show the placeholder
+  if (isAlwaysWip && filterInputType === 'operator') {
+    return '';
+  }
+
+  return filter[filterInputType] && !isAlwaysWip
+    ? `${filter[filterInputType]}`
+    : inputPlaceholder || INPUT_PLACEHOLDER_DEFAULT;
 };
 
 export const populateInputValueOnInputTypeSwitch = ({

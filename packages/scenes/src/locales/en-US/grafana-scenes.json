@@ -11,6 +11,13 @@
         "remove-filter-value": "Remove filter value - {{itemLabel}}",
         "use-custom-value": "Use custom value: {{itemLabel}}"
       },
+      "drilldown-recommendations": {
+        "recent": "Recent",
+        "recent-empty": "No recent values",
+        "recommended": "Recommended",
+        "recommended-empty": "No recommended values",
+        "tooltip": "Show recommendations"
+      },
       "fallback-page": {
         "content": "If you found your way here using a link then there might be a bug in this application.",
         "subTitle": "The url did not match any page",
@@ -33,12 +40,21 @@
         "collapse-row": "Collapse row",
         "expand-row": "Expand row"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Cancel",
+        "text-refresh": "Refresh",
+        "tooltip-cancel": "Cancel all queries"
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparison",
         "button-tooltip": "Enable time frame comparison"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Pane resize widget"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "Move {{moveBackwardDuration}} backward",
+        "move-forward-tooltip": "Move {{moveForwardDuration}} forward"
       },
       "viz-panel": {
         "title": {
@@ -84,6 +100,10 @@
           "placeholder-select-value": "Select value"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "Collapse",
+        "collapse-filters": "Collapse filters"
+      },
       "data-source-variable": {
         "label": {
           "default": "default"
@@ -102,6 +122,7 @@
             "format-date-in-different-ways": "Format date in different ways",
             "format-multivalued-variables-using-syntax-example": "Format multi-valued variables using glob syntax, example {value1,value2}",
             "html-escaping-of-values": "HTML escaping of values",
+            "join-values-with-a-comma": "Join values with a comma",
             "json-stringify-value": "JSON stringify value",
             "keep-value-as-is": "Keep value as is",
             "multiple-values-are-formatted-like-variablevalue": "Multiple values are formatted like variable=value",

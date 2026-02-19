@@ -1,4 +1,4 @@
-import { isArray, isEqual } from 'lodash';
+import { isArray, isEqual, property } from 'lodash';
 import { map, Observable } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
@@ -20,7 +20,7 @@ import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
-import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../behaviors/SceneRenderProfiler';
+import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../performance/interactionConstants';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
 
 export interface MultiValueVariableState extends SceneVariableState {
@@ -50,6 +50,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   extends SceneObjectBase<TState>
   implements SceneVariable<TState>
 {
+  private static fieldAccessorCache: FieldAccessorCache = {};
+
   protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
 
   /**
@@ -167,6 +169,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
           stateUpdate.text = validTexts;
         }
       }
+
       return stateUpdate;
     }
 
@@ -183,7 +186,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       // Current value is found in options
       const defaultState = this.getDefaultSingleState(options);
       stateUpdate.value = defaultState.value;
-      stateUpdate.text = defaultState.text;
+      stateUpdate.text = defaultState.label;
     }
 
     return stateUpdate;
@@ -217,30 +220,63 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       if (this.state.allValue) {
         return new CustomAllValue(this.state.allValue, this);
       }
-
-      value = this.state.options.map((x) => x.value);
+      value = this.state.options.map((o) => o.value);
     }
 
-    if (fieldPath != null && Array.isArray(value)) {
-      const index = parseInt(fieldPath, 10);
-      if (!isNaN(index) && index >= 0 && index < value.length) {
-        return value[index];
-      }
+    if (fieldPath != null) {
+      return this.getFieldAtPath(value, fieldPath);
     }
 
     return value;
   }
 
-  public getValueText(): string {
+  public getValueText(fieldPath?: string): string {
     if (this.hasAllValue()) {
       return ALL_VARIABLE_TEXT;
     }
 
-    if (Array.isArray(this.state.text)) {
-      return this.state.text.join(' + ');
+    const text = fieldPath != null ? this.getFieldAtPath(this.state.value, fieldPath, true) : this.state.text;
+
+    return Array.isArray(text) ? text.join(' + ') : String(text);
+  }
+
+  private getFieldAtPath(value: VariableValue, fieldPath: string, returnText = false) {
+    const accesor = this.getFieldAccessor(fieldPath);
+
+    if (Array.isArray(value)) {
+      const index = parseInt(fieldPath, 10);
+
+      if (!isNaN(index) && index >= 0 && index < value.length) {
+        const v = value[index];
+        if (!returnText) {
+          return v;
+        }
+
+        const o = this.state.options.find((o) => o.value === v);
+        return o ? o.label : String(v);
+      }
+
+      return value.map((v) => {
+        const o = this.state.options.find((o) => o.value === v);
+        return o ? accesor(o.properties) : v;
+      });
     }
 
-    return String(this.state.text);
+    const o = this.state.options.find((o) => o.value === value);
+    if (o) {
+      return accesor(o.properties);
+    }
+
+    return returnText ? this.state.text : value;
+  }
+
+  private getFieldAccessor(fieldPath: string) {
+    const accessor = MultiValueVariable.fieldAccessorCache[fieldPath];
+    if (accessor) {
+      return accessor;
+    }
+
+    return (MultiValueVariable.fieldAccessorCache[fieldPath] = property(fieldPath));
   }
 
   public hasAllValue() {
@@ -252,19 +288,19 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     if (this.state.defaultToAll) {
       return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
     } else if (options.length > 0) {
-      return { value: [options[0].value], text: [options[0].label] };
+      return { value: [options[0].value], text: [options[0].label], properties: [options[0].properties] };
     } else {
       return { value: [], text: [] };
     }
   }
 
-  protected getDefaultSingleState(options: VariableValueOption[]) {
+  protected getDefaultSingleState(options: VariableValueOption[]): VariableValueOption {
     if (this.state.defaultToAll) {
-      return { value: ALL_VARIABLE_VALUE, text: ALL_VARIABLE_TEXT };
+      return { value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT };
     } else if (options.length > 0) {
-      return { value: options[0].value, text: options[0].label };
+      return { value: options[0].value, label: options[0].label, properties: options[0].properties };
     } else {
-      return { value: '', text: '' };
+      return { value: '', label: '' };
     }
   }
 
@@ -392,14 +428,14 @@ function findOptionMatchingCurrent(
 ) {
   let textMatch: VariableValueOption | undefined;
 
-  for (const item of options) {
-    if (item.value === currentValue) {
-      return item;
+  for (const o of options) {
+    if (o.value === currentValue) {
+      return o;
     }
 
     // No early return here as want to continue to look a value match
-    if (item.label === currentText) {
-      textMatch = item;
+    if (o.label === currentText) {
+      textMatch = o;
     }
   }
 
@@ -433,7 +469,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     let urlValue: string | string[] | null = null;
     let value = this._sceneObject.state.value;
 
-    if (Array.isArray(value)) {
+    if (Array.isArray(value) && value.length > 1) {
       urlValue = value.map(String);
     } else if ((this, this._sceneObject.state.isMulti)) {
       // If we are inMulti mode we must return an array here as otherwise UrlSyncManager will not pass all values (in an array) in updateFromUrl
@@ -515,4 +551,8 @@ export class CustomAllValue implements CustomVariableValue {
 
     return this._value;
   }
+}
+
+export interface FieldAccessorCache {
+  [key: string]: (obj: any) => any;
 }

@@ -1,10 +1,13 @@
+import { property } from 'lodash';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { SceneVariable, SceneVariableState, VariableValue } from '../types';
+import { SceneVariable, SceneVariableState, VariableValue, VariableValueOptionProperties } from '../types';
+import { FieldAccessorCache } from './MultiValueVariable';
 
 export interface LocalValueVariableState extends SceneVariableState {
   value: VariableValue;
   text: VariableValue;
+  properties?: VariableValueOptionProperties;
 
   // Indicate whether or not this variable is sourced from a multi-value variable.
   // Introduces for a backwards compatibility with the old variable system, to properly support interpolation in SQL data sources.
@@ -20,6 +23,8 @@ export class LocalValueVariable
   extends SceneObjectBase<LocalValueVariableState>
   implements SceneVariable<LocalValueVariableState>
 {
+  private static fieldAccessorCache: FieldAccessorCache = {};
+
   public constructor(initialState: Partial<LocalValueVariableState>) {
     super({
       type: 'system',
@@ -31,11 +36,29 @@ export class LocalValueVariable
     });
   }
 
-  public getValue(): VariableValue {
+  public getValue(fieldPath?: string): VariableValue {
+    if (fieldPath != null && this.state.properties) {
+      return this.getFieldAccessor(fieldPath)(this.state.properties);
+    }
     return this.state.value;
   }
 
-  public getValueText(): string {
+  private getFieldAccessor(fieldPath: string) {
+    const accessor = LocalValueVariable.fieldAccessorCache[fieldPath];
+    if (accessor) {
+      return accessor;
+    }
+    return (LocalValueVariable.fieldAccessorCache[fieldPath] = property(fieldPath));
+  }
+
+  public getValueText(fieldPath?: string): string {
+    if (fieldPath && this.state.properties) {
+      const value = this.getFieldAccessor(fieldPath)(this.state.properties);
+      if (value != null) {
+        return String(value);
+      }
+    }
+
     return this.state.text.toString();
   }
 

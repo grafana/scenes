@@ -33,12 +33,21 @@
         "collapse-row": "Rij samenvouwen",
         "expand-row": "Rij uitvouwen"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Annuleren",
+        "text-refresh": "Vernieuwen",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Vergelijking",
         "button-tooltip": "Tijdsbestekvergelijking inschakelen"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Grootte widget wijzigen"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {
@@ -102,6 +111,7 @@
             "format-date-in-different-ways": "Datum op verschillende manieren opmaken",
             "format-multivalued-variables-using-syntax-example": "Formatteer variabelen met meerdere waarden met behulp van glob-syntaxis, bijvoorbeeld {value1,value2}",
             "html-escaping-of-values": "HTML-escaping van waarden",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "JSON-stringify-waarde",
             "keep-value-as-is": "Huidige waarde behouden",
             "multiple-values-are-formatted-like-variablevalue": "Meerdere waarden zijn opgemaakt als variabele=waarde",

@@ -17,6 +17,8 @@ import {
   toUtc,
   VariableRefresh,
   VariableSupportType,
+  // @ts-expect-error TODO: remove suppression after updating grafana/data
+  VariableRegexApplyTo,
 } from '@grafana/data';
 import { SceneTimeRange } from '../../../core/SceneTimeRange';
 
@@ -32,17 +34,22 @@ import { config, setRunRequest } from '@grafana/runtime';
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 import { VariableSort } from '@grafana/schema';
 
-const runRequestMock = jest.fn().mockReturnValue(
-  of<PanelData>({
+function createMockData(valueValues: string[], textValues?: string[]) {
+  const fields = textValues
+    ? [
+        { name: 'text', type: FieldType.string, values: textValues },
+        { name: 'value', type: FieldType.string, values: valueValues },
+      ]
+    : [{ name: 'text', type: FieldType.string, values: valueValues }];
+
+  return of<PanelData>({
     state: LoadingState.Done,
-    series: [
-      toDataFrame({
-        fields: [{ name: 'text', type: FieldType.string, values: ['val1', 'val2', 'val11'] }],
-      }),
-    ],
+    series: [toDataFrame({ fields })],
     timeRange: getDefaultTimeRange(),
-  })
-);
+  });
+}
+
+const runRequestMock = jest.fn().mockReturnValue(createMockData(['val1', 'val2', 'val11']));
 
 setRunRequest(runRequestMock);
 
@@ -124,429 +131,533 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
     config.buildInfo.version = v;
   });
 
-  describe('When empty query is provided', () => {
-    it('Should default to empty query', async () => {
-      const variable = new QueryVariable({ name: 'test' });
+  describe(`Version ${v}`, () => {
+    describe('When empty query is provided', () => {
+      it('Should default to empty query', async () => {
+        const variable = new QueryVariable({ name: 'test' });
 
-      await lastValueFrom(variable.validateAndUpdate());
+        await lastValueFrom(variable.validateAndUpdate());
 
-      expect(variable.state.query).toEqual('');
-      expect(variable.state.value).toEqual('');
-      expect(variable.state.text).toEqual('');
-      expect(variable.state.options).toEqual([]);
-    });
-
-    it('Should default to empty options and empty value', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake', type: 'fake' },
-        query: '',
+        expect(variable.state.query).toEqual('');
+        expect(variable.state.value).toEqual('');
+        expect(variable.state.text).toEqual('');
+        expect(variable.state.options).toEqual([]);
       });
 
-      await lastValueFrom(variable.validateAndUpdate());
+      it('Should default to empty options and empty value', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake', type: 'fake' },
+          query: '',
+        });
 
-      expect(variable.state.value).toEqual('');
-      expect(variable.state.text).toEqual('');
-      expect(variable.state.options).toEqual([]);
-    });
-  });
+        await lastValueFrom(variable.validateAndUpdate());
 
-  describe('Issuing variable query', () => {
-    const originalNow = Date.now;
-    beforeEach(() => {
-      setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
-    });
-
-    beforeEach(() => {
-      Date.now = jest.fn(() => 60000);
+        expect(variable.state.value).toEqual('');
+        expect(variable.state.text).toEqual('');
+        expect(variable.state.options).toEqual([]);
+      });
     });
 
-    afterEach(() => {
-      Date.now = originalNow;
-      runRequestMock.mockClear();
-      getDataSourceMock.mockClear();
-    });
-
-    it('Should resolve variable options via provided runner', (done) => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
+    describe('Issuing variable query', () => {
+      const originalNow = Date.now;
+      beforeEach(() => {
+        setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
       });
 
-      variable.validateAndUpdate().subscribe({
-        next: () => {
-          expect(variable.state.options).toEqual([
-            { label: 'val1', value: 'val1' },
-            { label: 'val2', value: 'val2' },
-            { label: 'val11', value: 'val11' },
-          ]);
-          expect(variable.state.loading).toEqual(false);
-          done();
-        },
+      beforeEach(() => {
+        Date.now = jest.fn(() => 60000);
       });
 
-      expect(variable.state.loading).toEqual(true);
-    });
-
-    it('Should pass variable scene object when resolving data source and via request scoped vars', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
+      afterEach(() => {
+        Date.now = originalNow;
+        runRequestMock.mockClear();
+        getDataSourceMock.mockClear();
       });
 
-      await lastValueFrom(variable.validateAndUpdate());
-
-      const getDataSourceCall = getDataSourceMock.mock.calls[0];
-      const runRequestCall = runRequestMock.mock.calls[0];
-
-      expect((runRequestCall[1].scopedVars.__sceneObject.value as SafeSerializableSceneObject).valueOf()).toEqual(
-        variable
-      );
-      expect((getDataSourceCall[1].__sceneObject.value as SafeSerializableSceneObject).valueOf()).toEqual(variable);
-    });
-
-    describe('when refresh on dashboard load set', () => {
-      it('Should issue variable query with current time range', async () => {
+      it('Should resolve variable options via provided runner', (done) => {
         const variable = new QueryVariable({
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
+        });
+
+        variable.validateAndUpdate().subscribe({
+          next: () => {
+            expect(variable.state.options).toEqual([
+              { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+              { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+              { label: 'val11', value: 'val11', properties: { text: 'val11' } },
+            ]);
+            expect(variable.state.loading).toEqual(false);
+            done();
+          },
+        });
+
+        expect(variable.state.loading).toEqual(true);
+      });
+
+      describe('When properties are received', () => {
+        it('Should provide object values', async () => {
+          setCreateQueryVariableRunnerFactory(
+            () =>
+              new FakeQueryRunner(
+                fakeDsMock,
+                jest.fn().mockReturnValue(
+                  of<PanelData>({
+                    state: LoadingState.Done,
+                    series: [
+                      toDataFrame({
+                        fields: [
+                          {
+                            name: 'value',
+                            type: FieldType.string,
+                            values: ['test', 'prod'],
+                          },
+                          {
+                            name: 'text',
+                            type: FieldType.string,
+                            values: ['Test', 'Prod'],
+                          },
+                          {
+                            name: 'location',
+                            type: FieldType.string,
+                            values: ['US', 'EU'],
+                          },
+                        ],
+                      }),
+                    ],
+                    timeRange: getDefaultTimeRange(),
+                  })
+                )
+              )
+          );
+
+          const variable = new QueryVariable({
+            name: 'test',
+            datasource: { uid: 'fake-std', type: 'fake-std' },
+            query: 'query',
+          });
+
+          await lastValueFrom(variable.validateAndUpdate());
+
+          expect(variable.getValue('location')).toEqual('US');
+          expect(variable.getValue()).toEqual('test');
+        });
+      });
+
+      it('Should pass variable scene object when resolving data source and via request scoped vars', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        const getDataSourceCall = getDataSourceMock.mock.calls[0];
+        const runRequestCall = runRequestMock.mock.calls[0];
+
+        expect((runRequestCall[1].scopedVars.__sceneObject.value as SafeSerializableSceneObject).valueOf()).toEqual(
+          variable
+        );
+        expect((getDataSourceCall[1].__sceneObject.value as SafeSerializableSceneObject).valueOf()).toEqual(variable);
+      });
+
+      describe('when refresh on dashboard load set', () => {
+        it('Should issue variable query with current time range', async () => {
+          const variable = new QueryVariable({
+            name: 'test',
+            datasource: { uid: 'fake-std', type: 'fake-std' },
+            query: 'query',
+          });
+
+          const scene = new EmbeddedScene({
+            $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+            $variables: new SceneVariableSet({ variables: [variable] }),
+            body: new SceneCanvasText({ text: 'hello' }),
+          });
+          scene.activate();
+
+          await lastValueFrom(variable.validateAndUpdate());
+
+          const call = runRequestMock.mock.calls[0];
+          expect(call[1].range.raw.from).toEqual('now-5m');
+          expect(call[1].range.raw.to).toEqual('now');
+        });
+
+        it('Should not issue variable query when the closest time range changes if refresh on dahboard load is set', async () => {
+          const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+
+          const variable = new QueryVariable({
+            name: 'test',
+            datasource: { uid: 'fake-std', type: 'fake-std' },
+            query: 'query',
+            refresh: VariableRefresh.onDashboardLoad,
+            $timeRange: timeRange,
+          });
+
+          variable.activate();
+
+          await lastValueFrom(variable.validateAndUpdate());
+
+          expect(runRequestMock).toBeCalledTimes(1);
+          const call1 = runRequestMock.mock.calls[0];
+
+          // Uses default time range
+          expect(call1[1].range.raw).toEqual({
+            from: 'now-1h',
+            to: 'now',
+          });
+
+          timeRange.onTimeRangeChange({
+            from: toUtc('2020-01-01'),
+            to: toUtc('2020-01-02'),
+            raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },
+          });
+
+          await Promise.resolve();
+
+          expect(runRequestMock).toBeCalledTimes(1);
+        });
+      });
+    });
+
+    describe('When ds is null', () => {
+      beforeEach(() => {
+        setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+      });
+
+      it('should get options for default ds', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: null,
+          query: 'query',
+          regex: '/^A/',
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(runRequestMock).toBeCalledTimes(1);
+      });
+    });
+
+    describe('When regex provided', () => {
+      beforeEach(() => {
+        setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+      });
+
+      afterEach(() => {
+        runRequestMock.mockReturnValue(createMockData(['val1', 'val2', 'val11']));
+      });
+
+      it('should return options that match regex', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          regex: '/^val1/',
+          regexApplyTo: 'value',
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.state.options).toEqual([
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
+        ]);
+      });
+
+      it('should apply regex to text if regexApplyTo is set to text', async () => {
+        runRequestMock.mockReturnValue(
+          createMockData(['val1', 'val2', 'val11'], ['Display1', 'Display2', 'Display11'])
+        );
+
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          regex: '/^Display1/',
+          regexApplyTo: 'text',
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.state.options).toEqual([
+          { label: 'Display1', value: 'val1', properties: { text: 'Display1', value: 'val1' } },
+          { label: 'Display11', value: 'val11', properties: { text: 'Display11', value: 'val11' } },
+        ]);
+      });
+
+      it('should default regexApplyTo to value', async () => {
+        runRequestMock.mockReturnValue(
+          createMockData(['val1', 'val2', 'val11'], ['Display1', 'Display2', 'Display11'])
+        );
+
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          regex: '/^val2/',
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.state.options).toEqual([
+          { label: 'Display2', value: 'val2', properties: { text: 'Display2', value: 'val2' } },
+        ]);
+      });
+    });
+
+    describe('When sort is provided', () => {
+      beforeEach(() => {
+        setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+      });
+
+      it('should return options order by natural sort Desc', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          sort: 8,
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.state.options).toEqual([
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+        ]);
+      });
+
+      it('should return options order by natural sort Asc', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          sort: 7,
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.state.options).toEqual([
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
+        ]);
+      });
+
+      it('should return options order by alphabeticalAsc', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          sort: 1,
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.state.options).toEqual([
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+        ]);
+      });
+    });
+
+    describe('Query with __searchFilter', () => {
+      let user: ReturnType<typeof userEvent.setup>;
+
+      beforeEach(() => {
+        runRequestMock.mockClear();
+        setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+
+        jest.useFakeTimers();
+        user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+      });
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      it('Should trigger new query and show new options', async () => {
+        const variable = new QueryVariable({
+          name: 'server',
+          datasource: null,
+          query: 'A.$__searchFilter',
         });
 
         const scene = new EmbeddedScene({
-          $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
           $variables: new SceneVariableSet({ variables: [variable] }),
+          controls: [new VariableValueSelectors({})],
           body: new SceneCanvasText({ text: 'hello' }),
         });
-        scene.activate();
 
-        await lastValueFrom(variable.validateAndUpdate());
+        render(<scene.Component model={scene} />);
 
-        const call = runRequestMock.mock.calls[0];
-        expect(call[1].range.raw.from).toEqual('now-5m');
-        expect(call[1].range.raw.to).toEqual('now');
+        await act(() => jest.advanceTimersByTime(10));
+
+        const select = await screen.findByRole('combobox');
+
+        await user.click(select);
+        await user.type(select, 'muu!');
+
+        // wait for debounce (QueryVariable uses 400ms)
+        await act(() => jest.advanceTimersByTime(400));
+
+        expect(runRequestMock).toHaveBeenCalledTimes(2);
+        expect(runRequestMock.mock.calls[1][1].scopedVars.__searchFilter.value).toEqual('muu!');
       });
 
-      it('Should not issue variable query when the closest time range changes if refresh on dahboard load is set', async () => {
-        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+      it('Should not trigger new query whern __searchFilter is not present', async () => {
+        const variable = new QueryVariable({
+          name: 'server',
+          datasource: null,
+          query: 'A.*',
+        });
 
+        const scene = new EmbeddedScene({
+          $variables: new SceneVariableSet({ variables: [variable] }),
+          controls: [new VariableValueSelectors({})],
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+
+        render(<scene.Component model={scene} />);
+
+        await act(() => jest.advanceTimersByTime(10));
+
+        const select = await screen.findByRole('combobox');
+        await user.click(select);
+        await user.type(select, 'muu!');
+
+        // wait for debounce (QueryVariable uses 400ms)
+        await act(() => jest.advanceTimersByTime(400));
+
+        expect(runRequestMock).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('When static options are provided', () => {
+      it('Should prepend static options to the query results when no static options order is provided', async () => {
         const variable = new QueryVariable({
           name: 'test',
           datasource: { uid: 'fake-std', type: 'fake-std' },
           query: 'query',
-          refresh: VariableRefresh.onDashboardLoad,
-          $timeRange: timeRange,
+          staticOptions: [
+            { label: 'A', value: 'A' },
+            { label: 'B', value: 'B' },
+            { label: 'C', value: 'C' },
+          ],
         });
-
-        variable.activate();
 
         await lastValueFrom(variable.validateAndUpdate());
 
-        expect(runRequestMock).toBeCalledTimes(1);
-        const call1 = runRequestMock.mock.calls[0];
+        expect(variable.state.options).toEqual([
+          { label: 'A', value: 'A' },
+          { label: 'B', value: 'B' },
+          { label: 'C', value: 'C' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
+        ]);
+      });
 
-        // Uses default time range
-        expect(call1[1].range.raw).toEqual({
-          from: 'now-1h',
-          to: 'now',
+      it('Should prepend static options to the query results when static order "before" is provided"', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          staticOptions: [
+            { label: 'A', value: 'A' },
+            { label: 'B', value: 'B' },
+            { label: 'C', value: 'C' },
+          ],
+          staticOptionsOrder: 'before',
         });
 
-        timeRange.onTimeRangeChange({
-          from: toUtc('2020-01-01'),
-          to: toUtc('2020-01-02'),
-          raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.state.options).toEqual([
+          { label: 'A', value: 'A' },
+          { label: 'B', value: 'B' },
+          { label: 'C', value: 'C' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
+        ]);
+      });
+
+      it('Should append static options to the query results when static order "after" is provided', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          staticOptions: [
+            { label: 'A', value: 'A' },
+            { label: 'B', value: 'B' },
+            { label: 'C', value: 'C' },
+          ],
+          staticOptionsOrder: 'after',
         });
 
-        await Promise.resolve();
+        await lastValueFrom(variable.validateAndUpdate());
 
-        expect(runRequestMock).toBeCalledTimes(1);
-      });
-    });
-  });
-
-  describe('When ds is null', () => {
-    beforeEach(() => {
-      setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
-    });
-
-    it('should get options for default ds', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: null,
-        query: 'query',
-        regex: '/^A/',
-      });
-
-      await lastValueFrom(variable.validateAndUpdate());
-
-      expect(runRequestMock).toBeCalledTimes(1);
-    });
-  });
-
-  describe('When regex provided', () => {
-    beforeEach(() => {
-      setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
-    });
-
-    it('should return options that match regex', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
-        regex: '/^val1/',
-      });
-
-      await lastValueFrom(variable.validateAndUpdate());
-
-      expect(variable.state.options).toEqual([
-        { label: 'val1', value: 'val1' },
-        { label: 'val11', value: 'val11' },
-      ]);
-    });
-  });
-
-  describe('When sort is provided', () => {
-    beforeEach(() => {
-      setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
-    });
-
-    it('should return options order by natural sort Desc', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
-        sort: 8,
-      });
-
-      await lastValueFrom(variable.validateAndUpdate());
-
-      expect(variable.state.options).toEqual([
-        { label: 'val11', value: 'val11' },
-        { label: 'val2', value: 'val2' },
-        { label: 'val1', value: 'val1' },
-      ]);
-    });
-
-    it('should return options order by natural sort Asc', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
-        sort: 7,
-      });
-
-      await lastValueFrom(variable.validateAndUpdate());
-
-      expect(variable.state.options).toEqual([
-        { label: 'val1', value: 'val1' },
-        { label: 'val2', value: 'val2' },
-        { label: 'val11', value: 'val11' },
-      ]);
-    });
-
-    it('should return options order by alphabeticalAsc', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
-        sort: 1,
-      });
-
-      await lastValueFrom(variable.validateAndUpdate());
-
-      expect(variable.state.options).toEqual([
-        { label: 'val1', value: 'val1' },
-        { label: 'val11', value: 'val11' },
-        { label: 'val2', value: 'val2' },
-      ]);
-    });
-  });
-
-  describe('Query with __searchFilter', () => {
-    beforeEach(() => {
-      runRequestMock.mockClear();
-      setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
-    });
-
-    it('Should trigger new query and show new options', async () => {
-      const variable = new QueryVariable({
-        name: 'server',
-        datasource: null,
-        query: 'A.$__searchFilter',
-      });
-
-      const scene = new EmbeddedScene({
-        $variables: new SceneVariableSet({ variables: [variable] }),
-        controls: [new VariableValueSelectors({})],
-        body: new SceneCanvasText({ text: 'hello' }),
-      });
-
-      render(<scene.Component model={scene} />);
-
-      await act(() => new Promise((r) => setTimeout(r, 10)));
-
-      const select = await screen.findByRole('combobox');
-
-      await userEvent.click(select);
-      await userEvent.type(select, 'muu!');
-
-      // wait for debounce
-      await act(() => new Promise((r) => setTimeout(r, 500)));
-
-      expect(runRequestMock).toBeCalledTimes(2);
-      expect(runRequestMock.mock.calls[1][1].scopedVars.__searchFilter.value).toEqual('muu!');
-    });
-
-    it('Should not trigger new query whern __searchFilter is not present', async () => {
-      const variable = new QueryVariable({
-        name: 'server',
-        datasource: null,
-        query: 'A.*',
-      });
-
-      const scene = new EmbeddedScene({
-        $variables: new SceneVariableSet({ variables: [variable] }),
-        controls: [new VariableValueSelectors({})],
-        body: new SceneCanvasText({ text: 'hello' }),
-      });
-
-      render(<scene.Component model={scene} />);
-
-      await act(() => new Promise((r) => setTimeout(r, 10)));
-
-      const select = await screen.findByRole('combobox');
-      await userEvent.click(select);
-      await userEvent.type(select, 'muu!');
-
-      // wait for debounce
-      await new Promise((r) => setTimeout(r, 500));
-
-      expect(runRequestMock).toBeCalledTimes(1);
-    });
-  });
-
-  describe('When static options are provided', () => {
-    it('Should prepend static options to the query results when no static options order is provided', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
-        staticOptions: [
+        expect(variable.state.options).toEqual([
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
           { label: 'A', value: 'A' },
           { label: 'B', value: 'B' },
           { label: 'C', value: 'C' },
-        ],
+        ]);
       });
 
-      await lastValueFrom(variable.validateAndUpdate());
+      it('Should sort static options and query results when static order "sorted" is provided', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          sort: VariableSort.alphabeticalAsc,
+          staticOptions: [
+            { label: 'A', value: 'A' },
+            { label: 'B', value: 'B' },
+            { label: 'val12', value: 'val12' },
+          ],
+          staticOptionsOrder: 'sorted',
+        });
 
-      expect(variable.state.options).toEqual([
-        { label: 'A', value: 'A' },
-        { label: 'B', value: 'B' },
-        { label: 'C', value: 'C' },
-        { label: 'val1', value: 'val1' },
-        { label: 'val2', value: 'val2' },
-        { label: 'val11', value: 'val11' },
-      ]);
-    });
+        await lastValueFrom(variable.validateAndUpdate());
 
-    it('Should prepend static options to the query results when static order "before" is provided"', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
-        staticOptions: [
+        expect(variable.state.options).toEqual([
           { label: 'A', value: 'A' },
           { label: 'B', value: 'B' },
-          { label: 'C', value: 'C' },
-        ],
-        staticOptionsOrder: 'before',
-      });
-
-      await lastValueFrom(variable.validateAndUpdate());
-
-      expect(variable.state.options).toEqual([
-        { label: 'A', value: 'A' },
-        { label: 'B', value: 'B' },
-        { label: 'C', value: 'C' },
-        { label: 'val1', value: 'val1' },
-        { label: 'val2', value: 'val2' },
-        { label: 'val11', value: 'val11' },
-      ]);
-    });
-
-    it('Should append static options to the query results when static order "after" is provided', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
-        staticOptions: [
-          { label: 'A', value: 'A' },
-          { label: 'B', value: 'B' },
-          { label: 'C', value: 'C' },
-        ],
-        staticOptionsOrder: 'after',
-      });
-
-      await lastValueFrom(variable.validateAndUpdate());
-
-      expect(variable.state.options).toEqual([
-        { label: 'val1', value: 'val1' },
-        { label: 'val2', value: 'val2' },
-        { label: 'val11', value: 'val11' },
-        { label: 'A', value: 'A' },
-        { label: 'B', value: 'B' },
-        { label: 'C', value: 'C' },
-      ]);
-    });
-
-    it('Should sort static options and query results when static order "sorted" is provided', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
-        sort: VariableSort.alphabeticalAsc,
-        staticOptions: [
-          { label: 'A', value: 'A' },
-          { label: 'B', value: 'B' },
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val11', value: 'val11', properties: { text: 'val11' } },
           { label: 'val12', value: 'val12' },
-        ],
-        staticOptionsOrder: 'sorted',
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+        ]);
       });
 
-      await lastValueFrom(variable.validateAndUpdate());
+      it('Should deduplicate options if both query results and static options have the same value, preferring static option', async () => {
+        const variable = new QueryVariable({
+          name: 'test',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+          staticOptions: [
+            { label: 'A', value: 'A' },
+            { label: 'val3', value: 'val11' },
+          ],
+        });
 
-      expect(variable.state.options).toEqual([
-        { label: 'A', value: 'A' },
-        { label: 'B', value: 'B' },
-        { label: 'val1', value: 'val1' },
-        { label: 'val11', value: 'val11' },
-        { label: 'val12', value: 'val12' },
-        { label: 'val2', value: 'val2' },
-      ]);
-    });
+        await lastValueFrom(variable.validateAndUpdate());
 
-    it('Should deduplicate options if both query results and static options have the same value, preferring static option', async () => {
-      const variable = new QueryVariable({
-        name: 'test',
-        datasource: { uid: 'fake-std', type: 'fake-std' },
-        query: 'query',
-        staticOptions: [
+        expect(variable.state.options).toEqual([
           { label: 'A', value: 'A' },
           { label: 'val3', value: 'val11' },
-        ],
+          { label: 'val1', value: 'val1', properties: { text: 'val1' } },
+          { label: 'val2', value: 'val2', properties: { text: 'val2' } },
+        ]);
       });
-
-      await lastValueFrom(variable.validateAndUpdate());
-
-      expect(variable.state.options).toEqual([
-        { label: 'A', value: 'A' },
-        { label: 'val3', value: 'val11' },
-        { label: 'val1', value: 'val1' },
-        { label: 'val2', value: 'val2' },
-      ]);
     });
   });
 });

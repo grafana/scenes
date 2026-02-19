@@ -33,12 +33,21 @@
         "collapse-row": "行を折りたたむ",
         "expand-row": "行を展開"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "キャンセル",
+        "text-refresh": "更新",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "比較",
         "button-tooltip": "時間枠比較を有効にする"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "ペインリサイズウィジェット"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {
@@ -102,6 +111,7 @@
             "format-date-in-different-ways": "日付を様々な形式でフォーマット",
             "format-multivalued-variables-using-syntax-example": "glob構文を使用して複数値変数をフォーマット（例: {value1,value2}）",
             "html-escaping-of-values": "値のHTMLエスケープ",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "JSON文字列化値",
             "keep-value-as-is": "値をそのまま保持",
             "multiple-values-are-formatted-like-variablevalue": "複数の値は変数=値の形式でフォーマットされます",

@@ -33,12 +33,21 @@
         "collapse-row": "Ciutkan baris",
         "expand-row": "Perbesar baris"
       },
+      "scene-refresh-picker": {
+        "text-cancel": "Batalkan",
+        "text-refresh": "Muat ulang",
+        "tooltip-cancel": ""
+      },
       "scene-time-range-compare-renderer": {
         "button-label": "Perbandingan",
         "button-tooltip": "Aktifkan perbandingan kerangka waktu"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Widget pengubah ukuran panel"
+      },
+      "time-picker": {
+        "move-backward-tooltip": "",
+        "move-forward-tooltip": ""
       },
       "viz-panel": {
         "title": {
@@ -102,6 +111,7 @@
             "format-date-in-different-ways": "Format tanggal dengan berbagai cara yang berbeda",
             "format-multivalued-variables-using-syntax-example": "Format variabel multi-nilai menggunakan sintaks glob, contoh {value1, value2}",
             "html-escaping-of-values": "Nilai HTML escaping",
+            "join-values-with-a-comma": "",
             "json-stringify-value": "Nilai stringify JSON",
             "keep-value-as-is": "Pertahankan nilai apa adanya",
             "multiple-values-are-formatted-like-variablevalue": "Beberapa nilai diformat seperti variabel=nilai",

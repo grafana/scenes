@@ -368,10 +368,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   private toGridCell(child: SceneGridItemLike): ReactGridLayout.Layout {
     const size = child.state;
 
-    let x = size.x ?? 0;
-    let y = size.y ?? 0;
-    const w = Number.isInteger(Number(size.width)) ? Number(size.width) : DEFAULT_PANEL_SPAN;
-    const h = Number.isInteger(Number(size.height)) ? Number(size.height) : DEFAULT_PANEL_SPAN;
+    let x = Number.isFinite(Number(size.x)) ? Number(size.x) : 0;
+    let y = Number.isFinite(Number(size.y)) ? Number(size.y) : 0;
+    const w = Number.isFinite(Number(size.width)) ? Number(size.width) : DEFAULT_PANEL_SPAN;
+    const h = Number.isFinite(Number(size.height)) ? Number(size.height) : DEFAULT_PANEL_SPAN;
 
     let isDraggable = child.state.isDraggable;
     let isResizable = child.state.isResizable;

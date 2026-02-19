@@ -38,6 +38,7 @@ import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
+import { VizPanelRenderProfiler } from '../../performance/VizPanelRenderProfiler';
 import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
@@ -63,6 +64,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Offset hoverHeader position on the y axis
    */
   hoverHeaderOffset?: number;
+  /**
+   * Allows adding elements to the subheader of the panel.
+   */
+  subHeader?: React.ReactNode | SceneObject | SceneObject[];
   /**
    * Only shows vizPanelMenu on hover if false, otherwise the menu is always visible in the header
    */
@@ -141,6 +146,23 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     });
   }
 
+  /**
+   * Get the VizPanelRenderProfiler behavior if attached
+   */
+  public getProfiler(): VizPanelRenderProfiler | undefined {
+    if (!this.state.$behaviors) {
+      return undefined;
+    }
+
+    for (const behavior of this.state.$behaviors) {
+      if (behavior instanceof VizPanelRenderProfiler) {
+        return behavior;
+      }
+    }
+
+    return undefined;
+  }
+
   private _onActivate() {
     if (!this._plugin) {
       this._loadPlugin(this.state.pluginId);
@@ -158,14 +180,21 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     overwriteFieldConfig?: FieldConfigSource,
     isAfterPluginChange?: boolean
   ) {
+    const profiler = this.getProfiler();
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
+      // Plugin was loaded from cache
+      const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
+      endPluginLoadCallback?.(plugin, true);
       this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
     } else {
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
+        // Start profiling plugin load - get end callback
+        const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
+
         const panelPromise = importPanelPlugin(pluginId);
 
         const queryControler = sceneGraph.getQueryController(this);
@@ -176,6 +205,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         }
 
         const result = await panelPromise;
+
+        // End profiling plugin load (not from cache)
+        endPluginLoadCallback?.(result, false);
+
         this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
@@ -458,7 +491,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
    * Called from the react render path to apply the field config to the data provided by the data provider
    */
   public applyFieldConfig(rawData?: PanelData): PanelData {
+    const timestamp = performance.now();
     const plugin = this._plugin;
+
+    const profiler = this.getProfiler();
 
     if (!plugin || plugin.meta.skipDataQuery || !rawData) {
       // TODO setup time range subscription instead
@@ -469,6 +505,9 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     if (this._prevData === rawData && this._dataWithFieldConfig) {
       return this._dataWithFieldConfig;
     }
+
+    // Start profiling data processing - get end callback
+    const endFieldConfigCallback = profiler?.onFieldConfigStart(timestamp);
 
     const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
 
@@ -518,6 +557,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
 
     this._prevData = rawData;
+
+    // End profiling data processing
+    if (profiler) {
+      endFieldConfigCallback?.(performance.now());
+    }
+
     return this._dataWithFieldConfig;
   }
 

@@ -1,8 +1,8 @@
 import { lastValueFrom } from 'rxjs';
 
-import { CustomVariable } from './CustomVariable';
 import { TestScene } from '../TestScene';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
+import { CustomVariable } from './CustomVariable';
 
 describe('CustomVariable', () => {
   describe('When empty query is provided', () => {
@@ -278,6 +278,134 @@ label-3 : value-3,`,
 
       expect(A.state.value).toBe('value1');
       expect(B.state.options[2].value).toBe('value1');
+    });
+
+    it('Should expose the interpolated options when flag is true', () => {
+      const A = new CustomVariable({
+        name: 'A',
+        options: [],
+        query: 'value1,value2',
+        value: '',
+        text: '',
+      });
+      const B = new CustomVariable({
+        name: 'B',
+        options: [],
+        query: '1,2,$A',
+        value: '',
+        text: '',
+      });
+
+      const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A, B] }) });
+      scene.activate();
+
+      expect(B.transformCsvStringToOptions(B.state.query)).toEqual([
+        { label: '1', value: '1' },
+        { label: '2', value: '2' },
+        { label: 'value1', value: 'value1' },
+      ]);
+    });
+
+    it('Should not expose the interpolated options when flag is false', () => {
+      const A = new CustomVariable({
+        name: 'A',
+        options: [],
+        query: 'value1,value2',
+        value: '',
+        text: '',
+      });
+      const B = new CustomVariable({
+        name: 'B',
+        options: [],
+        query: '1,2,$A',
+        value: '',
+        text: '',
+      });
+
+      const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A, B] }) });
+      scene.activate();
+
+      expect(B.transformCsvStringToOptions(B.state.query, false)).toEqual([
+        { label: '1', value: '1' },
+        { label: '2', value: '2' },
+        { label: '$A', value: '$A' },
+      ]);
+    });
+  });
+
+  describe('JSON values format', () => {
+    describe('When empty query is provided', () => {
+      it('Should default to empty options', async () => {
+        const variable = new CustomVariable({
+          name: 'test',
+          options: [],
+          value: '',
+          text: '',
+          valuesFormat: 'json',
+          query: '',
+        });
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        expect(variable.state.value).toEqual('');
+        expect(variable.state.text).toEqual('');
+        expect(variable.state.options).toEqual([]);
+      });
+    });
+
+    it('Should generate correctly the options for an array of objects', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        isMulti: false,
+        valuesFormat: 'json',
+        query: `
+[
+  { "value": "test", "text": "Test", "location": "US" },
+  { "value": "prod", "text": "Prod", "location": "EU" }
+]
+        `,
+        value: 'prod',
+        text: 'Prod',
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.options).toEqual([
+        { value: 'test', label: 'Test', properties: { value: 'test', text: 'Test', location: 'US' } },
+        { value: 'prod', label: 'Prod', properties: { value: 'prod', text: 'Prod', location: 'EU' } },
+      ]);
+      expect(variable.getValue()).toEqual('prod');
+      expect(variable.getValue('location')).toEqual('EU');
+    });
+
+    it('Should throw when query is not valid JSON', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        valuesFormat: 'json',
+        query: `]]]]{ "value": "test", "location": "US" }]`,
+      });
+
+      expect(() => variable.validateAndUpdate()).toThrow("Unexpected token ']'");
+    });
+
+    it('Should throw when query is not an array', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        valuesFormat: 'json',
+        query: `{ "value": "test", "location": "US" }`,
+      });
+
+      expect(() => variable.validateAndUpdate()).toThrow('Query must be a JSON array of objects');
+    });
+
+    it('Should throw if query is not an array of objects', async () => {
+      const variable = new CustomVariable({
+        name: 'test',
+        valuesFormat: 'json',
+        query: `[{ "value": "test", "location": "US" }, 2, { "value": "prod", "location": "EU" }]`,
+      });
+
+      expect(() => variable.validateAndUpdate()).toThrow('Query must be a JSON array of objects');
     });
   });
 });

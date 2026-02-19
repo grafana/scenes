@@ -9,7 +9,7 @@ import { ALL_VARIABLE_VALUE } from '../constants';
 import { SceneObjectUrlSyncHandler } from '../../core/types';
 
 export interface FormatRegistryItem extends RegistryItem {
-  formatter(value: VariableValue, args: string[], variable: FormatVariable): string;
+  formatter(value: VariableValue, args: string[], variable: FormatVariable, fieldPath?: string): string;
 }
 
 /**
@@ -251,7 +251,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
     {
       id: 'join', // join not yet available in depended @grafana/schema version
       name: 'Join',
-      description: 'Join values with a comma',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.join-values-with-a-comma',
+        'Join values with a comma'
+      ),
       formatter: (value, args) => {
         if (isArray(value)) {
           const separator = args[0] ?? ',';
@@ -314,11 +317,10 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       id: VariableFormatID.Text,
       name: 'Text',
       description: 'Format variables in their text representation. Example in multi-variable scenario A + B + C.',
-      formatter: (value, _args, variable) => {
+      formatter: (value, _args, variable, fieldPath) => {
         if (variable.getValueText) {
-          return variable.getValueText();
+          return variable.getValueText(fieldPath);
         }
-
         return String(value);
       },
     },
@@ -327,8 +329,8 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       name: 'Query parameter',
       description:
         'Format variables as URL parameters. Example in multi-variable scenario A + B + C => var-foo=A&var-foo=B&var-foo=C.',
-      formatter: (value, _args, variable) => {
-        if (variable.urlSync) {
+      formatter: (value, _args, variable, fieldPath) => {
+        if (variable.urlSync && !fieldPath) {
           const urlParam = variable.urlSync.getUrlState();
           return urlUtil.toUrlParams(urlParam);
         }
