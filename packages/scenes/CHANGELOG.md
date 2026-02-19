@@ -1,3 +1,46 @@
+# v6.55.0 (Thu Feb 19 2026)
+
+#### 🚀 Enhancement
+
+- GroupByVariable: Use new DS API method [#1358](https://github.com/grafana/scenes/pull/1358) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.54.1 (Thu Feb 19 2026)
+
+#### 🐛 Bug Fix
+
+- Get datasource from queries if not on panel in `getQueriesForVariables` [#1352](https://github.com/grafana/scenes/pull/1352) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.54.0 (Wed Feb 18 2026)
+
+#### 🚀 Enhancement
+
+- scenes react: ad hoc filters, groupby, localvalue [#1353](https://github.com/grafana/scenes/pull/1353) ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+#### 🐛 Bug Fix
+
+- chore!: update peer dependencies of scenes packages [#1213](https://github.com/grafana/scenes/pull/1213) ([@NWRichmond](https://github.com/NWRichmond))
+- chore: Remove output noise when launching unit tests [#1346](https://github.com/grafana/scenes/pull/1346) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 3
+
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+- Marc M. ([@grafakus](https://github.com/grafakus))
+- Nick Richmond ([@NWRichmond](https://github.com/NWRichmond))
+
+---
+
 # v6.53.0 (Tue Feb 17 2026)
 
 #### 🚀 Enhancement

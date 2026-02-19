@@ -1,3 +1,20 @@
+# v6.54.0 (Wed Feb 18 2026)
+
+#### 🚀 Enhancement
+
+- scenes react: ad hoc filters, groupby, localvalue [#1353](https://github.com/grafana/scenes/pull/1353) ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+#### 🐛 Bug Fix
+
+- chore!: update peer dependencies of scenes packages [#1213](https://github.com/grafana/scenes/pull/1213) ([@NWRichmond](https://github.com/NWRichmond))
+
+#### Authors: 2
+
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+- Nick Richmond ([@NWRichmond](https://github.com/NWRichmond))
+
+---
+
 # v6.52.15 (Wed Feb 11 2026)
 
 #### 🐛 Bug Fix

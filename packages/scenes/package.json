@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes",
-  "version": "6.53.0",
+  "version": "6.55.0",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "Apache-2.0",
@@ -48,12 +48,12 @@
     "uuid": "^9.0.0"
   },
   "peerDependencies": {
-    "@grafana/data": ">=10.4",
-    "@grafana/e2e-selectors": ">=10.4",
+    "@grafana/data": ">=11.6",
+    "@grafana/e2e-selectors": ">=11.6",
     "@grafana/i18n": "*",
-    "@grafana/runtime": ">=10.4",
-    "@grafana/schema": ">=10.4",
-    "@grafana/ui": ">=10.4",
+    "@grafana/runtime": ">=11.6",
+    "@grafana/schema": ">=11.6",
+    "@grafana/ui": ">=11.6",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.28.0"

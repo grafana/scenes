@@ -5,6 +5,16 @@ import { TestVariable } from '../variants/TestVariable';
 import { formatRegistry } from './formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  getTemplateSrv: () => ({
+    getAdhocFilters: jest.fn().mockReturnValue([]),
+  }),
+  getDataSourceSrv: () => ({
+    getInstanceSettings: jest.fn(),
+  }),
+}));
+
 function formatValue<T extends VariableValue>(
   formatId: VariableFormatID,
   value: T,
