@@ -246,6 +246,77 @@ describe('getQueriesForVariables', () => {
     source.activate();
     expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }]);
   });
+
+  it('should resolve queries when runner has no datasource but queries have matching datasources', () => {
+    // This handles the case where panel-level datasource is not set but individual queries have datasources
+    // (e.g., in v2 schema dashboards where non-mixed panels don't have panel.datasource)
+    const runner1 = new SceneQueryRunner({
+      // No datasource at runner level
+      queries: [
+        { refId: 'A', datasource: { uid: 'test-uid' } },
+        { refId: 'B', datasource: { uid: 'test-uid' } },
+      ],
+    });
+
+    const runner2 = new SceneQueryRunner({
+      // No datasource at runner level
+      queries: [{ refId: 'C', datasource: { uid: 'other-uid' } }],
+    });
+
+    const source = new TestObject({ datasource: { uid: 'test-uid' } });
+    new EmbeddedScene({
+      $data: runner1,
+      body: new SceneFlexLayout({
+        children: [
+          new SceneFlexItem({
+            $data: runner2,
+            body: source,
+          }),
+        ],
+      }),
+    });
+
+    runner1.activate();
+    runner2.activate();
+    source.activate();
+
+    // Should include queries from runner1 (has matching query datasources) but not runner2 (different datasource)
+    expect(getQueriesForVariables(source)).toEqual([
+      { refId: 'A', datasource: { uid: 'test-uid' } },
+      { refId: 'B', datasource: { uid: 'test-uid' } },
+    ]);
+  });
+
+  it('should resolve queries from mixed runners - some with datasource, some without', () => {
+    const runner1 = new SceneQueryRunner({
+      datasource: { uid: 'test-uid' },
+      queries: [{ refId: 'A' }],
+    });
+
+    const runner2 = new SceneQueryRunner({
+      // No datasource at runner level, but query has matching datasource
+      queries: [{ refId: 'B', datasource: { uid: 'test-uid' } }],
+    });
+
+    const source = new TestObject({ datasource: { uid: 'test-uid' } });
+    new EmbeddedScene({
+      $data: runner1,
+      body: new SceneFlexLayout({
+        children: [
+          new SceneFlexItem({
+            $data: runner2,
+            body: source,
+          }),
+        ],
+      }),
+    });
+
+    runner1.activate();
+    runner2.activate();
+    source.activate();
+
+    expect(getQueriesForVariables(source)).toEqual([{ refId: 'A' }, { refId: 'B', datasource: { uid: 'test-uid' } }]);
+  });
 });
 
 describe('getQueriesForVariables', () => {
