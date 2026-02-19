@@ -342,16 +342,18 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds.getGroupByKeys) {
+    if (!ds.getGroupByKeys && !ds.getTagKeys) {
       return [];
     }
+
+    const keyMethod = ds.getGroupByKeys || ds.getTagKeys;
 
     const queries = getQueriesForVariables(this);
 
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     // @ts-expect-error (temporary till we update grafana/data)
-    const response = await ds.getGroupByKeys({
+    const response = await keyMethod({
       filters: otherFilters,
       queries,
       timeRange,
