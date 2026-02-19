@@ -346,13 +346,13 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       return [];
     }
 
+    // @ts-expect-error (temporary till we update grafana/data)
     const keyMethod = ds.getGroupByKeys || ds.getTagKeys;
 
     const queries = getQueriesForVariables(this);
 
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    // @ts-expect-error (temporary till we update grafana/data)
     const response = await keyMethod({
       filters: otherFilters,
       queries,
