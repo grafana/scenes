@@ -419,14 +419,30 @@ export class AdHocFiltersVariable
     }
   }
 
+  private _resolveOriginFlags(
+    key: string,
+    origin: string,
+    values: string[],
+    operator: string,
+    singleValue: string
+  ): { restorable: boolean; matchAllFilter: boolean } {
+    const original = this._originalValues.get(`${key}-${origin}`);
+    const isMatchAll = operator === '=~' && singleValue === '.*';
+    const isRestorable = !isEqual(values, original?.value) || operator !== original?.operator;
+
+    return {
+      matchAllFilter: isMatchAll,
+      restorable: isRestorable,
+    };
+  }
+
   public validateOriginFilters(filters: AdHocFilterWithLabels[]): AdHocFilterWithLabels[] {
     return filters.map((filter) => {
       if (!filter.origin) {
         return filter;
       }
 
-      const originalValues = this._originalValues.get(`${filter.key}-${filter.origin}`);
-      if (!originalValues) {
+      if (!this._originalValues.has(`${filter.key}-${filter.origin}`)) {
         return filter;
       }
 
@@ -444,24 +460,8 @@ export class AdHocFiltersVariable
         };
       }
 
-      if (
-        (updateValues && !isEqual(updateValues, originalValues?.value)) ||
-        (filter.operator && filter.operator !== originalValues?.operator)
-      ) {
-        const matchAllFilter = filter.operator === '=~' && filter.value === '.*';
-        return { ...filter, restorable: true, matchAllFilter };
-      }
-
-      if (updateValues && isEqual(updateValues, originalValues?.value)) {
-        const matchAllFilter = filter.operator === '=~' && filter.value === '.*';
-        return { ...filter, restorable: false, matchAllFilter };
-      }
-
-      if (filter.operator !== '=~' || filter.value !== '.*') {
-        return { ...filter, matchAllFilter: false };
-      }
-
-      return filter;
+      const flags = this._resolveOriginFlags(filter.key, filter.origin, updateValues, filter.operator, filter.value);
+      return { ...filter, ...flags };
     });
   }
 
@@ -499,27 +499,24 @@ export class AdHocFiltersVariable
   }
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
-    const original: Partial<AdHocFilterWithLabels> = {
-      matchAllFilter: false,
-      restorable: false,
-    };
-
-    if (filter.restorable) {
-      const originalFilter = this._originalValues.get(`${filter.key}-${filter.origin}`);
-
-      if (!originalFilter) {
-        return;
-      }
-
-      original.value = originalFilter?.value[0];
-      original.values = originalFilter?.value;
-      original.valueLabels = originalFilter?.value;
-      original.operator = originalFilter?.operator;
-      original.nonApplicable = originalFilter?.nonApplicable;
-      const queryController = getQueryController(this);
-      queryController?.startProfile(FILTER_RESTORED_INTERACTION);
-      this._updateFilter(filter, original);
+    if (!filter.restorable) {
+      return;
     }
+
+    const originalFilter = this._originalValues.get(`${filter.key}-${filter.origin}`);
+    if (!originalFilter) {
+      return;
+    }
+
+    const queryController = getQueryController(this);
+    queryController?.startProfile(FILTER_RESTORED_INTERACTION);
+    this._updateFilter(filter, {
+      value: originalFilter.value[0],
+      values: originalFilter.value,
+      valueLabels: originalFilter.value,
+      operator: originalFilter.operator,
+      nonApplicable: originalFilter.nonApplicable,
+    });
   }
 
   /**
@@ -559,16 +556,19 @@ export class AdHocFiltersVariable
     const { originFilters, filters, _wip } = this.state;
 
     if (filter.origin) {
-      const originalValues = this._originalValues.get(`${filter.key}-${filter.origin}`);
       const updateValues = update.values || (update.value ? [update.value] : undefined);
 
-      if (
-        (updateValues && !isEqual(updateValues, originalValues?.value)) ||
-        (update.operator && update.operator !== originalValues?.operator)
-      ) {
-        update.restorable = true;
-      } else if (updateValues && isEqual(updateValues, originalValues?.value)) {
-        update.restorable = false;
+      if (updateValues) {
+        const effectiveOperator = update.operator ?? filter.operator;
+        const effectiveValue = update.value ?? filter.value;
+        const flags = this._resolveOriginFlags(
+          filter.key,
+          filter.origin,
+          updateValues,
+          effectiveOperator,
+          effectiveValue
+        );
+        Object.assign(update, flags);
       }
 
       const updatedFilters =
@@ -612,9 +612,7 @@ export class AdHocFiltersVariable
       value: '.*',
       values: ['.*'],
       valueLabels: ['All'],
-      matchAllFilter: true,
       nonApplicable: false,
-      restorable: true,
     });
   }
 
