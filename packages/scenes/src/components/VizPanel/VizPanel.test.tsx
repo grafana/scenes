@@ -837,27 +837,27 @@ describe('VizPanel', () => {
         overrides: [
           {
             matcher: {
-              id: "byName",
-              options: "color"
+              id: 'byName',
+              options: 'color',
             },
             properties: [
               {
-                id: "links",
+                id: 'links',
                 value: [
                   {
                     targetBlank: true,
-                    title: "Test2",
-                    url: "https://googole.com"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
+                    title: 'Test2',
+                    url: 'https://googole.com',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
       panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
         pluginId: 'custom-plugin-id',
-        fieldConfig
+        fieldConfig,
       });
       pluginToLoad = getTestPlugin1({ alertStates: true, annotations: true });
       panel.activate();
@@ -866,14 +866,14 @@ describe('VizPanel', () => {
       const testData = getTestData();
       // Why is the plugin stripping out the properties of the override if we do not manually set the fieldConfig state?
       panel.setState({
-        fieldConfig
-      })
+        fieldConfig,
+      });
       panel.applyFieldConfig(testData);
       // Once for fields, once for annotations.
       expect(spy).toHaveBeenCalledTimes(2);
-      expect(spy.mock.calls[0][0].fieldConfig.overrides).toEqual(fieldConfig.overrides)
-      expect(spy.mock.calls[1][0].fieldConfig.overrides).toEqual(fieldConfig.overrides)
-    })
+      expect(spy.mock.calls[0][0].fieldConfig.overrides).toEqual(fieldConfig.overrides);
+      expect(spy.mock.calls[1][0].fieldConfig.overrides).toEqual(fieldConfig.overrides);
+    });
 
     it('should not add fieldConfig to annotations, and keep annotations config', async () => {
       panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
