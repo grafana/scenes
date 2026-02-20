@@ -25,7 +25,7 @@ import { SceneObjectRef } from './SceneObjectRef';
 export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObjectState>
   implements SceneObject<TState>
 {
-  public static RENDER_BEFORE_ACTIVATION_DEFAULT = false;
+  public static RENDER_BEFORE_ACTIVATION_DEFAULT = true;
 
   private _isActive = false;
   private _state: TState;

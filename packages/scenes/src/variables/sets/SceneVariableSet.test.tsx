@@ -196,16 +196,16 @@ describe('SceneVariableList', () => {
         });
 
         expect(screen.getByText('AA - AAA')).toBeInTheDocument();
-        expect((helloText as any).renderCount).toBe(1);
-        expect((sceneObjectWithVariable as any).renderCount).toBe(2);
+        expect((helloText as any).renderCount).toBe(2);
+        expect((sceneObjectWithVariable as any).renderCount).toBe(3);
 
         act(() => {
           B.changeValueTo('B');
         });
 
         expect(screen.getByText('AA - B')).toBeInTheDocument();
-        expect((helloText as any).renderCount).toBe(1);
-        expect((sceneObjectWithVariable as any).renderCount).toBe(3);
+        expect((helloText as any).renderCount).toBe(2);
+        expect((sceneObjectWithVariable as any).renderCount).toBe(4);
       });
     });
   });
@@ -647,7 +647,7 @@ describe('SceneVariableList', () => {
       expect(innerSet.isVariableLoadingOrWaitingToUpdate(scopedA)).toBe(false);
     });
 
-    it('Should ignore isActivate state', async () => {
+    it('Should check isActivate state', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
       const set = new SceneVariableSet({ variables: [A] });
       const deactivate = set.activate();
@@ -658,7 +658,7 @@ describe('SceneVariableList', () => {
 
       deactivate();
 
-      expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(false);
+      expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(true);
     });
   });
 
