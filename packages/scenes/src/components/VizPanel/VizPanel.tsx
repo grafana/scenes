@@ -1,23 +1,22 @@
 import { t } from '@grafana/i18n';
 import {
   AbsoluteTimeRange,
-  applyFieldOverrides,
-  compareArrayValues,
-  compareDataFrameStructures,
-  CoreApp,
-  DashboardCursorSync,
-  DataTopic,
   FieldConfigSource,
-  getPanelOptionsWithDefaults,
-  InterpolateFunction,
-  PanelData,
   PanelModel,
   PanelPlugin,
-  PanelPluginDataSupport,
+  toUtc,
+  getPanelOptionsWithDefaults,
+  ScopedVars,
+  InterpolateFunction,
+  CoreApp,
+  DashboardCursorSync,
+  PanelData,
+  compareArrayValues,
+  compareDataFrameStructures,
+  applyFieldOverrides,
   PluginType,
   renderMarkdown,
-  ScopedVars,
-  toUtc,
+  PanelPluginDataSupport, DataTopic,
 } from '@grafana/data';
 import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@grafana/ui';
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
@@ -115,12 +114,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   VizPanelState<TOptions, TFieldConfig>
 > {
   public static Component = VizPanelRenderer;
-  public interpolate = ((value: string, scoped?: ScopedVars, format?: string | VariableCustomFormatterFn) => {
-    return sceneGraph.interpolate(this, value, scoped, format);
-  }) as InterpolateFunction;
+
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['title', 'options', 'fieldConfig'],
   });
+
   // Not part of state as this is not serializable
   protected _panelContext?: PanelContext;
   private _plugin?: PanelPlugin;
@@ -164,9 +162,61 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return undefined;
   }
 
+  private _onActivate() {
+    if (!this._plugin) {
+      this._loadPlugin(this.state.pluginId);
+    }
+  }
+
   public forceRender(): void {
     // Incrementing the render counter means VizRepeater and its children will also re-render
     this.setState({ _renderCounter: (this.state._renderCounter ?? 0) + 1 });
+  }
+
+  private async _loadPlugin(
+    pluginId: string,
+    overwriteOptions?: DeepPartial<{}>,
+    overwriteFieldConfig?: FieldConfigSource,
+    isAfterPluginChange?: boolean
+  ) {
+    const profiler = this.getProfiler();
+    const plugin = loadPanelPluginSync(pluginId);
+
+    if (plugin) {
+      // Plugin was loaded from cache
+      const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
+      endPluginLoadCallback?.(plugin, true);
+      this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
+    } else {
+      const { importPanelPlugin } = getPluginImportUtils();
+
+      try {
+        // Start profiling plugin load - get end callback
+        const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
+
+        const panelPromise = importPanelPlugin(pluginId);
+
+        const queryControler = sceneGraph.getQueryController(this);
+        if (queryControler && queryControler.state.enableProfiling) {
+          wrapPromiseInStateObservable(panelPromise)
+            .pipe(registerQueryWithController({ type: `VizPanel/loadPlugin/${pluginId}`, origin: this }))
+            .subscribe(() => {});
+        }
+
+        const result = await panelPromise;
+
+        // End profiling plugin load (not from cache)
+        endPluginLoadCallback?.(result, false);
+
+        this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
+      } catch (err: unknown) {
+        this._pluginLoaded(getPanelPluginNotFound(pluginId));
+
+        if (err instanceof Error) {
+          this.setState({ _pluginLoadError: err.message });
+        }
+      }
+    }
   }
 
   public getLegacyPanelId() {
@@ -195,6 +245,87 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
    */
   public getPathId() {
     return buildPathIdFor(this);
+  }
+
+  private async _pluginLoaded(
+    plugin: PanelPlugin,
+    overwriteOptions?: DeepPartial<{}>,
+    overwriteFieldConfig?: FieldConfigSource,
+    isAfterPluginChange?: boolean
+  ) {
+    const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
+
+    const panel: PanelModel = {
+      title,
+      options,
+      fieldConfig,
+      id: this.getLegacyPanelId(),
+      type: plugin.meta.id,
+      pluginVersion: pluginVersion,
+    };
+
+    if (overwriteOptions) {
+      panel.options = overwriteOptions;
+    }
+
+    if (overwriteFieldConfig) {
+      panel.fieldConfig = overwriteFieldConfig;
+    }
+
+    const currentVersion = this._getPluginVersion(plugin);
+
+    _UNSAFE_customMigrationHandler?.(panel, plugin);
+
+    //@ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/108998)
+    const needsMigration = currentVersion !== pluginVersion || plugin.shouldMigrate?.(panel);
+
+    if (plugin.onPanelMigration && needsMigration && !isAfterPluginChange) {
+      // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
+      panel.options = await plugin.onPanelMigration(panel);
+    }
+
+    // Some panels mutate the transformations on the panel as part of migrations.
+    // Unfortunately, these mutations are not available until the panel plugin is loaded.
+    // At this time, the data provider is already set, so this is the easiest way to fix it.
+    let $data = this.state.$data;
+    if (panel.transformations && $data) {
+      if ($data instanceof SceneDataTransformer) {
+        $data.setState({ transformations: panel.transformations });
+      } else if ($data instanceof SceneQueryRunner) {
+        $data.clearParent();
+        $data = new SceneDataTransformer({
+          transformations: panel.transformations,
+          $data,
+        });
+      }
+    }
+
+    const withDefaults = getPanelOptionsWithDefaults({
+      plugin,
+      currentOptions: panel.options,
+      currentFieldConfig: panel.fieldConfig,
+      isAfterPluginChange: isAfterPluginChange ?? false,
+    });
+
+    this._plugin = plugin;
+
+    this.setState({
+      $data,
+      options: withDefaults.options as DeepPartial<TOptions>,
+      fieldConfig: withDefaults.fieldConfig,
+      pluginVersion: currentVersion,
+      pluginId: plugin.meta.id,
+    });
+
+    // Non data panels needs to be re-rendered when time range change
+    if (plugin.meta.skipDataQuery) {
+      const sceneTimeRange = sceneGraph.getTimeRange(this);
+      this._subs.add(sceneTimeRange.subscribeToState(() => this.forceRender()));
+    }
+  }
+
+  private _getPluginVersion(plugin: PanelPlugin): string {
+    return plugin && plugin.meta.info.version ? plugin.meta.info.version : config.buildInfo.version;
   }
 
   public getPlugin(): PanelPlugin | undefined {
@@ -336,6 +467,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this.setState({ fieldConfig: withDefaults.fieldConfig });
   };
 
+  public interpolate = ((value: string, scoped?: ScopedVars, format?: string | VariableCustomFormatterFn) => {
+    return sceneGraph.interpolate(this, value, scoped, format);
+  }) as InterpolateFunction;
+
   public getDescription = () => {
     this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-description-shown' }), true);
 
@@ -407,8 +542,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         replaceVariables: this.interpolate,
         theme: config.theme2,
         timeZone: rawData.request?.timezone,
-        // @ts-expect-error added in g13
-        dataTopic: DataTopic.Annotations,
       });
     }
 
@@ -439,144 +572,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   public onStatusMessageClick = () => {
     this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-status-message-clicked' }), true);
   };
-
-  public clone(withState?: Partial<VizPanelState>) {
-    // Clear _pluginInstanceState and _pluginLoadError as it's not safe to clone
-    return super.clone({ _pluginInstanceState: undefined, _pluginLoadError: undefined, ...withState });
-  }
-
-  private _onActivate() {
-    if (!this._plugin) {
-      this._loadPlugin(this.state.pluginId);
-    }
-  }
-
-  private async _loadPlugin(
-    pluginId: string,
-    overwriteOptions?: DeepPartial<{}>,
-    overwriteFieldConfig?: FieldConfigSource,
-    isAfterPluginChange?: boolean
-  ) {
-    const profiler = this.getProfiler();
-    const plugin = loadPanelPluginSync(pluginId);
-
-    if (plugin) {
-      // Plugin was loaded from cache
-      const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
-      endPluginLoadCallback?.(plugin, true);
-      this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
-    } else {
-      const { importPanelPlugin } = getPluginImportUtils();
-
-      try {
-        // Start profiling plugin load - get end callback
-        const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
-
-        const panelPromise = importPanelPlugin(pluginId);
-
-        const queryControler = sceneGraph.getQueryController(this);
-        if (queryControler && queryControler.state.enableProfiling) {
-          wrapPromiseInStateObservable(panelPromise)
-            .pipe(registerQueryWithController({ type: `VizPanel/loadPlugin/${pluginId}`, origin: this }))
-            .subscribe(() => {});
-        }
-
-        const result = await panelPromise;
-
-        // End profiling plugin load (not from cache)
-        endPluginLoadCallback?.(result, false);
-
-        this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
-      } catch (err: unknown) {
-        this._pluginLoaded(getPanelPluginNotFound(pluginId));
-
-        if (err instanceof Error) {
-          this.setState({ _pluginLoadError: err.message });
-        }
-      }
-    }
-  }
-
-  private async _pluginLoaded(
-    plugin: PanelPlugin,
-    overwriteOptions?: DeepPartial<{}>,
-    overwriteFieldConfig?: FieldConfigSource,
-    isAfterPluginChange?: boolean
-  ) {
-    const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
-
-    const panel: PanelModel = {
-      title,
-      options,
-      fieldConfig,
-      id: this.getLegacyPanelId(),
-      type: plugin.meta.id,
-      pluginVersion: pluginVersion,
-    };
-
-    if (overwriteOptions) {
-      panel.options = overwriteOptions;
-    }
-
-    if (overwriteFieldConfig) {
-      panel.fieldConfig = overwriteFieldConfig;
-    }
-
-    const currentVersion = this._getPluginVersion(plugin);
-
-    _UNSAFE_customMigrationHandler?.(panel, plugin);
-
-    //@ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/108998)
-    const needsMigration = currentVersion !== pluginVersion || plugin.shouldMigrate?.(panel);
-
-    if (plugin.onPanelMigration && needsMigration && !isAfterPluginChange) {
-      // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
-      panel.options = await plugin.onPanelMigration(panel);
-    }
-
-    // Some panels mutate the transformations on the panel as part of migrations.
-    // Unfortunately, these mutations are not available until the panel plugin is loaded.
-    // At this time, the data provider is already set, so this is the easiest way to fix it.
-    let $data = this.state.$data;
-    if (panel.transformations && $data) {
-      if ($data instanceof SceneDataTransformer) {
-        $data.setState({ transformations: panel.transformations });
-      } else if ($data instanceof SceneQueryRunner) {
-        $data.clearParent();
-        $data = new SceneDataTransformer({
-          transformations: panel.transformations,
-          $data,
-        });
-      }
-    }
-
-    const withDefaults = getPanelOptionsWithDefaults({
-      plugin,
-      currentOptions: panel.options,
-      currentFieldConfig: panel.fieldConfig,
-      isAfterPluginChange: isAfterPluginChange ?? false,
-    });
-
-    this._plugin = plugin;
-
-    this.setState({
-      $data,
-      options: withDefaults.options as DeepPartial<TOptions>,
-      fieldConfig: withDefaults.fieldConfig,
-      pluginVersion: currentVersion,
-      pluginId: plugin.meta.id,
-    });
-
-    // Non data panels needs to be re-rendered when time range change
-    if (plugin.meta.skipDataQuery) {
-      const sceneTimeRange = sceneGraph.getTimeRange(this);
-      this._subs.add(sceneTimeRange.subscribeToState(() => this.forceRender()));
-    }
-  }
-
-  private _getPluginVersion(plugin: PanelPlugin): string {
-    return plugin && plugin.meta.info.version ? plugin.meta.info.version : config.buildInfo.version;
-  }
 
   /**
    * Panel context functions
@@ -638,6 +633,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       true
     );
   };
+
+  public clone(withState?: Partial<VizPanelState>) {
+    // Clear _pluginInstanceState and _pluginLoadError as it's not safe to clone
+    return super.clone({ _pluginInstanceState: undefined, _pluginLoadError: undefined, ...withState });
+  }
 
   private buildPanelContext(): PanelContext {
     const sync = getCursorSyncScope(this);
