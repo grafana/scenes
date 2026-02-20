@@ -3128,6 +3128,162 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 });
 
+describe('validateOriginFilters', () => {
+  function createVariable() {
+    const filtersVar = new AdHocFiltersVariable({
+      datasource: { uid: 'my-ds-uid' },
+      name: 'filters',
+      filters: [],
+    });
+
+    // Seed original values directly
+    filtersVar['_originalValues'].set('key1-dashboard', { value: ['val1'], operator: '=' });
+    filtersVar['_originalValues'].set('key2-dashboard', { value: ['valA', 'valB'], operator: '=|' });
+
+    return filtersVar;
+  }
+
+  it('should return filter unchanged when it has no origin', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'key1', operator: '=', value: 'val1' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0]).toBe(filter);
+  });
+
+  it('should return filter unchanged when no original values are stored for it', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'unknown', operator: '=', value: 'x', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0]).toBe(filter);
+  });
+
+  it('should transform filter to matchAll when it has no value', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'key1', operator: '=', value: '', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0]).toMatchObject({
+      key: 'key1',
+      operator: '=~',
+      value: '.*',
+      values: ['.*'],
+      valueLabels: ['All'],
+      matchAllFilter: true,
+      restorable: true,
+      nonApplicable: false,
+    });
+  });
+
+  it('should mark as not restorable when value matches original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'key1', operator: '=', value: 'val1', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(false);
+    expect(result[0].matchAllFilter).toBe(false);
+  });
+
+  it('should mark as restorable when value differs from original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'key1', operator: '=', value: 'changed', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(true);
+    expect(result[0].matchAllFilter).toBe(false);
+  });
+
+  it('should mark as restorable when operator differs from original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'key1', operator: '!=', value: 'val1', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(true);
+    expect(result[0].matchAllFilter).toBe(false);
+  });
+
+  it('should not mark as restorable when matchAll filter matches matchAll original', () => {
+    const filtersVar = createVariable();
+    filtersVar['_originalValues'].set('matchKey-dashboard', { value: ['.*'], operator: '=~' });
+    const filter: AdHocFilterWithLabels = { key: 'matchKey', operator: '=~', value: '.*', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(false);
+    expect(result[0].matchAllFilter).toBe(true);
+  });
+
+  it('should mark matchAll filter as restorable when it differs from original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = {
+      key: 'key1',
+      operator: '=~',
+      value: '.*',
+      values: ['.*'],
+      origin: 'dashboard',
+    };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(true);
+    expect(result[0].matchAllFilter).toBe(true);
+  });
+
+  it('should mark as not restorable when multi-values match original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = {
+      key: 'key2',
+      operator: '=|',
+      value: 'valA',
+      values: ['valA', 'valB'],
+      origin: 'dashboard',
+    };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(false);
+    expect(result[0].matchAllFilter).toBe(false);
+  });
+
+  it('should mark as restorable when multi-values differ from original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = {
+      key: 'key2',
+      operator: '=|',
+      value: 'valA',
+      values: ['valA', 'valC'],
+      origin: 'dashboard',
+    };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(true);
+    expect(result[0].matchAllFilter).toBe(false);
+  });
+
+  it('should handle multiple filters independently', () => {
+    const filtersVar = createVariable();
+    const filters: AdHocFilterWithLabels[] = [
+      { key: 'key1', operator: '=', value: 'val1', origin: 'dashboard' },
+      { key: 'key1', operator: '=', value: 'changed', origin: 'dashboard' },
+      { key: 'noOrigin', operator: '=', value: 'x' },
+    ];
+
+    const result = filtersVar.validateOriginFilters(filters);
+
+    expect(result[0].restorable).toBe(false);
+    expect(result[1].restorable).toBe(true);
+    expect(result[2]).toBe(filters[2]);
+  });
+});
+
 const runRequestMock = {
   fn: jest.fn(),
 };
