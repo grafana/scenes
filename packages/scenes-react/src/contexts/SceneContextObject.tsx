@@ -92,7 +92,8 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
 export function useAddToScene(obj: SceneObject, ctx: SceneContextObject) {
   // Old behavior
   if (!SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT) {
-    ctx.addToScene(obj);
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => ctx.addToScene(obj));
     return;
   }
 
@@ -108,8 +109,11 @@ export function useAddToScene(obj: SceneObject, ctx: SceneContextObject) {
     };
   }, [ctx, obj]);
 
-  if (ctx.state.children.includes(obj)) {
-    return;
+  // Check if scene contains object instance or object with same key
+  for (let i = 0; i < ctx.state.children.length; i++) {
+    if (ctx.state.children[i] === obj || ctx.state.children[i].state.key === obj.state.key) {
+      return;
+    }
   }
 
   // This is technically a state change during render. Ee have to add it to the state tree right away in order to render the object on the first pass
