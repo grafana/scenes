@@ -1,21 +1,34 @@
 import { css, cx } from '@emotion/css';
-import { GrafanaTheme2 } from '@grafana/data';
+import {
+  GrafanaTheme2,
+  // @ts-expect-error (temporary till we update grafana/data)
+  DrilldownsApplicability,
+} from '@grafana/data';
 import { Button, Icon, useStyles2, useTheme2 } from '@grafana/ui';
 import { t } from '@grafana/i18n';
-import React, { memo, useRef, useState, useEffect } from 'react';
+import React, { memo, useMemo, useRef, useState, useEffect } from 'react';
+import { isArray } from 'lodash';
 import { useMeasure } from 'react-use';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
+import { GroupByPill } from './GroupByPill';
+import type { GroupByVariable } from '../../groupby/GroupByVariable';
+import type { AdHocFilterWithLabels } from '../AdHocFiltersVariable';
 
 const MAX_VISIBLE_FILTERS = 5;
+
+type OrderedPill =
+  | { type: 'filter'; filter: AdHocFilterWithLabels; index: number }
+  | { type: 'groupby'; value: string; label: string; applicability?: DrilldownsApplicability };
 
 interface Props {
   controller: AdHocFiltersController;
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, collapsible, valueRecommendations } = controller.useState();
+  const { originFilters, filters, readOnly, collapsible, valueRecommendations, pillOrder } = controller.useState();
+  const groupByVariable = controller.getGroupByVariable?.();
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
@@ -52,14 +65,14 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     }
   };
 
-  // Combine all visible filters into one array
+  // Origin filters are always rendered first
   const visibleOriginFilters = originFilters?.filter((f) => f.origin) ?? [];
   const visibleFilters = filters.filter((f) => !f.hidden);
-  const allFilters = [...visibleOriginFilters, ...visibleFilters];
-  const totalFiltersCount = allFilters.length;
+
+  // Total count includes origin filters + user filters + groupBy count (for collapse logic)
+  const totalFiltersCount = visibleOriginFilters.length + visibleFilters.length;
 
   const shouldCollapse = collapsible && collapsed && totalFiltersCount > 0;
-  const filtersToRender = shouldCollapse ? allFilters.slice(0, MAX_VISIBLE_FILTERS) : allFilters;
 
   // Reset collapsed state when there are no filters (only when collapsible)
   useEffect(() => {
@@ -85,15 +98,40 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
       {valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 
-      {filtersToRender.map((filter, index) => (
+      {/* Origin filters always render first */}
+      {visibleOriginFilters.map((filter, index) => (
         <AdHocFilterPill
-          key={`${filter.origin ? 'origin-' : ''}${index}-${filter.key}`}
+          key={`origin-${index}-${filter.key}`}
           filter={filter}
           controller={controller}
           readOnly={readOnly || filter.readOnly}
           focusOnWipInputRef={focusOnWipInputRef.current}
         />
       ))}
+
+      {/* Interleaved user filters and groupBy pills, driven by pillOrder */}
+      {groupByVariable ? (
+        <InterleavedPills
+          groupByVariable={groupByVariable}
+          controller={controller}
+          visibleFilters={visibleFilters}
+          pillOrder={pillOrder}
+          readOnly={readOnly}
+          shouldCollapse={shouldCollapse ?? false}
+          focusOnWipInputRef={focusOnWipInputRef.current}
+        />
+      ) : (
+        // No groupBy linked -- render filters only (original behavior)
+        visibleFilters.map((filter, index) => (
+          <AdHocFilterPill
+            key={`${index}-${filter.key}`}
+            filter={filter}
+            controller={controller}
+            readOnly={readOnly || filter.readOnly}
+            focusOnWipInputRef={focusOnWipInputRef.current}
+          />
+        ))
+      )}
 
       {!readOnly && !shouldCollapse ? (
         <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} />
@@ -133,6 +171,104 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     </div>
   );
 });
+
+/**
+ * Separate component that subscribes to GroupByVariable state to build the
+ * interleaved pill list. This avoids calling useState() conditionally.
+ */
+function InterleavedPills({
+  groupByVariable,
+  controller,
+  visibleFilters,
+  pillOrder,
+  readOnly,
+  shouldCollapse,
+  focusOnWipInputRef,
+}: {
+  groupByVariable: GroupByVariable;
+  controller: AdHocFiltersController;
+  visibleFilters: AdHocFilterWithLabels[];
+  pillOrder?: Array<'filter' | 'groupby'>;
+  readOnly?: boolean;
+  shouldCollapse: boolean;
+  focusOnWipInputRef?: () => void;
+}) {
+  const { value, text, keysApplicability } = groupByVariable.useState();
+
+  const orderedPills = useMemo(() => {
+    const groupByValues = isArray(value) ? value.map(String).filter((v) => v !== '') : value ? [String(value)] : [];
+    const groupByTexts = isArray(text) ? text.map(String) : text ? [String(text)] : [];
+
+    const result: OrderedPill[] = [];
+    let filterIdx = 0;
+    let groupByIdx = 0;
+
+    // Fallback: when no pillOrder exists, show filters first then groupBys
+    const sequence =
+      pillOrder && pillOrder.length > 0
+        ? pillOrder
+        : [...visibleFilters.map(() => 'filter' as const), ...groupByValues.map(() => 'groupby' as const)];
+
+    for (const type of sequence) {
+      if (type === 'filter' && filterIdx < visibleFilters.length) {
+        result.push({ type: 'filter', filter: visibleFilters[filterIdx], index: filterIdx });
+        filterIdx++;
+      } else if (type === 'groupby' && groupByIdx < groupByValues.length) {
+        const val = groupByValues[groupByIdx];
+        const lbl = groupByTexts[groupByIdx] ?? val;
+        const applicability = keysApplicability?.find((item: DrilldownsApplicability) => item.key === val);
+        result.push({ type: 'groupby', value: val, label: lbl, applicability });
+        groupByIdx++;
+      }
+    }
+
+    // Append any remaining items not covered by pillOrder (safety net)
+    while (filterIdx < visibleFilters.length) {
+      result.push({ type: 'filter', filter: visibleFilters[filterIdx], index: filterIdx });
+      filterIdx++;
+    }
+    while (groupByIdx < groupByValues.length) {
+      const val = groupByValues[groupByIdx];
+      const lbl = groupByTexts[groupByIdx] ?? val;
+      const applicability = keysApplicability?.find((item: DrilldownsApplicability) => item.key === val);
+      result.push({ type: 'groupby', value: val, label: lbl, applicability });
+      groupByIdx++;
+    }
+
+    return result;
+  }, [visibleFilters, value, text, keysApplicability, pillOrder]);
+
+  const pillsToRender = shouldCollapse ? orderedPills.slice(0, MAX_VISIBLE_FILTERS) : orderedPills;
+
+  const handleRemoveGroupBy = (key: string) => {
+    controller.removeGroupByValue?.(key);
+  };
+
+  return (
+    <>
+      {pillsToRender.map((pill, i) =>
+        pill.type === 'filter' ? (
+          <AdHocFilterPill
+            key={`filter-${pill.index}-${pill.filter.key}`}
+            filter={pill.filter}
+            controller={controller}
+            readOnly={readOnly || pill.filter.readOnly}
+            focusOnWipInputRef={focusOnWipInputRef}
+          />
+        ) : (
+          <GroupByPill
+            key={`groupby-${pill.value}`}
+            value={pill.value}
+            label={pill.label}
+            readOnly={readOnly}
+            applicability={pill.applicability}
+            onRemove={handleRemoveGroupBy}
+          />
+        )
+      )}
+    </>
+  );
+}
 
 const getStyles = (theme: GrafanaTheme2) => ({
   comboboxWrapper: css({
