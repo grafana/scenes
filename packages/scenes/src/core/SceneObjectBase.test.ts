@@ -309,6 +309,35 @@ describe('SceneObject', () => {
       });
     });
   });
+
+  describe('Can be cloned', () => {
+    it('regenerates a new key when original has a key and no override is provided', () => {
+      const scene = new TestScene({ key: 'orig', name: 'x' });
+      const clone = scene.clone();
+
+      expect(clone.state.key).toBeDefined();
+      expect(clone.state.key).not.toBe('orig');
+      expect(clone.state.name).toBe(scene.state.name);
+    });
+
+    it('creates a new key when original has no key and no override is provided', () => {
+      const scene = new TestScene({ name: 'no-key' });
+      scene.setState({ key: undefined });
+      const clone = scene.clone();
+
+      expect(clone.state.key).toBeDefined();
+      expect(scene.state.key).not.toBeDefined();
+      expect(clone.state.name).toBe(scene.state.name);
+    });
+
+    it('uses provided key override when withState specifies key', () => {
+      const scene = new TestScene({ key: 'orig', name: 'x' });
+      const clone = scene.clone({ key: 'custom-key' });
+
+      expect(clone.state.key).toBe('custom-key');
+      expect(clone.state.name).toBe(scene.state.name);
+    });
+  });
 });
 
 describe('useSceneObjectState', () => {

@@ -12,6 +12,12 @@ export function cloneSceneObject<T extends SceneObjectBase<TState>, TState exten
   withState?: Partial<TState>
 ): T {
   const clonedState = cloneSceneObjectState(sceneObject.state, withState);
+
+  // clean up the cloned key so it's regenerated in the constructor call if no explicit override was provided in withState
+  const hasKeyInWithState = withState?.hasOwnProperty('key');
+  if (!hasKeyInWithState) {
+    clonedState.key = undefined;
+  }
   return new (sceneObject.constructor as any)(clonedState);
 }
 
