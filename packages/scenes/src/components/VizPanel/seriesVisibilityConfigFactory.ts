@@ -133,9 +133,9 @@ function createOverride(
         },
       },
     ],
-    // @ts-ignore
+
+    // @ts-expect-error dataTopic and frame added to ConfigOverrideRule in 13.0
     dataTopic: dataTopic,
-    // @ts-ignore
     frame: frame,
   };
 }
