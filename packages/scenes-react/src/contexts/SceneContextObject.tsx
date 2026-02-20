@@ -7,6 +7,7 @@ import {
   NewSceneObjectAddedEvent,
 } from '@grafana/scenes';
 import { writeSceneLog } from '../utils';
+import { useEffect } from 'react';
 
 export interface SceneContextObjectState extends SceneObjectState {
   childContexts?: SceneContextObject[];
@@ -86,4 +87,33 @@ export class SceneContextObject extends SceneObjectBase<SceneContextObjectState>
 
     writeSceneLog('SceneContext', `Remvoing child context: ${ctx.constructor.name} key: ${ctx.state.key}`);
   }
+}
+
+export function useAddToScene(obj: SceneObject, ctx: SceneContextObject) {
+  // Old behavior
+  if (!SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT) {
+    ctx.addToScene(obj);
+    return;
+  }
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    const deactivate = obj.activate();
+
+    return () => {
+      writeSceneLog('SceneContext', `Removing from scene: ${obj.constructor.name} key: ${obj.state.key}`);
+      ctx.setState({ children: ctx.state.children.filter((x) => x !== obj) });
+
+      deactivate();
+    };
+  }, [ctx, obj]);
+
+  if (ctx.state.children.includes(obj)) {
+    return;
+  }
+
+  ctx.publishEvent(new NewSceneObjectAddedEvent(obj), true);
+  ctx.setState({ children: [...ctx.state.children, obj] });
+
+  writeSceneLog('SceneContext', `Adding to scene: ${obj.constructor.name} key: ${obj.state.key}`);
 }
