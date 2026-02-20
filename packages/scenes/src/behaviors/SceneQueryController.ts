@@ -31,7 +31,7 @@ export class SceneQueryController
       // In cases of re-activation, we need to set the query controller again as it might have been set by other scene
       this.profiler?.setQueryController(this);
       return () => {
-        for (const entry of this.#running.values()) {
+        for (const entry of this.#running) {
           this.changeRunningQueryCount(-1, entry);
         }
         this.#running.clear();
