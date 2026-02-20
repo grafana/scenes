@@ -536,7 +536,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         data: this._dataWithFieldConfig.annotations,
         fieldConfig: {
           defaults: {},
-          overrides: [],
+          // @todo do we want overrides to specify the data topic they should target? Or should we filter overrides that do not apply to the annotation frames?
+          overrides: [...this.state.fieldConfig.overrides],
         },
         fieldConfigRegistry,
         replaceVariables: this.interpolate,
