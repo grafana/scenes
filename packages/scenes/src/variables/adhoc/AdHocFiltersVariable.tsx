@@ -612,7 +612,9 @@ export class AdHocFiltersVariable
       value: '.*',
       values: ['.*'],
       valueLabels: ['All'],
+      matchAllFilter: true,
       nonApplicable: false,
+      restorable: true,
     });
   }
 
