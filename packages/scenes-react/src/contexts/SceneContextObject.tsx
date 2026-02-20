@@ -93,7 +93,7 @@ export function useAddToScene(obj: SceneObject, ctx: SceneContextObject) {
   // Old behavior
   if (!SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT) {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    useEffect(() => ctx.addToScene(obj));
+    useEffect(() => ctx.addToScene(obj), [ctx, obj]);
     return;
   }
 

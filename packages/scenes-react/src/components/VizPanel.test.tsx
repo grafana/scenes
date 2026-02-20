@@ -59,7 +59,7 @@ describe('VizPanel', () => {
   it('Should render with titleItems', () => {
     const scene = new SceneContextObject();
     const viz = VizConfigBuilders.timeseries().build();
-    const titleItems = <div>Title Item</div>;
+    const titleItems = <div key="title-item">Title Item</div>;
 
     const { rerender, unmount } = render(
       <TestContextProvider value={scene}>
