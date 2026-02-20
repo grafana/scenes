@@ -1,4 +1,4 @@
-import { useEffect, useId } from 'react';
+import { useId } from 'react';
 import { SceneObject, sceneGraph } from '@grafana/scenes';
 import { useSceneContext } from './hooks';
 import { CacheKey, SceneObjectConstructor, getSceneObjectCache } from '../caching/SceneObjectCache';

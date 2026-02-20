@@ -4,7 +4,6 @@ import { useEffectOnce } from 'react-use';
 import { uniqueId } from 'lodash';
 import { css } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
-import { t } from '@grafana/i18n';
 
 export function useUniqueId(): string {
   const idRefLazy = useRef<string | undefined>(undefined);
