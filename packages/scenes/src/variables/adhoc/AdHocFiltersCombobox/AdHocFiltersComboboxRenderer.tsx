@@ -7,6 +7,7 @@ import { useMeasure } from 'react-use';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
+import { GroupByPill } from './GroupByPill';
 
 const MAX_VISIBLE_FILTERS = 5;
 
@@ -15,7 +16,9 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, collapsible, valueRecommendations } = controller.useState();
+  const { originFilters, filters, readOnly, collapsible, valueRecommendations, forceEditGroupBy } =
+    controller.useState();
+  const groupByVariable = controller.getGroupByVariable?.();
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
@@ -84,6 +87,17 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
       {valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
+
+      {/* Single GroupBy pill showing all group-by values — rendered first */}
+      {groupByVariable && (
+        <GroupByPill
+          groupByVariable={groupByVariable}
+          controller={controller}
+          readOnly={readOnly}
+          focusOnWipInputRef={focusOnWipInputRef.current}
+          forceEdit={forceEditGroupBy}
+        />
+      )}
 
       {filtersToRender.map((filter, index) => (
         <AdHocFilterPill

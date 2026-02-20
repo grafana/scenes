@@ -14,7 +14,13 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, isFilterComplete, isMultiValueOperator, OPERATORS } from '../AdHocFiltersVariable';
+import {
+  AdHocFilterWithLabels,
+  GROUP_BY_OPERATOR_VALUE,
+  isFilterComplete,
+  isMultiValueOperator,
+  OPERATORS,
+} from '../AdHocFiltersVariable';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -459,6 +465,21 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         }
         const selectedItem = filteredDropDownItems[activeIndex];
 
+        // Handle "Group by" operator selection
+        if (filterInputType === 'operator' && selectedItem.value === GROUP_BY_OPERATOR_VALUE) {
+          if (!isAlwaysWip && filter) {
+            // Editing an existing filter: remove it first
+            controller.removeFilter(filter);
+          }
+          controller.addGroupByValue?.(filter!.key, filter!.keyLabel);
+          handleResetWip();
+          handleChangeViewMode?.();
+          setOpen(false);
+          setInputValue('');
+          focusOnWipInputRef?.();
+          return;
+        }
+
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
           setInputValue('');
@@ -508,8 +529,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       controller,
       filter,
       filterInputType,
+      isAlwaysWip,
       populateInputOnEdit,
       handleChangeViewMode,
+      handleResetWip,
       refs.domReference,
       isLastFilter,
       focusOnWipInputRef,
@@ -774,6 +797,21 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                             onClick(event) {
                               if (filterInputType !== 'value') {
                                 event.stopPropagation();
+                              }
+
+                              // Handle "Group by" operator selection via click
+                              if (filterInputType === 'operator' && item.value === GROUP_BY_OPERATOR_VALUE) {
+                                event.stopPropagation();
+                                if (!isAlwaysWip && filter) {
+                                  controller.removeFilter(filter);
+                                }
+                                controller.addGroupByValue?.(filter!.key, filter!.keyLabel);
+                                handleResetWip();
+                                handleChangeViewMode?.();
+                                setOpen(false);
+                                setInputValue('');
+                                focusOnWipInputRef?.();
+                                return;
                               }
 
                               if (isMultiValueEdit) {
