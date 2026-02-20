@@ -1,3 +1,16 @@
+# v6.56.0 (Fri Feb 20 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - FiltersOverview: Add a bulk validation method for origin filters [#1354](https://github.com/grafana/scenes/pull/1354) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.55.1 (Thu Feb 19 2026)
 
 #### 🐛 Bug Fix
