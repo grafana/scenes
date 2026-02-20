@@ -25,10 +25,6 @@ export class UserMacro implements FormatVariable {
         return String(user.id);
     }
   }
-
-  public getValueText?(): string {
-    return '';
-  }
 }
 
 /**
@@ -51,9 +47,5 @@ export class OrgMacro implements FormatVariable {
       default:
         return String(user.orgId);
     }
-  }
-
-  public getValueText?(): string {
-    return '';
   }
 }
