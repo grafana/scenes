@@ -4,7 +4,6 @@ import { useEffectOnce } from 'react-use';
 import { uniqueId } from 'lodash';
 import { css } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
-import { t } from '@grafana/i18n';
 
 export function useUniqueId(): string {
   const idRefLazy = useRef<string | undefined>(undefined);
@@ -17,6 +16,12 @@ export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange' 
   key: string;
   onLoad?: () => void;
   onChange?: (isInView: boolean) => void;
+  /**
+   * If true will render children on first render/mount even if it out of view
+   * But will LazyLoaderInViewContext will be false on first render
+   * This can reduce flickering / initial empty div on first render
+   */
+  onlySetIsInView?: boolean;
 }
 
 export interface LazyLoaderType extends ForwardRefExoticComponent<Props> {
@@ -67,11 +72,7 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     // If the children render empty, the whole loader will be hidden by css.
     return (
       <div id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
-        {!loaded ? (
-          t('grafana-scenes.components.lazy-loader.placeholder', '\u00A0')
-        ) : (
-          <LazyLoaderInViewContext.Provider value={isInView}>{children}</LazyLoaderInViewContext.Provider>
-        )}
+        <LazyLoaderInViewContext.Provider value={isInView}>{children}</LazyLoaderInViewContext.Provider>
       </div>
     );
   }

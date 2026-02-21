@@ -352,6 +352,12 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * For example if C depends on variable B which depends on variable A and A is loading this returns true for variable C and B.
    */
   public isVariableLoadingOrWaitingToUpdate(variable: SceneVariable) {
+    // When SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true panel / query runners can activate before parents (and variable sets)
+    // So in order to block query execution before set has activated we check if the variable needs update/validation and if so return true here
+    if (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT && !this.isActive && this._variableNeedsUpdate(variable)) {
+      return true;
+    }
+
     if (variable.state.loading) {
       return true;
     }
