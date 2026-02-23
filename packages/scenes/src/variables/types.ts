@@ -22,7 +22,7 @@ export interface SceneVariableState extends SceneObjectState {
   error?: any | null;
   description?: string | null;
   // Tells which source registered the variable.
-  source?: ControlSourceRef;
+  origin?: ControlSourceRef;
 }
 
 export interface SceneVariable<TState extends SceneVariableState = SceneVariableState> extends SceneObject<TState> {
