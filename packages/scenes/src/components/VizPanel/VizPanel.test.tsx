@@ -1,22 +1,22 @@
 import React from 'react';
 
+import * as grafanaData from '@grafana/data';
 import {
+  AlertState,
+  DataTransformerConfig,
   FieldConfigProperty,
   FieldType,
-  LoadingState,
-  PanelPlugin,
   getDefaultTimeRange,
+  LoadingState,
+  PanelData,
+  PanelPlugin,
+  PanelPluginDataSupport,
+  PanelProps,
   standardEditorsRegistry,
   standardFieldConfigEditorRegistry,
   toDataFrame,
-  PanelPluginDataSupport,
-  AlertState,
-  PanelData,
-  PanelProps,
   toUtc,
-  DataTransformerConfig,
 } from '@grafana/data';
-import * as grafanaData from '@grafana/data';
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
 import { VizPanel, VizPanelState } from './VizPanel';
@@ -862,13 +862,9 @@ describe('VizPanel', () => {
       pluginToLoad = getTestPlugin1({ alertStates: true, annotations: true });
       panel.activate();
       await Promise.resolve();
-
-      const testData = getTestData();
-      // Why is the plugin stripping out the properties of the override if we do not manually set the fieldConfig state?
-      panel.setState({
-        fieldConfig,
-      });
-      panel.applyFieldConfig(testData);
+      // getPanelOptionsWithDefaults in _pluginLoaded strips out the properties of the overrides, so we need to set the fieldConfig state manually
+      panel.setState({ fieldConfig });
+      panel.applyFieldConfig(getTestData());
       // Once for fields, once for annotations.
       expect(spy).toHaveBeenCalledTimes(2);
       expect(spy.mock.calls[0][0].fieldConfig.overrides).toEqual(fieldConfig.overrides);
