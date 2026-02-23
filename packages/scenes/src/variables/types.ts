@@ -7,7 +7,7 @@ import { SceneObject, SceneObjectState } from '../core/types';
 
 export interface DataSourceControlRef {
   type: 'datasource';
-  ref: { group?: string };
+  group: string;
 }
 
 export type ControlSourceRef = DataSourceControlRef;
