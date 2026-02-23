@@ -1,3 +1,21 @@
+# v6.57.0 (Mon Feb 23 2026)
+
+#### 🚀 Enhancement
+
+- Variables: Add a `ControlSourceRef` to the variable state [#1315](https://github.com/grafana/scenes/pull/1315) ([@leventebalogh](https://github.com/leventebalogh) [@mckn](https://github.com/mckn))
+
+#### 🐛 Bug Fix
+
+- Fix context macros [#1365](https://github.com/grafana/scenes/pull/1365) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 3
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Marcus Andersson ([@mckn](https://github.com/mckn))
+
+---
+
 # v6.56.0 (Fri Feb 20 2026)
 
 #### 🚀 Enhancement
