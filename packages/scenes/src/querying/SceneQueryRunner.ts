@@ -425,6 +425,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     });
   }
 
+  /**
+   * Returns the per-panel applicability results computed before the last query run.
+   * Used by UI components (e.g. the panel sub-header) to display non-applicable filters.
+   */
+  public getNonApplicableFilters() {
+    return this._drilldownDependenciesManager.getApplicabilityResults();
+  }
+
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     // If no maxDataPoints specified we might need to wait for container width to be set from the outside
     if (!this.state.maxDataPoints && this.state.maxDataPointsFromWidth && !this._containerWidth) {
@@ -468,6 +476,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const ds = await getDataSource(datasource, this._scopedVars);
 
       this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid);
+
+      await this._drilldownDependenciesManager.resolveApplicability(
+        ds,
+        queries,
+        timeRange.state.value,
+        sceneGraph.getScopes(this)
+      );
 
       const runRequest = getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
