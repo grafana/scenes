@@ -1416,7 +1416,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       queryRunner.activate();
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.series[0].fields[0].values.get(0)).toBe(123);
+      expect(queryRunner.state.data?.series[0].fields[0].values[0]).toBe(123);
 
       runtimeDataSources.clear();
     });
