@@ -8,6 +8,15 @@
   "main": "dist/index.js",
   "types": "src/index.ts",
   "module": "dist/esm/index.js",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
   "directories": {
     "src": "src"
   },
