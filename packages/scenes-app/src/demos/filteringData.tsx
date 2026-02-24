@@ -14,10 +14,10 @@ import {
   SceneObjectState,
   SceneQueryRunner,
   VizPanel,
+  ControlsLabel,
 } from '@grafana/scenes';
 import { InlineSwitch, Input } from '@grafana/ui';
 import { getEmbeddedSceneDefaults } from './utils';
-import { ControlsLabel } from '@grafana/scenes/src/utils/ControlsLabel';
 import { DataTransformerConfig, MatcherConfig } from '@grafana/schema';
 import { BasicValueMatcherOptions, DataTransformerID, ValueMatcherID } from '@grafana/data';
 import { DATASOURCE_REF } from '../constants';
