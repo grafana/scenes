@@ -270,6 +270,12 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * This is the main mechanism lower level variable set's react to changes on higher levels.
    */
   private _handleParentVariableUpdatesCompleted(variable: SceneVariable, hasChanged: boolean) {
+    console.log(
+      'Parent variable update completed, checking for dependent variables to update',
+      variable.state.name,
+      hasChanged
+    );
+
     // First loop through changed variables and add any of our variables that depend on the higher level variable to the update queue
     if (hasChanged) {
       this._addDependentVariablesToUpdateQueue(variable);
@@ -279,6 +285,11 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     if (this._variablesToUpdate.size > 0 && this._updating.size === 0) {
       this._updateNextBatch();
     }
+
+    // // For variables like local value variables we need to propagate changes down the tree
+    // if (variable.isAncestorLoading) {
+    //   this._notifyDependentSceneObjects(variable);
+    // }
   }
 
   private _addDependentVariablesToUpdateQueue(variableThatChanged: SceneVariable) {
@@ -352,7 +363,7 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * For example if C depends on variable B which depends on variable A and A is loading this returns true for variable C and B.
    */
   public isVariableLoadingOrWaitingToUpdate(variable: SceneVariable) {
-    // When SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true panel / query runners can activate before parents (and variable sets)
+    // When SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true then panel and query runners can activate before parents (and variable sets)
     // So in order to block query execution before set has activated we check if the variable needs update/validation and if so return true here
     if (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT && !this.isActive && this._variableNeedsUpdate(variable)) {
       return true;

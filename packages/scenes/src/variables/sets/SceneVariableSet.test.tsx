@@ -931,6 +931,41 @@ describe('SceneVariableList', () => {
       expect(nestedScene.state.didSomethingCount).toBe(2);
       expect(nestedScene.state.variableValueChanged).toBe(1);
     });
+
+    describe('When RENDER_BEFORE_ACTIVATION = true', () => {
+      beforeAll(() => (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true));
+      afterAll(() => (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = false));
+
+      it('When local value overrides parent variable changes on top level should propagate', () => {
+        const topLevelVar = new TestVariable({
+          name: 'test',
+          options: [],
+          value: 'B',
+          optionsToReturn: [{ label: 'B', value: 'B' }],
+          delayMs: 0,
+        });
+
+        const nestedScene = new TestObjectWithVariableDependency({
+          title: '$test',
+          $variables: new SceneVariableSet({
+            variables: [new LocalValueVariable({ name: 'test', value: 'nestedValue' })],
+          }),
+        });
+
+        const scene = new TestScene({
+          $variables: new SceneVariableSet({ variables: [topLevelVar] }),
+          nested: nestedScene,
+        });
+
+        nestedScene.activate();
+        nestedScene.doSomethingThatRequiresVariables();
+
+        scene.activate();
+
+        expect(nestedScene.state.didSomethingCount).toBe(1);
+        expect(nestedScene.state.variableValueChanged).toBe(1);
+      });
+    });
   });
 
   describe('When changing a dependency while variable is loading', () => {
