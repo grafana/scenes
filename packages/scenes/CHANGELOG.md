@@ -1,3 +1,17 @@
+# v6.57.1 (Wed Feb 25 2026)
+
+#### 🐛 Bug Fix
+
+- SQR: Try preserving referential equality when data hasn't changed [#1370](https://github.com/grafana/scenes/pull/1370) ([@dprokop](https://github.com/dprokop))
+- Chore: Avoid array get by index [#1369](https://github.com/grafana/scenes/pull/1369) ([@ryantxu](https://github.com/ryantxu))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Ryan McKinley ([@ryantxu](https://github.com/ryantxu))
+
+---
+
 # v6.57.0 (Mon Feb 23 2026)
 
 #### 🚀 Enhancement
