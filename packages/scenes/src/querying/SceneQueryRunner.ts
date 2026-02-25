@@ -5,6 +5,7 @@ import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
   AlertStateInfo,
+  compareArrayValues,
   DataFrame,
   DataFrameView,
   DataQueryRequest,
@@ -613,14 +614,40 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private onDataReceived = (data: PanelData) => {
-    // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 
-    // Save query annotations
     this._resultAnnotations = data.annotations;
 
-    // Will combine annotations & alert state from data layer providers
     const dataWithLayersApplied = this._combineDataLayers(preProcessedData);
+
+    const last = this.state.data;
+
+    // Restore referential identity of series/annotations when frames haven't changed,
+    // preventing panels from reprocessing unchanged data. Brings back logic that existed in PanelQueryRunner in core.
+    if (last != null && dataWithLayersApplied.state !== LoadingState.Streaming) {
+      const sameSeries = compareArrayValues(last.series ?? [], dataWithLayersApplied.series ?? [], (a, b) => a === b);
+      const sameAnnotations = compareArrayValues(
+        last.annotations ?? [],
+        dataWithLayersApplied.annotations ?? [],
+        (a, b) => a === b
+      );
+      const sameState = last.state === dataWithLayersApplied.state;
+      const sameErrors = compareArrayValues(last.errors ?? [], dataWithLayersApplied.errors ?? [], (a, b) =>
+        isEqual(a, b)
+      );
+
+      if (sameSeries) {
+        dataWithLayersApplied.series = last.series;
+      }
+
+      if (sameAnnotations) {
+        dataWithLayersApplied.annotations = last.annotations;
+      }
+
+      if (sameSeries && sameAnnotations && sameState && sameErrors) {
+        return;
+      }
+    }
 
     let hasFetchedData = this.state._hasFetchedData;
 
