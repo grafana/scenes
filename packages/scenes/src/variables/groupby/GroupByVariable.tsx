@@ -228,7 +228,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
         if (newState.defaultValue) {
           this.changeValueTo(newState.defaultValue.value, newState.defaultValue.text, false);
         } else {
-          this.changeValueTo([], undefined, false);
+          this.changeValueTo([], [], false);
         }
       }
     });
