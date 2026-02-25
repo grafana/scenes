@@ -294,9 +294,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
           if (otherVariable.validateAndUpdate) {
             this._variablesToUpdate.add(otherVariable);
           }
-
-          // Because _traverseSceneAndNotify skips itself (and this sets variables) we call this here to notify the variable of the change
-          otherVariable.variableDependency.variableUpdateCompleted(variableThatChanged, true);
         }
       }
     }
@@ -317,8 +314,17 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * Recursivly walk the full scene object graph and notify all objects with dependencies that include any of changed variables
    */
   private _traverseSceneAndNotify(sceneObject: SceneObject, variable: SceneVariable, hasChanged: boolean) {
-    // No need to notify variables under this SceneVariableSet
+    // Special handling for this SceneVariableSet
     if (this === sceneObject) {
+      for (const childVariable of this.state.variables) {
+        if (childVariable === variable) {
+          continue;
+        }
+
+        if (childVariable.variableDependency) {
+          childVariable.variableDependency.variableUpdateCompleted(variable, hasChanged);
+        }
+      }
       return;
     }
 

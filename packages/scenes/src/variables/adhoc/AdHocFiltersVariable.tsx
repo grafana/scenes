@@ -335,9 +335,11 @@ export class AdHocFiltersVariable
     const scopes = sceneGraph.getScopes(this);
 
     if (!scopes || !scopes.length) {
-      this.setState({
-        originFilters: this.state.originFilters?.filter((filter) => filter.origin !== 'scope'),
-      });
+      if (this.state.originFilters?.length) {
+        this.setState({
+          originFilters: this.state.originFilters?.filter((filter) => filter.origin !== 'scope'),
+        });
+      }
       return;
     }
 

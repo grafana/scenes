@@ -4,6 +4,7 @@ import {
   SceneVariable,
   SceneVariableState,
   SceneVariableValueChangedEvent,
+  ValidateAndUpdateResult,
   VariableValue,
 } from '../types';
 import { Scope } from '@grafana/data';
@@ -15,6 +16,7 @@ import { SCOPES_VARIABLE_NAME } from '../constants';
 import { isEqual } from 'lodash';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { SCOPES_CHANGED_INTERACTION } from '../../performance/interactionConstants';
+import { Observable, of } from 'rxjs';
 
 export interface ScopesVariableState extends SceneVariableState {
   /**
@@ -45,6 +47,10 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
       name: SCOPES_VARIABLE_NAME,
       hide: VariableHide.hideVariable,
     });
+  }
+
+  public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
+    return of({});
   }
 
   /**
