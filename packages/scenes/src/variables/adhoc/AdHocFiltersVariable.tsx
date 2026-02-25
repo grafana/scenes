@@ -522,6 +522,14 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Get the original value for an origin filter before any user modifications.
+   * Returns undefined if no original is tracked for this filter.
+   */
+  public getOriginalValue(filter: AdHocFilterWithLabels): { value: string[]; operator: string } | undefined {
+    return this._originalValues.get(`${filter.key}-${filter.origin}`);
+  }
+
+  /**
    * Clear all user-added filters and restore origin filters to their original values.
    */
   public clearAll(): void {
