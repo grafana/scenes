@@ -270,12 +270,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * This is the main mechanism lower level variable set's react to changes on higher levels.
    */
   private _handleParentVariableUpdatesCompleted(variable: SceneVariable, hasChanged: boolean) {
-    console.log(
-      'Parent variable update completed, checking for dependent variables to update',
-      variable.state.name,
-      hasChanged
-    );
-
     // First loop through changed variables and add any of our variables that depend on the higher level variable to the update queue
     if (hasChanged) {
       this._addDependentVariablesToUpdateQueue(variable);
@@ -285,11 +279,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
     if (this._variablesToUpdate.size > 0 && this._updating.size === 0) {
       this._updateNextBatch();
     }
-
-    // // For variables like local value variables we need to propagate changes down the tree
-    // if (variable.isAncestorLoading) {
-    //   this._notifyDependentSceneObjects(variable);
-    // }
   }
 
   private _addDependentVariablesToUpdateQueue(variableThatChanged: SceneVariable) {
