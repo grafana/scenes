@@ -324,6 +324,23 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.text).toEqual(['newDefault']);
     });
 
+    it('should reset value when defaultValue is cleared', async () => {
+      const { variable } = setupTest({
+        defaultValue: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1']);
+
+      act(() => {
+        variable.setState({ defaultValue: undefined });
+      });
+
+      expect(variable.state.value).toEqual([]);
+    });
+
     it('should work with browser history action on user action', () => {
       const { variable } = setupTest({
         defaultOptions: [
