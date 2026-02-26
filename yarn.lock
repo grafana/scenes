@@ -5851,6 +5851,7 @@ __metadata:
     react: ^18.0.0
     react-dom: ^18.0.0
     react-router-dom: ^6.28.0
+    rxjs: ^7.8.1
   languageName: unknown
   linkType: soft
 
@@ -5901,6 +5902,7 @@ __metadata:
     react: ^18.0.0
     react-dom: ^18.0.0
     react-router-dom: ^6.28.0
+    rxjs: ^7.8.1
   languageName: unknown
   linkType: soft
 
