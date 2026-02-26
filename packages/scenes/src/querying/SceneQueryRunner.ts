@@ -645,7 +645,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
 
       if (sameSeries && sameAnnotations && sameState && sameErrors) {
-        return;
+        if (last.request?.requestId === dataWithLayersApplied.request?.requestId) {
+          return;
+        }
       }
     }
 
