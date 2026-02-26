@@ -1,5 +1,6 @@
 // @ts-check
 const path = require('path');
+const importPlugin = require('eslint-plugin-import');
 const grafanaConfig = require('@grafana/eslint-config/flat');
 const grafanaI18nPlugin = require('@grafana/i18n/eslint-plugin');
 const { includeIgnoreFile } = require('@eslint/compat');
@@ -27,7 +28,16 @@ module.exports = [
       ],
     },
   },
-
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/**/*.{test,spec,story}.{ts,tsx}'],
+    plugins: {
+      import: importPlugin,
+    },
+    rules: {
+      'import/no-extraneous-dependencies': ['error', { devDependencies: false, packageDir: './' }],
+    },
+  },
   {
     // Sections of codebase that have all translation markup issues fixed
     name: 'grafana/i18n-overrides',

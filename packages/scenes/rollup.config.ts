@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import resolve from '@rollup/plugin-node-resolve';
+import nodeResolve from '@rollup/plugin-node-resolve';
 import path from 'path';
 import dts from 'rollup-plugin-dts';
 import json from '@rollup/plugin-json';
@@ -11,10 +11,11 @@ const env = process.env.NODE_ENV || 'production';
 const rq = createRequire(import.meta.url);
 
 const pkg = rq('./package.json');
+const projectCwd = process.env.PROJECT_CWD ?? '../../';
 
 const plugins = [
   nodeExternals({ deps: true, devDeps: true, packagePath: './package.json' }),
-  resolve({ browser: true }),
+  nodeResolve({ browser: true }),
   esbuild({
     target: 'es2018',
     tsconfig: './tsconfig.json',
@@ -28,7 +29,7 @@ export default [
   {
     input: 'src/index.ts',
     treeshake: env === 'development' ? false : true,
-    plugins: env === 'development' ? [...plugins] : plugins,
+    plugins,
     output: [
       {
         format: 'cjs',
@@ -42,6 +43,7 @@ export default [
         sourcemap: env === 'production' ? true : 'inline',
         dir: path.dirname(pkg.module),
         preserveModules: true,
+        preserveModulesRoot: path.resolve(projectCwd, 'packages/scenes/src'),
       },
     ],
     watch: {
