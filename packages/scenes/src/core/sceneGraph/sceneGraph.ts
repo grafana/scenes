@@ -12,6 +12,9 @@ import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
 import { ScopesVariable } from '../../variables/variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../../variables/constants';
+import { CustomVariable } from '../../variables/variants/CustomVariable';
+import { ConstantVariable } from '../../variables/variants/ConstantVariable';
+import { SceneVariableSet } from '../../variables/sets/SceneVariableSet';
 
 /**
  * Get the closest node with variables
@@ -78,9 +81,13 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   }
 
   for (const name of sceneObject.variableDependency.getNames()) {
-    // This is for backwards compability. In the old architecture query variables could reference itself in a query without breaking.
-    if (sceneObject instanceof QueryVariable && sceneObject.state.name === name) {
-      console.warn('Query variable is referencing itself');
+    // This is for backwards compatibility to prevent infinite loading.
+    //  In the old architecture variables could reference itself without breaking.
+    if (
+      (sceneObject instanceof QueryVariable || sceneObject instanceof CustomVariable) &&
+      sceneObject.state.name === name
+    ) {
+      console.warn(`Variable ${name} is referencing itself`);
       continue;
     }
 
