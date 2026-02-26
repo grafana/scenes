@@ -91,25 +91,19 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return;
     }
 
-    const adhocEnabled = this._adhocFiltersVar?.state.applicabilityEnabled;
-    const groupByEnabled = this._groupByVar?.state.applicabilityEnabled;
-    if (!adhocEnabled && !groupByEnabled) {
-      return;
-    }
-
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds.getDrilldownsApplicability) {
       return;
     }
 
-    const filters = adhocEnabled
-      ? [...this._adhocFiltersVar!.state.filters, ...(this._adhocFiltersVar!.state.originFilters ?? [])]
+    const filters = this._adhocFiltersVar
+      ? [...this._adhocFiltersVar.state.filters, ...(this._adhocFiltersVar.state.originFilters ?? [])]
       : [];
-    const groupByKeys = groupByEnabled
-      ? Array.isArray(this._groupByVar!.state.value)
-        ? this._groupByVar!.state.value.map((v) => String(v))
-        : this._groupByVar!.state.value
-        ? [String(this._groupByVar!.state.value)]
+    const groupByKeys = this._groupByVar
+      ? Array.isArray(this._groupByVar.state.value)
+        ? this._groupByVar.state.value.map((v) => String(v))
+        : this._groupByVar.state.value
+        ? [String(this._groupByVar.state.value)]
         : []
       : [];
 
@@ -193,7 +187,5 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   public cleanup(): void {
     this._adhocFiltersVar = undefined;
     this._groupByVar = undefined;
-    this._perPanelApplicability = undefined;
-    this._applicabilityResults = undefined;
   }
 }
