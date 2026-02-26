@@ -1,3 +1,17 @@
+# v7.0.3 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- Add backwards compatibility for custom variables referencing themselves [#1374](https://github.com/grafana/scenes/pull/1374) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+- SQR: still emit when requestId changes despite identical data [#1376](https://github.com/grafana/scenes/pull/1376) ([@dprokop](https://github.com/dprokop) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v7.0.2 (Thu Feb 26 2026)
 
 #### 🐛 Bug Fix
