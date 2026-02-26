@@ -18,6 +18,7 @@ import { TestVariable } from '../../variables/variants/TestVariable';
 import { SceneDataNode } from '../SceneDataNode';
 import { SceneObject, SceneObjectState } from '../types';
 import { SceneObjectBase } from '../SceneObjectBase';
+import { CustomVariable } from '../../variables/variants/CustomVariable';
 
 describe('sceneGraph', () => {
   it('Can find object', () => {
@@ -393,11 +394,11 @@ describe('sceneGraph', () => {
       expect(hasVariableDependencyInLoadingState(loadingDependecies)).toBe(true);
     });
 
-    it('should return false if the variable is a QueryVariable and it is loading because is refering itself', () => {
+    it('should return false if the variable is a QueryVariable and it is loading because is referring itself', () => {
       const logSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const loadingVariable = new QueryVariable({
-        name: 'loadingVar',
-        query: '$loadingVar',
+        name: 'queryLoadingVar',
+        query: '$queryLoadingVar',
       });
       // Mocking the getValueOptions to avoid the actual request
       jest.spyOn(loadingVariable, 'getValueOptions').mockImplementation(() => of([]));
@@ -405,7 +406,22 @@ describe('sceneGraph', () => {
       setupVariables([loadingVariable]);
 
       expect(hasVariableDependencyInLoadingState(loadingVariable)).toBe(false);
-      expect(logSpy).toHaveBeenCalledWith('Query variable is referencing itself');
+      expect(logSpy).toHaveBeenCalledWith(`Variable ${loadingVariable.state.name} is referencing itself`);
+    });
+
+    it('should return false if the variable is a CustomVariable and it is loading because is referring itself', () => {
+      const logSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const loadingVariable = new CustomVariable({
+        name: 'customLoadingVar',
+        query: '$customLoadingVar',
+      });
+      // Mocking the getValueOptions to avoid the actual request
+      jest.spyOn(loadingVariable, 'getValueOptions').mockImplementation(() => of([]));
+
+      setupVariables([loadingVariable]);
+
+      expect(hasVariableDependencyInLoadingState(loadingVariable)).toBe(false);
+      expect(logSpy).toHaveBeenCalledWith(`Variable ${loadingVariable.state.name} is referencing itself`);
     });
   });
 });
