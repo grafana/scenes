@@ -28,6 +28,7 @@ import {
 export * from './core/types';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
+export { getClosest } from './core/sceneGraph/utils';
 export * as behaviors from './behaviors';
 export * as performanceUtils from './performance';
 export { writePerformanceLog } from './utils/writePerformanceLog';
@@ -119,6 +120,7 @@ export {
 export { SceneCSSGridLayout, SceneCSSGridItem } from './components/layout/CSSGrid/SceneCSSGridLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridLayoutDragStartEvent } from './components/layout/grid/types';
+export { GRID_CELL_HEIGHT, GRID_COLUMN_COUNT } from './components/layout/grid/constants';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export { type SceneGridItemStateLike, type SceneGridItemLike } from './components/layout/grid/types';

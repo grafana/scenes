@@ -1,3 +1,35 @@
+# v7.0.1 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- fix: make rxjs a peer dep due to its brittle types [#1375](https://github.com/grafana/scenes/pull/1375) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v7.0.0 (Thu Feb 26 2026)
+
+### Release Notes
+
+#### fix esm builds ([#1368](https://github.com/grafana/scenes/pull/1368))
+
+`@grafana/scenes` and `@grafana/scenes-react` now ship with exports defined in package.json, allowing only specific files to be exposed while blocking access to the packages internals. We consider this a breaking change.
+
+---
+
+#### 💥 Breaking Change
+
+- fix esm builds [#1368](https://github.com/grafana/scenes/pull/1368) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
 # v6.54.0 (Wed Feb 18 2026)
 
 #### 🚀 Enhancement

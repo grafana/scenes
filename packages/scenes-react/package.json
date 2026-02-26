@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes-react",
-  "version": "6.57.2",
+  "version": "7.0.2",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "Apache-2.0",
@@ -8,6 +8,15 @@
   "main": "dist/index.js",
   "types": "src/index.ts",
   "module": "dist/esm/index.js",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
   "directories": {
     "src": "src"
   },
@@ -29,7 +38,7 @@
     "clean": "rimraf ./dist ./compiled ./package.tgz",
     "typecheck": "tsc --emitDeclarationOnly false --noEmit",
     "test": "jest",
-    "lint": "eslint --cache .",
+    "lint": "eslint .",
     "prepack": "node ./scripts/prepack.js",
     "postpack": "node ./scripts/postpack.js"
   },
@@ -37,7 +46,10 @@
     "url": "https://github.com/grafana/scenes/issues"
   },
   "dependencies": {
+    "@emotion/css": "11.10.5",
+    "@emotion/react": "11.10.5",
     "@grafana/scenes": "workspace:*",
+    "lodash": "^4.17.21",
     "lru-cache": "^10.2.2",
     "react-use": "^17.4.0"
   },
@@ -49,27 +61,13 @@
     "@grafana/ui": ">=11.6",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "react-router-dom": "^6.28.0"
+    "react-router-dom": "^6.28.0",
+    "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@emotion/css": "11.10.5",
-    "@emotion/react": "11.10.5",
-    "@eslint/compat": "1.3.0",
-    "@eslint/js": "^9.28.0",
-    "@grafana/eslint-config": "^8.1.0",
-    "@grafana/tsconfig": "^1.3.0-rc1",
     "@rollup/plugin-eslint": "^9.0.5",
     "@rollup/plugin-node-resolve": "^16.0.1",
-    "@stylistic/eslint-plugin-ts": "3.1.0",
-    "@swc/core": "^1.2.162",
-    "@swc/jest": "^0.2.36",
-    "@testing-library/dom": "9.3.4",
-    "@testing-library/jest-dom": "6.4.2",
-    "@testing-library/react": "14.2.1",
-    "@testing-library/react-hooks": "8.0.1",
-    "@testing-library/user-event": "14.5.2",
     "@types/history": "4.7.11",
-    "@types/jest": "29.5.12",
     "@types/lodash": "4.14.187",
     "@types/node": "20.11.30",
     "@types/react": "18.2.74",
@@ -77,33 +75,12 @@
     "@types/react-grid-layout": "1.3.2",
     "@types/react-virtualized-auto-sizer": "1.0.1",
     "@types/uuid": "8.3.4",
-    "@typescript-eslint/eslint-plugin": "^8.34.0",
-    "@typescript-eslint/parser": "^8.34.0",
-    "esbuild": "^0.25.1",
     "eslint": "^9.28.0",
-    "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-jsdoc": "50.7.1",
-    "eslint-plugin-prettier": "^5.4.1",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "husky": "^8.0.3",
     "jest": "29.7.0",
-    "jest-environment-jsdom": "29.7.0",
-    "jest-matcher-utils": "29.7.0",
-    "lodash": "4.17.21",
-    "prettier": "2.5.1",
-    "react-select-event": "^5.5.1",
     "rimraf": "^3.0.2",
     "rollup": "^4.36.0",
-    "rollup-plugin-dts": "^6.2.0",
-    "rollup-plugin-esbuild": "^6.2.1",
-    "rollup-plugin-node-externals": "^8.0.0",
     "rxjs": "7.8.1",
-    "ts-jest": "29.1.2",
-    "ts-node": "10.9.2",
-    "tsc-watch": "^4.5.0",
-    "tslib": "2.6.2",
-    "typescript": "5.4.3"
+    "typescript": "^5.4.3"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [

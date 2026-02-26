@@ -61,6 +61,7 @@ describe('useQueryRunner', () => {
     // Can update queries
     rerender({
       queries: [{ uid: 'gdev-testdata', refId: 'first', scenarioId: 'random_walk', alias: 'Updated alias' }],
+      maxDataPoints: 20,
     });
     expect(queryRunner.state.queries[0].alias).toBe('Updated alias');
 

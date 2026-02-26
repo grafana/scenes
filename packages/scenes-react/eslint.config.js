@@ -1,5 +1,6 @@
 // @ts-check
 const path = require('path');
+const importPlugin = require('eslint-plugin-import');
 const grafanaConfig = require('@grafana/eslint-config/flat');
 const { includeIgnoreFile } = require('@eslint/compat');
 
@@ -24,6 +25,16 @@ module.exports = [
           },
         },
       ],
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/**/*.{test,spec,story}.{ts,tsx}'],
+    plugins: {
+      import: importPlugin,
+    },
+    rules: {
+      'import/no-extraneous-dependencies': ['error', { devDependencies: false }],
     },
   },
 ];
