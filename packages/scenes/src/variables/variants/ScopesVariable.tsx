@@ -16,7 +16,7 @@ import { SCOPES_VARIABLE_NAME } from '../constants';
 import { isEqual } from 'lodash';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { SCOPES_CHANGED_INTERACTION } from '../../performance/interactionConstants';
-import { Observable, of } from 'rxjs';
+import { Observable, Subject, of } from 'rxjs';
 
 export interface ScopesVariableState extends SceneVariableState {
   /**
@@ -36,6 +36,7 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
   // Special options that enables variables to be hidden but still render to access react contexts
   public UNSAFE_renderAsHidden = true;
   public static Component = ScopesVariableRenderer;
+  private _validateAndUpdateObs?: Subject<ValidateAndUpdateResult>;
 
   public constructor(state: Partial<ScopesVariableState>) {
     super({
@@ -50,7 +51,13 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
   }
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
-    return of({});
+    if (!this.state.loading) {
+      this._validateAndUpdateObs = undefined;
+      return of({});
+    }
+
+    this._validateAndUpdateObs = new Subject<ValidateAndUpdateResult>();
+    return this._validateAndUpdateObs;
   }
 
   /**
@@ -111,6 +118,8 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
       queryController?.startProfile(SCOPES_CHANGED_INTERACTION);
       this.setState({ scopes: state.value, loading });
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+      // Signals to SceneVariableSet that we have a value
+      this._validateAndUpdateObs?.next({});
     } else {
       this.setState({ loading });
     }
