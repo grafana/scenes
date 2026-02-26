@@ -1,3 +1,15 @@
+# v7.0.2 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- GroupByVariable: Subscribe to defaultValue updates and sync to value [#1361](https://github.com/grafana/scenes/pull/1361) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.0.1 (Thu Feb 26 2026)
 
 #### 🐛 Bug Fix
