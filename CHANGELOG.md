@@ -1,3 +1,17 @@
+# v6.57.2 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Expose a way to get original value of a default filter [#1371](https://github.com/grafana/scenes/pull/1371) ([@mdvictor](https://github.com/mdvictor))
+  - GroupByVar: Allow current value to overwrite default value [#1366](https://github.com/grafana/scenes/pull/1366) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v6.57.1 (Wed Feb 25 2026)
 
 #### 🐛 Bug Fix
