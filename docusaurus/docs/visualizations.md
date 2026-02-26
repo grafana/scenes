@@ -72,7 +72,6 @@ Scenes comes with a helper API, `PanelBuilders`, for building [standard Grafana 
 
 - Bar chart
 - Bar gauge
-- Datagrid
 - Flame graph
 - Gauge
 - Geomap
