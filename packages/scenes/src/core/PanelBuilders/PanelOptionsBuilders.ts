@@ -7,10 +7,6 @@ import {
   defaultOptions as defaultBarGaugeOptions,
 } from '@grafana/schema/dist/esm/raw/composable/bargauge/panelcfg/x/BarGaugePanelCfg_types.gen';
 import {
-  Options as DataGridOptions,
-  defaultOptions as defaultDataGridOptions,
-} from '@grafana/schema/dist/esm/raw/composable/datagrid/panelcfg/x/DatagridPanelCfg_types.gen';
-import {
   Options as GaugeOptions,
   defaultOptions as defaultGaugeOptions,
 } from '@grafana/schema/dist/esm/raw/composable/gauge/panelcfg/x/GaugePanelCfg_types.gen';
@@ -71,9 +67,6 @@ export const PanelOptionsBuilders = {
   },
   bargauge() {
     return new PanelOptionsBuilder<BarGaugeOptions>(() => defaultBarGaugeOptions);
-  },
-  datagrid() {
-    return new PanelOptionsBuilder<DataGridOptions>(() => defaultDataGridOptions);
   },
   flamegraph() {
     return new PanelOptionsBuilder<{}>();
