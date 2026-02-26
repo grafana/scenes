@@ -228,7 +228,19 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       }
     }
 
+    const sub = this.subscribeToState((newState, prevState) => {
+      if (!isEqual(newState.defaultValue, prevState.defaultValue)) {
+        if (newState.defaultValue) {
+          this.changeValueTo(newState.defaultValue.value, newState.defaultValue.text, false);
+        } else {
+          this.changeValueTo([], [], false);
+        }
+      }
+    });
+
     return () => {
+      sub.unsubscribe();
+
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
       }

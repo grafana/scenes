@@ -1,3 +1,29 @@
+# v7.0.2 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupByVariable: Subscribe to defaultValue updates and sync to value [#1361](https://github.com/grafana/scenes/pull/1361) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.0.1 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - fix: make rxjs a peer dep due to its brittle types [#1375](https://github.com/grafana/scenes/pull/1375) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
 # v7.0.0 (Thu Feb 26 2026)
 
 ### Release Notes
