@@ -13,8 +13,6 @@ import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
 import { ScopesVariable } from '../../variables/variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../../variables/constants';
 import { CustomVariable } from '../../variables/variants/CustomVariable';
-import { ConstantVariable } from '../../variables/variants/ConstantVariable';
-import { SceneVariableSet } from '../../variables/sets/SceneVariableSet';
 
 /**
  * Get the closest node with variables
