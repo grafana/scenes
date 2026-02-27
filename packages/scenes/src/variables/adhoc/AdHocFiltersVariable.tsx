@@ -744,39 +744,34 @@ export class AdHocFiltersVariable
       return;
     }
 
-    const responseMap = new Map<string, DrilldownsApplicability>();
-    response.forEach((filter: DrilldownsApplicability) => {
-      responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
-    });
-
     const update = {
       applicabilityEnabled: true,
       filters: [...this.state.filters],
       originFilters: [...(this.state.originFilters ?? [])],
     };
 
-    update.filters.forEach((f) => {
-      const filter = responseMap.get(f.key);
+    const filtersCount = update.filters.length;
 
-      if (filter) {
-        f.nonApplicable = !filter.applicable;
-        f.nonApplicableReason = filter.reason;
+    update.filters.forEach((f, i) => {
+      if (i < response.length) {
+        f.nonApplicable = !response[i].applicable;
+        f.nonApplicableReason = response[i].reason;
       }
     });
 
-    update.originFilters?.forEach((f) => {
-      const filter = responseMap.get(`${f.key}-${f.origin}`);
-
-      if (filter) {
+    update.originFilters?.forEach((f, i) => {
+      const responseIdx = filtersCount + i;
+      const result = responseIdx < response.length ? response[responseIdx] : undefined;
+      if (result) {
         if (!f.matchAllFilter) {
-          f.nonApplicable = !filter.applicable;
-          f.nonApplicableReason = filter.reason;
+          f.nonApplicable = !result.applicable;
+          f.nonApplicableReason = result.reason;
         }
 
         const originalValue = this._originalValues.get(`${f.key}-${f.origin}`);
         if (originalValue) {
-          originalValue.nonApplicable = !filter.applicable;
-          originalValue.nonApplicableReason = filter?.reason;
+          originalValue.nonApplicable = !result.applicable;
+          originalValue.nonApplicableReason = result?.reason;
         }
       }
     });
@@ -851,9 +846,10 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key) ?? [];
-    // Filter out the current filter key from the list of all filters
-    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(originFilters);
+    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key && !f.nonApplicable) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== filter.key && !f.nonApplicable)
+      .concat(originFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
