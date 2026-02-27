@@ -36,7 +36,7 @@ jobs:
       - name: Build documentation website
         run: yarn docs:build:dev
 
-      - uses: grafana/shared-workflows/actions/login-to-gcs@login-to-gcs-v0.2.0
+      - uses: grafana/shared-workflows/actions/login-to-gcs@64c35f1dffd024130947f485ed6a150edfe83d22 # login-to-gcs-v0.2.0
         id: login-to-gcs
         with:
           service_account: 'github-developer-portal-dev@grafanalabs-workload-identity.iam.gserviceaccount.com'
