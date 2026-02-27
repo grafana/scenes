@@ -5,8 +5,14 @@ import {
   Scope,
   TimeRange,
 } from '@grafana/data';
-import { findActiveAdHocFilterVariableByUid } from '../variables/adhoc/patchGetAdhocFilters';
-import { findActiveGroupByVariablesByUid } from '../variables/groupby/findActiveGroupByVariablesByUid';
+import {
+  findClosestAdHocFilterInHierarchy,
+  findGlobalAdHocFilterVariableByUid,
+} from '../variables/adhoc/patchGetAdhocFilters';
+import {
+  findClosestGroupByInHierarchy,
+  findGlobalGroupByVariableByUid,
+} from '../variables/groupby/findActiveGroupByVariablesByUid';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import {
   AdHocFilterWithLabels,
@@ -16,7 +22,7 @@ import {
   isFilterComplete,
 } from '../variables/adhoc/AdHocFiltersVariable';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
-import { SceneDataQuery, SceneObjectState } from '../core/types';
+import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 
 /**
  * Manages ad-hoc filters and group-by variables for data providers
@@ -33,11 +39,17 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   }
 
   /**
-   * Walk up scene graph and find the closest filterset with matching data source
+   * Find drilldown variables matching the given datasource UID.
+   * When sceneObject is provided, walks up the hierarchy to find the closest match.
+   * Otherwise falls back to searching the global active variable sets.
    */
-  public findAndSubscribeToDrilldowns(interpolatedUid: string | undefined) {
-    const filtersVar = findActiveAdHocFilterVariableByUid(interpolatedUid);
-    const groupByVar = findActiveGroupByVariablesByUid(interpolatedUid);
+  public findAndSubscribeToDrilldowns(interpolatedUid: string | undefined, sceneObject?: SceneObject) {
+    const filtersVar = sceneObject
+      ? findClosestAdHocFilterInHierarchy(interpolatedUid, sceneObject)
+      : findGlobalAdHocFilterVariableByUid(interpolatedUid);
+    const groupByVar = sceneObject
+      ? findClosestGroupByInHierarchy(interpolatedUid, sceneObject)
+      : findGlobalGroupByVariableByUid(interpolatedUid);
 
     let hasChanges = false;
 

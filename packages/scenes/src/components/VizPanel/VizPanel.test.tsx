@@ -1177,6 +1177,45 @@ describe('VizPanel', () => {
       expect((panel.state.$data as SceneDataTransformer).state.$data).toBe(sceneQueryRunner);
     });
   });
+
+  describe('applyFieldConfig series identity preservation', () => {
+    let testData: PanelData;
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeEach(() => {
+      testData = getTestData();
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataNode({ data: testData }),
+      });
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+    });
+
+    it('should reuse cached series, structureRev and state on state-only transitions', () => {
+      const first = panel.applyFieldConfig(testData);
+      const second = panel.applyFieldConfig({ ...testData, state: LoadingState.Done });
+
+      expect(second.series).toBe(first.series);
+      expect(second.structureRev).toBe(first.structureRev);
+      expect(second.state).toBe(LoadingState.Done);
+    });
+
+    it('should return identical result for the exact same PanelData object', () => {
+      const first = panel.applyFieldConfig(testData);
+      expect(panel.applyFieldConfig(testData)).toBe(first);
+    });
+
+    it('should reprocess series when series reference changes', () => {
+      panel.applyFieldConfig(testData);
+
+      const newFrame = toDataFrame({ fields: [{ name: 'X', type: FieldType.number, values: [1, 2] }] });
+      const result = panel.applyFieldConfig({ ...testData, series: [newFrame] });
+
+      expect(result.series[0]).not.toBe(newFrame);
+    });
+  });
 });
 
 function getDataNodeWithTestData() {

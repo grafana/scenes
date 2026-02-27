@@ -11,8 +11,9 @@ import {
   SceneObjectBase,
   SceneObjectRef,
   SceneObjectState,
+  GRID_CELL_HEIGHT,
+  GRID_COLUMN_COUNT,
 } from '@grafana/scenes';
-import { GRID_CELL_HEIGHT, GRID_COLUMN_COUNT } from '@grafana/scenes/src/components/layout/grid/constants';
 import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults } from './utils';
 import { Button, IconButton } from '@grafana/ui';
 import React from 'react';

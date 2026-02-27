@@ -1,3 +1,106 @@
+# v7.0.3 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- Add backwards compatibility for custom variables referencing themselves [#1374](https://github.com/grafana/scenes/pull/1374) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+- SQR: still emit when requestId changes despite identical data [#1376](https://github.com/grafana/scenes/pull/1376) ([@dprokop](https://github.com/dprokop) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v7.0.2 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- GroupByVariable: Subscribe to defaultValue updates and sync to value [#1361](https://github.com/grafana/scenes/pull/1361) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.0.1 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- fix: make rxjs a peer dep due to its brittle types [#1375](https://github.com/grafana/scenes/pull/1375) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v7.0.0 (Thu Feb 26 2026)
+
+### Release Notes
+
+#### fix esm builds ([#1368](https://github.com/grafana/scenes/pull/1368))
+
+`@grafana/scenes` and `@grafana/scenes-react` now ship with exports defined in package.json, allowing only specific files to be exposed while blocking access to the packages internals. We consider this a breaking change.
+
+---
+
+#### 💥 Breaking Change
+
+- fix esm builds [#1368](https://github.com/grafana/scenes/pull/1368) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v6.57.2 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Expose a way to get original value of a default filter [#1371](https://github.com/grafana/scenes/pull/1371) ([@mdvictor](https://github.com/mdvictor))
+- GroupByVar: Allow current value to overwrite default value [#1366](https://github.com/grafana/scenes/pull/1366) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.57.1 (Wed Feb 25 2026)
+
+#### 🐛 Bug Fix
+
+- SQR: Try preserving referential equality when data hasn't changed [#1370](https://github.com/grafana/scenes/pull/1370) ([@dprokop](https://github.com/dprokop))
+- Chore: Avoid array get by index [#1369](https://github.com/grafana/scenes/pull/1369) ([@ryantxu](https://github.com/ryantxu))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Ryan McKinley ([@ryantxu](https://github.com/ryantxu))
+
+---
+
+# v6.57.0 (Mon Feb 23 2026)
+
+#### 🚀 Enhancement
+
+- Variables: Add a `ControlSourceRef` to the variable state [#1315](https://github.com/grafana/scenes/pull/1315) ([@leventebalogh](https://github.com/leventebalogh) [@mckn](https://github.com/mckn))
+
+#### 🐛 Bug Fix
+
+- Fix context macros [#1365](https://github.com/grafana/scenes/pull/1365) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 3
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Marcus Andersson ([@mckn](https://github.com/mckn))
+
+---
+
 # v6.56.0 (Fri Feb 20 2026)
 
 #### 🚀 Enhancement

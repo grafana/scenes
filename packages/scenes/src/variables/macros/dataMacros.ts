@@ -54,14 +54,14 @@ export class ValueMacro implements FormatVariable {
 
     if (fieldPath === 'time') {
       const timeField = frame.fields.find((f) => f.type === FieldType.time);
-      return timeField ? timeField.values.get(rowIndex) : undefined;
+      return timeField ? timeField.values[rowIndex] : undefined;
     }
 
     if (!field) {
       return this._match;
     }
 
-    const value = field.values.get(rowIndex);
+    const value = field.values[rowIndex];
     if (fieldPath === 'raw') {
       return value;
     }
