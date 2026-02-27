@@ -90,6 +90,22 @@ describe('SceneQueryController', () => {
     expect(sub1.closed).toBe(true);
     expect(sub2.closed).toBe(true);
   });
+
+  it('clears running queries on deactivate', async () => {
+    const deactivate = scene.activate();
+    const { query } = registerQuery(scene);
+    const sub = query.subscribe(() => {});
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(1);
+
+    deactivate();
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(0);
+
+    sub.unsubscribe();
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(0);
+  });
 });
 
 function registerQuery(scene: SceneObject) {
