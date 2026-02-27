@@ -64,7 +64,9 @@ export class AnnotationsDataLayer
     });
 
     this._timeRangeSub = timeRange.subscribeToState(() => {
-      this.runWithTimeRange(timeRange);
+      // setTimeout to let SceneVariableSet also respond to time range change
+      // So that variables that depend on time range have time to switch to loading state
+      setTimeout(() => this.runWithTimeRange(timeRange), 0);
     });
   }
 
