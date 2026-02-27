@@ -744,11 +744,6 @@ export class AdHocFiltersVariable
       return;
     }
 
-    const responseMap = new Map<string, DrilldownsApplicability>();
-    response.forEach((r: DrilldownsApplicability) => {
-      responseMap.set(drilldownApplicabilityKey(r), r);
-    });
-
     const update = {
       applicabilityEnabled: true,
       filters: [...this.state.filters],
@@ -758,17 +753,15 @@ export class AdHocFiltersVariable
     const filtersCount = update.filters.length;
 
     update.filters.forEach((f, i) => {
-      const result = responseMap.get(drilldownApplicabilityKey({ key: f.key, origin: f.origin, index: i }));
-      if (result) {
-        f.nonApplicable = !result.applicable;
-        f.nonApplicableReason = result.reason;
+      if (i < response.length) {
+        f.nonApplicable = !response[i].applicable;
+        f.nonApplicableReason = response[i].reason;
       }
     });
 
     update.originFilters?.forEach((f, i) => {
-      const result = responseMap.get(
-        drilldownApplicabilityKey({ key: f.key, origin: f.origin, index: filtersCount + i })
-      );
+      const responseIdx = filtersCount + i;
+      const result = responseIdx < response.length ? response[responseIdx] : undefined;
       if (result) {
         if (!f.matchAllFilter) {
           f.nonApplicable = !result.applicable;
@@ -999,16 +992,6 @@ export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
 
 export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
   return !filter.nonApplicable;
-}
-
-/**
- * Builds a unique composite key for matching DrilldownsApplicability results back
- * to their source filters. Uses key + origin + index so duplicate keys
- * (e.g. cluster=dev1, cluster=dev2) resolve to distinct entries. The index
- * represents the filter's position in the input array sent to getDrilldownsApplicability.
- */
-export function drilldownApplicabilityKey(entry: { key: string; origin?: string; index?: number }): string {
-  return `${entry.key}${entry.origin ? `-${entry.origin}` : ''}-${entry.index ?? ''}`;
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {

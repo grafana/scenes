@@ -17,7 +17,6 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import {
   AdHocFilterWithLabels,
   AdHocFiltersVariable,
-  drilldownApplicabilityKey,
   isFilterApplicable,
   isFilterComplete,
 } from '../variables/adhoc/AdHocFiltersVariable';
@@ -32,7 +31,6 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   private _groupByVar?: GroupByVariable;
   private _variableDependency: VariableDependencyConfig<TState>;
   private _applicabilityResults?: DrilldownsApplicability[];
-  private _perPanelApplicability?: Map<string, DrilldownsApplicability>;
 
   public constructor(variableDependency: VariableDependencyConfig<TState>) {
     this._variableDependency = variableDependency;
@@ -150,16 +148,10 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
 
   private _clearPerPanelApplicability(): void {
     this._applicabilityResults = undefined;
-    this._perPanelApplicability = undefined;
   }
 
   private _setPerPanelApplicability(results: DrilldownsApplicability[]): void {
     this._applicabilityResults = results;
-    const map = new Map<string, DrilldownsApplicability>();
-    results.forEach((r: DrilldownsApplicability) => {
-      map.set(drilldownApplicabilityKey(r), r);
-    });
-    this._perPanelApplicability = map;
   }
 
   public getFilters(): AdHocFilterWithLabels[] | undefined {
@@ -176,16 +168,16 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       ...stateFilters.map((f, i) => ({ filter: f, sentIndex: i })),
     ].filter(({ filter: f }) => isFilterComplete(f) && isFilterApplicable(f));
 
-    if (!this._perPanelApplicability) {
+    if (!this._applicabilityResults) {
       return allWithIndex.map(({ filter }) => filter);
     }
 
     return allWithIndex
-      .filter(({ filter: f, sentIndex }) => {
-        const entry = this._perPanelApplicability!.get(
-          drilldownApplicabilityKey({ key: f.key, origin: f.origin, index: sentIndex })
-        );
-        return !entry || entry.applicable;
+      .filter(({ sentIndex }) => {
+        if (sentIndex >= this._applicabilityResults!.length) {
+          return true;
+        }
+        return this._applicabilityResults![sentIndex].applicable;
       })
       .map(({ filter }) => filter);
   }
@@ -197,7 +189,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
 
     const keys = this._groupByVar.getApplicableKeys();
 
-    if (!this._perPanelApplicability) {
+    if (!this._applicabilityResults) {
       return keys;
     }
 
@@ -213,10 +205,11 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       if (sentIdx === -1) {
         return true;
       }
-      const entry = this._perPanelApplicability!.get(
-        drilldownApplicabilityKey({ key: k, index: filtersCount + sentIdx })
-      );
-      return !entry || entry.applicable;
+      const resultIdx = filtersCount + sentIdx;
+      if (resultIdx >= this._applicabilityResults!.length) {
+        return true;
+      }
+      return this._applicabilityResults![resultIdx].applicable;
     });
   }
 
