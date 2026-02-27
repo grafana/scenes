@@ -30,6 +30,8 @@ export interface ScopesVariableState extends SceneVariableState {
 export class ScopesVariable extends SceneObjectBase<ScopesVariableState> implements SceneVariable<ScopesVariableState> {
   protected _renderBeforeActivation = true;
   protected _context: ScopesContextValue | undefined;
+  // Used to always emit an update event on initial load
+  private _isInitialUpdate = true;
 
   // Special options that enables variables to be hidden but still render to access react contexts
   public UNSAFE_renderAsHidden = true;
@@ -100,11 +102,13 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
     const scopesHaveChanged = !isEqual(oldScopes, newScopes);
 
     // Only update scopes value state when loading is false and the scopes have changed
-    if (!loading && (scopesHaveChanged || newScopes.length === 0)) {
+    // Emit on initial load to ensure that the variable is updated when the scopes are empty
+    if (!loading && (scopesHaveChanged || this._isInitialUpdate)) {
       const queryController = getQueryController(this);
       queryController?.startProfile(SCOPES_CHANGED_INTERACTION);
       this.setState({ scopes: state.value, loading });
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+      this._isInitialUpdate = false;
     } else {
       this.setState({ loading });
     }
