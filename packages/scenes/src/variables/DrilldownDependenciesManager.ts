@@ -11,6 +11,7 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import {
   AdHocFilterWithLabels,
   AdHocFiltersVariable,
+  drilldownApplicabilityKey,
   isFilterApplicable,
   isFilterComplete,
 } from '../variables/adhoc/AdHocFiltersVariable';
@@ -24,8 +25,8 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   private _adhocFiltersVar?: AdHocFiltersVariable;
   private _groupByVar?: GroupByVariable;
   private _variableDependency: VariableDependencyConfig<TState>;
-  private _perPanelApplicability?: Map<string, DrilldownsApplicability>;
   private _applicabilityResults?: DrilldownsApplicability[];
+  private _perPanelApplicability?: Map<string, DrilldownsApplicability>;
 
   public constructor(variableDependency: VariableDependencyConfig<TState>) {
     this._variableDependency = variableDependency;
@@ -108,8 +109,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       : [];
 
     if (filters.length === 0 && groupByKeys.length === 0) {
-      this._perPanelApplicability = undefined;
-      this._applicabilityResults = undefined;
+      this._clearPerPanelApplicability();
       return;
     }
 
@@ -124,8 +124,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       });
       this._setPerPanelApplicability(results);
     } catch {
-      this._perPanelApplicability = undefined;
-      this._applicabilityResults = undefined;
+      this._clearPerPanelApplicability();
     }
   }
 
@@ -137,11 +136,16 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     return this._applicabilityResults;
   }
 
+  private _clearPerPanelApplicability(): void {
+    this._applicabilityResults = undefined;
+    this._perPanelApplicability = undefined;
+  }
+
   private _setPerPanelApplicability(results: DrilldownsApplicability[]): void {
     this._applicabilityResults = results;
     const map = new Map<string, DrilldownsApplicability>();
     results.forEach((r: DrilldownsApplicability) => {
-      map.set(r.origin ? `${r.key}-${r.origin}` : r.key, r);
+      map.set(drilldownApplicabilityKey(r), r);
     });
     this._perPanelApplicability = map;
   }
@@ -151,20 +155,27 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return undefined;
     }
 
-    const allFilters = [
-      ...(this._adhocFiltersVar.state.originFilters ?? []),
-      ...this._adhocFiltersVar.state.filters,
-    ].filter((f) => isFilterComplete(f) && isFilterApplicable(f));
+    const stateFilters = this._adhocFiltersVar.state.filters;
+    const originFilters = this._adhocFiltersVar.state.originFilters ?? [];
+
+    // Reconstruct sent indices: resolveApplicability sends [...stateFilters, ...originFilters]
+    const allWithIndex: Array<{ filter: AdHocFilterWithLabels; sentIndex: number }> = [
+      ...originFilters.map((f, i) => ({ filter: f, sentIndex: stateFilters.length + i })),
+      ...stateFilters.map((f, i) => ({ filter: f, sentIndex: i })),
+    ].filter(({ filter: f }) => isFilterComplete(f) && isFilterApplicable(f));
 
     if (!this._perPanelApplicability) {
-      return allFilters;
+      return allWithIndex.map(({ filter }) => filter);
     }
 
-    return allFilters.filter((f) => {
-      const key = f.origin ? `${f.key}-${f.origin}` : f.key;
-      const entry = this._perPanelApplicability!.get(key);
-      return !entry || entry.applicable;
-    });
+    return allWithIndex
+      .filter(({ filter: f, sentIndex }) => {
+        const entry = this._perPanelApplicability!.get(
+          drilldownApplicabilityKey({ key: f.key, origin: f.origin, index: sentIndex })
+        );
+        return !entry || entry.applicable;
+      })
+      .map(({ filter }) => filter);
   }
 
   public getGroupByKeys(): string[] | undefined {
@@ -178,8 +189,21 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return keys;
     }
 
+    // Rebuild the full sent groupByKeys to find each key's sent position
+    const val = this._groupByVar.state.value;
+    const allGroupByKeys = Array.isArray(val) ? val.map(String) : val ? [String(val)] : [];
+    const filtersCount = this._adhocFiltersVar
+      ? this._adhocFiltersVar.state.filters.length + (this._adhocFiltersVar.state.originFilters?.length ?? 0)
+      : 0;
+
     return keys.filter((k) => {
-      const entry = this._perPanelApplicability!.get(k);
+      const sentIdx = allGroupByKeys.indexOf(k);
+      if (sentIdx === -1) {
+        return true;
+      }
+      const entry = this._perPanelApplicability!.get(
+        drilldownApplicabilityKey({ key: k, index: filtersCount + sentIdx })
+      );
       return !entry || entry.applicable;
     });
   }
