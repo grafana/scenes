@@ -58,10 +58,7 @@ export function findClosestAdHocFilterInHierarchy(
   while (current) {
     const variables = current.state.$variables?.state.variables ?? [];
     for (const variable of variables) {
-      if (
-        variable instanceof AdHocFiltersVariable &&
-        interpolate(variable, variable.state.datasource?.uid) === dsUid
-      ) {
+      if (variable instanceof AdHocFiltersVariable && interpolate(variable, variable.state.datasource?.uid) === dsUid) {
         return variable;
       }
     }
@@ -75,9 +72,7 @@ export function findClosestAdHocFilterInHierarchy(
  * Search the global set of active AdHocFiltersVariables for one whose interpolated
  * datasource UID matches dsUid. Use this when no scene hierarchy context is available.
  */
-export function findGlobalAdHocFilterVariableByUid(
-  dsUid: string | undefined
-): AdHocFiltersVariable | undefined {
+export function findGlobalAdHocFilterVariableByUid(dsUid: string | undefined): AdHocFiltersVariable | undefined {
   for (const filter of allActiveFilterSets.values()) {
     if (interpolate(filter, filter.state.datasource?.uid) === dsUid) {
       return filter;

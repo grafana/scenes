@@ -31,9 +31,7 @@ export function findClosestGroupByInHierarchy(
  * Search the global set of active GroupByVariables for one whose interpolated
  * datasource UID matches dsUid. Use this when no scene hierarchy context is available.
  */
-export function findGlobalGroupByVariableByUid(
-  dsUid: string | undefined
-): GroupByVariable | undefined {
+export function findGlobalGroupByVariableByUid(dsUid: string | undefined): GroupByVariable | undefined {
   for (const groupByVariable of allActiveGroupByVariables.values()) {
     if (interpolate(groupByVariable, groupByVariable.state.datasource?.uid) === dsUid) {
       return groupByVariable;
