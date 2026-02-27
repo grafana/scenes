@@ -12,15 +12,16 @@ export interface TestSceneState extends SceneObjectState {
 
 export class TestScene extends SceneObjectBase<TestSceneState> {
   public renderCount = 0;
-
-  public setRenderBeforeActivation(value: boolean) {
-    this._renderBeforeActivation = value;
-  }
+  public wasRenderedWhileInactive?: boolean;
 
   public static Component = ({ model }: SceneComponentProps<TestScene>) => {
     const { name } = model.useState();
 
     model.renderCount += 1;
+
+    if (!model.isActive) {
+      model.wasRenderedWhileInactive = true;
+    }
 
     return (
       <div>
@@ -31,7 +32,11 @@ export class TestScene extends SceneObjectBase<TestSceneState> {
   };
 }
 
-describe('SceneComponentWrapper', () => {
+describe('SceneComponentWrapper no render before activiation', () => {
+  beforeAll(() => {
+    SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = false;
+  });
+
   it('Should render should activate object', () => {
     const scene = new TestScene({ name: 'nested' });
     render(<scene.Component model={scene} />);
@@ -58,13 +63,43 @@ describe('SceneComponentWrapper', () => {
     expect(scene.renderCount).toBe(1);
     expect(screen.getByText('isActive: true')).toBeInTheDocument();
   });
+});
+
+describe('SceneComponentWrapper render before activiation', () => {
+  beforeAll(() => {
+    SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true;
+  });
+
+  it('Should render should activate object', () => {
+    const scene = new TestScene({ name: 'nested' });
+    render(<scene.Component model={scene} />);
+
+    expect(scene.renderCount).toBe(2);
+    expect(scene.isActive).toBe(true);
+  });
+
+  it('Unmount should deactivate', () => {
+    const scene = new TestScene({ name: 'nested' });
+    const { unmount } = render(<scene.Component model={scene} />);
+
+    expect(scene.isActive).toBe(true);
+
+    unmount();
+
+    expect(scene.isActive).toBe(false);
+  });
+
+  it('should render component before activation', () => {
+    const scene = new TestScene({ name: 'nested' });
+    const screen = render(<scene.Component model={scene} />);
+
+    expect(scene.wasRenderedWhileInactive).toBe(true);
+    expect(screen.getByText('isActive: true')).toBeInTheDocument();
+  });
 
   it('should render component before activation whgen renderBeforeActivation is true', () => {
     const scene = new TestScene({ name: 'nested' });
-    scene.setRenderBeforeActivation(true);
-
     render(<scene.Component model={scene} />);
-
     expect(scene.renderCount).toBe(2);
   });
 });

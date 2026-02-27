@@ -8,6 +8,7 @@ import { useSceneContext } from './hooks';
 import { useEffect, useId } from 'react';
 import { isEqual } from 'lodash';
 import { DataTransformerConfig } from '@grafana/schema';
+import { useAddToScene } from '../contexts/SceneContextObject';
 
 export interface UseDataTransformerOptions {
   transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
@@ -28,7 +29,7 @@ export function useDataTransformer(options: UseDataTransformerOptions) {
     });
   }
 
-  useEffect(() => scene.addToScene(dataTransformer), [dataTransformer, scene]);
+  useAddToScene(dataTransformer, scene);
 
   useEffect(() => {
     if (!isEqual(dataTransformer.state.transformations, options.transformations)) {

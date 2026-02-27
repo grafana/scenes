@@ -9,6 +9,7 @@ import {
 import { useSceneContext } from '../hooks/hooks';
 import { SceneFlexItem, type SceneFlexItemProps } from './SceneFlexItem';
 import { SceneFlexLayoutContext } from './SceneFlexLayoutContext';
+import { useAddToScene } from '../contexts/SceneContextObject';
 
 export interface SceneFlexLayoutProps extends SceneFlexItemPlacement {
   children: React.ReactNode;
@@ -43,7 +44,7 @@ export function SceneFlexLayout(props: SceneFlexLayoutProps) {
     });
   }
 
-  useEffect(() => scene.addToScene(layout), [layout, scene]);
+  useAddToScene(layout, scene);
 
   // Keep layout placement props in sync (but do not touch children here).
   useEffect(() => {

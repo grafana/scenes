@@ -25,6 +25,8 @@ import { SceneObjectRef } from './SceneObjectRef';
 export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObjectState>
   implements SceneObject<TState>
 {
+  public static RENDER_BEFORE_ACTIVATION_DEFAULT = false;
+
   private _isActive = false;
   private _state: TState;
   private _activationHandlers: SceneActivationHandler[] = [];
@@ -35,7 +37,7 @@ export abstract class SceneObjectBase<TState extends SceneObjectState = SceneObj
   protected _parent?: SceneObject;
   protected _subs = new Subscription();
   protected _refCount = 0;
-  protected _renderBeforeActivation = false;
+  protected _renderBeforeActivation = SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT;
 
   protected _variableDependency: SceneVariableDependencyConfigLike | undefined;
   protected _urlSync: SceneObjectUrlSyncHandler | undefined;

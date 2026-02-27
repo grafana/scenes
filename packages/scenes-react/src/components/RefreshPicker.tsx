@@ -2,6 +2,7 @@ import React, { useEffect, useId } from 'react';
 import { useSceneContext } from '../hooks/hooks';
 import { SceneRefreshPicker, SceneRefreshPickerState } from '@grafana/scenes';
 import { usePrevious } from 'react-use';
+import { useAddToScene } from '../contexts/SceneContextObject';
 
 export interface Props {
   refresh?: string;
@@ -22,7 +23,7 @@ export function RefreshPicker(props: Props) {
     });
   }
 
-  useEffect(() => scene.addToScene(picker), [picker, scene]);
+  useAddToScene(picker, scene);
 
   // Update options
   useEffect(() => {

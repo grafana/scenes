@@ -17,6 +17,7 @@ import { LocalValueVariable } from '../variants/LocalValueVariable';
 import { TestObjectWithVariableDependency, TestScene } from '../TestScene';
 import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 import { SceneVariable, SceneVariableState, VariableValue } from '../types';
+import { ObjectVariable } from '../variants/ObjectVariable';
 
 interface SceneTextItemState extends SceneObjectState {
   text: string;
@@ -206,6 +207,45 @@ describe('SceneVariableList', () => {
         expect(screen.getByText('AA - B')).toBeInTheDocument();
         expect((helloText as any).renderCount).toBe(1);
         expect((sceneObjectWithVariable as any).renderCount).toBe(3);
+      });
+    });
+
+    describe('When update process completed and variables have changed values RENDER_BEFORE_ACTIVATION = true', () => {
+      beforeAll(() => (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true));
+      afterAll(() => (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = false));
+
+      it('Should trigger re-renders of dependent scene objects', async () => {
+        const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+        const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+
+        const helloText = new SceneTextItem({ text: 'Hello' });
+        const sceneObjectWithVariable = new SceneTextItem({ text: '$A - $B', key: '' });
+
+        const scene = new SceneFlexLayout({
+          $variables: new SceneVariableSet({ variables: [B, A] }),
+          children: [new SceneFlexItem({ body: helloText }), new SceneFlexItem({ body: sceneObjectWithVariable })],
+        });
+
+        render(<scene.Component model={scene} />);
+
+        expect(screen.getByText('Hello')).toBeInTheDocument();
+
+        act(() => {
+          A.signalUpdateCompleted();
+          B.signalUpdateCompleted();
+        });
+
+        expect(screen.getByText('AA - AAA')).toBeInTheDocument();
+        expect((helloText as any).renderCount).toBe(2);
+        expect((sceneObjectWithVariable as any).renderCount).toBe(3);
+
+        act(() => {
+          B.changeValueTo('B');
+        });
+
+        expect(screen.getByText('AA - B')).toBeInTheDocument();
+        expect((helloText as any).renderCount).toBe(2);
+        expect((sceneObjectWithVariable as any).renderCount).toBe(4);
       });
     });
   });
@@ -647,18 +687,23 @@ describe('SceneVariableList', () => {
       expect(innerSet.isVariableLoadingOrWaitingToUpdate(scopedA)).toBe(false);
     });
 
-    it('Should ignore isActivate state', async () => {
-      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
-      const set = new SceneVariableSet({ variables: [A] });
-      const deactivate = set.activate();
+    describe('When RENDER_BEFORE_ACTIVATION = true', () => {
+      beforeAll(() => (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true));
+      afterAll(() => (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = false));
 
-      // Should start variables with no dependencies
-      expect(A.state.loading).toBe(true);
-      A.signalUpdateCompleted();
+      it('Should return true if variable needs update / validation', async () => {
+        const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+        const set = new SceneVariableSet({ variables: [A] });
 
-      deactivate();
+        expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(true);
+      });
 
-      expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(false);
+      it('Should return false if variable does not need update / validation', async () => {
+        const A = new ObjectVariable({ name: 'A', value: { test: 'value' }, type: 'custom' });
+        const set = new SceneVariableSet({ variables: [A] });
+
+        expect(set.isVariableLoadingOrWaitingToUpdate(A)).toBe(false);
+      });
     });
   });
 
@@ -885,6 +930,41 @@ describe('SceneVariableList', () => {
 
       expect(nestedScene.state.didSomethingCount).toBe(2);
       expect(nestedScene.state.variableValueChanged).toBe(1);
+    });
+
+    describe('When RENDER_BEFORE_ACTIVATION = true', () => {
+      beforeAll(() => (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true));
+      afterAll(() => (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = false));
+
+      it('When local value overrides parent variable changes on top level should propagate', () => {
+        const topLevelVar = new TestVariable({
+          name: 'test',
+          options: [],
+          value: 'B',
+          optionsToReturn: [{ label: 'B', value: 'B' }],
+          delayMs: 0,
+        });
+
+        const nestedScene = new TestObjectWithVariableDependency({
+          title: '$test',
+          $variables: new SceneVariableSet({
+            variables: [new LocalValueVariable({ name: 'test', value: 'nestedValue' })],
+          }),
+        });
+
+        const scene = new TestScene({
+          $variables: new SceneVariableSet({ variables: [topLevelVar] }),
+          nested: nestedScene,
+        });
+
+        nestedScene.activate();
+        nestedScene.doSomethingThatRequiresVariables();
+
+        scene.activate();
+
+        expect(nestedScene.state.didSomethingCount).toBe(1);
+        expect(nestedScene.state.variableValueChanged).toBe(1);
+      });
     });
   });
 
