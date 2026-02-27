@@ -468,7 +468,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const ds = await getDataSource(datasource, this._scopedVars);
 
-      this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid);
+      this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid, this);
 
       const runRequest = getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
