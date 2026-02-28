@@ -15,6 +15,7 @@ export interface SceneAppState extends SceneObjectState {
   pages: SceneAppPageLike[];
   name?: string;
   urlSyncOptions?: SceneUrlSyncOptions;
+  defaultPageBackground?: 'primary' | 'canvas';
 }
 
 export interface SceneAppRoute {
@@ -71,6 +72,7 @@ export interface SceneAppPageState extends SceneObjectState {
   getFallbackPage?: () => SceneAppPageLike;
 
   layout?: PageLayoutType;
+  background?: 'primary' | 'canvas';
 }
 
 export interface SceneAppPageLike extends SceneObject<SceneAppPageState>, DataRequestEnricher {
