@@ -17,6 +17,7 @@ interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
   compareOptions: Array<{ label: string; value: string }>;
   hideCheckbox?: boolean;
+  key?: string;
 }
 
 const PREVIOUS_PERIOD_VALUE = '__previousPeriod';
@@ -43,10 +44,16 @@ export class SceneTimeRangeCompare
   implements ExtraQueryProvider<SceneTimeRangeCompareState>
 {
   static Component = SceneTimeRangeCompareRenderer;
-  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['compareWith'] });
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, {
+    keys: () => [this.state.key || 'compareWith'],
+  });
 
-  public constructor(state: Partial<SceneTimeRangeCompareState>) {
-    super({ compareOptions: DEFAULT_COMPARE_OPTIONS, ...state });
+  public constructor(state: Partial<SceneTimeRangeCompareState> = {}) {
+    super({
+      key: state.key || 'compareWith',
+      compareOptions: DEFAULT_COMPARE_OPTIONS,
+      ...state,
+    });
     this.addActivationHandler(this._onActivate);
   }
 
@@ -156,29 +163,23 @@ export class SceneTimeRangeCompare
   }
 
   public getUrlState(): SceneObjectUrlValues {
-    return {
-      compareWith: this.state.compareWith,
-    };
+    const key = this.state.key || 'compareWith';
+    return { [key]: this.state.compareWith };
   }
 
   public updateFromUrl(values: SceneObjectUrlValues) {
-    if (!values.compareWith) {
+    const key = this.state.key || 'compareWith';
+    if (values[key] === PREVIOUS_PERIOD_VALUE) {
+      this.setState({ compareWith: PREVIOUS_PERIOD_VALUE });
       return;
     }
-
-    const compareWith = parseUrlParam(values.compareWith);
-
+    const compareWith = parseUrlParam(values[key]);
     if (compareWith) {
       const compareOptions = this.getCompareOptions(sceneGraph.getTimeRange(this).state.value);
-
       if (compareOptions.find(({ value }) => value === compareWith)) {
-        this.setState({
-          compareWith,
-        });
+        this.setState({ compareWith });
       } else {
-        this.setState({
-          compareWith: '__previousPeriod',
-        });
+        this.setState({ compareWith: PREVIOUS_PERIOD_VALUE });
       }
     }
   }
