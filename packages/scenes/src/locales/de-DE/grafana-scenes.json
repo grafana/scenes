@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Filter mit Schlüssel {{keyLabel}} bearbeiten",
         "managed-filter": "{{origin}} verwalteter Filter",
-        "non-applicable": "",
+        "non-applicable": "Der Filter ist nicht anwendbar",
         "remove-filter-with-key": "Filter mit Schlüssel {{keyLabel}} entfernen"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Filterwert entfernen – {{itemLabel}}",
         "use-custom-value": "Benutzerdefinierten Wert verwenden: {{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Zuletzt",
+        "recent-empty": "Keine aktuellen Werte",
+        "recommended": "Empfohlen",
+        "recommended-empty": "Keine empfohlenen Werte",
+        "tooltip": "Empfehlungen anzeigen"
       },
       "fallback-page": {
         "content": "Wenn Sie über einen Link hierher gekommen sind, enthält diese Anwendung möglicherweise einen Fehler.",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "Abbrechen",
         "text-refresh": "Aktualisieren",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Alle Abfragen abbrechen"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Vergleich",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "Widget zur Größenänderung des Bereichs"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "{{moveBackwardDuration}} nach hinten verschieben",
+        "move-forward-tooltip": "{{moveForwardDuration}} nach vorne verschieben"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "Wert auswählen"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "Einklappen",
+        "collapse-filters": "Filter einklappen"
+      },
       "data-source-variable": {
         "label": {
           "default": "Standard"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "Datum auf verschiedene Arten formatieren",
             "format-multivalued-variables-using-syntax-example": "Formatieren Sie mehrwertige Variablen mit der glob-Syntax, Beispiel {value1,value2}",
             "html-escaping-of-values": "HTML-Escaping von Werten",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Werte mit einem Komma verbinden",
             "json-stringify-value": "JSON-Stringify-Wert",
             "keep-value-as-is": "Wert unverändert lassen",
             "multiple-values-are-formatted-like-variablevalue": "Mehrere Werte werden als variable=value formatiert",

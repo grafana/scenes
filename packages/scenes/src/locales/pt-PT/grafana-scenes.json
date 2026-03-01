@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Editar filtro com a chave {{keyLabel}}",
         "managed-filter": "Filtro gerido de {{origin}}",
-        "non-applicable": "",
+        "non-applicable": "O filtro não é aplicável",
         "remove-filter-with-key": "Remover filtro com a chave {{keyLabel}} "
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Remover o valor do filtro - {{itemLabel}} ",
         "use-custom-value": "Utilizar valor personalizado: {{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Recentes",
+        "recent-empty": "Sem valores recentes",
+        "recommended": "Recomendados",
+        "recommended-empty": "Sem valores recomendados",
+        "tooltip": "Mostrar recomendações"
       },
       "fallback-page": {
         "content": "Se chegou aqui através de um link, pode existir um erro nesta aplicação.",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "Cancelar",
         "text-refresh": "Atualizar",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Cancelar todas as consultas"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparação",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "Widget de redimensionamento de painel"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Mover {{moveBackwardDuration}} para trás",
+        "move-forward-tooltip": "Mover {{moveForwardDuration}} para a frente"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "Selecionar valor"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "Recolher",
+        "collapse-filters": "Recolher filtros"
+      },
       "data-source-variable": {
         "label": {
           "default": "padrão"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "Formatar a data de diferentes formas",
             "format-multivalued-variables-using-syntax-example": "Formatar variáveis de valores múltiplos com a sintaxe glob, exemplo {value1,value2}",
             "html-escaping-of-values": "Escape de valores HTML",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Junte os valores com uma vírgula",
             "json-stringify-value": "Valor no formato JSON (stringify)",
             "keep-value-as-is": "Manter o valor como está",
             "multiple-values-are-formatted-like-variablevalue": "Os valores múltiplos são formatados como variável=valor",

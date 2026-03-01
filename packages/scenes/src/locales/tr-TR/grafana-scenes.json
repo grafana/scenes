@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla düzenle",
         "managed-filter": "{{origin}} yönetimli filtre",
-        "non-applicable": "",
+        "non-applicable": "Filtre uygulanamaz",
         "remove-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla kaldır"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Filtre değerini kaldır - {{itemLabel}}",
         "use-custom-value": "Özel değer kullan: {{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Son",
+        "recent-empty": "Son değer yok",
+        "recommended": "Önerilen",
+        "recommended-empty": "Önerilen değer yok",
+        "tooltip": "Önerileri göster"
       },
       "fallback-page": {
         "content": "Buraya bir bağlantı aracılığıyla ulaştıysanız uygulamada bir hata olabilir.",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "İptal",
         "text-refresh": "Yenile",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Tüm sorguları iptal et"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Karşılaştırma",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "Bölme yeniden boyutlandırma widget'ı"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "{{moveBackwardDuration}} geri taşı",
+        "move-forward-tooltip": "{{moveForwardDuration}} ileri taşı"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "Değer seçin"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "Daralt",
+        "collapse-filters": "Filtreleri daralt"
+      },
       "data-source-variable": {
         "label": {
           "default": "varsayılan"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "Tarihi farklı şekillerde biçimlendirin",
             "format-multivalued-variables-using-syntax-example": "Çok değerli değişkenleri glob söz dizimi kullanarak biçimlendirin (örneğin {value1,value2}).",
             "html-escaping-of-values": "Değerlerin HTML kaçış karakteriyle yazılması gerekir",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Değerleri virgülle ayırın",
             "json-stringify-value": "JSON stringify değeri",
             "keep-value-as-is": "Değeri olduğu gibi tut",
             "multiple-values-are-formatted-like-variablevalue": "Birden fazla değer, değişken=değer biçiminde biçimlendirilir",

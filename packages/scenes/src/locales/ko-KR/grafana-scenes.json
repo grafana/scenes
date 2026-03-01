@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}} 키로 필터 편집",
         "managed-filter": "{{origin}} 관리 필터",
-        "non-applicable": "",
+        "non-applicable": "필터를 적용할 수 없습니다",
         "remove-filter-with-key": "{{keyLabel}} 키로 필터 제거"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "필터 값 제거 - {{itemLabel}}",
         "use-custom-value": "사용자 지정 값 사용: {{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "최근",
+        "recent-empty": "최근 값 없음",
+        "recommended": "권장",
+        "recommended-empty": "권장 값 없음",
+        "tooltip": "권장 사항 표시"
       },
       "fallback-page": {
         "content": "링크를 사용하여 여기로 이동한 경우 이 애플리케이션에 버그가 있을 수 있습니다.",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "취소",
         "text-refresh": "새로 고침",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "모든 쿼리 취소"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "비교",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "창 크기 조정 위젯"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "{{moveBackwardDuration}} 뒤로 이동",
+        "move-forward-tooltip": "{{moveForwardDuration}} 앞으로 이동"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "값 선택"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "접기",
+        "collapse-filters": "필터 접기"
+      },
       "data-source-variable": {
         "label": {
           "default": "기본값"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "다양한 방식으로 날짜 형식 지정",
             "format-multivalued-variables-using-syntax-example": "glob 구문을 사용하여 다중 값 변수 형식 지정, 예: {value1,value2}",
             "html-escaping-of-values": "값의 HTML 이스케이프",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "쉼표로 값을 결합하세요",
             "json-stringify-value": "JSON 문자열화 값",
             "keep-value-as-is": "값을 그대로 유지",
             "multiple-values-are-formatted-like-variablevalue": "여러 값은 variable=value와 같은 형식으로 지정됩니다.",
