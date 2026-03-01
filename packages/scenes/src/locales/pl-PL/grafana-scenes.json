@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Edytuj filtr z kluczem {{keyLabel}}",
         "managed-filter": "Filtr zarządzany ({{origin}})",
-        "non-applicable": "",
+        "non-applicable": "Filtr nie ma zastosowania",
         "remove-filter-with-key": "Usuń filtr z kluczem {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Usuń wartość filtra – {{itemLabel}}",
         "use-custom-value": "Użyj wartości niestandardowej: {{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Ostatnie",
+        "recent-empty": "Brak ostatnich wartości",
+        "recommended": "Zalecane",
+        "recommended-empty": "Brak zalecanych wartości",
+        "tooltip": "Pokaż zalecenia"
       },
       "fallback-page": {
         "content": "Jeśli doprowadził Cię tutaj link, może to oznaczać błąd w aplikacji.",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "Anuluj",
         "text-refresh": "Odśwież",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Anuluj wszystkie zapytania"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Porównanie",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "Widżet zmiany rozmiaru okienka"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Przesuń o {{moveBackwardDuration}} do tyłu",
+        "move-forward-tooltip": "Przesuń o {{moveForwardDuration}} do przodu"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "Wybierz wartość"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "Zwiń",
+        "collapse-filters": "Zwiń filtry"
+      },
       "data-source-variable": {
         "label": {
           "default": "domyślne"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "Formatowanie daty na różne sposoby",
             "format-multivalued-variables-using-syntax-example": "Formatowanie zmiennych wielowartościowych za pomocą składni glob, np. {value1,value2}",
             "html-escaping-of-values": "Modyfikowanie wartości w kodzie HTML",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Łącz wartości przecinkami",
             "json-stringify-value": "Wartość konwersji na ciąg JSON",
             "keep-value-as-is": "Zachowaj wartość w obecnej postaci",
             "multiple-values-are-formatted-like-variablevalue": "Wiele wartości jest sformatowanych w postaci zmienna=wartość",
