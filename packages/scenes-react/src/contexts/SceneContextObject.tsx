@@ -114,7 +114,7 @@ export function useAddToScene(obj: SceneObject, ctx: SceneContextObject) {
     return;
   }
 
-  // This is technically a state change during render. Ee have to add it to the state tree right away in order to render the object on the first pass
+  // This is technically a state change during render. We have to add it to the state tree right away in order to render the object on the first pass
   // Should be ok as nothing subscribes to SceneContextObject state changes and the NewSceneObjectAddedEvent is syncing url state to obj state
   ctx.publishEvent(new NewSceneObjectAddedEvent(obj), true);
   ctx.setState({ children: [...ctx.state.children, obj] });
