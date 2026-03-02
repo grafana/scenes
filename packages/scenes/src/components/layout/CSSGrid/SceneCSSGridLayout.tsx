@@ -79,7 +79,7 @@ function SceneCSSGridLayoutRenderer({ model }: SceneCSSGridItemRenderProps<Scene
 
         if (isLazy) {
           return (
-            <LazyLoader key={item.state.key!} className={style}>
+            <LazyLoader key={item.state.key!} className={style} mode="query">
               <Component key={item.state.key} model={item} parentState={model.state} />
             </LazyLoader>
           );

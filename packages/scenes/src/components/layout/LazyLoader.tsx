@@ -17,12 +17,17 @@ export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange' 
   onLoad?: () => void;
   onChange?: (isInView: boolean) => void;
   /**
-   * If true will render children on first render/mount even if it out of view
-   * But will LazyLoaderInViewContext will be false on first render
-   * This can reduce flickering / initial empty div on first render
+   * mount (default) = mounts/renders children when they are first in view.
+   * query = children is always rendered. Only sets the LazyLoaderInViewContext which is used to block query execution for panels out of view
    */
-  onlySetIsInView?: boolean;
+  mode?: LazyLoaderMode;
 }
+
+/**
+ * mount (default) = mounts children when they are first in view.
+ * query = children is always rendered. Only sets the LazyLoaderInViewContext which is used to block query execution for panels out of view
+ */
+export type LazyLoaderMode = 'mount' | 'query';
 
 export interface LazyLoaderType extends ForwardRefExoticComponent<Props> {
   addCallback: (id: string, c: (e: IntersectionObserverEntry) => void) => void;
@@ -31,7 +36,7 @@ export interface LazyLoaderType extends ForwardRefExoticComponent<Props> {
 }
 
 export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props>(
-  ({ children, onLoad, onChange, className, ...rest }, ref) => {
+  ({ children, onLoad, onChange, className, mode = 'mount', ...rest }, ref) => {
     const id = useUniqueId();
     const { hideEmpty } = useStyles2(getStyles);
     const [loaded, setLoaded] = useState(false);
@@ -72,7 +77,12 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     // If the children render empty, the whole loader will be hidden by css.
     return (
       <div id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
-        <LazyLoaderInViewContext.Provider value={isInView}>{children}</LazyLoaderInViewContext.Provider>
+        {!loaded && mode === 'mount' ? (
+          // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
+          '\u00A0'
+        ) : (
+          <LazyLoaderInViewContext.Provider value={isInView}>{children}</LazyLoaderInViewContext.Provider>
+        )}
       </div>
     );
   }

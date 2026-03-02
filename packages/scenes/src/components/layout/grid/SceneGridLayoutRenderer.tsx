@@ -119,7 +119,7 @@ const GridItemWrapper = React.forwardRef<HTMLDivElement, GridItemWrapperProps>((
         className={cx(className, props.className)}
         style={style}
         ref={ref}
-        onlySetIsInView={true}
+        mode="query"
       >
         {innerContent}
         {children}
