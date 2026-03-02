@@ -135,7 +135,7 @@ const getDynamicSplitScene = () => {
             title: 'Go to room overview',
             url: '',
             onClick: (e: DataLinkClickEvent) => {
-              const roomName = e.origin.field.values.get(e.origin.rowIndex);
+              const roomName = e.origin.field.values[e.origin.rowIndex];
               splitter.setState({
                 secondary: new SceneFlexItem({
                   minWidth: 500,

@@ -41,7 +41,7 @@ export function toMetricFindValues(
         for (const frame of frames) {
           for (let index = 0; index < frame.length; index++) {
             const fieldValue = (fieldIndex: number) =>
-              fieldIndex !== -1 ? frame.fields[fieldIndex].values.get(index) : undefined;
+              fieldIndex !== -1 ? frame.fields[fieldIndex].values[index] : undefined;
 
             const value = fieldValue(indices.value);
             const text = fieldValue(indices.text);

@@ -500,9 +500,22 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       return emptyPanelData;
     }
 
-    // If the data is the same as last time, we can skip the field config apply step and just return same result as last time
-    if (this._prevData === rawData && this._dataWithFieldConfig) {
-      return this._dataWithFieldConfig;
+    // SceneQueryRunner preserves series array identity when frames haven't changed, but
+    // still emits new PanelData on state transitions (onDataReceived). Detect this and skip
+    // the expensive applyFieldOverrides step.
+    if (this._prevData && this._dataWithFieldConfig) {
+      if (this._prevData === rawData) {
+        return this._dataWithFieldConfig;
+      }
+      if (this._prevData.series === rawData.series) {
+        this._prevData = rawData;
+        this._dataWithFieldConfig = {
+          ...rawData,
+          structureRev: this._dataWithFieldConfig.structureRev,
+          series: this._dataWithFieldConfig.series,
+        };
+        return this._dataWithFieldConfig;
+      }
     }
 
     // Start profiling data processing - get end callback
@@ -519,6 +532,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       replaceVariables: this.interpolate,
       theme: config.theme2,
       timeZone: rawData.request?.timezone,
+      // @ts-ignore - @grafana/data is getting this type in Grafana 13.
+      featureToggles: config.featureToggles,
     });
 
     if (!compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)) {
@@ -542,6 +557,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         replaceVariables: this.interpolate,
         theme: config.theme2,
         timeZone: rawData.request?.timezone,
+        // @ts-ignore - @grafana/data is getting this type in Grafana 13.
+        featureToggles: config.featureToggles,
       });
     }
 

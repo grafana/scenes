@@ -227,9 +227,9 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       });
     });
 
-    it('should overwrite any existing values with the default value if nothing arrives from the url', async () => {
+    it('should overwrite any existing values with the default value if nothing arrives from the url and no current value is set', async () => {
       const { variable } = setupTest({
-        value: ['existingVal1', 'existingVal2'],
+        value: [],
         defaultValue: {
           value: ['defaultVal1'],
           text: ['defaultVal1'],
@@ -241,6 +241,24 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         expect(locationService.getLocation().search).toBe('?var-test=&restorable-var-test=false');
         expect(variable.state.value).toEqual(['defaultVal1']);
         expect(variable.state.text).toEqual(['defaultVal1']);
+      });
+    });
+
+    it('should keep current value over default value when current value is already set', async () => {
+      const { variable } = setupTest({
+        value: ['existingVal1', 'existingVal2'],
+        defaultValue: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      await act(async () => {
+        await lastValueFrom(variable.validateAndUpdate());
+        expect(variable.state.value).toEqual(['existingVal1', 'existingVal2']);
+        expect(locationService.getLocation().search).toBe(
+          '?var-test=existingVal1&var-test=existingVal2&restorable-var-test=true'
+        );
       });
     });
 
@@ -281,6 +299,64 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       });
 
       expect(variable.state.value).toEqual(['defaultVal1', 'defaultVal2']);
+    });
+
+    it('should apply defaultValue to value when defaultValue is set', async () => {
+      const { variable } = setupTest({});
+
+      expect(variable.state.value).toEqual('');
+
+      act(() => {
+        variable.setState({
+          defaultValue: {
+            value: ['newDefault'],
+            text: ['newDefault'],
+          },
+        });
+      });
+
+      expect(variable.state.value).toEqual(['newDefault']);
+      expect(variable.state.text).toEqual(['newDefault']);
+    });
+
+    it('should update value when defaultValue changes', async () => {
+      const { variable } = setupTest({
+        defaultValue: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1']);
+
+      act(() => {
+        variable.setState({
+          defaultValue: {
+            value: ['newDefault'],
+            text: ['newDefault'],
+          },
+        });
+      });
+
+      expect(variable.state.value).toEqual(['newDefault']);
+      expect(variable.state.text).toEqual(['newDefault']);
+    });
+
+    it('should reset value when defaultValue is cleared', async () => {
+      const { variable } = setupTest({
+        defaultValue: {
+          value: ['defaultVal1'],
+          text: ['defaultVal1'],
+        },
+      });
+
+      expect(variable.state.value).toEqual(['defaultVal1']);
+
+      act(() => {
+        variable.setState({ defaultValue: undefined });
+      });
+
+      expect(variable.state.value).toEqual([]);
     });
 
     it('should work with browser history action on user action', () => {

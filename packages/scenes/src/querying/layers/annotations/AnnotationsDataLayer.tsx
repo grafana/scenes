@@ -96,7 +96,7 @@ export class AnnotationsDataLayer
       return;
     }
 
-    this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(query.datasource?.uid);
+    this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(query.datasource?.uid, this);
 
     if (this.querySub) {
       this.querySub.unsubscribe();

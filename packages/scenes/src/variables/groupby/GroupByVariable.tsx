@@ -200,7 +200,12 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     this._recommendations = recommendations;
 
     if (this.state.defaultValue) {
-      this.changeValueTo(this.state.defaultValue.value, this.state.defaultValue.text, false);
+      const currentValue = this.state.value;
+      const hasCurrentValue = Array.isArray(currentValue) ? currentValue.length > 0 : !!currentValue;
+
+      if (!hasCurrentValue) {
+        this.changeValueTo(this.state.defaultValue.value, this.state.defaultValue.text, false);
+      }
     }
 
     if (this.state.applyMode === 'auto') {
@@ -223,7 +228,19 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       }
     }
 
+    const sub = this.subscribeToState((newState, prevState) => {
+      if (!isEqual(newState.defaultValue, prevState.defaultValue)) {
+        if (newState.defaultValue) {
+          this.changeValueTo(newState.defaultValue.value, newState.defaultValue.text, false);
+        } else {
+          this.changeValueTo([], [], false);
+        }
+      }
+    });
+
     return () => {
+      sub.unsubscribe();
+
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
       }
@@ -342,16 +359,18 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds.getGroupByKeys) {
+    if (!ds.getGroupByKeys && !ds.getTagKeys) {
       return [];
     }
+
+    // @ts-expect-error (temporary till we update grafana/data)
+    const keyMethod = (ds.getGroupByKeys || ds.getTagKeys).bind(ds);
 
     const queries = getQueriesForVariables(this);
 
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    // @ts-expect-error (temporary till we update grafana/data)
-    const response = await ds.getGroupByKeys({
+    const response = await keyMethod({
       filters: otherFilters,
       queries,
       timeRange,
