@@ -22,6 +22,12 @@ import {
 } from '../variables/adhoc/AdHocFiltersVariable';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
+import { buildApplicabilityMatcher } from '../variables/applicabilityUtils';
+
+export interface ApplicabilityResults {
+  filters: DrilldownsApplicability[];
+  groupBy: DrilldownsApplicability[];
+}
 
 /**
  * Manages ad-hoc filters and group-by variables for data providers
@@ -30,7 +36,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   private _adhocFiltersVar?: AdHocFiltersVariable;
   private _groupByVar?: GroupByVariable;
   private _variableDependency: VariableDependencyConfig<TState>;
-  private _applicabilityResults?: DrilldownsApplicability[];
+  private _applicabilityResults?: ApplicabilityResults;
 
   public constructor(variableDependency: VariableDependencyConfig<TState>) {
     this._variableDependency = variableDependency;
@@ -125,24 +131,28 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
 
     try {
       // @ts-expect-error (temporary till we update grafana/data)
-      const results = await ds.getDrilldownsApplicability({
+      const results: DrilldownsApplicability[] = await ds.getDrilldownsApplicability({
         filters,
         groupByKeys,
         queries,
         timeRange,
         scopes,
       });
-      this._setPerPanelApplicability(results);
+      this._setPerPanelApplicability({
+        filters: results.slice(0, filters.length),
+        groupBy: results.slice(filters.length),
+      });
     } catch {
       this._clearPerPanelApplicability();
     }
   }
 
   /**
-   * Returns the raw applicability results from the last resolveApplicability() call.
+   * Returns the applicability results from the last resolveApplicability() call,
+   * split into filter and groupBy portions.
    * Used by UI components to display which filters are non-applicable for this panel.
    */
-  public getApplicabilityResults(): DrilldownsApplicability[] | undefined {
+  public getApplicabilityResults(): ApplicabilityResults | undefined {
     return this._applicabilityResults;
   }
 
@@ -150,7 +160,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     this._applicabilityResults = undefined;
   }
 
-  private _setPerPanelApplicability(results: DrilldownsApplicability[]): void {
+  private _setPerPanelApplicability(results: ApplicabilityResults): void {
     this._applicabilityResults = results;
   }
 
@@ -162,24 +172,18 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     const stateFilters = this._adhocFiltersVar.state.filters;
     const originFilters = this._adhocFiltersVar.state.originFilters ?? [];
 
-    // Reconstruct sent indices: resolveApplicability sends [...stateFilters, ...originFilters]
-    const allWithIndex: Array<{ filter: AdHocFilterWithLabels; sentIndex: number }> = [
-      ...originFilters.map((f, i) => ({ filter: f, sentIndex: stateFilters.length + i })),
-      ...stateFilters.map((f, i) => ({ filter: f, sentIndex: i })),
-    ].filter(({ filter: f }) => isFilterComplete(f) && isFilterApplicable(f));
+    const applicable = [...stateFilters, ...originFilters].filter((f) => isFilterComplete(f) && isFilterApplicable(f));
 
     if (!this._applicabilityResults) {
-      return allWithIndex.map(({ filter }) => filter);
+      return applicable;
     }
 
-    return allWithIndex
-      .filter(({ sentIndex }) => {
-        if (sentIndex >= this._applicabilityResults!.length) {
-          return true;
-        }
-        return this._applicabilityResults![sentIndex].applicable;
-      })
-      .map(({ filter }) => filter);
+    const matchResult = buildApplicabilityMatcher(this._applicabilityResults.filters);
+
+    return applicable.filter((f) => {
+      const result = matchResult(f.key, f.origin);
+      return !result || result.applicable;
+    });
   }
 
   public getGroupByKeys(): string[] | undefined {
@@ -193,23 +197,11 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return keys;
     }
 
-    // Rebuild the full sent groupByKeys to find each key's sent position
-    const val = this._groupByVar.state.value;
-    const allGroupByKeys = Array.isArray(val) ? val.map(String) : val ? [String(val)] : [];
-    const filtersCount = this._adhocFiltersVar
-      ? this._adhocFiltersVar.state.filters.length + (this._adhocFiltersVar.state.originFilters?.length ?? 0)
-      : 0;
+    const matchResult = buildApplicabilityMatcher(this._applicabilityResults.groupBy);
 
     return keys.filter((k) => {
-      const sentIdx = allGroupByKeys.indexOf(k);
-      if (sentIdx === -1) {
-        return true;
-      }
-      const resultIdx = filtersCount + sentIdx;
-      if (resultIdx >= this._applicabilityResults!.length) {
-        return true;
-      }
-      return this._applicabilityResults![resultIdx].applicable;
+      const result = matchResult(k);
+      return !result || result.applicable;
     });
   }
 

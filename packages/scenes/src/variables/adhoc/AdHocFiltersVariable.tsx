@@ -32,6 +32,7 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { debounce, isEqual } from 'lodash';
+import { buildApplicabilityMatcher } from '../applicabilityUtils';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
@@ -586,6 +587,7 @@ export class AdHocFiltersVariable
           return f === filter ? { ...f, ...update } : f;
         }) ?? [];
       this.setState({ originFilters: updatedFilters });
+      this._debouncedVerifyApplicability();
 
       return;
     }
@@ -609,6 +611,7 @@ export class AdHocFiltersVariable
     });
 
     this.setState({ filters: updatedFilters });
+    this._debouncedVerifyApplicability();
 
     this._recommendations?.storeRecentFilter({
       ...filter,
@@ -744,24 +747,24 @@ export class AdHocFiltersVariable
       return;
     }
 
+    const matchResult = buildApplicabilityMatcher(response);
+
     const update = {
       applicabilityEnabled: true,
       filters: [...this.state.filters],
       originFilters: [...(this.state.originFilters ?? [])],
     };
 
-    const filtersCount = update.filters.length;
-
-    update.filters.forEach((f, i) => {
-      if (i < response.length) {
-        f.nonApplicable = !response[i].applicable;
-        f.nonApplicableReason = response[i].reason;
+    update.filters.forEach((f) => {
+      const result = matchResult(f.key);
+      if (result) {
+        f.nonApplicable = !result.applicable;
+        f.nonApplicableReason = result.reason;
       }
     });
 
-    update.originFilters?.forEach((f, i) => {
-      const responseIdx = filtersCount + i;
-      const result = responseIdx < response.length ? response[responseIdx] : undefined;
+    update.originFilters?.forEach((f) => {
+      const result = matchResult(f.key, f.origin);
       if (result) {
         if (!f.matchAllFilter) {
           f.nonApplicable = !result.applicable;
