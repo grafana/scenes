@@ -32,7 +32,7 @@ export class TestScene extends SceneObjectBase<TestSceneState> {
   };
 }
 
-describe('SceneComponentWrapper no render before activiation', () => {
+describe('SceneComponentWrapper no render before activation', () => {
   beforeAll(() => {
     SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = false;
   });
@@ -65,7 +65,7 @@ describe('SceneComponentWrapper no render before activiation', () => {
   });
 });
 
-describe('SceneComponentWrapper render before activiation', () => {
+describe('SceneComponentWrapper render before activation', () => {
   beforeAll(() => {
     SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true;
   });
