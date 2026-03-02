@@ -65,7 +65,7 @@ describe('SceneComponentWrapper no render before activation', () => {
   });
 });
 
-describe('SceneComponentWrapper render before activiation', () => {
+describe('SceneComponentWrapper render before activation', () => {
   beforeAll(() => {
     SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true;
   });
