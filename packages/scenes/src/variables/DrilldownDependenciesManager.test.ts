@@ -206,8 +206,8 @@ describe('DrilldownDependenciesManager', () => {
 
       const result = manager.getFilters() ?? [];
       expect(result).toHaveLength(2);
-      expect(result[0].key).toBe('env');
-      expect(result[1].key).toBe('region');
+      expect(result[0].key).toBe('region');
+      expect(result[1].key).toBe('env');
     });
 
     it('should keep filters when no matching response entry exists', () => {
@@ -379,8 +379,8 @@ describe('DrilldownDependenciesManager', () => {
 
       const filters = manager.getFilters() ?? [];
       expect(filters).toHaveLength(2);
-      expect(filters[0].key).toBe('env');
-      expect(filters[1].key).toBe('region');
+      expect(filters[0].key).toBe('region');
+      expect(filters[1].key).toBe('env');
 
       expect(manager.getGroupByKeys()).toEqual(['namespace']);
     });
