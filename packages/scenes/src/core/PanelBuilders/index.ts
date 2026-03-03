@@ -11,10 +11,6 @@ import {
   defaultOptions as defaultBarGaugeOptions,
 } from '@grafana/schema/dist/esm/raw/composable/bargauge/panelcfg/x/BarGaugePanelCfg_types.gen';
 import {
-  Options as DataGridOptions,
-  defaultOptions as defaultDataGridOptions,
-} from '@grafana/schema/dist/esm/raw/composable/datagrid/panelcfg/x/DatagridPanelCfg_types.gen';
-import {
   Options as GaugeOptions,
   defaultOptions as defaultGaugeOptions,
 } from '@grafana/schema/dist/esm/raw/composable/gauge/panelcfg/x/GaugePanelCfg_types.gen';
@@ -95,9 +91,6 @@ export const PanelBuilders = {
   },
   bargauge() {
     return new VizPanelBuilder<BarGaugeOptions, {}>('bargauge', '10.0.0', () => defaultBarGaugeOptions);
-  },
-  datagrid() {
-    return new VizPanelBuilder<DataGridOptions, {}>('datagrid', '10.0.0', () => defaultDataGridOptions);
   },
   flamegraph() {
     return new VizPanelBuilder<{}, {}>('flamegraph', '10.0.0');
