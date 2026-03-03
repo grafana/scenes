@@ -19,16 +19,21 @@ function createManager(opts: { adhocVar?: AdHocFiltersVariable; groupByVar?: Gro
   return manager;
 }
 
-function createAdhocVar(filters: AdHocFilterWithLabels[], originFilters?: AdHocFilterWithLabels[]) {
+function createAdhocVar(
+  filters: AdHocFilterWithLabels[],
+  originFilters?: AdHocFilterWithLabels[],
+  applicabilityEnabled?: boolean
+) {
   return new AdHocFiltersVariable({
     datasource: { uid: 'my-ds-uid' },
     name: 'filters',
     filters,
     originFilters,
+    applicabilityEnabled,
   });
 }
 
-function createGroupByVar(value: string[], keysApplicability?: any[]) {
+function createGroupByVar(value: string[], keysApplicability?: any[], applicabilityEnabled?: boolean) {
   return new GroupByVariable({
     datasource: { uid: 'my-ds-uid' },
     name: 'groupby',
@@ -36,6 +41,7 @@ function createGroupByVar(value: string[], keysApplicability?: any[]) {
     value,
     text: value,
     keysApplicability,
+    applicabilityEnabled,
   });
 }
 
@@ -56,9 +62,10 @@ describe('DrilldownDependenciesManager', () => {
             { key: 'env', value: 'prod', operator: '=' },
             { key: 'cluster', value: 'us-east', operator: '=' },
           ],
-          [{ key: 'region', value: 'eu', operator: '=', origin: 'dashboard' }]
+          [{ key: 'region', value: 'eu', operator: '=', origin: 'dashboard' }],
+          true
         ),
-        groupByVar: createGroupByVar(['namespace', 'pod']),
+        groupByVar: createGroupByVar(['namespace', 'pod'], undefined, true),
       });
 
       const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
@@ -80,8 +87,8 @@ describe('DrilldownDependenciesManager', () => {
       const getDrilldownsApplicability = jest.fn();
 
       const manager = createManager({
-        adhocVar: createAdhocVar([]),
-        groupByVar: createGroupByVar([]),
+        adhocVar: createAdhocVar([], undefined, true),
+        groupByVar: createGroupByVar([], undefined, true),
       });
 
       const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
@@ -95,7 +102,7 @@ describe('DrilldownDependenciesManager', () => {
       const getDrilldownsApplicability = jest.fn().mockRejectedValue(new Error('fail'));
 
       const manager = createManager({
-        adhocVar: createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }]),
+        adhocVar: createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }], undefined, true),
       });
 
       const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
@@ -104,9 +111,24 @@ describe('DrilldownDependenciesManager', () => {
       expect(manager.getApplicabilityResults()).toBeUndefined();
     });
 
-    it('should skip when ds does not support getDrilldownsApplicability', async () => {
+    it('should skip when applicabilityEnabled is not set on any variable', async () => {
+      const getDrilldownsApplicability = jest.fn();
+
       const manager = createManager({
         adhocVar: createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }]),
+        groupByVar: createGroupByVar(['namespace']),
+      });
+
+      const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
+      await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
+
+      expect(manager.getApplicabilityResults()).toBeUndefined();
+      expect(getDrilldownsApplicability).not.toHaveBeenCalled();
+    });
+
+    it('should skip when ds does not support getDrilldownsApplicability', async () => {
+      const manager = createManager({
+        adhocVar: createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }], undefined, true),
       });
 
       const ds = {} as unknown as DataSourceApi;
@@ -346,9 +368,10 @@ describe('DrilldownDependenciesManager', () => {
             { key: 'env', value: 'prod', operator: '=' },
             { key: 'cluster', value: 'us', operator: '=' },
           ],
-          [{ key: 'region', value: 'eu', operator: '=', origin: 'dashboard' }]
+          [{ key: 'region', value: 'eu', operator: '=', origin: 'dashboard' }],
+          true
         ),
-        groupByVar: createGroupByVar(['namespace', 'pod']),
+        groupByVar: createGroupByVar(['namespace', 'pod'], undefined, true),
       });
 
       const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
@@ -369,11 +392,15 @@ describe('DrilldownDependenciesManager', () => {
       ]);
 
       const manager = createManager({
-        adhocVar: createAdhocVar([
-          { key: 'env', value: 'prod', operator: '=' },
-          { key: 'cluster', value: 'us', operator: '=' },
-        ]),
-        groupByVar: createGroupByVar([]),
+        adhocVar: createAdhocVar(
+          [
+            { key: 'env', value: 'prod', operator: '=' },
+            { key: 'cluster', value: 'us', operator: '=' },
+          ],
+          undefined,
+          true
+        ),
+        groupByVar: createGroupByVar([], undefined, true),
       });
 
       const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;

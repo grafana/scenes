@@ -108,6 +108,13 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return;
     }
 
+    const filtersApplicabilityEnabled = this._adhocFiltersVar?.state.applicabilityEnabled;
+    const groupByApplicabilityEnabled = this._groupByVar?.state.applicabilityEnabled;
+
+    if (!filtersApplicabilityEnabled && !groupByApplicabilityEnabled) {
+      return;
+    }
+
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds.getDrilldownsApplicability) {
       return;
