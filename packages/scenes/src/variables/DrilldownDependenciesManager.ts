@@ -121,7 +121,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     }
 
     const filters = this._adhocFiltersVar
-      ? [...this._adhocFiltersVar.state.filters, ...(this._adhocFiltersVar.state.originFilters ?? [])]
+      ? [...(this._adhocFiltersVar.state.originFilters ?? []), ...this._adhocFiltersVar.state.filters]
       : [];
     const groupByKeys = this._groupByVar
       ? Array.isArray(this._groupByVar.state.value)
@@ -179,7 +179,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     const stateFilters = this._adhocFiltersVar.state.filters;
     const originFilters = this._adhocFiltersVar.state.originFilters ?? [];
 
-    const applicable = [...stateFilters, ...originFilters].filter((f) => isFilterComplete(f) && isFilterApplicable(f));
+    const applicable = [...originFilters, ...stateFilters].filter((f) => isFilterComplete(f) && isFilterApplicable(f));
 
     if (!this._applicabilityResults) {
       return applicable;
