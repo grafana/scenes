@@ -323,8 +323,6 @@ export class AdHocFiltersVariable
           this.restoreOriginalFilter(filter);
         }
       });
-
-      this.setState({ applicabilityEnabled: false });
     };
   };
 
@@ -738,6 +736,10 @@ export class AdHocFiltersVariable
   }
 
   public async _verifyApplicability() {
+    if (!this.state.applicabilityEnabled) {
+      return;
+    }
+
     const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
