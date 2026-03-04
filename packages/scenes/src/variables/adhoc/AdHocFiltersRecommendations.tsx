@@ -28,6 +28,23 @@ export interface AdHocFiltersRecommendationsState extends SceneObjectState {
   recommendedFilters?: AdHocFilterWithLabels[];
 }
 
+/**
+ * Keeps only the last occurrence of each unique (key, operator, value) triple,
+ * preserving the most-recent-wins ordering.
+ */
+function deduplicateFilters(filters: AdHocFilterWithLabels[]): AdHocFilterWithLabels[] {
+  return filters.reduce<AdHocFilterWithLabels[]>((acc, f) => {
+    const idx = acc.findIndex(
+      (existing) => existing.key === f.key && existing.operator === f.operator && existing.value === f.value
+    );
+    if (idx !== -1) {
+      acc.splice(idx, 1);
+    }
+    acc.push(f);
+    return acc;
+  }, []);
+}
+
 export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRecommendationsState> {
   static Component = AdHocFiltersRecommendationsRenderer;
 
@@ -149,7 +166,8 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const response = await adhoc.getFiltersApplicabilityForQueries(storedFilters, queries ?? []);
 
     if (!response) {
-      this.setState({ recentFilters: storedFilters.slice(-MAX_RECENT_DRILLDOWNS) });
+      const deduped = deduplicateFilters(storedFilters);
+      this.setState({ recentFilters: deduped.slice(-MAX_RECENT_DRILLDOWNS) });
       return;
     }
 
@@ -158,14 +176,14 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
       applicabilityMap.set(item.key, item.applicable !== false);
     });
 
-    const applicableFilters = storedFilters
-      .filter((f) => {
-        const isApplicable = applicabilityMap.get(f.key);
-        return isApplicable === undefined || isApplicable === true;
-      })
-      .slice(-MAX_RECENT_DRILLDOWNS);
+    const applicableFilters = storedFilters.filter((f) => {
+      const isApplicable = applicabilityMap.get(f.key);
+      return isApplicable === undefined || isApplicable === true;
+    });
 
-    this.setState({ recentFilters: applicableFilters });
+    const recentFilters = deduplicateFilters(applicableFilters).slice(-MAX_RECENT_DRILLDOWNS);
+
+    this.setState({ recentFilters });
   }
 
   /**
@@ -177,7 +195,11 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const storedFilters = store.get(key);
     const allRecentFilters = storedFilters ? JSON.parse(storedFilters) : [];
 
-    const updatedStoredFilters = [...allRecentFilters, filter].slice(-MAX_STORED_RECENT_DRILLDOWNS);
+    const dedupedFilters = allRecentFilters.filter(
+      (f: AdHocFilterWithLabels) =>
+        !(f.key === filter.key && f.operator === filter.operator && f.value === filter.value)
+    );
+    const updatedStoredFilters = [...dedupedFilters, filter].slice(-MAX_STORED_RECENT_DRILLDOWNS);
     store.set(key, JSON.stringify(updatedStoredFilters));
 
     const adhoc = this._adHocFilter;
