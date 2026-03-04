@@ -1,3 +1,16 @@
+# v7.1.1 (Wed Mar 04 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - groupBy variable update logic cleaup [#1380](https://github.com/grafana/scenes/pull/1380) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.1.0 (Tue Mar 03 2026)
 
 #### 🚀 Enhancement
