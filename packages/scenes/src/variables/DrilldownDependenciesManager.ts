@@ -233,11 +233,11 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     queries: SceneDataQuery[],
     scopes: Scope[] | undefined
   ): string {
-    const filtersPart = filters.map((f) => `${f.origin ?? ''}:${f.key}:${f.operator}:${f.value}`).join('|');
-    const groupByPart = groupByKeys.join('|');
-    const queriesPart = queries.map((q) => q.refId + ':' + (q.expr ?? q.expression ?? q.query ?? '')).join('|');
-    const scopesPart = scopes?.map((s) => s.metadata.name).join('|') ?? '';
-
-    return `f[${filtersPart}]g[${groupByPart}]q[${queriesPart}]s[${scopesPart}]`;
+    return JSON.stringify({
+      filters: filters.map((f) => ({ origin: f.origin, key: f.key, operator: f.operator, value: f.value })),
+      groupByKeys,
+      queries: queries.map((q) => ({ refId: q.refId, expr: q.expr ?? q.expression ?? q.query })),
+      scopes: scopes?.map((s) => s.metadata.name),
+    });
   }
 }

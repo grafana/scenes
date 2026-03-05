@@ -8,6 +8,7 @@ import {
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
+  Scope,
   SelectableValue,
 } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
@@ -111,6 +112,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
 
   private _recommendations: GroupByRecommendations | undefined;
+  private _lastApplicabilityCacheKey?: string;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -240,6 +242,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     return () => {
       sub.unsubscribe();
+      this._lastApplicabilityCacheKey = undefined;
 
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
@@ -301,12 +304,20 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const queries = getQueriesForVariables(this);
     const value = this.state.value;
+    const scopes = sceneGraph.getScopes(this);
+
+    const cacheKey = this._buildApplicabilityCacheKey(value, queries, scopes);
+    if (cacheKey === this._lastApplicabilityCacheKey) {
+      return;
+    }
 
     const response = await this.getGroupByApplicabilityForQueries(value, queries);
 
     if (!response) {
       return;
     }
+
+    this._lastApplicabilityCacheKey = cacheKey;
 
     if (!isEqual(response, this.state.keysApplicability)) {
       this.setState({ keysApplicability: response ?? undefined, applicabilityEnabled: true });
@@ -315,6 +326,18 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     } else {
       this.setState({ applicabilityEnabled: true });
     }
+  }
+
+  private _buildApplicabilityCacheKey(
+    value: VariableValue,
+    queries: SceneDataQuery[],
+    scopes: Scope[] | undefined
+  ): string {
+    return JSON.stringify({
+      value: Array.isArray(value) ? value.map(String) : [String(value ?? '')],
+      queries: queries.map((q) => ({ refId: q.refId, expr: q.expr ?? q.expression ?? q.query })),
+      scopes: scopes?.map((s) => s.metadata.name),
+    });
   }
 
   // This method is related to the defaultValue property. We check if the current value

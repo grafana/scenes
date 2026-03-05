@@ -274,6 +274,7 @@ export class AdHocFiltersVariable
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
   private _debouncedVerifyApplicability = debounce(this._verifyApplicability, 100);
+  private _lastApplicabilityCacheKey?: string;
 
   private _recommendations: AdHocFiltersRecommendations | undefined;
 
@@ -318,6 +319,7 @@ export class AdHocFiltersVariable
     this._debouncedVerifyApplicability();
 
     return () => {
+      this._lastApplicabilityCacheKey = undefined;
       this.state.originFilters?.forEach((filter) => {
         if (filter.restorable) {
           this.restoreOriginalFilter(filter);
@@ -742,12 +744,20 @@ export class AdHocFiltersVariable
 
     const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+    const scopes = sceneGraph.getScopes(this);
+
+    const cacheKey = this._buildApplicabilityCacheKey(filters, queries ?? [], scopes);
+    if (cacheKey === this._lastApplicabilityCacheKey) {
+      return;
+    }
 
     const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
 
     if (!response) {
       return;
     }
+
+    this._lastApplicabilityCacheKey = cacheKey;
 
     const matchResult = buildApplicabilityMatcher(response);
 
@@ -782,6 +792,18 @@ export class AdHocFiltersVariable
     });
 
     this.setState(update);
+  }
+
+  private _buildApplicabilityCacheKey(
+    filters: AdHocFilterWithLabels[],
+    queries: SceneDataQuery[],
+    scopes: Scope[] | undefined
+  ): string {
+    return JSON.stringify({
+      filters: filters.map((f) => ({ origin: f.origin, key: f.key, operator: f.operator, value: f.value })),
+      queries: queries.map((q) => ({ refId: q.refId, expr: q.expr ?? q.expression ?? q.query })),
+      scopes: scopes?.map((s) => s.metadata.name),
+    });
   }
 
   /**
