@@ -136,6 +136,123 @@ describe('DrilldownDependenciesManager', () => {
 
       expect(manager.getApplicabilityResults()).toBeUndefined();
     });
+
+    it('should use cached results when filters, groupBy, queries, and scopes are unchanged', async () => {
+      const getDrilldownsApplicability = jest.fn().mockResolvedValue([{ key: 'env', applicable: true }]);
+
+      const manager = createManager({
+        adhocVar: createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }], undefined, true),
+      });
+
+      const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
+      const queries = [{ refId: 'A', expr: 'up{job="test"}' }] as any[];
+
+      await manager.resolveApplicability(ds, queries, getDefaultTimeRange(), undefined);
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(1);
+      expect(manager.getApplicabilityResults()?.filters).toEqual([{ key: 'env', applicable: true }]);
+
+      // Second call with same inputs should use cache
+      await manager.resolveApplicability(ds, queries, getDefaultTimeRange(), undefined);
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(1);
+      expect(manager.getApplicabilityResults()?.filters).toEqual([{ key: 'env', applicable: true }]);
+    });
+
+    it('should invalidate cache when filters change', async () => {
+      const getDrilldownsApplicability = jest
+        .fn()
+        .mockResolvedValueOnce([{ key: 'env', applicable: true }])
+        .mockResolvedValueOnce([
+          { key: 'env', applicable: true },
+          { key: 'cluster', applicable: false, reason: 'not found' },
+        ]);
+
+      const adhocVar = createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }], undefined, true);
+      const manager = createManager({ adhocVar });
+
+      const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
+      await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(1);
+
+      // Add a new filter
+      adhocVar.setState({
+        filters: [
+          { key: 'env', value: 'prod', operator: '=' },
+          { key: 'cluster', value: 'us', operator: '=' },
+        ],
+      });
+
+      await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(2);
+    });
+
+    it('should invalidate cache when queries change', async () => {
+      const getDrilldownsApplicability = jest.fn().mockResolvedValue([{ key: 'env', applicable: true }]);
+
+      const manager = createManager({
+        adhocVar: createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }], undefined, true),
+      });
+
+      const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
+
+      await manager.resolveApplicability(ds, [{ refId: 'A', expr: 'up' }] as any[], getDefaultTimeRange(), undefined);
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(1);
+
+      // Different query expression
+      await manager.resolveApplicability(
+        ds,
+        [{ refId: 'A', expr: 'node_cpu_seconds_total' }] as any[],
+        getDefaultTimeRange(),
+        undefined
+      );
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(2);
+    });
+
+    it('should invalidate cache when groupBy keys change', async () => {
+      const getDrilldownsApplicability = jest.fn().mockResolvedValue([{ key: 'ns', applicable: true }]);
+
+      const groupByVar = createGroupByVar(['ns'], undefined, true);
+      const manager = createManager({ groupByVar });
+
+      const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
+      await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(1);
+
+      // Change groupBy value
+      groupByVar.changeValueTo(['ns', 'pod']);
+
+      await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(2);
+    });
+
+    it('should clear cache when resolveApplicability encounters an error', async () => {
+      const getDrilldownsApplicability = jest
+        .fn()
+        .mockResolvedValueOnce([{ key: 'env', applicable: true }])
+        .mockRejectedValueOnce(new Error('fail'))
+        .mockResolvedValueOnce([{ key: 'env', applicable: false, reason: 'gone' }]);
+
+      const manager = createManager({
+        adhocVar: createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }], undefined, true),
+      });
+
+      const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
+
+      // First call succeeds and caches
+      await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(1);
+      expect(manager.getApplicabilityResults()?.filters).toEqual([{ key: 'env', applicable: true }]);
+
+      // Second call with same inputs fails - cache should be cleared
+      getDrilldownsApplicability.mockRejectedValueOnce(new Error('fail'));
+      // Need to bust cache to force a new call - change a filter temporarily
+      manager['_lastApplicabilityCacheKey'] = undefined;
+      await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
+      expect(manager.getApplicabilityResults()).toBeUndefined();
+
+      // Third call should re-fetch since cache was cleared by error
+      await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(3);
+    });
   });
 
   describe('getFilters', () => {

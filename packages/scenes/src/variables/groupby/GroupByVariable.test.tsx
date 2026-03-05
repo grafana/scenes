@@ -630,7 +630,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         { key: 'key2', applicable: false },
       ]);
 
-      const { variable } = setupTest({ value: ['key1', 'key2'] }, undefined, undefined, {
+      const { variable } = setupTest({ value: ['key1', 'key2'], applicabilityEnabled: true }, undefined, undefined, {
         // @ts-expect-error (temporary till we update grafana/data)
         getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
       });
@@ -658,7 +658,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
 
     it('should not set keysApplicability if data source does not support it', async () => {
-      const { variable } = setupTest({ value: ['key1'] });
+      const { variable } = setupTest({ value: ['key1'], applicabilityEnabled: true });
 
       await act(async () => {
         await variable._verifyApplicability();
@@ -670,7 +670,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     it('should handle empty response from getDrilldownsApplicability', async () => {
       const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(null);
 
-      const { variable } = setupTest({ value: ['key1'] }, undefined, undefined, {
+      const { variable } = setupTest({ value: ['key1'], applicabilityEnabled: true }, undefined, undefined, {
         // @ts-expect-error (temporary till we update grafana/data)
         getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
       });
@@ -686,7 +686,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     it('should be called during activation handler', async () => {
       const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'key1', applicable: true }]);
 
-      const { variable } = setupTest({ value: ['key1'] }, undefined, undefined, {
+      const { variable } = setupTest({ value: ['key1'], applicabilityEnabled: true }, undefined, undefined, {
         // @ts-expect-error (temporary till we update grafana/data)
         getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
       });
@@ -714,6 +714,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
             { text: 'option2', value: 'option2' },
           ],
           allowCustomValue: true,
+          applicabilityEnabled: true,
         },
         undefined,
         undefined,
@@ -877,6 +878,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const { variable } = setupTest(
         {
           drilldownRecommendationsEnabled: true,
+          applicabilityEnabled: true,
           value: ['value1'],
         },
         undefined,
@@ -906,6 +908,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const { variable } = setupTest(
         {
           drilldownRecommendationsEnabled: true,
+          applicabilityEnabled: true,
           value: ['value1'],
         },
         undefined,
@@ -937,6 +940,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const { variable } = setupTest(
         {
           drilldownRecommendationsEnabled: true,
+          applicabilityEnabled: true,
           value: ['value1', 'value2', 'value3'],
         },
         undefined,
@@ -978,6 +982,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const { variable } = setupTest(
         {
           drilldownRecommendationsEnabled: true,
+          applicabilityEnabled: true,
           value: ['newValue1', 'newValue2', 'newValue3', 'newValue4'],
         },
         undefined,
@@ -1008,6 +1013,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const { variable } = setupTest(
         {
           drilldownRecommendationsEnabled: true,
+          applicabilityEnabled: true,
           value: ['value1', 'value2'],
         },
         undefined,
@@ -1033,6 +1039,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const { variable } = setupTest(
         {
           drilldownRecommendationsEnabled: false,
+          applicabilityEnabled: true,
           value: ['value1'],
         },
         undefined,

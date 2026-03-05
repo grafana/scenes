@@ -37,6 +37,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   private _groupByVar?: GroupByVariable;
   private _variableDependency: VariableDependencyConfig<TState>;
   private _applicabilityResults?: ApplicabilityResults;
+  private _lastApplicabilityCacheKey?: string;
 
   public constructor(variableDependency: VariableDependencyConfig<TState>) {
     this._variableDependency = variableDependency;
@@ -133,6 +134,12 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
 
     if (filters.length === 0 && groupByKeys.length === 0) {
       this._clearPerPanelApplicability();
+      this._lastApplicabilityCacheKey = undefined;
+      return;
+    }
+
+    const cacheKey = this._buildApplicabilityCacheKey(filters, groupByKeys, queries, scopes);
+    if (cacheKey === this._lastApplicabilityCacheKey && this._applicabilityResults) {
       return;
     }
 
@@ -149,8 +156,10 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
         filters: results.slice(0, filters.length),
         groupBy: results.slice(filters.length),
       });
+      this._lastApplicabilityCacheKey = cacheKey;
     } catch {
       this._clearPerPanelApplicability();
+      this._lastApplicabilityCacheKey = undefined;
     }
   }
 
@@ -215,5 +224,20 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   public cleanup(): void {
     this._adhocFiltersVar = undefined;
     this._groupByVar = undefined;
+    this._lastApplicabilityCacheKey = undefined;
+  }
+
+  private _buildApplicabilityCacheKey(
+    filters: AdHocFilterWithLabels[],
+    groupByKeys: string[],
+    queries: SceneDataQuery[],
+    scopes: Scope[] | undefined
+  ): string {
+    const filtersPart = filters.map((f) => `${f.origin ?? ''}:${f.key}:${f.operator}:${f.value}`).join('|');
+    const groupByPart = groupByKeys.join('|');
+    const queriesPart = queries.map((q) => q.refId + ':' + (q.expr ?? q.expression ?? q.query ?? '')).join('|');
+    const scopesPart = scopes?.map((s) => s.metadata.name).join('|') ?? '';
+
+    return `f[${filtersPart}]g[${groupByPart}]q[${queriesPart}]s[${scopesPart}]`;
   }
 }
