@@ -8,11 +8,9 @@ import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, Sc
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
 import { VariableInterpolation } from '@grafana/runtime';
-import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
 import { ScopesVariable } from '../../variables/variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../../variables/constants';
-import { CustomVariable } from '../../variables/variants/CustomVariable';
 
 /**
  * Get the closest node with variables
@@ -81,10 +79,7 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   for (const name of sceneObject.variableDependency.getNames()) {
     // This is for backwards compatibility to prevent infinite loading.
     //  In the old architecture variables could reference itself without breaking.
-    if (
-      (sceneObject instanceof QueryVariable || sceneObject instanceof CustomVariable) &&
-      sceneObject.state.name === name
-    ) {
+    if ('name' in sceneObject.state && sceneObject.state.name === name) {
       console.warn(`Variable ${name} is referencing itself`);
       continue;
     }
