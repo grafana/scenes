@@ -13,6 +13,7 @@ import { getPanelOptionsWithDefaults } from '@grafana/data';
 import { PanelContext } from '@grafana/ui';
 import { writeSceneLog } from '../utils';
 import { useSceneContext } from '../hooks/hooks';
+import { useAddToScene } from '../contexts/SceneContextObject';
 
 export interface VizPanelProps {
   title: string;
@@ -81,7 +82,7 @@ export function VizPanel(props: VizPanelProps) {
     });
   }
 
-  useEffect(() => scene.addToScene(panel), [panel, scene]);
+  useAddToScene(panel, scene);
 
   // Update options
   useEffect(() => {

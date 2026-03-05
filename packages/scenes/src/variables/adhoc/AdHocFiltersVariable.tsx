@@ -338,11 +338,11 @@ export class AdHocFiltersVariable
       this.setState({
         originFilters: this.state.originFilters?.filter((filter) => filter.origin !== 'scope'),
       });
+
       return;
     }
 
     const scopeFilters = getAdHocFiltersFromScopes(scopes);
-
     if (!scopeFilters.length) {
       return;
     }
