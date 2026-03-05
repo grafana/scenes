@@ -530,6 +530,41 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Get all original filter values from _originalValues.
+   * Returns reconstructed filter objects with the configured default operator/value.
+   */
+  public getOriginalValues(): AdHocFilterWithLabels[] {
+    const result: AdHocFilterWithLabels[] = [];
+    for (const [mapKey, original] of this._originalValues) {
+      const dashIndex = mapKey.lastIndexOf('-');
+      const key = mapKey.slice(0, dashIndex);
+      const origin = mapKey.slice(dashIndex + 1);
+      result.push({
+        key,
+        operator: original.operator,
+        value: original.value[0] ?? '',
+        values: original.value,
+        origin,
+      });
+    }
+    return result;
+  }
+
+  /**
+   * Set all original filter values
+   */
+  public setOriginalValues(filters: AdHocFilterWithLabels[]): void {
+    this._originalValues.clear();
+
+    for (const f of filters) {
+      this._originalValues.set(`${f.key}-${f.origin}`, {
+        operator: f.operator,
+        value: f.values ?? [f.value],
+      });
+    }
+  }
+
+  /**
    * Clear all user-added filters and restore origin filters to their original values.
    */
   public clearAll(): void {
