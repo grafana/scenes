@@ -39,7 +39,7 @@ describe('buildApplicabilityMatcher', () => {
     expect(match('env')).toBeUndefined();
   });
 
-  it('should dequeue entries in order for duplicate keys', () => {
+  it('should return the last entry for duplicate keys', () => {
     const response = [
       { key: 'env', applicable: true },
       { key: 'env', applicable: false, reason: 'value not found' },
@@ -47,25 +47,20 @@ describe('buildApplicabilityMatcher', () => {
 
     const match = buildApplicabilityMatcher(response);
 
-    expect(match('env')).toEqual({ key: 'env', applicable: true });
     expect(match('env')).toEqual({ key: 'env', applicable: false, reason: 'value not found' });
-    expect(match('env')).toBeUndefined();
   });
 
-  it('should dequeue entries in order for duplicate key+origin', () => {
-    const response = [
-      { key: 'env', applicable: false, reason: 'first', origin: 'scope' },
-      { key: 'env', applicable: true, origin: 'scope' },
-    ];
+  it('should return the same result on repeated lookups (stateless)', () => {
+    const response = [{ key: 'env', applicable: true }];
 
     const match = buildApplicabilityMatcher(response);
 
-    expect(match('env', 'scope')).toEqual({ key: 'env', applicable: false, reason: 'first', origin: 'scope' });
-    expect(match('env', 'scope')).toEqual({ key: 'env', applicable: true, origin: 'scope' });
-    expect(match('env', 'scope')).toBeUndefined();
+    expect(match('env')).toEqual({ key: 'env', applicable: true });
+    expect(match('env')).toEqual({ key: 'env', applicable: true });
+    expect(match('env')).toEqual({ key: 'env', applicable: true });
   });
 
-  it('should keep key-only and key+origin entries in separate queues', () => {
+  it('should keep key-only and key+origin entries separate', () => {
     const response = [
       { key: 'env', applicable: true },
       { key: 'env', applicable: false, origin: 'dashboard' },
@@ -75,9 +70,6 @@ describe('buildApplicabilityMatcher', () => {
 
     expect(match('env')).toEqual({ key: 'env', applicable: true });
     expect(match('env', 'dashboard')).toEqual({ key: 'env', applicable: false, origin: 'dashboard' });
-
-    expect(match('env')).toBeUndefined();
-    expect(match('env', 'dashboard')).toBeUndefined();
   });
 
   it('should not match key+origin entry when queried without origin', () => {
@@ -98,19 +90,17 @@ describe('buildApplicabilityMatcher', () => {
     expect(match('region')).toEqual({ key: 'region', applicable: true });
   });
 
-  it('should handle mixed keys and origins correctly regardless of response order', () => {
+  it('should handle mixed keys and origins correctly', () => {
     const response = [
       { key: 'cluster', applicable: false, reason: 'overridden' },
       { key: 'env', applicable: true, origin: 'scope' },
       { key: 'pod', applicable: true },
-      { key: 'env', applicable: false, reason: 'label not found' },
       { key: 'cluster', applicable: true, origin: 'dashboard' },
     ];
 
     const match = buildApplicabilityMatcher(response);
 
     expect(match('pod')).toEqual({ key: 'pod', applicable: true });
-    expect(match('env')).toEqual({ key: 'env', applicable: false, reason: 'label not found' });
     expect(match('env', 'scope')).toEqual({ key: 'env', applicable: true, origin: 'scope' });
     expect(match('cluster')).toEqual({ key: 'cluster', applicable: false, reason: 'overridden' });
     expect(match('cluster', 'dashboard')).toEqual({ key: 'cluster', applicable: true, origin: 'dashboard' });

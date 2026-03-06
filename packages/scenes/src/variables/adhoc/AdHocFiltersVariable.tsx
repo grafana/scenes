@@ -747,7 +747,13 @@ export class AdHocFiltersVariable
     const scopes = sceneGraph.getScopes(this);
 
     const cacheKey = buildApplicabilityCacheKey({
-      filters: filters.map((f) => ({ origin: f.origin, key: f.key, operator: f.operator, value: f.value })),
+      filters: filters.map((f) => ({
+        origin: f.origin,
+        key: f.key,
+        operator: f.operator,
+        value: f.value,
+        values: f.values,
+      })),
       queries: queries ?? [],
       scopes,
     });

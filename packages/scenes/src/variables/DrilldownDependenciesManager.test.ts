@@ -47,11 +47,12 @@ function createGroupByVar(value: string[], keysApplicability?: any[], applicabil
 
 describe('DrilldownDependenciesManager', () => {
   describe('resolveApplicability', () => {
-    it('should split response into filter and groupBy portions', async () => {
+    it('should split response into filter and groupBy portions by count', async () => {
+      // DS returns results in input order: originFilters first, then filters, then groupByKeys
       const getDrilldownsApplicability = jest.fn().mockResolvedValue([
+        { key: 'region', applicable: true, origin: 'dashboard' },
         { key: 'env', applicable: true },
         { key: 'cluster', applicable: false, reason: 'not found' },
-        { key: 'region', applicable: true, origin: 'dashboard' },
         { key: 'namespace', applicable: true },
         { key: 'pod', applicable: false, reason: 'label not found' },
       ]);
@@ -356,7 +357,7 @@ describe('DrilldownDependenciesManager', () => {
       expect(result[1].key).toBe('extra');
     });
 
-    it('should handle duplicate keys by matching positionally within the queue', () => {
+    it('should use last entry for duplicate keys (last wins)', () => {
       const filters: AdHocFilterWithLabels[] = [
         { key: 'env', value: 'prod', operator: '=' },
         { key: 'env', value: 'staging', operator: '=' },
@@ -372,9 +373,9 @@ describe('DrilldownDependenciesManager', () => {
         groupBy: [],
       };
 
+      // Last entry wins → applicable: false → both excluded
       const result = manager.getFilters() ?? [];
-      expect(result).toHaveLength(1);
-      expect(result[0].value).toBe('prod');
+      expect(result).toHaveLength(0);
     });
 
     it('should separate user filters from origin filters with same key via origin', () => {
@@ -481,10 +482,11 @@ describe('DrilldownDependenciesManager', () => {
 
   describe('combined filters and groupBy', () => {
     it('should resolve and return both filters and groupBy keys through the full flow', async () => {
+      // DS returns results in input order: originFilters, then filters, then groupByKeys
       const getDrilldownsApplicability = jest.fn().mockResolvedValue([
+        { key: 'region', applicable: true, origin: 'dashboard' },
         { key: 'env', applicable: true },
         { key: 'cluster', applicable: false, reason: 'label not found' },
-        { key: 'region', applicable: true, origin: 'dashboard' },
         { key: 'namespace', applicable: true },
         { key: 'pod', applicable: false, reason: 'label not found' },
       ]);
@@ -510,6 +512,33 @@ describe('DrilldownDependenciesManager', () => {
       expect(filters[1].key).toBe('env');
 
       expect(manager.getGroupByKeys()).toEqual(['namespace']);
+    });
+
+    it('should correctly split results when filter and groupBy share the same key name', async () => {
+      const getDrilldownsApplicability = jest.fn().mockResolvedValue([
+        // filter result for 'env' (applicable)
+        { key: 'env', applicable: true },
+        // groupBy result for 'env' (not applicable)
+        { key: 'env', applicable: false, reason: 'label not found for groupBy' },
+      ]);
+
+      const manager = createManager({
+        adhocVar: createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }], undefined, true),
+        groupByVar: createGroupByVar(['env'], undefined, true),
+      });
+
+      const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
+      await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
+
+      const results = manager.getApplicabilityResults();
+      expect(results?.filters).toEqual([{ key: 'env', applicable: true }]);
+      expect(results?.groupBy).toEqual([{ key: 'env', applicable: false, reason: 'label not found for groupBy' }]);
+
+      const filters = manager.getFilters() ?? [];
+      expect(filters).toHaveLength(1);
+      expect(filters[0].key).toBe('env');
+
+      expect(manager.getGroupByKeys()).toEqual([]);
     });
 
     it('should handle filters-only response when both variables exist', async () => {

@@ -12,30 +12,19 @@ function compositeKey(key: string, origin?: string): string {
 }
 
 /**
- * Creates a matcher that pairs response entries with input filters/keys using
- * key+origin queues. For each key+origin combination, entries are dequeued in
- * order, so duplicates with the same key+origin are matched positionally within
- * their group rather than relying on global array ordering.
+ * Builds a stateless lookup from a DS applicability response.
+ * Maps each key+origin to its result. For duplicate keys the last entry wins,
+ * which is the "active" one (the DS marks earlier duplicates as overridden).
  */
 export function buildApplicabilityMatcher(response: DrilldownsApplicability[]) {
-  const queues = new Map<string, DrilldownsApplicability[]>();
+  const map = new Map<string, DrilldownsApplicability>();
 
   for (const entry of response) {
-    const ck = compositeKey(entry.key, entry.origin);
-    const queue = queues.get(ck);
-    if (queue) {
-      queue.push(entry);
-    } else {
-      queues.set(ck, [entry]);
-    }
+    map.set(compositeKey(entry.key, entry.origin), entry);
   }
 
   return (key: string, origin?: string): DrilldownsApplicability | undefined => {
-    const queue = queues.get(compositeKey(key, origin));
-    if (!queue || queue.length === 0) {
-      return undefined;
-    }
-    return queue.shift();
+    return map.get(compositeKey(key, origin));
   };
 }
 
@@ -44,14 +33,19 @@ function normalizeQuery(q: SceneDataQuery): { refId: string; expr?: unknown } {
 }
 
 export function buildApplicabilityCacheKey(parts: {
-  filters?: Array<{ origin?: string; key: string; operator: string; value: string }>;
+  filters?: Array<{ origin?: string; key: string; operator: string; value: string; values?: string[] }>;
   groupByKeys?: string[];
   value?: string[];
   queries: SceneDataQuery[];
   scopes: Scope[] | undefined;
 }): string {
   return JSON.stringify({
-    filters: parts.filters,
+    filters: parts.filters?.map((f) => ({
+      origin: f.origin,
+      key: f.key,
+      operator: f.operator,
+      value: f.values?.length ? f.values.join(',') : f.value,
+    })),
     groupByKeys: parts.groupByKeys,
     value: parts.value,
     queries: parts.queries.map(normalizeQuery),

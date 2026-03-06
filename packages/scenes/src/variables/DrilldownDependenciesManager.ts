@@ -139,7 +139,13 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     }
 
     const cacheKey = buildApplicabilityCacheKey({
-      filters: filters.map((f) => ({ origin: f.origin, key: f.key, operator: f.operator, value: f.value })),
+      filters: filters.map((f) => ({
+        origin: f.origin,
+        key: f.key,
+        operator: f.operator,
+        value: f.value,
+        values: f.values,
+      })),
       groupByKeys,
       queries,
       scopes,
@@ -158,23 +164,13 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
         scopes,
       });
 
-      const matcher = buildApplicabilityMatcher(results);
-
-      const filterResults: DrilldownsApplicability[] = [];
-      for (const f of filters) {
-        const result = matcher(f.key, f.origin);
-        if (result) {
-          filterResults.push(result);
-        }
-      }
-
-      const groupByResults: DrilldownsApplicability[] = [];
-      for (const k of groupByKeys) {
-        const result = matcher(k);
-        if (result) {
-          groupByResults.push(result);
-        }
-      }
+      // The DS returns results in order: one entry per filter, then one per groupBy key.
+      // Split by count so filters and groupBy keys with the same name don't share a queue.
+      const filterResults: DrilldownsApplicability[] = results.slice(0, filters.length);
+      const groupByResults: DrilldownsApplicability[] = results.slice(
+        filters.length,
+        filters.length + groupByKeys.length
+      );
 
       this._setPerPanelApplicability({ filters: filterResults, groupBy: groupByResults });
       this._lastApplicabilityCacheKey = cacheKey;
