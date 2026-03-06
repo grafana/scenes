@@ -1,3 +1,16 @@
+# v7.1.2 (Fri Mar 06 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VariableDependencyCheck: Make self referencing variable check more general [#1381](https://github.com/grafana/scenes/pull/1381) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v7.1.1 (Wed Mar 04 2026)
 
 #### 🐛 Bug Fix
