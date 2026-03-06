@@ -12,9 +12,10 @@ export interface DrilldownPill {
 interface Props {
   recentDrilldowns?: DrilldownPill[];
   recommendedDrilldowns?: DrilldownPill[];
+  showRecommended?: boolean;
 }
 
-export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldowns }: Props) {
+export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldowns, showRecommended = true }: Props) {
   const styles = useStyles2(getStyles);
 
   const [isPopoverVisible, setPopoverVisible] = useState<boolean>(false);
@@ -51,25 +52,29 @@ export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldow
               <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recent-empty">No recent values</Trans>
             </div>
           )}
-          <Text weight="bold" variant="bodySmall" color="secondary">
-            <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recommended">Recommended</Trans>
-          </Text>
-          {recommendedDrilldowns && recommendedDrilldowns.length > 0 ? (
-            recommendedDrilldowns.map((drilldown) => (
-              <div
-                key={drilldown.label}
-                className={cx(styles.combinedFilterPill)}
-                onClick={() => onClickAction(drilldown.onClick)}
-              >
-                {drilldown.label}
-              </div>
-            ))
-          ) : (
-            <div className={styles.emptyMessage}>
-              <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recommended-empty">
-                No recommended values
-              </Trans>
-            </div>
+          {showRecommended && (
+            <>
+              <Text weight="bold" variant="bodySmall" color="secondary">
+                <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recommended">Recommended</Trans>
+              </Text>
+              {recommendedDrilldowns && recommendedDrilldowns.length > 0 ? (
+                recommendedDrilldowns.map((drilldown) => (
+                  <div
+                    key={drilldown.label}
+                    className={cx(styles.combinedFilterPill)}
+                    onClick={() => onClickAction(drilldown.onClick)}
+                  >
+                    {drilldown.label}
+                  </div>
+                ))
+              ) : (
+                <div className={styles.emptyMessage}>
+                  <Trans i18nKey="grafana-scenes.components.drilldown-recommendations.recommended-empty">
+                    No recommended values
+                  </Trans>
+                </div>
+              )}
+            </>
           )}
         </Stack>
       </div>

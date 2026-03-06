@@ -26,6 +26,7 @@ export const getRecentFiltersKey = (datasourceUid: string | undefined) =>
 export interface AdHocFiltersRecommendationsState extends SceneObjectState {
   recentFilters?: AdHocFilterWithLabels[];
   recommendedFilters?: AdHocFilterWithLabels[];
+  datasourceSupportsRecommendations?: boolean;
 }
 
 export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRecommendationsState> {
@@ -114,8 +115,11 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
 
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getRecommendedDrilldowns) {
+      this.setState({ datasourceSupportsRecommendations: false });
       return;
     }
+
+    this.setState({ datasourceSupportsRecommendations: true });
 
     const queries = adhoc.state.useQueriesAsFilterForOptions ? getQueriesForVariables(adhoc) : undefined;
     const timeRange = sceneGraph.getTimeRange(adhoc).state.value;
@@ -193,7 +197,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
 }
 
 function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHocFiltersRecommendations>) {
-  const { recentFilters, recommendedFilters } = model.useState();
+  const { recentFilters, recommendedFilters, datasourceSupportsRecommendations } = model.useState();
   const { filters } = model._adHocFilter.useState();
 
   const recentDrilldowns: DrilldownPill[] | undefined = recentFilters?.map((filter) => ({
@@ -216,5 +220,11 @@ function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHo
     },
   }));
 
-  return <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />;
+  return (
+    <DrilldownRecommendations
+      recentDrilldowns={recentDrilldowns}
+      recommendedDrilldowns={recommendedDrilldowns}
+      showRecommended={datasourceSupportsRecommendations}
+    />
+  );
 }
