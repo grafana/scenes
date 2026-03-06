@@ -41,6 +41,7 @@ export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
 export { DataProviderProxy } from './querying/DataProviderProxy';
+export { buildApplicabilityMatcher } from './variables/applicabilityUtils';
 export {
   type ExtraQueryDescriptor,
   type ExtraQueryProvider,

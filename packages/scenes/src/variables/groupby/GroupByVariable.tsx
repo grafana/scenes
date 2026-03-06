@@ -39,6 +39,7 @@ import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTrack
 import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionConstants';
 import { css, cx } from '@emotion/css';
 import { GroupByRecommendations } from './GroupByRecommendations';
+import { buildApplicabilityCacheKey } from '../applicabilityUtils';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -111,6 +112,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
 
   private _recommendations: GroupByRecommendations | undefined;
+  private _lastApplicabilityCacheKey?: string;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -229,11 +231,11 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     return () => {
+      this._lastApplicabilityCacheKey = undefined;
+
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
       }
-
-      this.setState({ applicabilityEnabled: false });
     };
   };
 
@@ -285,14 +287,30 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public async _verifyApplicability() {
+    if (!this.state.applicabilityEnabled) {
+      return;
+    }
+
     const queries = getQueriesForVariables(this);
     const value = this.state.value;
+    const scopes = sceneGraph.getScopes(this);
+
+    const cacheKey = buildApplicabilityCacheKey({
+      value: Array.isArray(value) ? value.map(String) : [String(value ?? '')],
+      queries,
+      scopes,
+    });
+    if (cacheKey === this._lastApplicabilityCacheKey) {
+      return;
+    }
 
     const response = await this.getGroupByApplicabilityForQueries(value, queries);
 
     if (!response) {
       return;
     }
+
+    this._lastApplicabilityCacheKey = cacheKey;
 
     if (!isEqual(response, this.state.keysApplicability)) {
       this.setState({ keysApplicability: response ?? undefined, applicabilityEnabled: true });
