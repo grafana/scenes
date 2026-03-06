@@ -73,7 +73,7 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@grafana/i18n": "12.1.0",
+    "@grafana/i18n": "12.4.0",
     "@rollup/plugin-dynamic-import-vars": "2.1.5",
     "@rollup/plugin-json": "^6.1.0",
     "@types/history": "4.7.11",
