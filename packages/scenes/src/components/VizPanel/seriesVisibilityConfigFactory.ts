@@ -22,7 +22,8 @@ export function seriesVisibilityConfigFactory(
   fieldConfig: FieldConfigSource,
   data: DataFrame[]
 ): FieldConfigSource {
-  if (mode === ('setExactly' as SeriesVisibilityChangeMode)) {
+  // TODO: update to use the new SeriesVisibilityChangeMode enum when we update to latest ui package
+  if (mode === 'setExactly') {
     const overrides = fieldConfig.overrides.filter((o) => !isHideSeriesOverride(o));
 
     if (label == null || (Array.isArray(label) && label.length === getDisplayNames(data).length)) {
@@ -34,7 +35,7 @@ export function seriesVisibilityConfigFactory(
   }
   const { overrides } = fieldConfig;
 
-  const displayName = label as string;
+  const displayName = label;
   const currentIndex = overrides.findIndex(isHideSeriesOverride);
 
   if (currentIndex < 0) {
