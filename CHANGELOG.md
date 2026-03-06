@@ -1,3 +1,36 @@
+# v7.1.1 (Wed Mar 04 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - groupBy variable update logic cleaup [#1380](https://github.com/grafana/scenes/pull/1380) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.0 (Tue Mar 03 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - QueryController: clear running query count on deactivate [#1349](https://github.com/grafana/scenes/pull/1349) ([@perfilyev](https://github.com/perfilyev))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Datagrid: Drop support ahead of deprecation [#1378](https://github.com/grafana/scenes/pull/1378) ([@fastfrwrd](https://github.com/fastfrwrd))
+  - FieldOverrides: Pass featureToggles into applyFieldOverrides [#1377](https://github.com/grafana/scenes/pull/1377) ([@fastfrwrd](https://github.com/fastfrwrd))
+
+#### Authors: 2
+
+- Igor Perfilyev ([@perfilyev](https://github.com/perfilyev))
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+
+---
+
 # v7.0.3 (Thu Feb 26 2026)
 
 #### 🐛 Bug Fix
