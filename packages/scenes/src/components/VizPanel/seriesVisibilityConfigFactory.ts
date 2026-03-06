@@ -17,14 +17,24 @@ const displayOverrideRef = 'hideSeriesFrom';
 const isHideSeriesOverride = isSystemOverrideWithRef(displayOverrideRef);
 
 export function seriesVisibilityConfigFactory(
-  label: string,
+  label: string | string[] | null,
   mode: SeriesVisibilityChangeMode,
   fieldConfig: FieldConfigSource,
   data: DataFrame[]
 ): FieldConfigSource {
+  if (mode === ('setExactly' as SeriesVisibilityChangeMode)) {
+    const overrides = fieldConfig.overrides.filter((o) => !isHideSeriesOverride(o));
+
+    if (label == null || (Array.isArray(label) && label.length === getDisplayNames(data).length)) {
+      return { ...fieldConfig, overrides };
+    }
+
+    const override = createOverride(Array.isArray(label) ? label : [label]);
+    return { ...fieldConfig, overrides: [...overrides, override] };
+  }
   const { overrides } = fieldConfig;
 
-  const displayName = label;
+  const displayName = label as string;
   const currentIndex = overrides.findIndex(isHideSeriesOverride);
 
   if (currentIndex < 0) {
