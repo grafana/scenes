@@ -8,7 +8,6 @@ import {
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
-  Scope,
   SelectableValue,
 } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
@@ -40,6 +39,7 @@ import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTrack
 import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionConstants';
 import { css, cx } from '@emotion/css';
 import { GroupByRecommendations } from './GroupByRecommendations';
+import { buildApplicabilityCacheKey } from '../applicabilityUtils';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -295,7 +295,11 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     const value = this.state.value;
     const scopes = sceneGraph.getScopes(this);
 
-    const cacheKey = this._buildApplicabilityCacheKey(value, queries, scopes);
+    const cacheKey = buildApplicabilityCacheKey({
+      value: Array.isArray(value) ? value.map(String) : [String(value ?? '')],
+      queries,
+      scopes,
+    });
     if (cacheKey === this._lastApplicabilityCacheKey) {
       return;
     }
@@ -315,18 +319,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     } else {
       this.setState({ applicabilityEnabled: true });
     }
-  }
-
-  private _buildApplicabilityCacheKey(
-    value: VariableValue,
-    queries: SceneDataQuery[],
-    scopes: Scope[] | undefined
-  ): string {
-    return JSON.stringify({
-      value: Array.isArray(value) ? value.map(String) : [String(value ?? '')],
-      queries: queries.map((q) => ({ refId: q.refId, expr: q.expr ?? q.expression ?? q.query })),
-      scopes: scopes?.map((s) => s.metadata.name),
-    });
   }
 
   // This method is related to the defaultValue property. We check if the current value

@@ -32,7 +32,7 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { debounce, isEqual } from 'lodash';
-import { buildApplicabilityMatcher } from '../applicabilityUtils';
+import { buildApplicabilityMatcher, buildApplicabilityCacheKey } from '../applicabilityUtils';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
@@ -746,7 +746,11 @@ export class AdHocFiltersVariable
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
     const scopes = sceneGraph.getScopes(this);
 
-    const cacheKey = this._buildApplicabilityCacheKey(filters, queries ?? [], scopes);
+    const cacheKey = buildApplicabilityCacheKey({
+      filters: filters.map((f) => ({ origin: f.origin, key: f.key, operator: f.operator, value: f.value })),
+      queries: queries ?? [],
+      scopes,
+    });
     if (cacheKey === this._lastApplicabilityCacheKey) {
       return;
     }
@@ -792,18 +796,6 @@ export class AdHocFiltersVariable
     });
 
     this.setState(update);
-  }
-
-  private _buildApplicabilityCacheKey(
-    filters: AdHocFilterWithLabels[],
-    queries: SceneDataQuery[],
-    scopes: Scope[] | undefined
-  ): string {
-    return JSON.stringify({
-      filters: filters.map((f) => ({ origin: f.origin, key: f.key, operator: f.operator, value: f.value })),
-      queries: queries.map((q) => ({ refId: q.refId, expr: q.expr ?? q.expression ?? q.query })),
-      scopes: scopes?.map((s) => s.metadata.name),
-    });
   }
 
   /**

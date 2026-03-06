@@ -73,9 +73,9 @@ describe('DrilldownDependenciesManager', () => {
 
       const results = manager.getApplicabilityResults();
       expect(results?.filters).toEqual([
+        { key: 'region', applicable: true, origin: 'dashboard' },
         { key: 'env', applicable: true },
         { key: 'cluster', applicable: false, reason: 'not found' },
-        { key: 'region', applicable: true, origin: 'dashboard' },
       ]);
       expect(results?.groupBy).toEqual([
         { key: 'namespace', applicable: true },
@@ -224,16 +224,18 @@ describe('DrilldownDependenciesManager', () => {
       expect(getDrilldownsApplicability).toHaveBeenCalledTimes(2);
     });
 
-    it('should clear cache when resolveApplicability encounters an error', async () => {
+    it('should clear cache when resolveApplicability encounters an error and re-fetch on next call', async () => {
       const getDrilldownsApplicability = jest
         .fn()
         .mockResolvedValueOnce([{ key: 'env', applicable: true }])
         .mockRejectedValueOnce(new Error('fail'))
-        .mockResolvedValueOnce([{ key: 'env', applicable: false, reason: 'gone' }]);
+        .mockResolvedValueOnce([
+          { key: 'env', applicable: true },
+          { key: 'cluster', applicable: false, reason: 'gone' },
+        ]);
 
-      const manager = createManager({
-        adhocVar: createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }], undefined, true),
-      });
+      const adhocVar = createAdhocVar([{ key: 'env', value: 'prod', operator: '=' }], undefined, true);
+      const manager = createManager({ adhocVar });
 
       const ds = { getDrilldownsApplicability } as unknown as DataSourceApi;
 
@@ -242,16 +244,24 @@ describe('DrilldownDependenciesManager', () => {
       expect(getDrilldownsApplicability).toHaveBeenCalledTimes(1);
       expect(manager.getApplicabilityResults()?.filters).toEqual([{ key: 'env', applicable: true }]);
 
-      // Second call with same inputs fails - cache should be cleared
-      getDrilldownsApplicability.mockRejectedValueOnce(new Error('fail'));
-      // Need to bust cache to force a new call - change a filter temporarily
-      manager['_lastApplicabilityCacheKey'] = undefined;
+      // Change inputs so the cache key differs, then make the DS call fail
+      adhocVar.setState({
+        filters: [
+          { key: 'env', value: 'prod', operator: '=' },
+          { key: 'cluster', value: 'us', operator: '=' },
+        ],
+      });
       await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
+      expect(getDrilldownsApplicability).toHaveBeenCalledTimes(2);
       expect(manager.getApplicabilityResults()).toBeUndefined();
 
-      // Third call should re-fetch since cache was cleared by error
+      // Third call with same inputs should re-fetch since error cleared the cache
       await manager.resolveApplicability(ds, [], getDefaultTimeRange(), undefined);
       expect(getDrilldownsApplicability).toHaveBeenCalledTimes(3);
+      expect(manager.getApplicabilityResults()?.filters).toEqual([
+        { key: 'env', applicable: true },
+        { key: 'cluster', applicable: false, reason: 'gone' },
+      ]);
     });
   });
 

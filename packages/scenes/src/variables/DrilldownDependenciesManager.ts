@@ -22,7 +22,7 @@ import {
 } from '../variables/adhoc/AdHocFiltersVariable';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
-import { buildApplicabilityMatcher } from '../variables/applicabilityUtils';
+import { buildApplicabilityMatcher, buildApplicabilityCacheKey } from '../variables/applicabilityUtils';
 
 export interface ApplicabilityResults {
   filters: DrilldownsApplicability[];
@@ -138,7 +138,12 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return;
     }
 
-    const cacheKey = this._buildApplicabilityCacheKey(filters, groupByKeys, queries, scopes);
+    const cacheKey = buildApplicabilityCacheKey({
+      filters: filters.map((f) => ({ origin: f.origin, key: f.key, operator: f.operator, value: f.value })),
+      groupByKeys,
+      queries,
+      scopes,
+    });
     if (cacheKey === this._lastApplicabilityCacheKey && this._applicabilityResults) {
       return;
     }
@@ -152,10 +157,26 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
         timeRange,
         scopes,
       });
-      this._setPerPanelApplicability({
-        filters: results.slice(0, filters.length),
-        groupBy: results.slice(filters.length),
-      });
+
+      const matcher = buildApplicabilityMatcher(results);
+
+      const filterResults: DrilldownsApplicability[] = [];
+      for (const f of filters) {
+        const result = matcher(f.key, f.origin);
+        if (result) {
+          filterResults.push(result);
+        }
+      }
+
+      const groupByResults: DrilldownsApplicability[] = [];
+      for (const k of groupByKeys) {
+        const result = matcher(k);
+        if (result) {
+          groupByResults.push(result);
+        }
+      }
+
+      this._setPerPanelApplicability({ filters: filterResults, groupBy: groupByResults });
       this._lastApplicabilityCacheKey = cacheKey;
     } catch {
       this._clearPerPanelApplicability();
@@ -225,19 +246,5 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     this._adhocFiltersVar = undefined;
     this._groupByVar = undefined;
     this._lastApplicabilityCacheKey = undefined;
-  }
-
-  private _buildApplicabilityCacheKey(
-    filters: AdHocFilterWithLabels[],
-    groupByKeys: string[],
-    queries: SceneDataQuery[],
-    scopes: Scope[] | undefined
-  ): string {
-    return JSON.stringify({
-      filters: filters.map((f) => ({ origin: f.origin, key: f.key, operator: f.operator, value: f.value })),
-      groupByKeys,
-      queries: queries.map((q) => ({ refId: q.refId, expr: q.expr ?? q.expression ?? q.query })),
-      scopes: scopes?.map((s) => s.metadata.name),
-    });
   }
 }
