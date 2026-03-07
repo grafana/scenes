@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "使用键 {{keyLabel}} 编辑筛选器",
         "managed-filter": "{{origin}} 托管筛选器",
-        "non-applicable": "",
+        "non-applicable": "筛选条件不适用",
         "remove-filter-with-key": "使用键 {{keyLabel}} 移除筛选器"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "移除筛选器值 - {{itemLabel}}",
         "use-custom-value": "使用自定义值：{{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "最近",
+        "recent-empty": "无最近的值",
+        "recommended": "推荐",
+        "recommended-empty": "无推荐的值",
+        "tooltip": "显示建议"
       },
       "fallback-page": {
         "content": "如果您使用链接找到了此处的路径，则此应用程序中可能存在错误。",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "取消",
         "text-refresh": "刷新",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "取消所有查询"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "比较",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "窗格大小调整小部件"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "后退{{moveBackwardDuration}}",
+        "move-forward-tooltip": "前进{{moveForwardDuration}}"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "选择值"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "收起",
+        "collapse-filters": "收起筛选器"
+      },
       "data-source-variable": {
         "label": {
           "default": "默认"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "以不同方式格式化日期",
             "format-multivalued-variables-using-syntax-example": "使用 glob 语法格式化多值变量，例如 {value1,value2}",
             "html-escaping-of-values": "值的 HTML 转义",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "用逗号连接值",
             "json-stringify-value": "JSON 字符串化值",
             "keep-value-as-is": "保持值不变",
             "multiple-values-are-formatted-like-variablevalue": "多个值的格式为 variable=value",
