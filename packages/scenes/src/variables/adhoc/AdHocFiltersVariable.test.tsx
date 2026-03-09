@@ -1304,9 +1304,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
-    expect(filtersVar['_originalValues'].get('dbKey1-dashboard')).toEqual({ value: ['dbValue1'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('dbKey2-dashboard')).toEqual({ value: ['dbValue2'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('scopeKey-scope')).toEqual({ value: ['scopeValue'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey1::dashboard')).toEqual({ value: ['dbValue1'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey2::dashboard')).toEqual({ value: ['dbValue2'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('scopeKey::scope')).toEqual({ value: ['scopeValue'], operator: '=' });
   });
 
   it('should reset dashboard level filters if they are edited on unmount', () => {
@@ -1439,7 +1439,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     expect(filtersVar.state.originFilters![0].value).toBe('newValue1');
     expect(filtersVar.state.originFilters![0].values).toEqual(['newValue1']);
-    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    const key = `${filtersVar.state.originFilters![0].key}::${filtersVar.state.originFilters![0].origin}`;
     expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1', 'originValue2']);
     expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=|');
   });
@@ -1493,7 +1493,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.originFilters![0].restorable).toEqual(true);
-    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    const key = `${filtersVar.state.originFilters![0].key}::${filtersVar.state.originFilters![0].origin}`;
     expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1']);
     expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=');
 
@@ -3137,8 +3137,8 @@ describe('validateOriginFilters', () => {
     });
 
     // Seed original values directly
-    filtersVar['_originalValues'].set('key1-dashboard', { value: ['val1'], operator: '=' });
-    filtersVar['_originalValues'].set('key2-dashboard', { value: ['valA', 'valB'], operator: '=|' });
+    filtersVar['_originalValues'].set('key1::dashboard', { value: ['val1'], operator: '=' });
+    filtersVar['_originalValues'].set('key2::dashboard', { value: ['valA', 'valB'], operator: '=|' });
 
     return filtersVar;
   }
@@ -3211,7 +3211,7 @@ describe('validateOriginFilters', () => {
 
   it('should not mark as restorable when matchAll filter matches matchAll original', () => {
     const filtersVar = createVariable();
-    filtersVar['_originalValues'].set('matchKey-dashboard', { value: ['.*'], operator: '=~' });
+    filtersVar['_originalValues'].set('matchKey::dashboard', { value: ['.*'], operator: '=~' });
     const filter: AdHocFilterWithLabels = { key: 'matchKey', operator: '=~', value: '.*', origin: 'dashboard' };
 
     const result = filtersVar.validateOriginFilters([filter]);
