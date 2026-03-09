@@ -212,27 +212,18 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   const { refresh, intervals, autoEnabled, autoValue, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
-  const refreshText = withText
-    ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
-    : undefined;
-  const cancelText = withText ? t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel') : undefined;
+  const refreshLabel = t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh');
+  const cancelLabel = t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel');
 
-  let text: string | ReactNode = refresh === RefreshPicker.autoOption?.value ? autoValue : refreshText;
-  let tooltip: string | undefined;
+  let text: string | ReactNode | undefined;
 
-  if (isRunning) {
-    tooltip = t('grafana-scenes.components.scene-refresh-picker.tooltip-cancel', 'Cancel all queries');
-
-    if (withText) {
-      text = cancelText;
-    }
-  }
-
-  if (withText && refreshText && cancelText) {
+  if (refresh === RefreshPicker.autoOption?.value) {
+    text = isRunning && withText ? cancelLabel : autoValue;
+  } else if (withText) {
     text = (
       <span style={{ display: 'inline-grid' }}>
-        <span style={{ gridColumn: 1, gridRow: 1, visibility: isRunning ? 'hidden' : 'visible' }}>{refreshText}</span>
-        <span style={{ gridColumn: 1, gridRow: 1, visibility: isRunning ? 'visible' : 'hidden' }}>{cancelText}</span>
+        <span style={{ gridArea: '1/1', visibility: isRunning ? 'hidden' : 'visible' }}>{refreshLabel}</span>
+        <span style={{ gridArea: '1/1', visibility: isRunning ? 'visible' : 'hidden' }}>{cancelLabel}</span>
       </span>
     );
   }
@@ -242,11 +233,12 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       showAutoInterval={autoEnabled}
       value={refresh}
       intervals={intervals}
-      tooltip={tooltip}
-      text={text as string}
-      onRefresh={() => {
-        model.onRefresh();
-      }}
+      tooltip={
+        isRunning ? t('grafana-scenes.components.scene-refresh-picker.tooltip-cancel', 'Cancel all queries') : undefined
+      }
+      // @ts-expect-error RefreshPicker types text as string but accepts ReactNode at runtime
+      text={text}
+      onRefresh={() => model.onRefresh()}
       primary={primary}
       onIntervalChanged={model.onIntervalChanged}
       isLoading={isRunning}
