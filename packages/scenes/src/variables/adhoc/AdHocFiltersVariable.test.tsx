@@ -3284,6 +3284,50 @@ describe('validateOriginFilters', () => {
   });
 });
 
+describe('getOriginalFilters / setOriginalFilters', () => {
+  function createVariable(overrides?: Partial<AdHocFiltersVariableState>) {
+    return new AdHocFiltersVariable({
+      datasource: { uid: 'my-ds-uid' },
+      name: 'filters',
+      filters: [],
+      originFilters: [
+        { key: 'region', operator: '=', value: 'us-east', origin: 'dashboard' },
+        { key: 'env', operator: '=', value: 'prod', origin: 'dashboard' },
+      ],
+      ...overrides,
+    });
+  }
+
+  describe('getOriginalFilters', () => {
+    it('returns dashboard-origin defaults from _originalValues', () => {
+      const filtersVar = createVariable();
+
+      const defaults = filtersVar.getOriginalFilters();
+
+      expect(defaults).toHaveLength(2);
+      expect(defaults[0]).toMatchObject({ key: 'region', operator: '=', value: 'us-east', origin: 'dashboard' });
+      expect(defaults[1]).toMatchObject({ key: 'env', operator: '=', value: 'prod', origin: 'dashboard' });
+    });
+  });
+
+  describe('setOriginalFilters', () => {
+    it('replaces _originalValues', () => {
+      const filtersVar = createVariable();
+
+      filtersVar.setOriginalFilters([
+        { key: 'cluster', operator: '=', value: 'main', values: ['main'], origin: 'dashboard' },
+      ]);
+
+      expect(filtersVar['_originalValues'].get('cluster::dashboard')).toEqual({
+        operator: '=',
+        value: ['main'],
+      });
+      expect(filtersVar['_originalValues'].has('region::dashboard')).toBe(false);
+      expect(filtersVar['_originalValues'].has('env::dashboard')).toBe(false);
+    });
+  });
+});
+
 const runRequestMock = {
   fn: jest.fn(),
 };

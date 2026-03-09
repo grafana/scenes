@@ -535,6 +535,37 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Get all original filter values from _originalValues.
+   */
+  public getOriginalFilters(): AdHocFilterWithLabels[] {
+    const result: AdHocFilterWithLabels[] = [];
+    const originFilters = this.state.originFilters ?? [];
+
+    for (const [mapKey] of this._originalValues) {
+      const filter = originFilters.find((f) => getOriginalValuesKey(f.key, f.origin) === mapKey);
+      if (filter) {
+        result.push(filter);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Set all original filters
+   */
+  public setOriginalFilters(filters: AdHocFilterWithLabels[]): void {
+    this._originalValues.clear();
+
+    for (const f of filters) {
+      this._originalValues.set(getOriginalValuesKey(f.key, f.origin), {
+        operator: f.operator,
+        value: f.values ?? [f.value],
+      });
+    }
+  }
+
+  /**
    * Clear all user-added filters and restore origin filters to their original values.
    */
   public clearAll(): void {
@@ -751,7 +782,7 @@ export class AdHocFiltersVariable
 
     const responseMap = new Map<string, DrilldownsApplicability>();
     response.forEach((filter: DrilldownsApplicability) => {
-      responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
+      responseMap.set(originalValuesKey(filter.key, filter.origin), filter);
     });
 
     const update = {
@@ -770,7 +801,7 @@ export class AdHocFiltersVariable
     });
 
     update.originFilters?.forEach((f) => {
-      const filter = responseMap.get(`${f.key}-${f.origin}`);
+      const filter = responseMap.get(originalValuesKey(f.key, f.origin));
 
       if (filter) {
         if (!f.matchAllFilter) {
