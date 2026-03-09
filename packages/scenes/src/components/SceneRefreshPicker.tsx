@@ -227,14 +227,9 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   const refreshText = withText
     ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
     : undefined;
-  const cancelText = withText
-    ? t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel')
-    : undefined;
+  const cancelText = withText ? t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel') : undefined;
 
-  let text =
-    refresh === RefreshPicker.autoOption?.value
-      ? autoValue
-      : refreshText;
+  let text = refresh === RefreshPicker.autoOption?.value ? autoValue : refreshText;
   let tooltip: string | undefined;
 
   if (isRunning) {
@@ -271,7 +266,9 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   }
 
   const alternateText = isRunning
-    ? (refresh === RefreshPicker.autoOption?.value ? autoValue : refreshText)
+    ? refresh === RefreshPicker.autoOption?.value
+      ? autoValue
+      : refreshText
     : cancelText;
 
   return (
@@ -285,9 +282,7 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
           isLoading={!isRunning}
         />
       </div>
-      <div>
-        {picker}
-      </div>
+      <div>{picker}</div>
     </div>
   );
 }
