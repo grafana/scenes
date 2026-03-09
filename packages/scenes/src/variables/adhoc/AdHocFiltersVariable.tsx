@@ -751,7 +751,7 @@ export class AdHocFiltersVariable
 
     const responseMap = new Map<string, DrilldownsApplicability>();
     response.forEach((filter: DrilldownsApplicability) => {
-      responseMap.set(getOriginalValuesKey(filter.key, filter.origin), filter);
+      responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
     });
 
     const update = {
@@ -770,7 +770,7 @@ export class AdHocFiltersVariable
     });
 
     update.originFilters?.forEach((f) => {
-      const filter = responseMap.get(getOriginalValuesKey(f.key, f.origin));
+      const filter = responseMap.get(`${f.key}-${f.origin}`);
 
       if (filter) {
         if (!f.matchAllFilter) {
