@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Unsubscribable } from 'rxjs';
 import { rangeUtil } from '@grafana/data';
 import { config } from '@grafana/runtime';
@@ -212,20 +212,29 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   const { refresh, intervals, autoEnabled, autoValue, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
-  let text =
-    refresh === RefreshPicker.autoOption?.value
-      ? autoValue
-      : withText
-      ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
-      : undefined;
+  const refreshText = withText
+    ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
+    : undefined;
+  const cancelText = withText ? t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel') : undefined;
+
+  let text: string | ReactNode = refresh === RefreshPicker.autoOption?.value ? autoValue : refreshText;
   let tooltip: string | undefined;
 
   if (isRunning) {
     tooltip = t('grafana-scenes.components.scene-refresh-picker.tooltip-cancel', 'Cancel all queries');
 
     if (withText) {
-      text = t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel');
+      text = cancelText;
     }
+  }
+
+  if (withText && refreshText && cancelText) {
+    text = (
+      <span style={{ display: 'inline-grid' }}>
+        <span style={{ gridColumn: 1, gridRow: 1, visibility: isRunning ? 'hidden' : 'visible' }}>{refreshText}</span>
+        <span style={{ gridColumn: 1, gridRow: 1, visibility: isRunning ? 'visible' : 'hidden' }}>{cancelText}</span>
+      </span>
+    );
   }
 
   return (
@@ -234,7 +243,7 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       value={refresh}
       intervals={intervals}
       tooltip={tooltip}
-      text={text}
+      text={text as string}
       onRefresh={() => {
         model.onRefresh();
       }}
