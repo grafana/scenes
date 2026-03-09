@@ -388,15 +388,15 @@ describe('DrilldownDependenciesManager', () => {
 
       manager['_applicabilityResults'] = {
         filters: [
-          { key: 'env', applicable: false, reason: 'user filter overridden' },
-          { key: 'env', applicable: true, origin: 'dashboard' },
+          { key: 'env', applicable: false, reason: 'overridden by user filter', origin: 'dashboard' },
+          { key: 'env', applicable: true },
         ],
         groupBy: [],
       };
 
       const result = manager.getFilters() ?? [];
       expect(result).toHaveLength(1);
-      expect(result[0].origin).toBe('dashboard');
+      expect(result[0].origin).toBeUndefined();
     });
   });
 
