@@ -1,5 +1,6 @@
 import React from 'react';
 import { Unsubscribable } from 'rxjs';
+import { css } from '@emotion/css';
 import { rangeUtil } from '@grafana/data';
 import { config } from '@grafana/runtime';
 import { RefreshPicker } from '@grafana/ui';
@@ -208,47 +209,86 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
   };
 }
 
+const stableWidthContainerStyles = css({
+  display: 'inline-grid',
+  '> *': {
+    gridColumn: 1,
+    gridRow: 1,
+  },
+  '.refresh-picker > button:first-child': {
+    flex: 1,
+  },
+});
+
 export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneRefreshPicker>) {
   const { refresh, intervals, autoEnabled, autoValue, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
+  const refreshText = withText
+    ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
+    : undefined;
+  const cancelText = withText
+    ? t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel')
+    : undefined;
+
   let text =
     refresh === RefreshPicker.autoOption?.value
       ? autoValue
-      : withText
-      ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
-      : undefined;
+      : refreshText;
   let tooltip: string | undefined;
-  let width: string | undefined;
 
   if (isRunning) {
     tooltip = t('grafana-scenes.components.scene-refresh-picker.tooltip-cancel', 'Cancel all queries');
 
     if (withText) {
-      text = t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel');
+      text = cancelText;
     }
   }
 
-  if (withText) {
-    width = '96px';
-  }
+  const pickerProps = {
+    showAutoInterval: autoEnabled,
+    value: refresh,
+    intervals: intervals,
+    primary: primary,
+    isOnCanvas: isOnCanvas ?? true,
+  };
 
-  return (
+  const picker = (
     <RefreshPicker
-      showAutoInterval={autoEnabled}
-      value={refresh}
-      intervals={intervals}
+      {...pickerProps}
       tooltip={tooltip}
-      width={width}
       text={text}
       onRefresh={() => {
         model.onRefresh();
       }}
-      primary={primary}
       onIntervalChanged={model.onIntervalChanged}
       isLoading={isRunning}
-      isOnCanvas={isOnCanvas ?? true}
     />
+  );
+
+  if (!withText) {
+    return picker;
+  }
+
+  const alternateText = isRunning
+    ? (refresh === RefreshPicker.autoOption?.value ? autoValue : refreshText)
+    : cancelText;
+
+  return (
+    <div className={stableWidthContainerStyles}>
+      <div style={{ visibility: 'hidden', pointerEvents: 'none' }} aria-hidden="true">
+        <RefreshPicker
+          {...pickerProps}
+          text={alternateText}
+          onRefresh={() => {}}
+          onIntervalChanged={() => {}}
+          isLoading={!isRunning}
+        />
+      </div>
+      <div>
+        {picker}
+      </div>
+    </div>
   );
 }
 
