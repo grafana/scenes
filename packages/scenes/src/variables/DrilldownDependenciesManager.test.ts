@@ -312,7 +312,7 @@ describe('DrilldownDependenciesManager', () => {
       expect(result[0].key).toBe('env');
     });
 
-    it('should exclude per-panel nonApplicable filters using key+origin matching', () => {
+    it('should exclude per-panel nonApplicable filters using index-based matching', () => {
       const filters: AdHocFilterWithLabels[] = [
         { key: 'env', value: 'prod', operator: '=' },
         { key: 'cluster', value: 'us', operator: '=' },
@@ -325,9 +325,9 @@ describe('DrilldownDependenciesManager', () => {
 
       manager['_applicabilityResults'] = {
         filters: [
+          { key: 'region', applicable: true, origin: 'dashboard' },
           { key: 'env', applicable: true },
           { key: 'cluster', applicable: false, reason: 'not found' },
-          { key: 'region', applicable: true, origin: 'dashboard' },
         ],
         groupBy: [],
       };
@@ -357,7 +357,7 @@ describe('DrilldownDependenciesManager', () => {
       expect(result[1].key).toBe('extra');
     });
 
-    it('should use last entry for duplicate keys (last wins)', () => {
+    it('should exclude overridden duplicate-key filter and keep the active one', () => {
       const filters: AdHocFilterWithLabels[] = [
         { key: 'env', value: 'prod', operator: '=' },
         { key: 'env', value: 'staging', operator: '=' },
@@ -367,13 +367,33 @@ describe('DrilldownDependenciesManager', () => {
 
       manager['_applicabilityResults'] = {
         filters: [
+          { key: 'env', applicable: false, reason: 'overridden by duplicate' },
           { key: 'env', applicable: true },
+        ],
+        groupBy: [],
+      };
+
+      const result = manager.getFilters() ?? [];
+      expect(result).toHaveLength(1);
+      expect(result[0].value).toBe('staging');
+    });
+
+    it('should exclude all duplicate-key filters when none are applicable', () => {
+      const filters: AdHocFilterWithLabels[] = [
+        { key: 'env', value: 'prod', operator: '=' },
+        { key: 'env', value: 'nonexistent', operator: '=' },
+      ];
+
+      const manager = createManager({ adhocVar: createAdhocVar(filters) });
+
+      manager['_applicabilityResults'] = {
+        filters: [
+          { key: 'env', applicable: false, reason: 'overridden by duplicate' },
           { key: 'env', applicable: false, reason: 'value not found' },
         ],
         groupBy: [],
       };
 
-      // Last entry wins → applicable: false → both excluded
       const result = manager.getFilters() ?? [];
       expect(result).toHaveLength(0);
     });

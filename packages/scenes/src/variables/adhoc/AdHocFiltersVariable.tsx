@@ -777,16 +777,16 @@ export class AdHocFiltersVariable
       originFilters: [...(this.state.originFilters ?? [])],
     };
 
-    update.filters.forEach((f) => {
-      const result = matchResult(f.key);
+    update.filters.forEach((f, i) => {
+      const result = matchResult(f.key, undefined, i);
       if (result) {
         f.nonApplicable = !result.applicable;
         f.nonApplicableReason = result.reason;
       }
     });
 
-    update.originFilters?.forEach((f) => {
-      const result = matchResult(f.key, f.origin);
+    update.originFilters?.forEach((f, i) => {
+      const result = matchResult(f.key, f.origin, update.filters.length + i);
       if (result) {
         if (!f.matchAllFilter) {
           f.nonApplicable = !result.applicable;

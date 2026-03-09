@@ -204,17 +204,19 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
 
     const stateFilters = this._adhocFiltersVar.state.filters;
     const originFilters = this._adhocFiltersVar.state.originFilters ?? [];
-
-    const applicable = [...originFilters, ...stateFilters].filter((f) => isFilterComplete(f) && isFilterApplicable(f));
+    const allFilters = [...originFilters, ...stateFilters];
 
     if (!this._applicabilityResults) {
-      return applicable;
+      return allFilters.filter((f) => isFilterComplete(f) && isFilterApplicable(f));
     }
 
     const matchResult = buildApplicabilityMatcher(this._applicabilityResults.filters);
 
-    return applicable.filter((f) => {
-      const result = matchResult(f.key, f.origin);
+    return allFilters.filter((f, i) => {
+      if (!isFilterComplete(f) || !isFilterApplicable(f)) {
+        return false;
+      }
+      const result = matchResult(f.key, f.origin, i);
       return !result || result.applicable;
     });
   }
