@@ -65,7 +65,7 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
 const ORIGIN_FILTERS_KEY: keyof AdHocFiltersVariableState = 'originFilters';
 const ORIGINAL_VALUES_DELIMITER = '::';
 
-function originalValuesKey(key: string, origin: string | FilterOrigin | undefined): string {
+function getOriginalValuesKey(key: string, origin: string | FilterOrigin | undefined): string {
   return `${key}${ORIGINAL_VALUES_DELIMITER}${origin}`;
 }
 
@@ -309,7 +309,7 @@ export class AdHocFiltersVariable
     }
 
     this.state.originFilters?.forEach((filter) => {
-      this._originalValues.set(originalValuesKey(filter.key, filter.origin), {
+      this._originalValues.set(getOriginalValuesKey(filter.key, filter.origin), {
         operator: filter.operator,
         value: filter.values ?? [filter.value],
       });
@@ -358,7 +358,7 @@ export class AdHocFiltersVariable
 
     // set original values for scope filters as well
     finalFilters.forEach((scopeFilter) => {
-      this._originalValues.set(originalValuesKey(scopeFilter.key, scopeFilter.origin), {
+      this._originalValues.set(getOriginalValuesKey(scopeFilter.key, scopeFilter.origin), {
         value: scopeFilter.values ?? [scopeFilter.value],
         operator: scopeFilter.operator,
       });
@@ -433,7 +433,7 @@ export class AdHocFiltersVariable
     operator: string,
     singleValue: string
   ): { restorable: boolean; matchAllFilter: boolean } {
-    const original = this._originalValues.get(originalValuesKey(key, origin));
+    const original = this._originalValues.get(getOriginalValuesKey(key, origin));
     const isMatchAll = operator === '=~' && singleValue === '.*';
     const isRestorable = !isEqual(values, original?.value) || operator !== original?.operator;
 
@@ -449,7 +449,7 @@ export class AdHocFiltersVariable
         return filter;
       }
 
-      if (!this._originalValues.has(originalValuesKey(filter.key, filter.origin))) {
+      if (!this._originalValues.has(getOriginalValuesKey(filter.key, filter.origin))) {
         return filter;
       }
 
@@ -510,7 +510,7 @@ export class AdHocFiltersVariable
       return;
     }
 
-    const originalFilter = this._originalValues.get(originalValuesKey(filter.key, filter.origin));
+    const originalFilter = this._originalValues.get(getOriginalValuesKey(filter.key, filter.origin));
     if (!originalFilter) {
       return;
     }
@@ -531,7 +531,7 @@ export class AdHocFiltersVariable
    * Returns undefined if no original is tracked for this filter.
    */
   public getOriginalValue(filter: AdHocFilterWithLabels): { value: string[]; operator: string } | undefined {
-    return this._originalValues.get(originalValuesKey(filter.key, filter.origin));
+    return this._originalValues.get(getOriginalValuesKey(filter.key, filter.origin));
   }
 
   /**
@@ -751,7 +751,7 @@ export class AdHocFiltersVariable
 
     const responseMap = new Map<string, DrilldownsApplicability>();
     response.forEach((filter: DrilldownsApplicability) => {
-      responseMap.set(originalValuesKey(filter.key, filter.origin), filter);
+      responseMap.set(getOriginalValuesKey(filter.key, filter.origin), filter);
     });
 
     const update = {
@@ -770,7 +770,7 @@ export class AdHocFiltersVariable
     });
 
     update.originFilters?.forEach((f) => {
-      const filter = responseMap.get(originalValuesKey(f.key, f.origin));
+      const filter = responseMap.get(getOriginalValuesKey(f.key, f.origin));
 
       if (filter) {
         if (!f.matchAllFilter) {
@@ -778,7 +778,7 @@ export class AdHocFiltersVariable
           f.nonApplicableReason = filter.reason;
         }
 
-        const originalValue = this._originalValues.get(originalValuesKey(f.key, f.origin));
+        const originalValue = this._originalValues.get(getOriginalValuesKey(f.key, f.origin));
         if (originalValue) {
           originalValue.nonApplicable = !filter.applicable;
           originalValue.nonApplicableReason = filter?.reason;
