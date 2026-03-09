@@ -556,7 +556,6 @@ export class AdHocFiltersVariable
    */
   public setOriginalFilters(filters: AdHocFilterWithLabels[]): void {
     this._originalValues.clear();
-    
     filters.forEach((f) => {
       this._originalValues.set(`${f.key}-${f.origin}`, {
         value: f.values ?? [f.value],
