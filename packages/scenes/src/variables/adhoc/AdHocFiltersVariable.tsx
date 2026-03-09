@@ -530,6 +530,41 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Get original filters from original values.
+   * Returns filters from _originalValues map.
+   */
+  public getOriginalFilters(): AdHocFilterWithLabels[] {
+    return [...this._originalValues.entries()].map(([mapKey, original]) => {
+      const delimiter = mapKey.lastIndexOf('-');
+      const key = mapKey.substring(0, delimiter);
+      const origin = mapKey.substring(delimiter + 1);
+      return {
+        key,
+        origin,
+        value: original.value[0],
+        values: original.value,
+        valueLabels: original.value,
+        keyLabel: key,
+        operator: original.operator,
+        nonApplicable: original.nonApplicable,
+      } as AdHocFilterWithLabels;
+    });
+  }
+
+  /**
+   * Replace all stored original values from the given filters array.
+   */
+  public setOriginalFilters(filters: AdHocFilterWithLabels[]): void {
+    this._originalValues.clear();
+    filters.forEach((f) => {
+      this._originalValues.set(`${f.key}-${f.origin}`, {
+        value: f.values ?? [f.value],
+        operator: f.operator,
+      });
+    });
+  }
+
+  /**
    * Clear all user-added filters and restore origin filters to their original values.
    */
   public clearAll(): void {
