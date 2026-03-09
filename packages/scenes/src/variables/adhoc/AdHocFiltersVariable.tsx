@@ -63,9 +63,10 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
 }
 
 const ORIGIN_FILTERS_KEY: keyof AdHocFiltersVariableState = 'originFilters';
+const ORIGINAL_VALUES_DELIMITER = '::';
 
 function originalValuesKey(key: string, origin: string | FilterOrigin | undefined): string {
-  return `${key}::${origin}`;
+  return `${key}${ORIGINAL_VALUES_DELIMITER}${origin}`;
 }
 
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
