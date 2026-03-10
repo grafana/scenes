@@ -1,3 +1,16 @@
+# v7.1.4 (Tue Mar 10 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: add getOriginalFilters / setOriginalFilters public API [#1389](https://github.com/grafana/scenes/pull/1389) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.1.3 (Tue Mar 10 2026)
 
 #### 🐛 Bug Fix
