@@ -304,10 +304,7 @@ export class AdHocFiltersVariable
     }
 
     this.state.originFilters?.forEach((filter) => {
-      this._originalValues.set(`${filter.key}-${filter.origin}`, {
-        operator: filter.operator,
-        value: filter.values ?? [filter.value],
-      });
+      this._setOriginalValue(filter);
     });
 
     this.addActivationHandler(this._activationHandler);
@@ -353,10 +350,7 @@ export class AdHocFiltersVariable
 
     // set original values for scope filters as well
     finalFilters.forEach((scopeFilter) => {
-      this._originalValues.set(`${scopeFilter.key}-${scopeFilter.origin}`, {
-        value: scopeFilter.values ?? [scopeFilter.value],
-        operator: scopeFilter.operator,
-      });
+      this._setOriginalValue(scopeFilter);
     });
 
     this.state.originFilters?.forEach((filter) => {
@@ -530,6 +524,16 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Store a snapshot of the filter's current value and operator so it can be restored later.
+   */
+  private _setOriginalValue(filter: AdHocFilterWithLabels): void {
+    this._originalValues.set(`${filter.key}-${filter.origin}`, {
+      value: filter.values ?? [filter.value],
+      operator: filter.operator,
+    });
+  }
+
+  /**
    * Get original filters from original values.
    * Returns filters from _originalValues map.
    */
@@ -556,11 +560,8 @@ export class AdHocFiltersVariable
    */
   public setOriginalFilters(filters: AdHocFilterWithLabels[]): void {
     this._originalValues.clear();
-    filters.forEach((f) => {
-      this._originalValues.set(`${f.key}-${f.origin}`, {
-        value: f.values ?? [f.value],
-        operator: f.operator,
-      });
+    filters.forEach((filter) => {
+      this._setOriginalValue(filter);
     });
   }
 
