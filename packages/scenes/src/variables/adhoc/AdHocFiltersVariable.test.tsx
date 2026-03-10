@@ -3432,3 +3432,58 @@ function newScopesVariableFromScopeFilters(filters: ScopeSpecFilter[]) {
     },
   };
 }
+
+describe('getOriginalFilters', () => {
+  it('should reconstruct filters from stored original values', () => {
+    const filtersVar = new AdHocFiltersVariable({
+      datasource: { uid: 'my-ds-uid' },
+      name: 'filters',
+      filters: [],
+    });
+
+    filtersVar['_originalValues'].set('key1-dashboard', { value: ['val1'], operator: '=' });
+    filtersVar['_originalValues'].set('key2-scope', { value: ['valA', 'valB'], operator: '=|' });
+
+    const result = filtersVar.getOriginalFilters();
+
+    expect(result).toHaveLength(2);
+    expect(result[0]).toMatchObject({
+      key: 'key1',
+      origin: 'dashboard',
+      value: 'val1',
+      values: ['val1'],
+      valueLabels: ['val1'],
+      operator: '=',
+    });
+    expect(result[1]).toMatchObject({
+      key: 'key2',
+      origin: 'scope',
+      value: 'valA',
+      values: ['valA', 'valB'],
+      valueLabels: ['valA', 'valB'],
+      operator: '=|',
+    });
+  });
+});
+
+describe('setOriginalFilters', () => {
+  it('should replace all original values from given filters', () => {
+    const filtersVar = new AdHocFiltersVariable({
+      datasource: { uid: 'my-ds-uid' },
+      name: 'filters',
+      filters: [],
+    });
+
+    filtersVar['_originalValues'].set('old-dashboard', { value: ['oldVal'], operator: '=' });
+
+    filtersVar.setOriginalFilters([
+      { key: 'newKey', operator: '!=', value: 'newVal', values: ['newVal'], origin: 'scope' },
+    ]);
+
+    expect(filtersVar['_originalValues'].has('old-dashboard')).toBe(false);
+    expect(filtersVar['_originalValues'].get('newKey-scope')).toEqual({
+      value: ['newVal'],
+      operator: '!=',
+    });
+  });
+});

@@ -304,10 +304,7 @@ export class AdHocFiltersVariable
     }
 
     this.state.originFilters?.forEach((filter) => {
-      this._originalValues.set(`${filter.key}-${filter.origin}`, {
-        operator: filter.operator,
-        value: filter.values ?? [filter.value],
-      });
+      this._setOriginalValue(filter);
     });
 
     this.addActivationHandler(this._activationHandler);
@@ -353,10 +350,7 @@ export class AdHocFiltersVariable
 
     // set original values for scope filters as well
     finalFilters.forEach((scopeFilter) => {
-      this._originalValues.set(`${scopeFilter.key}-${scopeFilter.origin}`, {
-        value: scopeFilter.values ?? [scopeFilter.value],
-        operator: scopeFilter.operator,
-      });
+      this._setOriginalValue(scopeFilter);
     });
 
     this.state.originFilters?.forEach((filter) => {
@@ -518,6 +512,56 @@ export class AdHocFiltersVariable
       valueLabels: originalFilter.value,
       operator: originalFilter.operator,
       nonApplicable: originalFilter.nonApplicable,
+    });
+  }
+
+  /**
+   * Get the original value for an origin filter before any user modifications.
+   * Returns undefined if no original is tracked for this filter.
+   */
+  public getOriginalValue(filter: AdHocFilterWithLabels): { value: string[]; operator: string } | undefined {
+    return this._originalValues.get(`${filter.key}-${filter.origin}`);
+  }
+
+  /**
+   * Store a snapshot of the filter's current value and operator so it can be restored later.
+   */
+  private _setOriginalValue(filter: AdHocFilterWithLabels): void {
+    this._originalValues.set(`${filter.key}-${filter.origin}`, {
+      value: filter.values ?? [filter.value],
+      operator: filter.operator,
+    });
+  }
+
+  /**
+   * Get original filters from original values.
+   * Returns filters from _originalValues map.
+   */
+  public getOriginalFilters(): AdHocFilterWithLabels[] {
+    return [...this._originalValues.entries()].map(([mapKey, original]) => {
+      const delimiter = mapKey.lastIndexOf('-');
+      const key = mapKey.substring(0, delimiter);
+      const origin = mapKey.substring(delimiter + 1);
+      return {
+        key,
+        origin,
+        value: original.value[0],
+        values: original.value,
+        valueLabels: original.value,
+        keyLabel: key,
+        operator: original.operator,
+        nonApplicable: original.nonApplicable,
+      } as AdHocFilterWithLabels;
+    });
+  }
+
+  /**
+   * Replace all stored original values from the given filters array.
+   */
+  public setOriginalFilters(filters: AdHocFilterWithLabels[]): void {
+    this._originalValues.clear();
+    filters.forEach((filter) => {
+      this._setOriginalValue(filter);
     });
   }
 

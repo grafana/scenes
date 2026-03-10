@@ -1,4 +1,4 @@
-import { map, Observable, of } from 'rxjs';
+import { map, Observable, of, Subject } from 'rxjs';
 
 // Mock crypto.randomUUID for generateOperationId
 Object.defineProperty(global, 'crypto', {
@@ -1416,7 +1416,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       queryRunner.activate();
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.series[0].fields[0].values.get(0)).toBe(123);
+      expect(queryRunner.state.data?.series[0].fields[0].values[0]).toBe(123);
 
       runtimeDataSources.clear();
     });
@@ -2760,6 +2760,46 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
     await new Promise((r) => setTimeout(r, 1));
 
     expect(sentRequest?.scopes).toBeUndefined();
+  });
+
+  describe('onDataReceived series identity preservation', () => {
+    let subject: Subject<DataQueryResponse>;
+    let queryRunner: SceneQueryRunner;
+    const tick = () => new Promise((r) => setTimeout(r, 1));
+
+    beforeEach(async () => {
+      subject = new Subject<DataQueryResponse>();
+      runRequestMock.mockImplementationOnce(() =>
+        subject.pipe(map((packet) => ({ state: LoadingState.Done, series: packet.data, timeRange: {} as any })))
+      );
+      queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }], $timeRange: new SceneTimeRange() });
+      queryRunner.activate();
+      await tick();
+    });
+
+    it('should preserve series reference when same frame objects are emitted again', async () => {
+      const frame = toDataFrame({ refId: 'A', datapoints: [[100, 1]] });
+
+      subject.next({ data: [frame] });
+      await tick();
+      const firstSeries = queryRunner.state.data?.series;
+
+      subject.next({ data: [frame] });
+      await tick();
+
+      expect(queryRunner.state.data?.series).toBe(firstSeries);
+    });
+
+    it('should emit new series reference when frame objects change', async () => {
+      subject.next({ data: [toDataFrame({ refId: 'A', datapoints: [[100, 1]] })] });
+      await tick();
+      const firstSeries = queryRunner.state.data?.series;
+
+      subject.next({ data: [toDataFrame({ refId: 'A', datapoints: [[999, 1]] })] });
+      await tick();
+
+      expect(queryRunner.state.data?.series).not.toBe(firstSeries);
+    });
   });
 });
 

@@ -25,7 +25,9 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
   validateChildrenSize(children);
 
   const renderGrid = (width: number, height: number) => {
-    if (!width || !height) {
+    // The grid can measure height as 0 on the initial pass in dashboard view mode.
+    // We only need width to render unless fit-to-height is enabled.
+    if (!width || (model.state.UNSAFE_fitPanels && !height)) {
       return null;
     }
 
