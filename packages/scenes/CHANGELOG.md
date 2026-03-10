@@ -1,3 +1,15 @@
+# v7.1.3 (Tue Mar 10 2026)
+
+#### 🐛 Bug Fix
+
+- Filters: Do not show recommendations unless DS supports them [#1382](https://github.com/grafana/scenes/pull/1382) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.1.2 (Fri Mar 06 2026)
 
 #### 🐛 Bug Fix
