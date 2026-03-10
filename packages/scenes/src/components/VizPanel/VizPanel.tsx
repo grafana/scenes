@@ -558,8 +558,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
           replaceVariables: this.interpolate,
           theme: config.theme2,
           timeZone: rawData.request?.timezone,
-          // @ts-expect-error applyFieldOverrides changes coming in 13.0
         },
+        // @ts-expect-error applyFieldOverrides changes coming in 13.0
         this._dataWithFieldConfig.annotations,
         'annotation'
       );
