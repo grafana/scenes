@@ -839,6 +839,7 @@ describe('VizPanel', () => {
             matcher: {
               id: 'byName',
               options: 'color',
+              scope: 'annotation',
             },
             properties: [
               {
