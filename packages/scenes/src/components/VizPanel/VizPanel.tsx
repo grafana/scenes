@@ -557,9 +557,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         replaceVariables: this.interpolate,
         theme: config.theme2,
         timeZone: rawData.request?.timezone,
-        // @ts-ignore - @grafana/data is getting this type in Grafana 13.
-        featureToggles: config.featureToggles,
-      });
+      }/*, this._dataWithFieldConfig.annotations, 'annotation' */);
     }
 
     if (!pluginDataSupport.alertStates) {
