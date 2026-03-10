@@ -27,6 +27,7 @@ export const getRecentGroupingKey = (datasourceUid: string | undefined) =>
 export interface GroupByRecommendationsState extends SceneObjectState {
   recentGrouping?: Array<SelectableValue<VariableValueSingle>>;
   recommendedGrouping?: Array<SelectableValue<VariableValueSingle>>;
+  datasourceSupportsRecommendations?: boolean;
 }
 
 export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendationsState> {
@@ -114,8 +115,11 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
 
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getRecommendedDrilldowns) {
+      this.setState({ datasourceSupportsRecommendations: false });
       return;
     }
+
+    this.setState({ datasourceSupportsRecommendations: true });
 
     const queries = getQueriesForVariables(this._groupBy);
     const timeRange = sceneGraph.getTimeRange(this._groupBy).state.value;
@@ -227,7 +231,7 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
 }
 
 function GroupByRecommendationsRenderer({ model }: SceneComponentProps<GroupByRecommendations>) {
-  const { recentGrouping, recommendedGrouping } = model.useState();
+  const { recentGrouping, recommendedGrouping, datasourceSupportsRecommendations } = model.useState();
 
   const recentDrilldowns: DrilldownPill[] | undefined = recentGrouping?.map((groupBy) => ({
     label: `${groupBy.value}`,
@@ -243,5 +247,11 @@ function GroupByRecommendationsRenderer({ model }: SceneComponentProps<GroupByRe
     },
   }));
 
-  return <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />;
+  return (
+    <DrilldownRecommendations
+      recentDrilldowns={recentDrilldowns}
+      recommendedDrilldowns={recommendedDrilldowns}
+      showRecommended={datasourceSupportsRecommendations}
+    />
+  );
 }
