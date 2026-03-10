@@ -15,7 +15,7 @@ interface Props {
   showRecommended?: boolean;
 }
 
-export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldowns, showRecommended = true }: Props) {
+export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldowns, showRecommended = false }: Props) {
   const styles = useStyles2(getStyles);
 
   const [isPopoverVisible, setPopoverVisible] = useState<boolean>(false);
