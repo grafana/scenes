@@ -11,7 +11,7 @@ import {
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
-import { DataSourceRef, VariableType } from '@grafana/schema';
+import { DataSourceRef } from '@grafana/schema';
 import { css } from '@emotion/css';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
@@ -274,7 +274,9 @@ export function handleOptionGroups(values: SelectableValue[]): Array<SelectableV
 }
 
 export const getVariableControlId = (model: SceneVariable, key: string) => {
-  if (model.state.type === VariableType.Switch) {
+  // TODO: remove this once switch is in the schema
+  // @ts-expect-error - switch is a valid variable type, but not in the schema yet
+  if (model.state.type === 'switch') {
     return `var-switch-${key}`;
   }
   return `var-${key}`;
