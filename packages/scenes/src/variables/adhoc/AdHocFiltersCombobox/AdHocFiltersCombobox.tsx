@@ -47,7 +47,6 @@ import {
   ADHOC_KEYS_DROPDOWN_INTERACTION,
   ADHOC_VALUES_DROPDOWN_INTERACTION,
 } from '../../../performance/interactionConstants';
-import { get } from 'lodash';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
