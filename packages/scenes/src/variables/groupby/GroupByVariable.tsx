@@ -287,7 +287,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public async _verifyApplicability() {
-    if (!this.state.applicabilityEnabled) {
+    if (this.state.applicabilityEnabled === false) {
       return;
     }
 

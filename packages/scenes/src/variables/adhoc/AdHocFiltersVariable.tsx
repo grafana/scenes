@@ -499,6 +499,8 @@ export class AdHocFiltersVariable
     if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
+
+    this._debouncedVerifyApplicability();
   }
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
@@ -738,7 +740,7 @@ export class AdHocFiltersVariable
   }
 
   public async _verifyApplicability() {
-    if (!this.state.applicabilityEnabled) {
+    if (this.state.applicabilityEnabled === false) {
       return;
     }
 
