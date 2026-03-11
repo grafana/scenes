@@ -37,7 +37,7 @@ import {
   VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION,
   VIRTUAL_LIST_OVERSCAN,
 } from './utils';
-import { handleOptionGroups } from '../../utils';
+import { getVariableControlId, handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
 import { MultiValuePill } from './MultiValuePill';
 import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
@@ -690,6 +690,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             handleEnterInput(event, isMultiValueEdit);
           },
         })}
+        id={getVariableControlId('adhoc', filter?.key ?? '')}
         className={cx(styles.inputStyle, { [styles.loadingInputPadding]: !optionsLoading })}
         onClick={(event) => {
           event.stopPropagation();
