@@ -573,6 +573,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
         )}
         data-testid={`GroupBySelect-${key}`}
         id={key}
+        inputId={getVariableControlId(model.state.type, key ?? '')}
         placeholder={t(
           'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
           'Group by label'

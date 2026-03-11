@@ -83,7 +83,8 @@ export function VariableValueSelect({ model, state }: { model: MultiValueVariabl
 
   return (
     <Select<VariableValue>
-      id={getVariableControlId(model.state.type, key ?? '')}
+      id={key}
+      inputId={getVariableControlId(model.state.type, key ?? '')}
       aria-label={state.label}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       placeholder={t('grafana-scenes.variables.variable-value-select.placeholder-select-value', 'Select value')}
@@ -163,7 +164,8 @@ export function VariableValueSelectMulti({
 
   return (
     <MultiSelect<VariableValueSingle>
-      id={getVariableControlId(model.state.type, key ?? '')}
+      id={key}
+      inputId={getVariableControlId(model.state.type, key ?? '')}
       placeholder={placeholder}
       width="auto"
       inputValue={inputValue}
