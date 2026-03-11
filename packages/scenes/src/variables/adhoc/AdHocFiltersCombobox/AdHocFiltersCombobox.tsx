@@ -698,9 +698,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           onInputClick?.();
           setOpen(true);
         }}
-        onFocus={() => {
-          setOpen(true);
-        }}
       />
       {optionsLoading ? <Spinner className={styles.loadingIndicator} inline={true} /> : null}
       <FloatingPortal>
