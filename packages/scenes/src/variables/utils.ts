@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash';
-import { VariableValue } from './types';
+import { SceneVariable, VariableValue } from './types';
 import {
   AdHocVariableFilter,
   DataQueryError,
@@ -272,6 +272,13 @@ export function handleOptionGroups(values: SelectableValue[]): Array<SelectableV
 
   return result;
 }
+
+export const getVariableControlId = (model: SceneVariable, key: string) => {
+  if (model.state.type === 'switch') {
+    return `var-switch-${key}`;
+  }
+  return `var-${key}`;
+};
 
 export function getNonApplicablePillStyles(theme: GrafanaTheme2) {
   return {

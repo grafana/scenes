@@ -13,6 +13,7 @@ import {
   ValidateAndUpdateResult,
   VariableValue,
 } from '../types';
+import { getVariableControlId } from '../utils';
 
 export interface SwitchVariableState extends SceneVariableState {
   value: string;
@@ -117,7 +118,7 @@ function SwitchVariableRenderer({ model }: SceneComponentProps<SwitchVariable>) 
   return (
     <div className={styles.container}>
       <Switch
-        id={`var-switch-${state.key}`}
+        id={getVariableControlId(model, state.key ?? '')}
         value={state.value === state.enabledValue}
         onChange={(event) => {
           model.setValue(event!.currentTarget.checked ? state.enabledValue : state.disabledValue);
