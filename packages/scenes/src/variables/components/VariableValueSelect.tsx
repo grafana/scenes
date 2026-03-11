@@ -163,7 +163,7 @@ export function VariableValueSelectMulti({
 
   return (
     <MultiSelect<VariableValueSingle>
-      id={getVariableControlId(model, state.key ?? '')}
+      id={getVariableControlId(model, key ?? '')}
       placeholder={placeholder}
       width="auto"
       inputValue={inputValue}
