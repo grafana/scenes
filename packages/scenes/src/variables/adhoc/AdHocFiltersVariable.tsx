@@ -740,7 +740,7 @@ export class AdHocFiltersVariable
   }
 
   public async _verifyApplicability() {
-    if (this.state.applicabilityEnabled === false) {
+    if (!this.state.applicabilityEnabled) {
       return;
     }
 

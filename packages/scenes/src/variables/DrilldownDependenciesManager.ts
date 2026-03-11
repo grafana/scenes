@@ -109,12 +109,8 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return;
     }
 
-    const filtersApplicabilityEnabled = this._adhocFiltersVar
-      ? this._adhocFiltersVar.state.applicabilityEnabled !== false
-      : false;
-    const groupByApplicabilityEnabled = this._groupByVar
-      ? this._groupByVar.state.applicabilityEnabled !== false
-      : false;
+    const filtersApplicabilityEnabled = this._adhocFiltersVar?.state.applicabilityEnabled;
+    const groupByApplicabilityEnabled = this._groupByVar?.state.applicabilityEnabled;
 
     if (!filtersApplicabilityEnabled && !groupByApplicabilityEnabled) {
       return;
