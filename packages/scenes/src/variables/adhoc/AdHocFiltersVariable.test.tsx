@@ -1514,8 +1514,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       {
         key: 'originalKey1',
         operator: 'one-of',
-        value: 'originalValue1',
-        values: ['originalValue1'],
+        value: 'originalValue1'
       },
     ]);
 
@@ -1525,8 +1524,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
-        value: 'newValue1',
-        values: ['newValue1'],
+        value: 'newValue1'
       });
     });
 
@@ -3451,7 +3449,6 @@ describe('getOriginalFilters', () => {
       key: 'key1',
       origin: 'dashboard',
       value: 'val1',
-      values: ['val1'],
       valueLabels: ['val1'],
       operator: '=',
     });
