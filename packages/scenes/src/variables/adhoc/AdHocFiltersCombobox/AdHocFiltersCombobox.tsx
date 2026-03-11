@@ -47,6 +47,7 @@ import {
   ADHOC_KEYS_DROPDOWN_INTERACTION,
   ADHOC_VALUES_DROPDOWN_INTERACTION,
 } from '../../../performance/interactionConstants';
+import { get } from 'lodash';
 
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
@@ -72,6 +73,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }: AdHocComboboxProps,
   parentRef
 ) {
+  const variableState = controller.useState();
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<Array<SelectableValue<string>>>([]);
   const [optionsLoading, setOptionsLoading] = useState<boolean>(false);
@@ -690,7 +692,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             handleEnterInput(event, isMultiValueEdit);
           },
         })}
-        id={getVariableControlId('adhoc', filter?.key ?? '')}
+        id={getVariableControlId('adhoc', variableState.key ?? '')}
         className={cx(styles.inputStyle, { [styles.loadingInputPadding]: !optionsLoading })}
         onClick={(event) => {
           event.stopPropagation();
