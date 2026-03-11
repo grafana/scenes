@@ -1514,7 +1514,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       {
         key: 'originalKey1',
         operator: 'one-of',
-        value: 'originalValue1'
+        value: 'originalValue1',
+        values: ['originalValue1', 'originalValue2'],
       },
     ]);
 
@@ -1524,12 +1525,13 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
-        value: 'newValue1'
+        value: 'newValue1',
+        values: ['newValue1', 'newValue2', 'newValue3'],
       });
     });
 
     expect(filtersVar.state.originFilters![0].value).toEqual('newValue1');
-    expect(filtersVar.state.originFilters![0].values).toEqual(['newValue1']);
+    expect(filtersVar.state.originFilters![0].values).toEqual(['newValue1', 'newValue2', 'newValue3']);
     expect(filtersVar.state.originFilters![0].restorable).toBe(true);
 
     act(() => {
@@ -1537,7 +1539,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.originFilters![0].value).toEqual('originalValue1');
-    expect(filtersVar.state.originFilters![0].values).toEqual(['originalValue1']);
+    expect(filtersVar.state.originFilters![0].values).toEqual(['originalValue1', 'originalValue2']);
     expect(filtersVar.state.originFilters![0].restorable).toBe(false);
   });
 
