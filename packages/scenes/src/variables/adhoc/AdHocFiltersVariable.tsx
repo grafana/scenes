@@ -508,7 +508,7 @@ export class AdHocFiltersVariable
     queryController?.startProfile(FILTER_RESTORED_INTERACTION);
     this._updateFilter(filter, {
       value: originalFilter.value[0],
-      values: originalFilter.value,
+      ...(originalFilter.value.length > 1 && { values: originalFilter.value }),
       valueLabels: originalFilter.value,
       operator: originalFilter.operator,
       nonApplicable: originalFilter.nonApplicable,
@@ -546,7 +546,7 @@ export class AdHocFiltersVariable
         key,
         origin,
         value: original.value[0],
-        values: original.value,
+        ...(original.value.length > 1 && { values: original.value }),
         valueLabels: original.value,
         keyLabel: key,
         operator: original.operator,
