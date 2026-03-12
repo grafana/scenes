@@ -1,3 +1,15 @@
+# v7.1.6 (Thu Mar 12 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersVariable: filter values [#1391](https://github.com/grafana/scenes/pull/1391) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.1.5 (Thu Mar 12 2026)
 
 #### 🐛 Bug Fix
