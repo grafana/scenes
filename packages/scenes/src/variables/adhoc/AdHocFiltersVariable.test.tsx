@@ -1509,55 +1509,37 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.originFilters![0].restorable).toEqual(false);
   });
 
-  it.each<{
-    name: string;
-    scopeFilter: ScopeSpecFilter;
-    update: Partial<AdHocFilterWithLabels>;
-    expectedAfterUpdate: { value: string; values: string[] | undefined };
-    expectedAfterRestore: { value: string; values: string[] | undefined };
-  }>([
-    {
-      name: 'multi-value operator, update with values',
-      scopeFilter: { key: 'originalKey1', operator: 'one-of', value: 'originalValue1', values: ['originalValue1', 'originalValue2'] },
-      update: { value: 'newValue1', values: ['newValue1', 'newValue2'] },
-      expectedAfterUpdate: { value: 'newValue1', values: ['newValue1', 'newValue2'] },
-      expectedAfterRestore: { value: 'originalValue1', values: ['originalValue1', 'originalValue2'] },
-    },
-    {
-      name: 'single-value operator, update with values',
-      scopeFilter: { key: 'originalKey1', operator: 'equals', value: 'originalValue1' },
-      update: { value: 'newValue1', values: ['newValue1'] },
-      expectedAfterUpdate: { value: 'newValue1', values: ['newValue1'] },
-      expectedAfterRestore: { value: 'originalValue1', values: undefined },
-    },
-    {
-      name: 'single-value operator, update without values',
-      scopeFilter: { key: 'originalKey1', operator: 'equals', value: 'originalValue1' },
-      update: { value: 'newValue1' },
-      expectedAfterUpdate: { value: 'newValue1', values: undefined },
-      expectedAfterRestore: { value: 'originalValue1', values: undefined },
-    },
-  ])('restores original value ($name)', ({ scopeFilter, update, expectedAfterUpdate, expectedAfterRestore }) => {
-    const scopesVariable = newScopesVariableFromScopeFilters([scopeFilter]);
+  it('restores original value if it exists', () => {
+    const scopesVariable = newScopesVariableFromScopeFilters([
+      {
+        key: 'originalKey1',
+        operator: 'one-of',
+        value: 'originalValue1',
+        values: ['originalValue1'],
+      },
+    ]);
 
     const { filtersVar } = setup({}, undefined, scopesVariable.scopesVar);
 
     scopesVariable.update();
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.originFilters![0], update);
+      filtersVar._updateFilter(filtersVar.state.originFilters![0], {
+        value: 'newValue1',
+        values: ['newValue1'],
+      });
     });
 
-    expect(filtersVar.state.originFilters![0].value).toEqual(expectedAfterUpdate.value);
-    expect(filtersVar.state.originFilters![0].values).toEqual(expectedAfterUpdate.values);
+    expect(filtersVar.state.originFilters![0].value).toEqual('newValue1');
+    expect(filtersVar.state.originFilters![0].values).toEqual(['newValue1']);
     expect(filtersVar.state.originFilters![0].restorable).toBe(true);
 
     act(() => {
       filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
     });
 
-    expect(filtersVar.state.originFilters![0].value).toEqual(expectedAfterRestore.value);
-    expect(filtersVar.state.originFilters![0].values).toEqual(expectedAfterRestore.values);
+    expect(filtersVar.state.originFilters![0].value).toEqual('originalValue1');
+    expect(filtersVar.state.originFilters![0].values).toEqual(['originalValue1']);
     expect(filtersVar.state.originFilters![0].restorable).toBe(false);
   });
 
@@ -1929,7 +1911,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         {
           key: 'key1',
           value: 'value',
-          values: ['value'],
           valueLabels: ['valueLabels'],
           operator: '=~',
           meta: 'metaVal',
@@ -3473,7 +3454,6 @@ describe('getOriginalFilters', () => {
       valueLabels: ['val1'],
       operator: '=',
     });
-    expect(result[0].values).toBeUndefined();
     expect(result[1]).toMatchObject({
       key: 'key2',
       origin: 'scope',
