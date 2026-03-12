@@ -508,7 +508,7 @@ export class AdHocFiltersVariable
     queryController?.startProfile(FILTER_RESTORED_INTERACTION);
     this._updateFilter(filter, {
       value: originalFilter.value[0],
-      values: originalFilter.value,
+      values: isMultiValueOperator(originalFilter.operator) ? originalFilter.value : undefined,
       valueLabels: originalFilter.value,
       operator: originalFilter.operator,
       nonApplicable: originalFilter.nonApplicable,
@@ -546,7 +546,7 @@ export class AdHocFiltersVariable
         key,
         origin,
         value: original.value[0],
-        values: original.value,
+        values: isMultiValueOperator(original.operator) ? original.value : undefined,
         valueLabels: original.value,
         keyLabel: key,
         operator: original.operator,
@@ -600,6 +600,10 @@ export class AdHocFiltersVariable
 
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
     const { originFilters, filters, _wip } = this.state;
+
+    if ('value' in update && !('values' in update)) {
+      update = { ...update, values: undefined };
+    }
 
     if (filter.origin) {
       const updateValues = update.values || (update.value ? [update.value] : undefined);
