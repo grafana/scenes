@@ -600,11 +600,11 @@ export class AdHocFiltersVariable
 
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
     const { originFilters, filters, _wip } = this.state;
-    
+
     if ('value' in update && !('values' in update)) {
       update.values = undefined;
     }
-    
+
     if (filter.origin) {
       const updateValues = update.values || (update.value ? [update.value] : undefined);
 
