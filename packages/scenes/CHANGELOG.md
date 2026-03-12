@@ -1,3 +1,15 @@
+# v7.1.5 (Thu Mar 12 2026)
+
+#### 🐛 Bug Fix
+
+- Add SetExactly mode to series visibility config factory [#1385](https://github.com/grafana/scenes/pull/1385) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v7.1.4 (Tue Mar 10 2026)
 
 #### 🐛 Bug Fix
