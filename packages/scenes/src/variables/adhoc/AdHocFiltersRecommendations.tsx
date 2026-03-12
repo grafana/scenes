@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-  // @ts-expect-error (temporary till we update grafana/data)
-  DrilldownsApplicability,
-  store,
-} from '@grafana/data';
+import { store } from '@grafana/data';
 import { sceneGraph } from '../../core/sceneGraph';
 import { getEnrichedDataRequest } from '../../querying/getEnrichedDataRequest';
 import { getQueriesForVariables } from '../utils';
@@ -16,6 +12,7 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { Unsubscribable } from 'rxjs';
+import { buildApplicabilityMatcher } from '../applicabilityUtils';
 
 export const MAX_RECENT_DRILLDOWNS = 3;
 export const MAX_STORED_RECENT_DRILLDOWNS = 10;
@@ -157,15 +154,12 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
       return;
     }
 
-    const applicabilityMap = new Map<string, boolean>();
-    response.forEach((item: DrilldownsApplicability) => {
-      applicabilityMap.set(item.key, item.applicable !== false);
-    });
+    const matcher = buildApplicabilityMatcher(response);
 
     const applicableFilters = storedFilters
       .filter((f) => {
-        const isApplicable = applicabilityMap.get(f.key);
-        return isApplicable === undefined || isApplicable === true;
+        const result = matcher(f.key, f.origin);
+        return !result || result.applicable;
       })
       .slice(-MAX_RECENT_DRILLDOWNS);
 

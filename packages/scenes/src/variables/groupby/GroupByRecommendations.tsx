@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  // @ts-expect-error (temporary till we update grafana/data)
-  DrilldownsApplicability,
-  SelectableValue,
-  store,
-} from '@grafana/data';
+import { SelectableValue, store } from '@grafana/data';
 import { sceneGraph } from '../../core/sceneGraph';
 import { getEnrichedDataRequest } from '../../querying/getEnrichedDataRequest';
 import { getQueriesForVariables } from '../utils';
@@ -18,6 +13,7 @@ import { VariableValueSingle } from '../types';
 import { isArray } from 'lodash';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
+import { buildApplicabilityMatcher } from '../applicabilityUtils';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { Unsubscribable } from 'rxjs';
 
@@ -163,15 +159,12 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
       return;
     }
 
-    const applicabilityMap = new Map<string, boolean>();
-    response.forEach((item: DrilldownsApplicability) => {
-      applicabilityMap.set(item.key, item.applicable !== false);
-    });
+    const matcher = buildApplicabilityMatcher(response);
 
     const applicableGroupings = storedGroupings
       .filter((g) => {
-        const isApplicable = applicabilityMap.get(String(g.value));
-        return isApplicable === undefined || isApplicable === true;
+        const result = matcher(String(g.value));
+        return !result || result.applicable;
       })
       .slice(-MAX_RECENT_DRILLDOWNS);
 

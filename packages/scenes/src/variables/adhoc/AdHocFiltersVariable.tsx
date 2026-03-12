@@ -32,6 +32,7 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { debounce, isEqual } from 'lodash';
+import { buildApplicabilityMatcher, buildApplicabilityCacheKey } from '../applicabilityUtils';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
@@ -273,6 +274,7 @@ export class AdHocFiltersVariable
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
   private _debouncedVerifyApplicability = debounce(this._verifyApplicability, 100);
+  private _lastApplicabilityCacheKey?: string;
 
   private _recommendations: AdHocFiltersRecommendations | undefined;
 
@@ -314,13 +316,12 @@ export class AdHocFiltersVariable
     this._debouncedVerifyApplicability();
 
     return () => {
+      this._lastApplicabilityCacheKey = undefined;
       this.state.originFilters?.forEach((filter) => {
         if (filter.restorable) {
           this.restoreOriginalFilter(filter);
         }
       });
-
-      this.setState({ applicabilityEnabled: false });
     };
   };
 
@@ -492,6 +493,8 @@ export class AdHocFiltersVariable
     if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
+
+    this._debouncedVerifyApplicability();
   }
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
@@ -622,6 +625,7 @@ export class AdHocFiltersVariable
           return f === filter ? { ...f, ...update } : f;
         }) ?? [];
       this.setState({ originFilters: updatedFilters });
+      this._debouncedVerifyApplicability();
 
       return;
     }
@@ -645,6 +649,7 @@ export class AdHocFiltersVariable
     });
 
     this.setState({ filters: updatedFilters });
+    this._debouncedVerifyApplicability();
 
     this._recommendations?.storeRecentFilter({
       ...filter,
@@ -771,8 +776,28 @@ export class AdHocFiltersVariable
   }
 
   public async _verifyApplicability() {
+    if (!this.state.applicabilityEnabled) {
+      return;
+    }
+
     const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+    const scopes = sceneGraph.getScopes(this);
+
+    const cacheKey = buildApplicabilityCacheKey({
+      filters: filters.map((f) => ({
+        origin: f.origin,
+        key: f.key,
+        operator: f.operator,
+        value: f.value,
+        values: f.values,
+      })),
+      queries: queries ?? [],
+      scopes,
+    });
+    if (cacheKey === this._lastApplicabilityCacheKey) {
+      return;
+    }
 
     const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
 
@@ -780,10 +805,9 @@ export class AdHocFiltersVariable
       return;
     }
 
-    const responseMap = new Map<string, DrilldownsApplicability>();
-    response.forEach((filter: DrilldownsApplicability) => {
-      responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
-    });
+    this._lastApplicabilityCacheKey = cacheKey;
+
+    const matchResult = buildApplicabilityMatcher(response);
 
     const update = {
       applicabilityEnabled: true,
@@ -791,28 +815,26 @@ export class AdHocFiltersVariable
       originFilters: [...(this.state.originFilters ?? [])],
     };
 
-    update.filters.forEach((f) => {
-      const filter = responseMap.get(f.key);
-
-      if (filter) {
-        f.nonApplicable = !filter.applicable;
-        f.nonApplicableReason = filter.reason;
+    update.filters.forEach((f, i) => {
+      const result = matchResult(f.key, undefined, i);
+      if (result) {
+        f.nonApplicable = !result.applicable;
+        f.nonApplicableReason = result.reason;
       }
     });
 
-    update.originFilters?.forEach((f) => {
-      const filter = responseMap.get(`${f.key}-${f.origin}`);
-
-      if (filter) {
+    update.originFilters?.forEach((f, i) => {
+      const result = matchResult(f.key, f.origin, update.filters.length + i);
+      if (result) {
         if (!f.matchAllFilter) {
-          f.nonApplicable = !filter.applicable;
-          f.nonApplicableReason = filter.reason;
+          f.nonApplicable = !result.applicable;
+          f.nonApplicableReason = result.reason;
         }
 
         const originalValue = this._originalValues.get(`${f.key}-${f.origin}`);
         if (originalValue) {
-          originalValue.nonApplicable = !filter.applicable;
-          originalValue.nonApplicableReason = filter?.reason;
+          originalValue.nonApplicable = !result.applicable;
+          originalValue.nonApplicableReason = result?.reason;
         }
       }
     });
@@ -887,9 +909,10 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key) ?? [];
-    // Filter out the current filter key from the list of all filters
-    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(originFilters);
+    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key && !f.nonApplicable) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== filter.key && !f.nonApplicable)
+      .concat(originFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
