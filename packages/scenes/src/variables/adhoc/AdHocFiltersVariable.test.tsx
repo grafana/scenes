@@ -463,9 +463,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('Should not collect and pass respective data source queries to getTagKeys call', async () => {
       const { getTagKeysSpy, timeRange } = setup({ filters: [] });
 
-      // Select key
+      // Add filter and open key dropdown
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
-      expect(getTagKeysSpy).toBeCalledTimes(1);
+      const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
+      await userEvent.click(selects[0]);
+      await waitFor(() => expect(getTagKeysSpy).toHaveBeenCalledTimes(1));
       expect(getTagKeysSpy).toBeCalledWith({
         filters: [],
         queries: undefined,
@@ -497,9 +499,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('Should collect and pass respective data source queries to getTagKeys call', async () => {
       const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
 
-      // Select key
+      // Add filter and open key dropdown (menu no longer opens on focus)
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
-      expect(getTagKeysSpy).toBeCalledTimes(1);
+      const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
+      await userEvent.click(selects[0]);
+      await waitFor(() => expect(getTagKeysSpy).toBeCalledTimes(1));
       expect(getTagKeysSpy).toBeCalledWith({
         filters: [],
         queries: [
@@ -517,7 +521,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         key: 'overwrittenKey',
       }));
 
+      // Add filter and open key dropdown (menu no longer opens on focus)
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const selects = getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox');
+      await userEvent.click(selects[0]);
+      await waitFor(() => expect(getTagKeysSpy).toHaveBeenCalled());
       expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
         queries: [
