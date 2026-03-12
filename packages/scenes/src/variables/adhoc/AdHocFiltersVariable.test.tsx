@@ -3443,10 +3443,11 @@ describe('getOriginalFilters', () => {
 
     filtersVar['_originalValues'].set('key1-dashboard', { value: ['val1'], operator: '=' });
     filtersVar['_originalValues'].set('key2-scope', { value: ['valA', 'valB'], operator: '=|' });
+    filtersVar['_originalValues'].set('key3-scope', { value: ['valC'], operator: '=|' });
 
     const result = filtersVar.getOriginalFilters();
 
-    expect(result).toHaveLength(2);
+    expect(result).toHaveLength(3);
     expect(result[0]).toMatchObject({
       key: 'key1',
       origin: 'dashboard',
@@ -3460,6 +3461,14 @@ describe('getOriginalFilters', () => {
       value: 'valA',
       values: ['valA', 'valB'],
       valueLabels: ['valA', 'valB'],
+      operator: '=|',
+    });
+    expect(result[1]).toMatchObject({
+      key: 'key3',
+      origin: 'scope',
+      value: 'valC',
+      values: ['valC'],
+      valueLabels: ['valC'],
       operator: '=|',
     });
   });
