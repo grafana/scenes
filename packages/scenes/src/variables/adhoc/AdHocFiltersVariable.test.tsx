@@ -3463,7 +3463,7 @@ describe('getOriginalFilters', () => {
       valueLabels: ['valA', 'valB'],
       operator: '=|',
     });
-    expect(result[1]).toMatchObject({
+    expect(result[2]).toMatchObject({
       key: 'key3',
       origin: 'scope',
       value: 'valC',
