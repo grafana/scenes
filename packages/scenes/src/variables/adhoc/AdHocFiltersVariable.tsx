@@ -602,7 +602,7 @@ export class AdHocFiltersVariable
     const { originFilters, filters, _wip } = this.state;
 
     if ('value' in update && !('values' in update)) {
-      update.values = undefined;
+      update = { ...update, values: undefined };
     }
 
     if (filter.origin) {
