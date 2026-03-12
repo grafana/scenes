@@ -607,7 +607,7 @@ export class AdHocFiltersVariable
     
     if (filter.origin) {
       const updateValues = update.values || (update.value ? [update.value] : undefined);
-      
+
       if (updateValues) {
         const effectiveOperator = update.operator ?? filter.operator;
         const effectiveValue = update.value ?? filter.value;
