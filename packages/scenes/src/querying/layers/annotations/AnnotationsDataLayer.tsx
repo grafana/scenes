@@ -25,6 +25,11 @@ import { css } from '@emotion/css';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   query: AnnotationQuery;
+  /**
+   * When enabled, each annotation event is placed in its own DataFrame so that
+   * the timeseries panel can render them in separate lanes.
+   */
+  multiLane?: boolean;
 }
 
 export class AnnotationsDataLayer
@@ -153,14 +158,27 @@ export class AnnotationsDataLayer
     processedEvents = dedupAnnotations(processedEvents);
 
     const stateUpdate = { ...emptyPanelData, state: events.state };
-    const df = arrayToDataFrame(processedEvents);
 
-    df.meta = {
-      ...df.meta,
-      dataTopic: DataTopic.Annotations,
-    };
-
-    stateUpdate.series = [df];
+    if (this.state.multiLane) {
+      // Create one DataFrame per event so that the timeseries panel can assign
+      // each annotation its own lane (lane count is determined by the number
+      // of annotation frames).
+      stateUpdate.series = processedEvents.map((evt) => {
+        const df = arrayToDataFrame([evt]);
+        df.meta = {
+          ...df.meta,
+          dataTopic: DataTopic.Annotations,
+        };
+        return df;
+      });
+    } else {
+      const df = arrayToDataFrame(processedEvents);
+      df.meta = {
+        ...df.meta,
+        dataTopic: DataTopic.Annotations,
+      };
+      stateUpdate.series = [df];
+    }
 
     return stateUpdate;
   }
