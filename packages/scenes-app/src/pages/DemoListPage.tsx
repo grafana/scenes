@@ -29,6 +29,7 @@ function getDemoSceneApp() {
       updateUrlOnInit: true,
       createBrowserHistorySteps: true,
     },
+    defaultPageBackground: 'canvas',
     pages: [
       new SceneAppPage({
         title: 'Demos',
@@ -110,7 +111,7 @@ export class DemoList extends SceneObjectBase<DemoListState> {
       children.push(
         new SceneReactObject({
           reactNode: (
-            <Card key={demo.title} href={demoUrl(slugify(demo.title))}>
+            <Card key={demo.title} href={demoUrl(slugify(demo.title))} isOnCanvas={true}>
               <Card.Heading>{demo.title}</Card.Heading>
             </Card>
           ),
