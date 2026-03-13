@@ -32,17 +32,23 @@ export interface AdHocFiltersRecommendationsState extends SceneObjectState {
  * Keeps only the last occurrence of each unique (key, operator, value) triple,
  * preserving the most-recent-wins ordering.
  */
+function getFilterIdentity(filter: AdHocFilterWithLabels): string {
+  return `${filter.key}|${filter.operator}|${filter.value}`;
+}
+
 function deduplicateFilters(filters: AdHocFilterWithLabels[]): AdHocFilterWithLabels[] {
-  return filters.reduce<AdHocFilterWithLabels[]>((acc, f) => {
-    const idx = acc.findIndex(
-      (existing) => existing.key === f.key && existing.operator === f.operator && existing.value === f.value
-    );
-    if (idx !== -1) {
-      acc.splice(idx, 1);
+  const filterMap = new Map<string, AdHocFilterWithLabels>();
+
+  for (const filter of filters) {
+    const identity = getFilterIdentity(filter);
+    // Re-insert duplicates so the last occurrence is kept at the latest position.
+    if (filterMap.has(identity)) {
+      filterMap.delete(identity);
     }
-    acc.push(f);
-    return acc;
-  }, []);
+    filterMap.set(identity, filter);
+  }
+
+  return Array.from(filterMap.values());
 }
 
 export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRecommendationsState> {
@@ -195,11 +201,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const storedFilters = store.get(key);
     const allRecentFilters = storedFilters ? JSON.parse(storedFilters) : [];
 
-    const dedupedFilters = allRecentFilters.filter(
-      (f: AdHocFilterWithLabels) =>
-        !(f.key === filter.key && f.operator === filter.operator && f.value === filter.value)
-    );
-    const updatedStoredFilters = [...dedupedFilters, filter].slice(-MAX_STORED_RECENT_DRILLDOWNS);
+    const updatedStoredFilters = deduplicateFilters([...allRecentFilters, filter]).slice(-MAX_STORED_RECENT_DRILLDOWNS);
     store.set(key, JSON.stringify(updatedStoredFilters));
 
     const adhoc = this._adHocFilter;
