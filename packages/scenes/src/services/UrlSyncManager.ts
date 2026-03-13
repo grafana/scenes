@@ -28,6 +28,7 @@ export class NewSceneObjectAddedEvent extends BusEventWithPayload<SceneObject> {
 
 export class UrlSyncManager implements UrlSyncManagerLike {
   private _urlKeyMapper: UniqueUrlKeyMapper;
+  private _lastSyncedObjectKeys = new WeakMap<SceneObject, string[]>();
   private _sceneRoot?: SceneObject;
   private _subs: Subscription | undefined;
   private _lastLocation: Location | undefined;
@@ -73,6 +74,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     );
 
     this._urlKeyMapper.clear();
+    this._lastSyncedObjectKeys = new WeakMap<SceneObject, string[]>();
     this._lastLocation = this._locationService.getLocation();
 
     // Sync current url with state
@@ -131,6 +133,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     }
 
     syncStateFromUrl(sceneObj, this._paramsCache.getParams(), this._urlKeyMapper);
+    this.cacheObjectUrlKeys(sceneObj);
   }
 
   private handleSceneObjectStateChanged(changedObject: SceneObject) {
@@ -139,18 +142,28 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     }
 
     const newUrlState = changedObject.urlSync.getUrlState();
-
     const searchParams = this._locationService.getSearch();
     const mappedUpdated: SceneObjectUrlValues = {};
+    const nextKeys: string[] = [];
 
     for (const [key, newUrlValue] of Object.entries(newUrlState)) {
       const uniqueKey = this._urlKeyMapper.getUniqueKey(key, changedObject);
+      nextKeys.push(uniqueKey);
       const currentUrlValue = searchParams.getAll(uniqueKey);
 
       if (!isUrlValueEqual(currentUrlValue, newUrlValue)) {
         mappedUpdated[uniqueKey] = newUrlValue;
       }
     }
+
+    const previousKeys = this._lastSyncedObjectKeys.get(changedObject) ?? [];
+    for (const staleKey of previousKeys) {
+      if (!nextKeys.includes(staleKey) && searchParams.has(staleKey)) {
+        mappedUpdated[staleKey] = null;
+      }
+    }
+
+    this._lastSyncedObjectKeys.set(changedObject, nextKeys);
 
     if (Object.keys(mappedUpdated).length > 0) {
       const shouldCreateHistoryEntry = changedObject.urlSync.shouldCreateHistoryStep?.(newUrlState);
@@ -166,6 +179,19 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
   public getUrlState(root: SceneObject): SceneObjectUrlValues {
     return getUrlState(root, this._urlKeyMapper.getOptions());
+  }
+
+  private cacheObjectUrlKeys(root: SceneObject) {
+    const visitNode = (obj: SceneObject) => {
+      if (obj.urlSync) {
+        const keys = obj.urlSync.getKeys().map((key) => this._urlKeyMapper.getUniqueKey(key, obj));
+        this._lastSyncedObjectKeys.set(obj, keys);
+      }
+
+      obj.forEachChild(visitNode);
+    };
+
+    visitNode(root);
   }
 }
 
