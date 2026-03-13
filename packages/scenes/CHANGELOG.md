@@ -1,3 +1,15 @@
+# v7.1.7 (Fri Mar 13 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersRecommendations: Dedupe filters [#1379](https://github.com/grafana/scenes/pull/1379) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.1.6 (Thu Mar 12 2026)
 
 #### 🐛 Bug Fix
