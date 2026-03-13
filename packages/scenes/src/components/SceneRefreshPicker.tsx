@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { Unsubscribable } from 'rxjs';
 import { rangeUtil } from '@grafana/data';
 import { config } from '@grafana/runtime';
@@ -212,25 +212,20 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
   const { refresh, intervals, autoEnabled, autoValue, isOnCanvas, primary, withText } = model.useState();
   const isRunning = useQueryControllerState(model);
 
-  let text =
-    refresh === RefreshPicker.autoOption?.value
-      ? autoValue
-      : withText
-      ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
-      : undefined;
-  let tooltip: string | undefined;
-  let width: string | undefined;
+  const refreshLabel = t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh');
+  const cancelLabel = t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel');
 
-  if (isRunning) {
-    tooltip = t('grafana-scenes.components.scene-refresh-picker.tooltip-cancel', 'Cancel all queries');
+  let text: string | ReactNode | undefined;
 
-    if (withText) {
-      text = t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel');
-    }
-  }
-
-  if (withText) {
-    width = '96px';
+  if (refresh === RefreshPicker.autoOption?.value) {
+    text = isRunning && withText ? cancelLabel : autoValue;
+  } else if (withText) {
+    text = (
+      <span style={{ display: 'inline-grid' }}>
+        <span style={{ gridArea: '1/1', visibility: isRunning ? 'hidden' : 'visible' }}>{refreshLabel}</span>
+        <span style={{ gridArea: '1/1', visibility: isRunning ? 'visible' : 'hidden' }}>{cancelLabel}</span>
+      </span>
+    );
   }
 
   return (
@@ -238,12 +233,12 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       showAutoInterval={autoEnabled}
       value={refresh}
       intervals={intervals}
-      tooltip={tooltip}
-      width={width}
+      tooltip={
+        isRunning ? t('grafana-scenes.components.scene-refresh-picker.tooltip-cancel', 'Cancel all queries') : undefined
+      }
+      // @ts-expect-error RefreshPicker types text as string but accepts ReactNode at runtime
       text={text}
-      onRefresh={() => {
-        model.onRefresh();
-      }}
+      onRefresh={() => model.onRefresh()}
       primary={primary}
       onIntervalChanged={model.onIntervalChanged}
       isLoading={isRunning}
