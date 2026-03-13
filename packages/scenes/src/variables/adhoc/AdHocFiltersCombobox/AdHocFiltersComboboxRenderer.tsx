@@ -83,7 +83,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       })}
       onClick={handleExpand}
     >
-      <Icon name="filter" className={styles.filterIcon} size="lg" />
+      {/* <Icon name="filter" className={styles.filterIcon} size="lg" /> */}
 
       {valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 

@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { SelectableValue } from '@grafana/data';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
+import { GROUP_BY_PLACEHOLDER_DEFAULT } from './utils';
 
 interface Props {
   controller: AdHocFiltersController;
@@ -35,7 +36,7 @@ export function GroupByWipCombobox({ controller }: Props) {
       controller={controller}
       getOptions={getOptions}
       onKeySelected={handleKeySelected}
-      inputPlaceholderOverride={groupByInputPlaceholder}
+      inputPlaceholderOverride={groupByInputPlaceholder ?? GROUP_BY_PLACEHOLDER_DEFAULT}
     />
   );
 }
