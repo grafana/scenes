@@ -23,9 +23,6 @@
         "subTitle": "The url did not match any page",
         "title": "Not found"
       },
-      "lazy-loader": {
-        "placeholder": "\u00a0"
-      },
       "nested-scene-renderer": {
         "collapse-button-label": "Collapse scene",
         "expand-button-label": "Expand scene",

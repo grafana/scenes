@@ -184,6 +184,9 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(sentRequest).toBeDefined();
       const { scopedVars, ...request } = sentRequest!;
 
+      // Remove requestId from snapshot as it depends on test execution order
+      request.requestId = 'test';
+
       expect(Object.keys(scopedVars)).toMatchInlineSnapshot(`
         [
           "__sceneObject",
