@@ -7,6 +7,8 @@ import { useMeasure } from 'react-use';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
+import { GroupByPill } from './GroupByPill';
+import { GroupByWipCombobox } from './GroupByWipCombobox';
 
 const MAX_VISIBLE_FILTERS = 5;
 
@@ -15,7 +17,7 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, collapsible, valueRecommendations } = controller.useState();
+  const { originFilters, filters, readOnly, collapsible, valueRecommendations, groupBy } = controller.useState();
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
@@ -98,6 +100,28 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       {!readOnly && !shouldCollapse ? (
         <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} />
       ) : null}
+
+      {groupBy && (
+        <>
+          <div className={styles.groupBySeparator} />
+          <span className={styles.groupByLabel}>
+            {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.group-by', 'Group by:')}
+          </span>
+          {groupBy.current.value.map((value, i) => (
+            <GroupByPill
+              key={`${value}-${i}`}
+              label={groupBy.current.text[i] ?? value}
+              readOnly={readOnly || groupBy.readOnly}
+              onRemove={() => {
+                const newValues = groupBy.current.value.filter((_, idx) => idx !== i);
+                const newTexts = groupBy.current.text.filter((_, idx) => idx !== i);
+                controller.changeGroupByValue?.(newValues, newTexts);
+              }}
+            />
+          ))}
+          {!readOnly && !groupBy.readOnly && <GroupByWipCombobox controller={controller} />}
+        </>
+      )}
 
       {/* Right-side controls: +X more, collapse button, and clear all */}
       <div className={styles.rightControls}>
@@ -206,5 +230,17 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       color: theme.colors.text.primary,
     },
+  }),
+  groupBySeparator: css({
+    width: '1px',
+    height: theme.spacing(2.5),
+    background: theme.colors.border.medium,
+    flexShrink: 0,
+  }),
+  groupByLabel: css({
+    ...theme.typography.bodySmall,
+    color: theme.colors.text.disabled,
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
   }),
 });

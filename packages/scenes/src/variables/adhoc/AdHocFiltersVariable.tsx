@@ -68,11 +68,23 @@ export type AdHocControlsLayout = ControlsLayout | 'combobox';
 
 export type FilterOrigin = 'dashboard' | 'scope' | string;
 
+export interface AdHocGroupByConfig {
+  current: {
+    value: string[];
+    text: string[];
+  };
+  /** When true the GroupBy section is rendered but cannot be edited */
+  readOnly?: boolean;
+}
+
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
   addFilterButtonText?: string;
   /** Optional placeholder text for the filter input field */
   inputPlaceholder?: string;
+  /** Optional placeholder text for the GroupBy WIP input */
+  groupByInputPlaceholder?: string;
+  groupBy?: AdHocGroupByConfig;
   /** The visible filters */
   filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
@@ -109,6 +121,12 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Return replace: false if you want to combine the results with the default lookup
    */
   getTagValuesProvider?: getTagValuesProvider;
+  /**
+   * Extension hook for customizing the GroupBy key lookup.
+   * Return replace: true if you want to override the default lookup
+   * Return replace: false if you want to combine the results with the default lookup
+   */
+  getGroupByKeysProvider?: getGroupByKeysProvider;
 
   /**
    * Optionally provide an array of static keys that override getTagKeys
@@ -180,6 +198,10 @@ export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
   currentKey: string | null,
   operators?: OperatorDefinition[]
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
+
+export type getGroupByKeysProvider = (
+  variable: AdHocFiltersVariable
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type getTagValuesProvider = (
@@ -873,6 +895,56 @@ export class AdHocFiltersVariable
     }
 
     return keys.map(toSelectableValue);
+  }
+
+  public async _getGroupByKeys(): Promise<Array<SelectableValue<string>>> {
+    const override = await this.state.getGroupByKeysProvider?.(this);
+
+    if (override && override.replace) {
+      return dataFromResponse(override.values).map(toSelectableValue);
+    }
+
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    if (!ds) {
+      return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
+    }
+
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+
+    let keys: MetricFindValue[];
+
+    // Prefer dedicated getGroupByKeys if the datasource supports it
+    if ('getGroupByKeys' in ds && typeof (ds as any).getGroupByKeys === 'function') {
+      const response = await (ds as any).getGroupByKeys({ timeRange });
+      keys = dataFromResponse(response);
+    } else if (ds.getTagKeys) {
+      const response = await ds.getTagKeys({ filters: [], timeRange });
+      keys = dataFromResponse(response);
+    } else {
+      keys = [];
+    }
+
+    if (override) {
+      keys = keys.concat(dataFromResponse(override.values));
+    }
+
+    return keys.map(toSelectableValue);
+  }
+
+  /**
+   * Replace the selected GroupBy values with the given arrays.
+   * No-op if groupBy is not configured on this variable.
+   */
+  public changeGroupByValueTo(values: string[], texts: string[]): void {
+    if (!this.state.groupBy) {
+      return;
+    }
+    this.setState({
+      groupBy: {
+        ...this.state.groupBy,
+        current: { value: values, text: texts },
+      },
+    });
   }
 
   /**

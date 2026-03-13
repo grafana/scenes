@@ -1,14 +1,21 @@
 import React, { forwardRef, useLayoutEffect } from 'react';
+import { SelectableValue } from '@grafana/data';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 
 interface Props {
   controller: AdHocFiltersController;
   onInputClick?: () => void;
+  /** See AdHocCombobox.onKeySelected */
+  onKeySelected?: (item: SelectableValue<string>) => void;
+  /** See AdHocCombobox.getOptions */
+  getOptions?: () => Promise<Array<SelectableValue<string>>>;
+  /** See AdHocCombobox.inputPlaceholderOverride */
+  inputPlaceholderOverride?: string;
 }
 
 export const AdHocFiltersAlwaysWipCombobox = forwardRef(function AdHocFiltersAlwaysWipCombobox(
-  { controller, onInputClick }: Props,
+  { controller, onInputClick, onKeySelected, getOptions, inputPlaceholderOverride }: Props,
   // pass ability to focus on input element back to parent
   //    parentRef is coming from AdHocFiltersComboboxRenderer
   //    parentRef is mutated through useImperativeHandle in AdHocCombobox
@@ -26,5 +33,16 @@ export const AdHocFiltersAlwaysWipCombobox = forwardRef(function AdHocFiltersAlw
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wip]);
 
-  return <AdHocCombobox controller={controller} filter={wip} isAlwaysWip ref={parentRef} onInputClick={onInputClick} />;
+  return (
+    <AdHocCombobox
+      controller={controller}
+      filter={wip}
+      isAlwaysWip
+      ref={parentRef}
+      onInputClick={onInputClick}
+      onKeySelected={onKeySelected}
+      getOptions={getOptions}
+      inputPlaceholderOverride={inputPlaceholderOverride}
+    />
+  );
 });

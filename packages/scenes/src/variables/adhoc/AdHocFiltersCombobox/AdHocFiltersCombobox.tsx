@@ -56,6 +56,11 @@ interface AdHocComboboxProps {
   focusOnWipInputRef?: () => void;
   populateInputOnEdit?: boolean;
   onInputClick?: () => void;
+
+  onKeySelected?: (item: SelectableValue<string>) => void;
+  getOptions?: () => Promise<Array<SelectableValue<string>>>;
+  /** When provided, overrides the inputPlaceholder from controller.useState() for the key step. */
+  inputPlaceholderOverride?: string;
 }
 
 export type AdHocInputType = 'key' | 'operator' | 'value';
@@ -69,6 +74,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     focusOnWipInputRef,
     populateInputOnEdit,
     onInputClick,
+    onKeySelected,
+    getOptions,
+    inputPlaceholderOverride,
   }: AdHocComboboxProps,
   parentRef
 ) {
@@ -84,7 +92,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // control multi values with local state in order to commit all values at once and avoid wip reset mid creation
   const [filterMultiValues, setFilterMultiValues] = useState<Array<SelectableValue<string>>>([]);
   const [_, setForceRefresh] = useState({});
-  const { allowCustomValue = true, onAddCustomValue, filters, inputPlaceholder } = controller.useState();
+  const { allowCustomValue = true, onAddCustomValue, filters, inputPlaceholder: controllerPlaceholder } = controller.useState();
+  const inputPlaceholder = inputPlaceholderOverride ?? controllerPlaceholder;
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -297,7 +306,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       try {
         if (inputType === 'key') {
-          options = await controller.getKeys(null);
+          options = getOptions ? await getOptions() : await controller.getKeys(null);
         } else if (inputType === 'operator') {
           options = controller.getOperators();
         } else if (inputType === 'value') {
@@ -324,7 +333,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       controller.stopInteraction?.();
     },
-    [filter, controller]
+    [filter, controller, getOptions]
   );
 
   const rowVirtualizer = useVirtualizer({
@@ -462,6 +471,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
           setInputValue('');
+        } else if (filterInputType === 'key' && onKeySelected) {
+          onKeySelected(selectedItem);
+          setInputValue('');
+          setOpen(false);
+          handleResetWip();
         } else {
           const payload = generateFilterUpdatePayload({
             filterInputType,
@@ -514,6 +528,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       isLastFilter,
       focusOnWipInputRef,
       onAddCustomValue,
+      onKeySelected,
+      handleResetWip,
     ]
   );
 
@@ -782,6 +798,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 handleLocalMultiValueChange(item);
                                 setInputValue('');
                                 refs.domReference.current?.focus();
+                              } else if (filterInputType === 'key' && onKeySelected) {
+                                event.stopPropagation();
+                                onKeySelected(item);
+                                setInputValue('');
+                                setOpen(false);
+                                handleResetWip();
                               } else {
                                 const payload = generateFilterUpdatePayload({
                                   filterInputType,

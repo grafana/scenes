@@ -1,12 +1,12 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
+import { useStyles2, Tooltip, Icon, IconButton } from '@grafana/ui';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { t } from '@grafana/i18n';
-import { getNonApplicablePillStyles } from '../../utils';
+import { BasePill, getBasePillStyles } from './BasePill';
 
 const LABEL_MAX_VISIBLE_LENGTH = 20;
 
@@ -98,81 +98,21 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
       <span className={cx(styles.pillText, filter.nonApplicable && styles.strikethrough)}>{pillTextContent}</span>
     );
 
-    return (
-      <div
-        className={cx(
-          styles.combinedFilterPill,
-          readOnly && styles.readOnlyCombinedFilter,
-          (isMatchAllFilter(filter) || filter.nonApplicable) && styles.disabledPill,
-          filter.readOnly && styles.filterReadOnly
-        )}
-        onClick={(e) => {
-          e.stopPropagation();
-          setPopulateInputOnEdit(true);
-          handleChangeViewMode();
-        }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            setPopulateInputOnEdit(true);
-            handleChangeViewMode();
+    const showRemoveButton =
+      !readOnly && !filter.matchAllFilter && (!filter.origin || filter.origin === 'dashboard');
+    const handleRemove = showRemoveButton
+      ? () => {
+          if (filter.origin && filter.origin === 'dashboard') {
+            controller.updateToMatchAll(filter);
+          } else {
+            controller.removeFilter(filter);
           }
-        }}
-        role={readOnly ? undefined : 'button'}
-        aria-label={t(
-          'grafana-scenes.components.adhoc-filter-pill.edit-filter-with-key',
-          'Edit filter with key {{keyLabel}}',
-          {
-            keyLabel,
-          }
-        )}
-        tabIndex={0}
-        ref={pillWrapperRef}
-      >
-        {pillTextContent.length < LABEL_MAX_VISIBLE_LENGTH ? (
-          pillText
-        ) : (
-          <Tooltip content={<div className={styles.tooltipText}>{pillTextContent}</div>} placement="top">
-            {pillText}
-          </Tooltip>
-        )}
+          setTimeout(() => focusOnWipInputRef?.());
+        }
+      : undefined;
 
-        {!readOnly && !filter.matchAllFilter && (!filter.origin || filter.origin === 'dashboard') ? (
-          <IconButton
-            onClick={(e) => {
-              e.stopPropagation();
-              if (filter.origin && filter.origin === 'dashboard') {
-                controller.updateToMatchAll(filter);
-              } else {
-                controller.removeFilter(filter);
-              }
-
-              setTimeout(() => focusOnWipInputRef?.());
-            }}
-            onKeyDownCapture={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                if (filter.origin && filter.origin === 'dashboard') {
-                  controller.updateToMatchAll(filter);
-                } else {
-                  controller.removeFilter(filter);
-                }
-                setTimeout(() => focusOnWipInputRef?.());
-              }
-            }}
-            name="times"
-            size="md"
-            className={cx(styles.pillIcon, filter.nonApplicable && styles.disabledPillIcon)}
-            tooltip={t(
-              'grafana-scenes.components.adhoc-filter-pill.remove-filter-with-key',
-              'Remove filter with key {{keyLabel}}',
-              {
-                keyLabel,
-              }
-            )}
-          />
-        ) : null}
-
+    const originIcons = (
+      <>
         {filter.origin && filter.readOnly && (
           <Tooltip
             content={t('grafana-scenes.components.adhoc-filter-pill.managed-filter', '{{origin}} managed filter', {
@@ -209,19 +149,52 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
             tooltip={getOriginFilterTooltips(filter.origin).restore}
           />
         )}
+      </>
+    );
 
-        {filter.nonApplicable && (
-          <Tooltip
-            content={
-              filter.nonApplicableReason ??
-              t('grafana-scenes.components.adhoc-filter-pill.non-applicable', 'Filter is not applicable')
-            }
-            placement={'bottom'}
-          >
-            <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
+    return (
+      <BasePill
+        readOnly={readOnly}
+        isDisabled={isMatchAllFilter(filter) || filter.nonApplicable}
+        isFilterLevelReadOnly={filter.readOnly}
+        isNonApplicable={filter.nonApplicable}
+        nonApplicableReason={filter.nonApplicableReason}
+        onRemove={handleRemove}
+        removeTooltip={t(
+          'grafana-scenes.components.adhoc-filter-pill.remove-filter-with-key',
+          'Remove filter with key {{keyLabel}}',
+          { keyLabel }
+        )}
+        removeIsDisabled={filter.nonApplicable}
+        onClick={(e) => {
+          e.stopPropagation();
+          setPopulateInputOnEdit(true);
+          handleChangeViewMode();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            setPopulateInputOnEdit(true);
+            handleChangeViewMode();
+          }
+        }}
+        role={readOnly ? undefined : 'button'}
+        ariaLabel={t(
+          'grafana-scenes.components.adhoc-filter-pill.edit-filter-with-key',
+          'Edit filter with key {{keyLabel}}',
+          { keyLabel }
+        )}
+        tabIndex={0}
+        pillRef={pillWrapperRef}
+        extraIcons={originIcons}
+      >
+        {pillTextContent.length < LABEL_MAX_VISIBLE_LENGTH ? (
+          pillText
+        ) : (
+          <Tooltip content={<div className={styles.tooltipText}>{pillTextContent}</div>} placement="top">
+            {pillText}
           </Tooltip>
         )}
-      </div>
+      </BasePill>
     );
   }
 
@@ -237,46 +210,7 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  combinedFilterPill: css({
-    display: 'flex',
-    alignItems: 'center',
-    background: theme.colors.action.selected,
-    borderRadius: theme.shape.radius.default,
-    border: `1px solid ${theme.colors.border.weak}`,
-    padding: theme.spacing(0.125, 0, 0.125, 1),
-    color: theme.colors.text.primary,
-    overflow: 'hidden',
-    whiteSpace: 'nowrap',
-    minHeight: theme.spacing(2.75),
-    ...theme.typography.bodySmall,
-    fontWeight: theme.typography.fontWeightBold,
-    cursor: 'pointer',
-
-    '&:hover': {
-      background: theme.colors.action.hover,
-    },
-  }),
-  readOnlyCombinedFilter: css({
-    paddingRight: theme.spacing(1),
-    cursor: 'text',
-    '&:hover': {
-      background: theme.colors.action.selected,
-    },
-  }),
-  filterReadOnly: css({
-    background: theme.colors.background.canvas,
-    cursor: 'text',
-    '&:hover': {
-      background: theme.colors.background.canvas,
-    },
-  }),
-  pillIcon: css({
-    marginInline: theme.spacing(0.5),
-    cursor: 'pointer',
-    '&:hover': {
-      color: theme.colors.text.primary,
-    },
-  }),
+  ...getBasePillStyles(theme),
   pillText: css({
     maxWidth: '200px',
     width: '100%',
@@ -286,25 +220,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
   tooltipText: css({
     textAlign: 'center',
   }),
-  infoPillIcon: css({
-    marginInline: theme.spacing(0.5),
-    cursor: 'pointer',
-  }),
-  readOnlyPillIcon: css({
-    marginInline: theme.spacing(0.5),
-  }),
   matchAllPillIcon: css({
     marginInline: theme.spacing(0.5),
     cursor: 'pointer',
     color: theme.colors.text.disabled,
   }),
-  disabledPillIcon: css({
-    marginInline: theme.spacing(0.5),
-    cursor: 'pointer',
-    color: theme.colors.text.disabled,
-    '&:hover': {
-      color: theme.colors.text.disabled,
-    },
-  }),
-  ...getNonApplicablePillStyles(theme),
 });
