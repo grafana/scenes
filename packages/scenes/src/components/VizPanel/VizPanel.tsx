@@ -547,19 +547,22 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     };
 
     if (this._dataWithFieldConfig.annotations) {
-      this._dataWithFieldConfig.annotations = applyFieldOverrides({
-        data: this._dataWithFieldConfig.annotations,
-        fieldConfig: {
-          defaults: {},
-          overrides: [],
+      this._dataWithFieldConfig.annotations = applyFieldOverrides(
+        {
+          data: this._dataWithFieldConfig.annotations,
+          fieldConfig: {
+            defaults: {},
+            overrides: [...this.state.fieldConfig.overrides],
+          },
+          fieldConfigRegistry,
+          replaceVariables: this.interpolate,
+          theme: config.theme2,
+          timeZone: rawData.request?.timezone,
         },
-        fieldConfigRegistry,
-        replaceVariables: this.interpolate,
-        theme: config.theme2,
-        timeZone: rawData.request?.timezone,
-        // @ts-ignore - @grafana/data is getting this type in Grafana 13.
-        featureToggles: config.featureToggles,
-      });
+        // @ts-expect-error applyFieldOverrides changes coming in 13.0
+        this._dataWithFieldConfig.annotations,
+        'annotation'
+      );
     }
 
     if (!pluginDataSupport.alertStates) {
