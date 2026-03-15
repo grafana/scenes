@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Redigera filter med nyckeln {{keyLabel}}",
         "managed-filter": "Filter som hanteras av {{origin}}",
-        "non-applicable": "",
+        "non-applicable": "Filtret är inte tillämpligt",
         "remove-filter-with-key": "Ta bort filter med nyckeln {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Ta bort filtervärde – {{itemLabel}}",
         "use-custom-value": "Använd anpassat värde: {{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Senaste",
+        "recent-empty": "Inga senaste värden",
+        "recommended": "Rekommenderas",
+        "recommended-empty": "Inga rekommenderade värden",
+        "tooltip": "Visa rekommendationer"
       },
       "fallback-page": {
         "content": "Om du kom hit via en länk kan det finnas en bugg i den här applikationen.",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "Avbryt",
         "text-refresh": "Uppdatera",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Avbryt alla frågor"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Jämförelse",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "Widget för storleksändring av ruta"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Flytta {{moveBackwardDuration}} bakåt",
+        "move-forward-tooltip": "Flytta {{moveForwardDuration}} framåt"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "Välj värde"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "Dölj",
+        "collapse-filters": "Dölj filter"
+      },
       "data-source-variable": {
         "label": {
           "default": "standard"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "Formatera datum på olika sätt",
             "format-multivalued-variables-using-syntax-example": "Formatera flervärdesvariabler med globsyntax, till exempel {value1,value2}",
             "html-escaping-of-values": "HTML-undantagstecken för värden",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Sammanfoga värden med ett kommatecken",
             "json-stringify-value": "JSON stringify-värde",
             "keep-value-as-is": "Behåll värdet som det är",
             "multiple-values-are-formatted-like-variablevalue": "Flera värden formateras som variabel=värde",

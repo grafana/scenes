@@ -4,12 +4,19 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}} kulcsos szűrő szerkesztése",
         "managed-filter": "{{origin}} által kezelt szűrő",
-        "non-applicable": "",
+        "non-applicable": "A szűrő nem alkalmazható",
         "remove-filter-with-key": "{{keyLabel}} kulcsos szűrő eltávolítása"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Szűrőérték eltávolítása – {{itemLabel}}",
         "use-custom-value": "Egyéni érték használata: {{itemLabel}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Legutóbbi",
+        "recent-empty": "Nem állnak rendelkezésre friss értékek",
+        "recommended": "Ajánlott",
+        "recommended-empty": "Nem állnak rendelkezésre ajánlott értékek",
+        "tooltip": "Ajánlások megjelenítése"
       },
       "fallback-page": {
         "content": "Ha egy hivatkozáson keresztül lépett ide, akkor lehet, hogy hiba van ebben az alkalmazásban.",
@@ -36,7 +43,7 @@
       "scene-refresh-picker": {
         "text-cancel": "Mégse",
         "text-refresh": "Frissítés",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Az összes lekérdezés törlése"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Összehasonlítás",
@@ -46,8 +53,8 @@
         "aria-label-pane-resize-widget": "Ablaktábla-átméretezési widget"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": " Mozgassa hátra {{moveBackwardDuration}} ideig",
+        "move-forward-tooltip": "Mozgassa előre {{moveForwardDuration}} ideig"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +100,10 @@
           "placeholder-select-value": "Érték kiválasztása"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "collapse": "Összecsukás",
+        "collapse-filters": "Szűrők összecsukása"
+      },
       "data-source-variable": {
         "label": {
           "default": "alapértelmezés"
@@ -111,7 +122,7 @@
             "format-date-in-different-ways": "Dátum formázása különböző módokon",
             "format-multivalued-variables-using-syntax-example": "Többértékű változók formázása glob szintaxissal, például: {érték1,érték2}",
             "html-escaping-of-values": "Értékek módosított HTML-értelmezése",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Értékek összekapcsolása vesszővel",
             "json-stringify-value": "A JSON stringify értéke",
             "keep-value-as-is": "Érték megtartása adott állapotban",
             "multiple-values-are-formatted-like-variablevalue": "Több érték formázása változó=érték formátumban",
