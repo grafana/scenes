@@ -147,7 +147,6 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
         values: f.values,
       })),
       groupByKeys,
-      queries,
       scopes,
     });
     if (cacheKey === this._lastApplicabilityCacheKey && this._applicabilityResults) {

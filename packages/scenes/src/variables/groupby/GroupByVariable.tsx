@@ -297,7 +297,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
 
     const cacheKey = buildApplicabilityCacheKey({
       groupByKeys: Array.isArray(value) ? value.map(String) : [String(value ?? '')],
-      queries,
       scopes,
     });
     if (cacheKey === this._lastApplicabilityCacheKey) {

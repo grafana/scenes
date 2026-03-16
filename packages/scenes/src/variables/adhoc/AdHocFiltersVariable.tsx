@@ -756,7 +756,6 @@ export class AdHocFiltersVariable
         value: f.value,
         values: f.values,
       })),
-      queries: queries ?? [],
       scopes,
     });
     if (cacheKey === this._lastApplicabilityCacheKey) {

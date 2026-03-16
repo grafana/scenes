@@ -3,7 +3,6 @@ import {
   DrilldownsApplicability,
   Scope,
 } from '@grafana/data';
-import { SceneDataQuery } from '../core/types';
 
 const COMPOSITE_KEY_SEPARATOR = '|';
 
@@ -39,14 +38,9 @@ export function buildApplicabilityMatcher(response: DrilldownsApplicability[]) {
   };
 }
 
-function normalizeQuery(q: SceneDataQuery): { refId: string; expr?: unknown } {
-  return { refId: q.refId, expr: q.expr ?? q.expression ?? q.query };
-}
-
 export function buildApplicabilityCacheKey(parts: {
   filters?: Array<{ origin?: string; key: string; operator: string; value: string; values?: string[] }>;
   groupByKeys?: string[];
-  queries: SceneDataQuery[];
   scopes: Scope[] | undefined;
 }): string {
   return JSON.stringify({
@@ -57,7 +51,6 @@ export function buildApplicabilityCacheKey(parts: {
       value: f.values?.length ? f.values.join(',') : f.value,
     })),
     groupByKeys: parts.groupByKeys,
-    queries: parts.queries.map(normalizeQuery),
     scopes: parts.scopes?.map((s) => s.metadata.name),
   });
 }
