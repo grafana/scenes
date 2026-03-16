@@ -744,7 +744,7 @@ export class AdHocFiltersVariable
       return;
     }
 
-    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+    const filters = [...(this.state.originFilters ?? []), ...this.state.filters];
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
     const scopes = sceneGraph.getScopes(this);
 
@@ -779,16 +779,8 @@ export class AdHocFiltersVariable
       originFilters: [...(this.state.originFilters ?? [])],
     };
 
-    update.filters.forEach((f, i) => {
-      const result = matchResult(f.key, undefined, i);
-      if (result) {
-        f.nonApplicable = !result.applicable;
-        f.nonApplicableReason = result.reason;
-      }
-    });
-
     update.originFilters?.forEach((f, i) => {
-      const result = matchResult(f.key, f.origin, update.filters.length + i);
+      const result = matchResult(f.key, f.origin, i);
       if (result) {
         if (!f.matchAllFilter) {
           f.nonApplicable = !result.applicable;
@@ -800,6 +792,14 @@ export class AdHocFiltersVariable
           originalValue.nonApplicable = !result.applicable;
           originalValue.nonApplicableReason = result?.reason;
         }
+      }
+    });
+
+    update.filters.forEach((f, i) => {
+      const result = matchResult(f.key, undefined, (update.originFilters?.length ?? 0) + i);
+      if (result) {
+        f.nonApplicable = !result.applicable;
+        f.nonApplicableReason = result.reason;
       }
     });
 

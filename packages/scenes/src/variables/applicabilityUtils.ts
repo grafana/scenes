@@ -46,7 +46,6 @@ function normalizeQuery(q: SceneDataQuery): { refId: string; expr?: unknown } {
 export function buildApplicabilityCacheKey(parts: {
   filters?: Array<{ origin?: string; key: string; operator: string; value: string; values?: string[] }>;
   groupByKeys?: string[];
-  value?: string[];
   queries: SceneDataQuery[];
   scopes: Scope[] | undefined;
 }): string {
@@ -58,7 +57,6 @@ export function buildApplicabilityCacheKey(parts: {
       value: f.values?.length ? f.values.join(',') : f.value,
     })),
     groupByKeys: parts.groupByKeys,
-    value: parts.value,
     queries: parts.queries.map(normalizeQuery),
     scopes: parts.scopes?.map((s) => s.metadata.name),
   });

@@ -296,7 +296,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     const scopes = sceneGraph.getScopes(this);
 
     const cacheKey = buildApplicabilityCacheKey({
-      value: Array.isArray(value) ? value.map(String) : [String(value ?? '')],
+      groupByKeys: Array.isArray(value) ? value.map(String) : [String(value ?? '')],
       queries,
       scopes,
     });
