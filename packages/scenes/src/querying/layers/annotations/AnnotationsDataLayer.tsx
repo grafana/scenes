@@ -1,4 +1,4 @@
-import { arrayToDataFrame, DataTopic, AnnotationQuery, ScopedVars, PanelData } from '@grafana/data';
+import { arrayToDataFrame, AnnotationEvent, DataTopic, AnnotationQuery, ScopedVars, PanelData } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
 import React from 'react';
 import { map, Unsubscribable } from 'rxjs';
@@ -160,11 +160,29 @@ export class AnnotationsDataLayer
     const stateUpdate = { ...emptyPanelData, state: events.state };
 
     if (this.state.multiLane) {
-      // Create one DataFrame per event so that the timeseries panel can assign
-      // each annotation its own lane (lane count is determined by the number
-      // of annotation frames).
-      stateUpdate.series = processedEvents.map((evt) => {
-        const df = arrayToDataFrame([evt]);
+      // Group events by their `lane` field so that each distinct lane value becomes
+      // one DataFrame. The timeseries panel assigns one visual lane per DataFrame,
+      // so this keeps the lane count bounded by the number of distinct lane values
+      // rather than the number of individual annotation events.
+      //
+      // Datasources opt in to multilane by setting a numeric `lane` property on
+      // each AnnotationEvent in their processEvents implementation. Events without
+      // a `lane` value all fall into lane 0.
+      //
+      // TODO: `lane` is not yet a typed field on AnnotationEvent in @grafana/data.
+      // Once it is added (track at https://github.com/grafana/grafana/issues/XXXX),
+      // remove the `as any` casts here and type this properly.
+      const byLane = new Map<number, AnnotationEvent[]>();
+      for (const evt of processedEvents) {
+        const lane: number = (evt as any).lane ?? 0;
+        if (!byLane.has(lane)) {
+          byLane.set(lane, []);
+        }
+        byLane.get(lane)!.push(evt);
+      }
+
+      stateUpdate.series = Array.from(byLane.values()).map((group) => {
+        const df = arrayToDataFrame(group);
         df.meta = {
           ...df.meta,
           dataTopic: DataTopic.Annotations,

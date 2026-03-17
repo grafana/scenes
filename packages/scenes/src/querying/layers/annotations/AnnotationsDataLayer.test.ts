@@ -150,7 +150,7 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
       });
     });
 
-    it('should create one frame per event when multiLane is enabled', (done) => {
+    it('should group events by lane when multiLane is enabled', (done) => {
       const layer = new AnnotationsDataLayer({
         name: 'Test layer',
         multiLane: true,
@@ -158,18 +158,41 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
       });
 
       mockedEvents = [
-        { name: 'time', values: [1, 2, 2, 5, 5] },
-        { name: 'id', values: ['1', '2', '2', '5', '5'] },
-        { name: 'text', values: ['t1', 't2', 't3', 't4', 't5'] },
+        { name: 'time', values: [1, 2, 5] },
+        { name: 'id', values: ['1', '2', '5'] },
+        { name: 'text', values: ['t1', 't2', 't3'] },
       ];
+
+      // Inject a custom processEvents that sets lane on each event so we can
+      // verify that AnnotationsDataLayer groups by lane into separate DataFrames.
+      // Lane 0 receives 2 events, lane 1 receives 1 event → 2 frames total.
+      getDataSourceMock.mockReturnValueOnce({
+        annotations: {
+          prepareAnnotation: (q: AnnotationQuery) => q,
+          prepareQuery: (q: AnnotationQuery) => q,
+          processEvents: (_anno: AnnotationQuery, _data: unknown) =>
+            of([
+              { time: 1, id: '1', text: 't1', lane: 0 },
+              { time: 2, id: '2', text: 't2', lane: 0 },
+              { time: 5, id: '5', text: 't3', lane: 1 },
+            ]),
+        },
+        query: () =>
+          of({
+            data: [toDataFrame({ fields: mockedEvents })],
+          }),
+      });
 
       layer.activate();
 
       layer.getResultsStream().subscribe((res) => {
         expect(res.data.series).toBeDefined();
-        // 3 unique events after dedup, each in its own frame
-        expect(res.data.series?.length).toBe(3);
-        expect(res.data.series?.[0].length).toBe(1);
+        // 2 distinct lane values → 2 frames
+        expect(res.data.series?.length).toBe(2);
+        // lane 0 has 2 events
+        expect(res.data.series?.[0].length).toBe(2);
+        // lane 1 has 1 event
+        expect(res.data.series?.[1].length).toBe(1);
         done();
       });
     });
