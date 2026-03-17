@@ -168,6 +168,23 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * enables drilldown recommendations
    */
   drilldownRecommendationsEnabled?: boolean;
+
+  /**
+   * When true, the "groupBy" operator is available and filters can be used as group-by dimensions.
+   */
+  supportsGroupByOperator?: boolean;
+
+  /**
+   * Placeholder for the group-by key input when using key-only (group-by) mode.
+   */
+  groupByInputPlaceholder?: string;
+
+  /**
+   * Extension hook for customizing the group-by key lookup.
+   * Return replace: true to override the default lookup (ds.getGroupByKeys or ds.getTagKeys).
+   * Return replace: false to combine the results with the default lookup.
+   */
+  getGroupByKeysProvider?: getGroupByKeysProvider;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -187,6 +204,11 @@ export type getTagValuesProvider = (
   filter: AdHocFilterWithLabels
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
+export type getGroupByKeysProvider = (
+  variable: AdHocFiltersVariable,
+  currentKey?: string | null
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
+
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
 
 export type OperatorDefinition = {
@@ -194,6 +216,7 @@ export type OperatorDefinition = {
   description?: string;
   isMulti?: Boolean;
   isRegex?: Boolean;
+  isGroupBy?: boolean;
 };
 
 export const OPERATORS: OperatorDefinition[] = [
@@ -240,6 +263,11 @@ export const OPERATORS: OperatorDefinition[] = [
   {
     value: '>=',
     description: 'Greater than or equal to',
+  },
+  {
+    value: 'groupBy',
+    description: 'Group by',
+    isGroupBy: true,
   },
 ];
 
@@ -492,6 +520,23 @@ export class AdHocFiltersVariable
     if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
+  }
+
+  /**
+   * Add a group-by filter (key only, operator 'groupBy', no value).
+   * Only relevant when supportsGroupByOperator is true.
+   */
+  public _addGroupByFilter(item: SelectableValue<string>): void {
+    const key = item.value ?? '';
+    const keyLabel = item.label ?? key;
+    const newFilter: AdHocFilterWithLabels = {
+      key,
+      keyLabel,
+      operator: 'groupBy',
+      value: '',
+      condition: '',
+    };
+    this.updateFilters([...this.state.filters, newFilter]);
   }
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
@@ -876,6 +921,44 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Get possible group-by keys. Prefers ds.getGroupByKeys, falls back to ds.getTagKeys.
+   * Do not call from plugins directly
+   */
+  public async _getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    const override = await this.state.getGroupByKeysProvider?.(this, currentKey);
+
+    if (override && override.replace) {
+      return dataFromResponse(override.values).map(toSelectableValue);
+    }
+
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    if (!ds || !ds.getGroupByKeys) {
+      return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
+    }
+
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+    const response = await ds.getGroupByKeys({
+      filters: [],
+      queries,
+      timeRange,
+      scopes: sceneGraph.getScopes(this),
+      ...getEnrichedFiltersRequest(this),
+    });
+
+    if (responseHasError(response)) {
+      this.setState({ error: response.error.message });
+    }
+
+    let keys = dataFromResponse(response);
+    if (override) {
+      keys = keys.concat(dataFromResponse(override.values));
+    }
+
+    return keys.map(toSelectableValue);
+  }
+
+  /**
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
   public async _getValuesFor(filter: AdHocFilterWithLabels): Promise<Array<SelectableValue<string>>> {
@@ -942,13 +1025,20 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const { supportsMultiValueOperators, allowCustomValue = true } = this.state;
+    const { 
+      supportsMultiValueOperators, 
+      allowCustomValue = true, 
+      supportsGroupByOperator 
+    } = this.state;
 
-    return OPERATORS.filter(({ isMulti, isRegex }) => {
+    return OPERATORS.filter(({ isMulti, isRegex, isGroupBy }) => {
       if (!supportsMultiValueOperators && isMulti) {
         return false;
       }
       if (!allowCustomValue && isRegex) {
+        return false;
+      }
+      if (!supportsGroupByOperator && isGroupBy) {
         return false;
       }
       return true;
@@ -1031,7 +1121,11 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
-  return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+  return (
+    filter.key !== '' &&
+    filter.operator !== '' &&
+    (filter.operator === 'groupBy' || filter.value !== '')
+  );
 }
 
 export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {

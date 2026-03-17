@@ -20,6 +20,8 @@ export interface AdHocFiltersControllerState {
   collapsible?: boolean;
   valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
+  supportsGroupByOperator?: boolean;
+  groupByInputPlaceholder?: string;
 }
 
 /**
@@ -38,6 +40,13 @@ export interface AdHocFiltersController {
    * @param currentKey - The key being edited (to exclude from filter context)
    */
   getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>>;
+
+  /**
+   * Get possible keys for the group-by dropdown. 
+   * Only relevant when supportsGroupByOperator is true.
+   * @param currentKey - The key being edited (to exclude from filter context), if any
+   */
+  getGroupByKeys?(currentKey: string | null): Promise<Array<SelectableValue<string>>>;
 
   /**
    * Get possible values for a specific filter key.
@@ -97,6 +106,12 @@ export interface AdHocFiltersController {
    * Add a new work-in-progress filter.
    */
   addWip(): void;
+
+  /**
+   * Add a group-by filter (key only, operator 'groupBy', no value).
+   * Only relevant when supportsGroupByOperator is true.
+   */
+  addGroupByFilter?(item: SelectableValue<string>): void;
 
   /**
    * Restore an origin filter to its original value.
