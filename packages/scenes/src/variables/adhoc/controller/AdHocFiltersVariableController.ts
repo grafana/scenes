@@ -3,6 +3,7 @@ import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVari
 import { AdHocFiltersController, AdHocFiltersControllerState } from './AdHocFiltersController';
 import { getQueryController } from '../../../core/sceneGraph/getQueryController';
 import { getInteractionTracker } from '../../../core/sceneGraph/getInteractionTracker';
+import { GROUP_BY_PLACEHOLDER_DEFAULT } from '../AdHocFiltersCombobox/utils';
 
 /**
  * Adapter that wraps AdHocFiltersVariable to implement the AdHocFiltersController interface.
@@ -20,9 +21,11 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       readOnly: state.readOnly,
       allowCustomValue: state.allowCustomValue,
       supportsMultiValueOperators: state.supportsMultiValueOperators,
+      supportsGroupByOperator: state.supportsGroupByOperator,
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
       inputPlaceholder: state.inputPlaceholder,
+      groupByInputPlaceholder: state.groupByInputPlaceholder ?? GROUP_BY_PLACEHOLDER_DEFAULT,
       collapsible: state.collapsible,
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
@@ -81,6 +84,19 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public clearAll(): void {
     this.model.clearAll();
+  }
+
+  public async getGroupByOptions(): Promise<Array<SelectableValue<string>>> {
+    return this.model._getGroupByKeys();
+  }
+
+  public addGroupByFilter(key: string, keyLabel: string): void {
+    this.model.setState({
+      filters: [
+        ...this.model.state.filters,
+        { key, keyLabel, operator: 'groupBy', value: '', condition: '' },
+      ],
+    });
   }
 
   public startProfile(name: string): void {

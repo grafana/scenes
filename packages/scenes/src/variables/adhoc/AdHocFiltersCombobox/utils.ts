@@ -163,7 +163,8 @@ export const generateFilterUpdatePayload = ({
   };
 };
 
-export const INPUT_PLACEHOLDER_DEFAULT = 'Filter by label values';
+export const INPUT_PLACEHOLDER_DEFAULT = '+ key = value';
+export const GROUP_BY_PLACEHOLDER_DEFAULT = '+ key';
 
 export const generatePlaceholder = (
   filter: AdHocFilterWithLabels,
