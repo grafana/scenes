@@ -932,12 +932,15 @@ export class AdHocFiltersVariable
     }
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     if (!ds || !ds.getGroupByKeys) {
       return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
     }
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     const response = await ds.getGroupByKeys({
       filters: [],
       queries,
