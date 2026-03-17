@@ -3581,13 +3581,22 @@ describe('setOriginalFilters', () => {
           applyMode: 'manual',
           filters: setTemplateSrvWithFilters([]),
           getGroupByKeysProvider: () =>
-            Promise.resolve({ replace: true, values: [{ text: 'dim1', value: 'dim1' }, { text: 'dim2', value: 'dim2' }] }),
+            Promise.resolve({
+              replace: true,
+              values: [
+                { text: 'dim1', value: 'dim1' },
+                { text: 'dim2', value: 'dim2' },
+              ],
+            }),
         });
         variable.activate();
 
         const keys = await variable._getGroupByKeys(null);
 
-        expect(keys).toEqual([{ label: 'dim1', value: 'dim1' }, { label: 'dim2', value: 'dim2' }]);
+        expect(keys).toEqual([
+          { label: 'dim1', value: 'dim1' },
+          { label: 'dim2', value: 'dim2' },
+        ]);
       });
     });
   });

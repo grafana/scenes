@@ -42,7 +42,7 @@ export interface AdHocFiltersController {
   getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>>;
 
   /**
-   * Get possible keys for the group-by dropdown. 
+   * Get possible keys for the group-by dropdown.
    * Only relevant when supportsGroupByOperator is true.
    * @param currentKey - The key being edited (to exclude from filter context), if any
    */

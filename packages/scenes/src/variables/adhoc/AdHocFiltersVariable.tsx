@@ -1025,11 +1025,7 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const { 
-      supportsMultiValueOperators, 
-      allowCustomValue = true, 
-      supportsGroupByOperator 
-    } = this.state;
+    const { supportsMultiValueOperators, allowCustomValue = true, supportsGroupByOperator } = this.state;
 
     return OPERATORS.filter(({ isMulti, isRegex, isGroupBy }) => {
       if (!supportsMultiValueOperators && isMulti) {
@@ -1121,11 +1117,7 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
-  return (
-    filter.key !== '' &&
-    filter.operator !== '' &&
-    (filter.operator === 'groupBy' || filter.value !== '')
-  );
+  return filter.key !== '' && filter.operator !== '' && (filter.operator === 'groupBy' || filter.value !== '');
 }
 
 export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
