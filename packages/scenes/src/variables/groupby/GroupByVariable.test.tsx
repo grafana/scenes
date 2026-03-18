@@ -567,10 +567,17 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
 
   describe('_verifyApplicability', () => {
     it('should call getDrilldownsApplicability and update keysApplicability state', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
-        { key: 'key1', applicable: true },
-        { key: 'key2', applicable: false },
-      ]);
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(
+        new Map([
+          [
+            '_default_',
+            [
+              { key: 'key1', applicable: true },
+              { key: 'key2', applicable: false },
+            ],
+          ],
+        ])
+      );
 
       const { variable } = setupTest({ value: ['key1', 'key2'], applicabilityEnabled: true }, undefined, undefined, {
         // @ts-expect-error (temporary till we update grafana/data)
@@ -626,7 +633,9 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
 
     it('should be called during activation handler', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'key1', applicable: true }]);
+      const getDrilldownsApplicabilitySpy = jest
+        .fn()
+        .mockResolvedValue(new Map([['_default_', [{ key: 'key1', applicable: true }]]]));
 
       const { variable } = setupTest({ value: ['key1'], applicabilityEnabled: true }, undefined, undefined, {
         // @ts-expect-error (temporary till we update grafana/data)
@@ -643,10 +652,17 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
 
     it('should pass values to verifyApplicabilitySpy on blur', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
-        { key: 'existingKey', applicable: true },
-        { key: 'newTypedKey', applicable: false },
-      ]);
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(
+        new Map([
+          [
+            '_default_',
+            [
+              { key: 'existingKey', applicable: true },
+              { key: 'newTypedKey', applicable: false },
+            ],
+          ],
+        ])
+      );
 
       const { variable } = setupTest(
         {
@@ -815,7 +831,9 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
 
     it('should add applicable keys to recentGrouping and store in localStorage after verifyApplicabilityAndStoreRecentGrouping', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'value1', applicable: true }]);
+      const getDrilldownsApplicabilitySpy = jest
+        .fn()
+        .mockResolvedValue(new Map([['_default_', [{ key: 'value1', applicable: true }]]]));
 
       const { variable } = setupTest(
         {
@@ -845,7 +863,9 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
 
     it('should not store non-applicable keys in recentGrouping', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'value1', applicable: false }]);
+      const getDrilldownsApplicabilitySpy = jest
+        .fn()
+        .mockResolvedValue(new Map([['_default_', [{ key: 'value1', applicable: false }]]]));
 
       const { variable } = setupTest(
         {
@@ -873,11 +893,18 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
 
     it('should only store applicable keys when some are non-applicable', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
-        { key: 'value1', applicable: true },
-        { key: 'value2', applicable: false },
-        { key: 'value3', applicable: true },
-      ]);
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(
+        new Map([
+          [
+            '_default_',
+            [
+              { key: 'value1', applicable: true },
+              { key: 'value2', applicable: false },
+              { key: 'value3', applicable: true },
+            ],
+          ],
+        ])
+      );
 
       const { variable } = setupTest(
         {
@@ -914,12 +941,19 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       }
       localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(existingGroupings));
 
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
-        { key: 'newValue1', applicable: true },
-        { key: 'newValue2', applicable: true },
-        { key: 'newValue3', applicable: true },
-        { key: 'newValue4', applicable: true },
-      ]);
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(
+        new Map([
+          [
+            '_default_',
+            [
+              { key: 'newValue1', applicable: true },
+              { key: 'newValue2', applicable: true },
+              { key: 'newValue3', applicable: true },
+              { key: 'newValue4', applicable: true },
+            ],
+          ],
+        ])
+      );
 
       const { variable } = setupTest(
         {
@@ -947,10 +981,17 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
 
     it('should set in browser storage with applicable values', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([
-        { key: 'value1', applicable: true },
-        { key: 'value2', applicable: true },
-      ]);
+      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(
+        new Map([
+          [
+            '_default_',
+            [
+              { key: 'value1', applicable: true },
+              { key: 'value2', applicable: true },
+            ],
+          ],
+        ])
+      );
 
       const { variable } = setupTest(
         {
@@ -976,7 +1017,9 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
     });
 
     it('should not store anything if drilldownRecommendationsEnabled is false', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'value1', applicable: true }]);
+      const getDrilldownsApplicabilitySpy = jest
+        .fn()
+        .mockResolvedValue(new Map([['_default_', [{ key: 'value1', applicable: true }]]]));
 
       const { variable } = setupTest(
         {

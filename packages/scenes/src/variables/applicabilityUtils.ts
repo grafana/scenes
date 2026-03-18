@@ -1,7 +1,6 @@
 import {
   // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
-  Scope,
 } from '@grafana/data';
 
 const COMPOSITE_KEY_SEPARATOR = '|';
@@ -36,21 +35,4 @@ export function buildApplicabilityMatcher(response: DrilldownsApplicability[]) {
   return (key: string, origin?: string, index?: number): DrilldownsApplicability | undefined => {
     return map.get(compositeKey(key, origin, index));
   };
-}
-
-export function buildApplicabilityCacheKey(parts: {
-  filters?: Array<{ origin?: string; key: string; operator: string; value: string; values?: string[] }>;
-  groupByKeys?: string[];
-  scopes: Scope[] | undefined;
-}): string {
-  return JSON.stringify({
-    filters: parts.filters?.map((f) => ({
-      origin: f.origin,
-      key: f.key,
-      operator: f.operator,
-      value: f.values?.length ? f.values.join(',') : f.value,
-    })),
-    groupByKeys: parts.groupByKeys,
-    scopes: parts.scopes?.map((s) => s.metadata.name),
-  });
 }

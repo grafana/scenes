@@ -12,15 +12,9 @@ import {
 } from '@grafana/data';
 import { allActiveGroupByVariables } from './findActiveGroupByVariablesByUid';
 import { DataSourceRef, VariableType } from '@grafana/schema';
-import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler, SceneDataQuery } from '../../core/types';
+import { SceneComponentProps, ControlsLayout, SceneObjectUrlSyncHandler } from '../../core/types';
 import { sceneGraph } from '../../core/sceneGraph';
-import {
-  SceneVariableValueChangedEvent,
-  ValidateAndUpdateResult,
-  VariableValue,
-  VariableValueOption,
-  VariableValueSingle,
-} from '../types';
+import { ValidateAndUpdateResult, VariableValue, VariableValueOption, VariableValueSingle } from '../types';
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from '../variants/MultiValueVariable';
 import { from, lastValueFrom, map, mergeMap, Observable, of, take, tap } from 'rxjs';
 import { getDataSource } from '../../utils/getDataSource';
@@ -39,7 +33,6 @@ import { getInteractionTracker } from '../../core/sceneGraph/getInteractionTrack
 import { GROUPBY_DIMENSIONS_INTERACTION } from '../../performance/interactionConstants';
 import { css, cx } from '@emotion/css';
 import { GroupByRecommendations } from './GroupByRecommendations';
-import { buildApplicabilityCacheKey } from '../applicabilityUtils';
 
 export interface GroupByVariableState extends MultiValueVariableState {
   /** Defaults to "Group" */
@@ -112,7 +105,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
 
   private _recommendations: GroupByRecommendations | undefined;
-  private _lastApplicabilityCacheKey?: string;
 
   public validateAndUpdate(): Observable<ValidateAndUpdateResult> {
     return this.getValueOptions({}).pipe(
@@ -222,8 +214,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   private _activationHandler = () => {
-    this._verifyApplicability();
-
     if (this.state.defaultValue) {
       if (this.checkIfRestorable(this.state.value)) {
         this.setState({ restorable: true });
@@ -231,8 +221,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     return () => {
-      this._lastApplicabilityCacheKey = undefined;
-
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
       }
@@ -261,63 +249,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     });
 
     return applicableValues;
-  }
-
-  public async getGroupByApplicabilityForQueries(
-    value: VariableValue,
-    queries: SceneDataQuery[]
-  ): Promise<DrilldownsApplicability[] | undefined> {
-    const ds = await getDataSource(this.state.datasource, this._scopedVars);
-
-    // @ts-expect-error (temporary till we update grafana/data)
-    if (!ds.getDrilldownsApplicability) {
-      return;
-    }
-
-    const timeRange = sceneGraph.getTimeRange(this).state.value;
-
-    // @ts-expect-error (temporary till we update grafana/data)
-    return await ds.getDrilldownsApplicability({
-      groupByKeys: Array.isArray(value) ? value.map((v) => String(v)) : value ? [String(value)] : [],
-      queries,
-      timeRange,
-      scopes: sceneGraph.getScopes(this),
-      ...getEnrichedFiltersRequest(this),
-    });
-  }
-
-  public async _verifyApplicability() {
-    if (!this.state.applicabilityEnabled) {
-      return;
-    }
-
-    const queries = getQueriesForVariables(this);
-    const value = this.state.value;
-    const scopes = sceneGraph.getScopes(this);
-
-    const cacheKey = buildApplicabilityCacheKey({
-      groupByKeys: Array.isArray(value) ? value.map(String) : [String(value ?? '')],
-      scopes,
-    });
-    if (cacheKey === this._lastApplicabilityCacheKey) {
-      return;
-    }
-
-    const response = await this.getGroupByApplicabilityForQueries(value, queries);
-
-    if (!response) {
-      return;
-    }
-
-    this._lastApplicabilityCacheKey = cacheKey;
-
-    if (!isEqual(response, this.state.keysApplicability)) {
-      this.setState({ keysApplicability: response ?? undefined, applicabilityEnabled: true });
-
-      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-    } else {
-      this.setState({ applicabilityEnabled: true });
-    }
   }
 
   // This method is related to the defaultValue property. We check if the current value
@@ -399,9 +330,7 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     return keys;
   };
 
-  public async _verifyApplicabilityAndStoreRecentGrouping() {
-    await this._verifyApplicability();
-
+  public _verifyApplicabilityAndStoreRecentGrouping() {
     if (!this._recommendations) {
       return;
     }

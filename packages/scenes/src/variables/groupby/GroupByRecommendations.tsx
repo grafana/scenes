@@ -13,7 +13,7 @@ import { VariableValueSingle } from '../types';
 import { isArray } from 'lodash';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
-import { buildApplicabilityMatcher } from '../applicabilityUtils';
+
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { Unsubscribable } from 'rxjs';
 
@@ -50,11 +50,7 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
     const json = store.get(this._getStorageKey());
     const storedGroupings = json ? JSON.parse(json) : [];
 
-    if (storedGroupings.length > 0) {
-      this._verifyRecentGroupingsApplicability(storedGroupings);
-    } else {
-      this.setState({ recentGrouping: [] });
-    }
+    this.setState({ recentGrouping: storedGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
 
     this._fetchRecommendedDrilldowns();
 
@@ -67,13 +63,6 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
       this._subs.add(
         (scopesSubscription = scopesVariable.subscribeToState((newState, prevState) => {
           if (newState.scopes !== prevState.scopes) {
-            const json = store.get(this._getStorageKey());
-            const storedGroupings = json ? JSON.parse(json) : [];
-
-            if (storedGroupings.length > 0) {
-              this._verifyRecentGroupingsApplicability(storedGroupings);
-            }
-
             this._fetchRecommendedDrilldowns();
           }
         }))
@@ -83,13 +72,6 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
     this._subs.add(
       (groupBySubscription = this._groupBy.subscribeToState((newState, prevState) => {
         if (newState.value !== prevState.value) {
-          const json = store.get(this._getStorageKey());
-          const storedGroupings = json ? JSON.parse(json) : [];
-
-          if (storedGroupings.length > 0) {
-            this._verifyRecentGroupingsApplicability(storedGroupings);
-          }
-
           this._fetchRecommendedDrilldowns();
         }
       }))
@@ -143,28 +125,6 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
     } catch (error) {
       console.error('Failed to fetch recommended drilldowns:', error);
     }
-  }
-
-  private async _verifyRecentGroupingsApplicability(storedGroupings: Array<SelectableValue<VariableValueSingle>>) {
-    const queries = getQueriesForVariables(this._groupBy);
-    const keys = storedGroupings.map((g) => String(g.value));
-    const response = await this._groupBy.getGroupByApplicabilityForQueries(keys, queries);
-
-    if (!response) {
-      this.setState({ recentGrouping: storedGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
-      return;
-    }
-
-    const matcher = buildApplicabilityMatcher(response);
-
-    const applicableGroupings = storedGroupings
-      .filter((g) => {
-        const result = matcher(String(g.value));
-        return !result || result.applicable;
-      })
-      .slice(-MAX_RECENT_DRILLDOWNS);
-
-    this.setState({ recentGrouping: applicableGroupings });
   }
 
   /**

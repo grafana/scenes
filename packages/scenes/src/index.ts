@@ -42,6 +42,7 @@ export { SceneTimeZoneOverride } from './core/SceneTimeZoneOverride';
 export { SceneQueryRunner, type QueryRunnerState } from './querying/SceneQueryRunner';
 export { DataProviderProxy } from './querying/DataProviderProxy';
 export { buildApplicabilityMatcher } from './variables/applicabilityUtils';
+export { findClosestAdHocFilterInHierarchy } from './variables/adhoc/patchGetAdhocFilters';
 export {
   type ExtraQueryDescriptor,
   type ExtraQueryProvider,

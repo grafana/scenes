@@ -3,14 +3,14 @@ import { store } from '@grafana/data';
 import { sceneGraph } from '../../core/sceneGraph';
 import { getEnrichedDataRequest } from '../../querying/getEnrichedDataRequest';
 import { getQueriesForVariables } from '../utils';
-import { getDataSource } from '../../utils/getDataSource';
+
 import { DrilldownRecommendations, DrilldownPill } from '../components/DrilldownRecommendations';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../constants';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
-import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
+
 import { Unsubscribable } from 'rxjs';
 import { buildApplicabilityMatcher } from '../applicabilityUtils';
 
@@ -40,10 +40,6 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     }
 
     return this.parent;
-  }
-
-  private get _scopedVars() {
-    return { __sceneObject: wrapInSafeSerializableSceneObject(this._adHocFilter) };
   }
 
   private _activationHandler = () => {
@@ -107,7 +103,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
 
   private async _fetchRecommendedDrilldowns() {
     const adhoc = this._adHocFilter;
-    const ds = await getDataSource(adhoc.state.datasource, this._scopedVars);
+    const ds = await adhoc.getResolvedDataSource();
 
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getRecommendedDrilldowns) {

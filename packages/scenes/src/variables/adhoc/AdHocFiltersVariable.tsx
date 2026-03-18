@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import {
   AdHocVariableFilter,
+  DataSourceApi,
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
@@ -32,7 +33,7 @@ import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
 import { debounce, isEqual } from 'lodash';
-import { buildApplicabilityMatcher, buildApplicabilityCacheKey } from '../applicabilityUtils';
+import { buildApplicabilityMatcher } from '../applicabilityUtils';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
@@ -274,7 +275,9 @@ export class AdHocFiltersVariable
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
   private _debouncedVerifyApplicability = debounce(this._verifyApplicability, 100);
-  private _lastApplicabilityCacheKey?: string;
+
+  private _resolvedDs?: DataSourceApi;
+  private _resolvedDsUid?: string;
 
   private _recommendations: AdHocFiltersRecommendations | undefined;
 
@@ -319,7 +322,8 @@ export class AdHocFiltersVariable
     this._debouncedVerifyApplicability();
 
     return () => {
-      this._lastApplicabilityCacheKey = undefined;
+      this._resolvedDs = undefined;
+      this._resolvedDsUid = undefined;
       this.state.originFilters?.forEach((filter) => {
         if (filter.restorable) {
           this.restoreOriginalFilter(filter);
@@ -717,11 +721,25 @@ export class AdHocFiltersVariable
     }
   }
 
+  public async getResolvedDataSource(): Promise<DataSourceApi | undefined> {
+    const currentUid = this.state.datasource?.uid;
+    if (this._resolvedDs && this._resolvedDsUid === currentUid) {
+      return this._resolvedDs;
+    }
+
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    if (ds) {
+      this._resolvedDs = ds;
+      this._resolvedDsUid = currentUid;
+    }
+    return ds;
+  }
+
   public async getFiltersApplicabilityForQueries(
     filters: AdHocFilterWithLabels[],
     queries: SceneDataQuery[]
   ): Promise<DrilldownsApplicability[] | undefined> {
-    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    const ds = await this.getResolvedDataSource();
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getDrilldownsApplicability) {
       return;
@@ -730,13 +748,15 @@ export class AdHocFiltersVariable
     const timeRange = sceneGraph.getTimeRange(this).state.value;
 
     // @ts-expect-error (temporary till we update grafana/data)
-    return await ds.getDrilldownsApplicability({
+    const result: Map<string, DrilldownsApplicability[]> = await ds.getDrilldownsApplicability({
       filters,
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
+
+    return result?.get('_default_');
   }
 
   public async _verifyApplicability() {
@@ -746,29 +766,12 @@ export class AdHocFiltersVariable
 
     const filters = [...(this.state.originFilters ?? []), ...this.state.filters];
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
-    const scopes = sceneGraph.getScopes(this);
-
-    const cacheKey = buildApplicabilityCacheKey({
-      filters: filters.map((f) => ({
-        origin: f.origin,
-        key: f.key,
-        operator: f.operator,
-        value: f.value,
-        values: f.values,
-      })),
-      scopes,
-    });
-    if (cacheKey === this._lastApplicabilityCacheKey) {
-      return;
-    }
 
     const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
 
     if (!response) {
       return;
     }
-
-    this._lastApplicabilityCacheKey = cacheKey;
 
     const matchResult = buildApplicabilityMatcher(response);
 

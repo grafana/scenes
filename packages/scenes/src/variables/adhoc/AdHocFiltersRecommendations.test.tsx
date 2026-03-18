@@ -234,7 +234,7 @@ let runRequestSet = false;
 function setup(overrides?: Partial<AdHocFiltersVariableState>) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
-  const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([]);
+  const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(new Map([['_default_', []]]));
   const getRecommendedDrilldownsSpy = jest.fn().mockResolvedValue({ filters: [] });
 
   setDataSourceSrv({

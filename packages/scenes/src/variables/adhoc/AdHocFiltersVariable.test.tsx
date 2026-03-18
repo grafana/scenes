@@ -3321,12 +3321,13 @@ function setup(
           getDrilldownsApplicability(options: any) {
             getDrilldownsApplicabilitySpy(options);
             const nonApplicableKeys = new Set(['pod', 'static']);
-            return (options.filters ?? []).map((f: any) => ({
+            const results = (options.filters ?? []).map((f: any) => ({
               key: f.key,
               applicable: !nonApplicableKeys.has(f.key),
               ...(nonApplicableKeys.has(f.key) && { reason: 'reason' }),
               ...(f.origin && { origin: f.origin }),
             }));
+            return new Map([['_default_', results]]);
           },
         }),
       };

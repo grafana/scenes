@@ -189,7 +189,7 @@ describe('GroupByRecommendations', () => {
   describe('addValueToParent', () => {
     it('should add value to parent variable', async () => {
       const getRecommendedDrilldowns = jest.fn().mockResolvedValue(undefined);
-      const getDrilldownsApplicability = jest.fn().mockResolvedValue(undefined);
+      const getDrilldownsApplicability = jest.fn().mockResolvedValue(new Map([['_default_', []]]));
 
       const { variable } = setupTest(
         {
@@ -261,7 +261,9 @@ describe('GroupByRecommendations', () => {
 
   describe('integration with parent variable', () => {
     it('should store recent grouping when parent calls _verifyApplicabilityAndStoreRecentGrouping', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'value1', applicable: true }]);
+      const getDrilldownsApplicabilitySpy = jest
+        .fn()
+        .mockResolvedValue(new Map([['_default_', [{ key: 'value1', applicable: true }]]]));
 
       const { variable } = setupTest(
         {
@@ -294,7 +296,9 @@ describe('GroupByRecommendations', () => {
     });
 
     it('should not store non-applicable values', async () => {
-      const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'value1', applicable: false }]);
+      const getDrilldownsApplicabilitySpy = jest
+        .fn()
+        .mockResolvedValue(new Map([['_default_', [{ key: 'value1', applicable: false }]]]));
 
       const { variable } = setupTest(
         {
@@ -369,7 +373,7 @@ interface DsOverrides {
 function setupTest(overrides?: Partial<GroupByVariableState>, dsOverrides?: DsOverrides) {
   const getGroupByKeysSpy = jest.fn().mockResolvedValue([{ text: 'key3', value: 'key3' }]);
   const getDrilldownsApplicabilitySpy =
-    dsOverrides?.getDrilldownsApplicability ?? jest.fn().mockResolvedValue(undefined);
+    dsOverrides?.getDrilldownsApplicability ?? jest.fn().mockResolvedValue(new Map([['_default_', []]]));
   const getRecommendedDrilldownsSpy = dsOverrides?.getRecommendedDrilldowns ?? jest.fn().mockResolvedValue(undefined);
 
   setDataSourceSrv({
