@@ -5,6 +5,13 @@ import { VariableType, VariableHide } from '@grafana/schema';
 
 import { SceneObject, SceneObjectState } from '../core/types';
 
+export interface DataSourceControlRef {
+  type: 'datasource';
+  group: string;
+}
+
+export type ControlSourceRef = DataSourceControlRef;
+
 export interface SceneVariableState extends SceneObjectState {
   type: VariableType;
   name: string;
@@ -14,6 +21,8 @@ export interface SceneVariableState extends SceneObjectState {
   loading?: boolean;
   error?: any | null;
   description?: string | null;
+  // Tells which source registered the variable.
+  origin?: ControlSourceRef;
 }
 
 export interface SceneVariable<TState extends SceneVariableState = SceneVariableState> extends SceneObject<TState> {
@@ -45,6 +54,11 @@ export interface SceneVariable<TState extends SceneVariableState = SceneVariable
   onCancel?(): void;
 
   /**
+   * Edge case for variables that are hidden but wants to be render to access react contexts (ScopesVariable)
+   */
+  UNSAFE_renderAsHidden?: boolean;
+
+  /**
    * @experimental
    * Indicates that a variable loads values lazily when user interacts with the variable dropdown.
    */
@@ -67,10 +81,12 @@ export interface CustomVariableValue {
 }
 
 export interface ValidateAndUpdateResult {}
+export type VariableValueOptionProperties = Record<string, any>;
 export interface VariableValueOption {
   label: string;
   value: VariableValueSingle;
   group?: string;
+  properties?: VariableValueOptionProperties;
 }
 
 export interface SceneVariableSetState extends SceneObjectState {

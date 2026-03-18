@@ -20,7 +20,6 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Test of variables and adhoc filters with vertical layout',
 
     getScene: () => {
       return new EmbeddedScene({
@@ -69,17 +68,17 @@ export function getVerticalControlsLayoutDemo(defaults: SceneAppPageState) {
               applyMode: 'manual',
               filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
               getTagKeysProvider: async (variable: AdHocFiltersVariable, currentKey: string | null) => {
-                await new Promise((resolve)=>setTimeout(resolve, 200));
+                await new Promise((resolve) => setTimeout(resolve, 200));
                 return {
                   replace: true,
-                  values: [{text: 'job'}, {text: 'instance'}],
+                  values: [{ text: 'job' }, { text: 'instance' }],
                 };
               },
               getTagValuesProvider: async (variable: AdHocFiltersVariable, filter: AdHocVariableFilter) => {
-                await new Promise((resolve)=>setTimeout(resolve, 400));
+                await new Promise((resolve) => setTimeout(resolve, 400));
                 return {
                   replace: true,
-                  values: ['A', 'B', 'C', 'D', 'E', 'F', 'grafana'].map((v)=>({text: v})),
+                  values: ['A', 'B', 'C', 'D', 'E', 'F', 'grafana'].map((v) => ({ text: v })),
                 };
               },
             }),

@@ -52,12 +52,15 @@ function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
           return (
             <Menu.Item
               key={item.text}
+              role="menuitem"
               label={item.text}
               icon={item.iconClassName}
               childItems={item.subMenu ? renderItems(item.subMenu) : undefined}
               url={item.href}
               onClick={item.onClick}
               shortcut={item.shortcut}
+              // @ts-expect-error TODO: remove suppression after updating grafana/data
+              target={item.target || undefined}
               testId={selectors.components.Panels.Panel.menuItems(item.text)}
             />
           );

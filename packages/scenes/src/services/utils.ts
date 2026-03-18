@@ -1,14 +1,17 @@
 import { isEqual } from 'lodash';
 
 import { SceneObject, SceneObjectUrlValue, SceneObjectUrlValues } from '../core/types';
-import { UniqueUrlKeyMapper } from './UniqueUrlKeyMapper';
+import { UniqueUrlKeyMapper, UniqueUrlKeyMapperOptions } from './UniqueUrlKeyMapper';
 
 /**
  * @param root
  * @returns the full scene url state as a object with keys and values
  */
-export function getUrlState(root: SceneObject): SceneObjectUrlValues {
-  const urlKeyMapper = new UniqueUrlKeyMapper();
+export function getUrlState(
+  root: SceneObject,
+  uniqueUrlKeyMapperOptions?: UniqueUrlKeyMapperOptions
+): SceneObjectUrlValues {
+  const urlKeyMapper = new UniqueUrlKeyMapper(uniqueUrlKeyMapperOptions);
   const result: SceneObjectUrlValues = {};
 
   const visitNode = (obj: SceneObject) => {
@@ -34,8 +37,12 @@ export function getUrlState(root: SceneObject): SceneObjectUrlValues {
  * Exported util function to sync state from an initial url state.
  * Useful for initializing an embedded scenes with a url state string.
  */
-export function syncStateFromSearchParams(root: SceneObject, urlParams: URLSearchParams) {
-  const urlKeyMapper = new UniqueUrlKeyMapper();
+export function syncStateFromSearchParams(
+  root: SceneObject,
+  urlParams: URLSearchParams,
+  uniqueUrlKeyMapperOptions?: UniqueUrlKeyMapperOptions
+) {
+  const urlKeyMapper = new UniqueUrlKeyMapper(uniqueUrlKeyMapperOptions);
   syncStateFromUrl(root, urlParams, urlKeyMapper);
 }
 

@@ -14,8 +14,8 @@ export const passthroughProcessor: ExtraQueryDataProcessor = (_, secondary) => o
 //
 // The output is a single frame with the primary series and all processed
 // secondary series combined.
-export const extraQueryProcessingOperator = (processors: Map<string, ExtraQueryDataProcessor>) =>
-  (data: Observable<[PanelData, ...PanelData[]]>) => {
+export const extraQueryProcessingOperator =
+  (processors: Map<string, ExtraQueryDataProcessor>) => (data: Observable<[PanelData, ...PanelData[]]>) => {
     return data.pipe(
       mergeMap(([primary, ...secondaries]) => {
         const processedSecondaries = secondaries.flatMap((s) => {
@@ -29,4 +29,4 @@ export const extraQueryProcessingOperator = (processors: Map<string, ExtraQueryD
         annotations: [...(primary.annotations ?? []), ...processedSecondaries.flatMap((s) => s.annotations ?? [])],
       }))
     );
-  }
+  };

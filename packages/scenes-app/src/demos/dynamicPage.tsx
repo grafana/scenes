@@ -19,7 +19,6 @@ export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
 
   const page = new SceneAppPage({
     ...defaults,
-    subTitle: 'Dynamic tabs, and drilldowns. Adds a tab with drilldown after 2 seconds.',
     $timeRange: new SceneTimeRange(),
     controls: [new SceneTimePicker({}), new SceneRefreshPicker({})],
     tabs: defaultTabs,
@@ -29,6 +28,7 @@ export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
       new SceneAppPage({
         title: 'Loading...',
         url: '',
+        routePath: '*',
         getScene: () =>
           new EmbeddedScene({
             body: new SceneReactObject({
@@ -61,6 +61,7 @@ export function getDynamicPageDemo(defaults: SceneAppPageState): SceneAppPage {
 function getSceneAppPage(url: string, name: string) {
   return new SceneAppPage({
     title: name,
+    routePath: url,
     url: `${demoUrl('dynamic-page')}${url}`,
     getScene: () => {
       return new EmbeddedScene({

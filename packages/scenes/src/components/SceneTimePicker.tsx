@@ -2,16 +2,26 @@ import React from 'react';
 import { useLocalStorage } from 'react-use';
 import { uniqBy } from 'lodash';
 
-import { TimeRange, isDateTime, rangeUtil, toUtc } from '@grafana/data';
+import {
+  TimeOption,
+  TimeRange,
+  intervalToAbbreviatedDurationString,
+  isDateTime,
+  rangeUtil,
+  toUtc,
+} from '@grafana/data';
 import { TimeRangePicker } from '@grafana/ui';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneComponentProps, SceneObjectState } from '../core/types';
+import { t } from '@grafana/i18n';
 
 export interface SceneTimePickerState extends SceneObjectState {
   hidePicker?: boolean;
   isOnCanvas?: boolean;
+  quickRanges?: TimeOption[];
+  defaultQuickRanges?: TimeOption[]; // Overrides default time ranges from server config, so not serialised back to JSON
 }
 
 export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
@@ -42,7 +52,7 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
       state: { value: range },
     } = timeRange;
 
-    timeRange.onTimeRangeChange(getShiftedTimeRange(TimeRangeDirection.Backward, range, Date.now()));
+    timeRange.onTimeRangeChange(getShiftedTimeRange(TimeRangeDirection.Backward, range));
   };
 
   public onMoveForward = () => {
@@ -56,7 +66,7 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
-  const { hidePicker, isOnCanvas } = model.useState();
+  const { hidePicker, isOnCanvas, quickRanges, defaultQuickRanges } = model.useState();
   const timeRange = sceneGraph.getTimeRange(model);
   const timeZone = timeRange.getTimeZone();
   const timeRangeState = timeRange.useState();
@@ -69,6 +79,20 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
   if (hidePicker) {
     return null;
   }
+
+  const rangesToUse = quickRanges || defaultQuickRanges;
+
+  // Calculate half of the time range duration for forward/backward movement
+  const halfSpanMs = (timeRangeState.value.to.valueOf() - timeRangeState.value.from.valueOf()) / 2;
+
+  const moveBackwardDuration = intervalToAbbreviatedDurationString({
+    start: new Date(timeRangeState.value.from.valueOf()),
+    end: new Date(timeRangeState.value.from.valueOf() + halfSpanMs),
+  });
+
+  // Only show forward duration if moving forward wouldn't exceed current time
+  const canMoveForward = timeRangeState.value.to.valueOf() + halfSpanMs <= Date.now();
+  const moveForwardDuration = canMoveForward ? moveBackwardDuration : undefined;
 
   return (
     <TimeRangePicker
@@ -85,12 +109,25 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       fiscalYearStartMonth={timeRangeState.fiscalYearStartMonth}
       onMoveBackward={model.onMoveBackward}
       onMoveForward={model.onMoveForward}
+      // @ts-expect-error (temporary till we update grafana/ui)
+      moveForwardTooltip={
+        moveForwardDuration
+          ? t('grafana-scenes.components.time-picker.move-forward-tooltip', 'Move {{moveForwardDuration}} forward', {
+              moveForwardDuration,
+            })
+          : undefined
+      }
+      moveBackwardTooltip={t(
+        'grafana-scenes.components.time-picker.move-backward-tooltip',
+        'Move {{moveBackwardDuration}} backward',
+        { moveBackwardDuration }
+      )}
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
-      // @ts-ignore TODO remove after grafana/ui update to 11.2.0
       weekStart={timeRangeState.weekStart}
       history={timeRangeHistory}
+      quickRanges={rangesToUse}
     />
   );
 }
@@ -112,7 +149,7 @@ export enum TimeRangeDirection {
   Forward,
 }
 
-export function getShiftedTimeRange(dir: TimeRangeDirection, timeRange: TimeRange, upperLimit: number): TimeRange {
+export function getShiftedTimeRange(dir: TimeRangeDirection, timeRange: TimeRange, upperLimit?: number): TimeRange {
   const oldTo = timeRange.to.valueOf();
   const oldFrom = timeRange.from.valueOf();
   const halfSpan = (oldTo - oldFrom) / 2;
@@ -126,7 +163,7 @@ export function getShiftedTimeRange(dir: TimeRangeDirection, timeRange: TimeRang
     fromRaw = oldFrom + halfSpan;
     toRaw = oldTo + halfSpan;
 
-    if (toRaw > upperLimit && oldTo < upperLimit) {
+    if (upperLimit !== undefined && toRaw > upperLimit && oldTo < upperLimit) {
       toRaw = upperLimit;
       fromRaw = oldFrom;
     }

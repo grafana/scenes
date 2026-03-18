@@ -1,4 +1,4 @@
-import { isArray, isEqual } from 'lodash';
+import { isArray, isEqual, property } from 'lodash';
 import { map, Observable } from 'rxjs';
 
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
@@ -20,6 +20,8 @@ import { formatRegistry } from '../interpolation/formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { setBaseClassState } from '../../utils/utils';
+import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../performance/interactionConstants';
+import { getQueryController } from '../../core/sceneGraph/getQueryController';
 
 export interface MultiValueVariableState extends SceneVariableState {
   value: VariableValue; // old current.text
@@ -48,6 +50,8 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
   extends SceneObjectBase<TState>
   implements SceneVariable<TState>
 {
+  private static fieldAccessorCache: FieldAccessorCache = {};
+
   protected _urlSync: SceneObjectUrlSyncHandler = new MultiValueUrlSyncHandler(this);
 
   /**
@@ -165,6 +169,7 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
           stateUpdate.text = validTexts;
         }
       }
+
       return stateUpdate;
     }
 
@@ -179,14 +184,9 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       stateUpdate.value = matchingOption.value;
     } else {
       // Current value is found in options
-      if (this.state.defaultToAll) {
-        stateUpdate.value = ALL_VARIABLE_VALUE;
-        stateUpdate.text = ALL_VARIABLE_TEXT;
-      } else {
-        // Current value is not valid. Set to first of the available options
-        stateUpdate.value = options[0].value;
-        stateUpdate.text = options[0].label;
-      }
+      const defaultState = this.getDefaultSingleState(options);
+      stateUpdate.value = defaultState.value;
+      stateUpdate.text = defaultState.label;
     }
 
     return stateUpdate;
@@ -213,28 +213,70 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     this.skipNextValidation = false;
   }
 
-  public getValue(): VariableValue {
+  public getValue(fieldPath?: string): VariableValue {
+    let value = this.state.value;
+
     if (this.hasAllValue()) {
       if (this.state.allValue) {
         return new CustomAllValue(this.state.allValue, this);
       }
-
-      return this.state.options.map((x) => x.value);
+      value = this.state.options.map((o) => o.value);
     }
 
-    return this.state.value;
+    if (fieldPath != null) {
+      return this.getFieldAtPath(value, fieldPath);
+    }
+
+    return value;
   }
 
-  public getValueText(): string {
+  public getValueText(fieldPath?: string): string {
     if (this.hasAllValue()) {
       return ALL_VARIABLE_TEXT;
     }
 
-    if (Array.isArray(this.state.text)) {
-      return this.state.text.join(' + ');
+    const text = fieldPath != null ? this.getFieldAtPath(this.state.value, fieldPath, true) : this.state.text;
+
+    return Array.isArray(text) ? text.join(' + ') : String(text);
+  }
+
+  private getFieldAtPath(value: VariableValue, fieldPath: string, returnText = false) {
+    const accesor = this.getFieldAccessor(fieldPath);
+
+    if (Array.isArray(value)) {
+      const index = parseInt(fieldPath, 10);
+
+      if (!isNaN(index) && index >= 0 && index < value.length) {
+        const v = value[index];
+        if (!returnText) {
+          return v;
+        }
+
+        const o = this.state.options.find((o) => o.value === v);
+        return o ? o.label : String(v);
+      }
+
+      return value.map((v) => {
+        const o = this.state.options.find((o) => o.value === v);
+        return o ? accesor(o.properties) : v;
+      });
     }
 
-    return String(this.state.text);
+    const o = this.state.options.find((o) => o.value === value);
+    if (o) {
+      return accesor(o.properties);
+    }
+
+    return returnText ? this.state.text : value;
+  }
+
+  private getFieldAccessor(fieldPath: string) {
+    const accessor = MultiValueVariable.fieldAccessorCache[fieldPath];
+    if (accessor) {
+      return accessor;
+    }
+
+    return (MultiValueVariable.fieldAccessorCache[fieldPath] = property(fieldPath));
   }
 
   public hasAllValue() {
@@ -246,16 +288,26 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     if (this.state.defaultToAll) {
       return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
     } else if (options.length > 0) {
-      return { value: [options[0].value], text: [options[0].label] };
+      return { value: [options[0].value], text: [options[0].label], properties: [options[0].properties] };
     } else {
       return { value: [], text: [] };
+    }
+  }
+
+  protected getDefaultSingleState(options: VariableValueOption[]): VariableValueOption {
+    if (this.state.defaultToAll) {
+      return { value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT };
+    } else if (options.length > 0) {
+      return { value: options[0].value, label: options[0].label, properties: options[0].properties };
+    } else {
+      return { value: '', label: '' };
     }
   }
 
   /**
    * Change the value and publish SceneVariableValueChangedEvent event.
    */
-  public changeValueTo(value: VariableValue, text?: VariableValue) {
+  public changeValueTo(value: VariableValue, text?: VariableValue, isUserAction = false) {
     // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
@@ -296,7 +348,19 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       return;
     }
 
-    this.setStateHelper({ value, text, loading: false });
+    const stateChangeAction = () => this.setStateHelper({ value, text, loading: false });
+    /**
+     * Because variable state changes can cause a whole chain of downstream state changes in other variables (that also cause URL update)
+     * Only some variable changes should add new history items to make sure the browser history contains valid URL states to go back to.
+     */
+    if (isUserAction) {
+      const queryController = getQueryController(this);
+      queryController?.startProfile(VARIABLE_VALUE_CHANGED_INTERACTION);
+      this._urlSync.performBrowserHistoryAction?.(stateChangeAction);
+    } else {
+      stateChangeAction();
+    }
+
     this.publishEvent(new SceneVariableValueChangedEvent(this), true);
   }
 
@@ -325,14 +389,14 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     setBaseClassState<MultiValueVariableState>(this, state);
   }
 
-  public getOptionsForSelect(): VariableValueOption[] {
+  public getOptionsForSelect(includeCurrentValue = true): VariableValueOption[] {
     let options = this.state.options;
 
     if (this.state.includeAll) {
       options = [{ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT }, ...options];
     }
 
-    if (!Array.isArray(this.state.value)) {
+    if (includeCurrentValue && !Array.isArray(this.state.value)) {
       const current = options.find((x) => x.value === this.state.value);
       if (!current) {
         options = [{ value: this.state.value, label: String(this.state.text) }, ...options];
@@ -364,14 +428,14 @@ function findOptionMatchingCurrent(
 ) {
   let textMatch: VariableValueOption | undefined;
 
-  for (const item of options) {
-    if (item.value === currentValue) {
-      return item;
+  for (const o of options) {
+    if (o.value === currentValue) {
+      return o;
     }
 
     // No early return here as want to continue to look a value match
-    if (item.label === currentText) {
-      textMatch = item;
+    if (o.label === currentText) {
+      textMatch = o;
     }
   }
 
@@ -381,9 +445,11 @@ function findOptionMatchingCurrent(
 export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = MultiValueVariableState>
   implements SceneObjectUrlSyncHandler
 {
-  public constructor(private _sceneObject: MultiValueVariable<TState>) {}
+  protected _nextChangeShouldAddHistoryStep = false;
 
-  private getKey(): string {
+  public constructor(protected _sceneObject: MultiValueVariable<TState>) {}
+
+  protected getKey(): string {
     return `var-${this._sceneObject.state.name}`;
   }
 
@@ -403,7 +469,7 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     let urlValue: string | string[] | null = null;
     let value = this._sceneObject.state.value;
 
-    if (Array.isArray(value)) {
+    if (Array.isArray(value) && value.length > 1) {
       urlValue = value.map(String);
     } else if ((this, this._sceneObject.state.isMulti)) {
       // If we are inMulti mode we must return an array here as otherwise UrlSyncManager will not pass all values (in an array) in updateFromUrl
@@ -441,6 +507,16 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
       this._sceneObject.changeValueTo(urlValue);
     }
   }
+
+  public performBrowserHistoryAction(callback: () => void) {
+    this._nextChangeShouldAddHistoryStep = true;
+    callback();
+    this._nextChangeShouldAddHistoryStep = false;
+  }
+
+  public shouldCreateHistoryStep(values: SceneObjectUrlValues): boolean {
+    return this._nextChangeShouldAddHistoryStep;
+  }
 }
 
 function handleLegacyUrlAllValue(value: string | string[]) {
@@ -475,4 +551,8 @@ export class CustomAllValue implements CustomVariableValue {
 
     return this._value;
   }
+}
+
+export interface FieldAccessorCache {
+  [key: string]: (obj: any) => any;
 }

@@ -15,11 +15,13 @@ import { getMessageFromError } from '../../../utils/getMessageFromError';
 import { writeSceneLog } from '../../../utils/writeSceneLog';
 import { registerQueryWithController } from '../../registerQueryWithController';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
-import { DataLayerControlSwitch } from '../SceneDataLayerControls';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
 import { dedupAnnotations, postProcessQueryResult } from './utils';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
 import { RefreshEvent } from '@grafana/runtime';
+import { DrilldownDependenciesManager } from '../../../variables/DrilldownDependenciesManager';
+import { InlineSwitch } from '@grafana/ui';
+import { css } from '@emotion/css';
 
 interface AnnotationsDataLayerState extends SceneDataLayerProviderState {
   query: AnnotationQuery;
@@ -36,6 +38,9 @@ export class AnnotationsDataLayer
   };
   private _timeRangeSub: Unsubscribable | undefined;
 
+  private _drilldownDependenciesManager: DrilldownDependenciesManager<AnnotationsDataLayerState> =
+    new DrilldownDependenciesManager(this._variableDependency);
+
   public constructor(initialState: AnnotationsDataLayerState) {
     super(
       {
@@ -48,8 +53,15 @@ export class AnnotationsDataLayer
 
   public onEnable(): void {
     this.publishEvent(new RefreshEvent(), true);
-    
+
     const timeRange = sceneGraph.getTimeRange(this);
+
+    this.setState({
+      query: {
+        ...this.state.query,
+        enable: true,
+      },
+    });
 
     this._timeRangeSub = timeRange.subscribeToState(() => {
       this.runWithTimeRange(timeRange);
@@ -58,6 +70,13 @@ export class AnnotationsDataLayer
 
   public onDisable(): void {
     this.publishEvent(new RefreshEvent(), true);
+
+    this.setState({
+      query: {
+        ...this.state.query,
+        enable: false,
+      },
+    });
 
     this._timeRangeSub?.unsubscribe();
   }
@@ -71,6 +90,12 @@ export class AnnotationsDataLayer
   private async runWithTimeRange(timeRange: SceneTimeRangeLike) {
     const { query } = this.state;
 
+    if (!query.enable) {
+      return;
+    }
+
+    this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(query.datasource?.uid, this);
+
     if (this.querySub) {
       this.querySub.unsubscribe();
     }
@@ -83,9 +108,16 @@ export class AnnotationsDataLayer
     try {
       const ds = await this.resolveDataSource(query);
 
-      let stream = executeAnnotationQuery(ds, timeRange, query, this).pipe(
+      let stream = executeAnnotationQuery(
+        ds,
+        timeRange,
+        query,
+        this,
+        this._drilldownDependenciesManager.getFilters(),
+        this._drilldownDependenciesManager.getGroupByKeys()
+      ).pipe(
         registerQueryWithController({
-          type: 'annotations',
+          type: 'AnnotationsDataLayer/annotationsLoading',
           origin: this,
           cancel: () => this.cancelQuery(),
         }),
@@ -135,11 +167,24 @@ export class AnnotationsDataLayer
 }
 
 function AnnotationsDataLayerRenderer({ model }: SceneComponentProps<AnnotationsDataLayer>) {
-  const { isHidden } = model.useState();
+  const { isEnabled, isHidden } = model.useState();
+  const elementId = `data-layer-${model.state.key}`;
 
   if (isHidden) {
     return null;
   }
 
-  return <DataLayerControlSwitch layer={model} />;
+  return (
+    <InlineSwitch
+      className={switchStyle}
+      id={elementId}
+      value={isEnabled}
+      onChange={() => model.setState({ isEnabled: !isEnabled })}
+    />
+  );
 }
+
+const switchStyle = css({
+  borderBottomLeftRadius: 0,
+  borderTopLeftRadius: 0,
+});

@@ -1,4 +1,4 @@
-import { ScopedVars } from '@grafana/data';
+import { Scope, ScopedVars } from '@grafana/data';
 import { EmptyDataNode, EmptyVariableSet } from '../../variables/interpolation/defaults';
 
 import { sceneInterpolator } from '../../variables/interpolation/sceneInterpolator';
@@ -7,10 +7,10 @@ import { VariableCustomFormatterFn, SceneVariables } from '../../variables/types
 import { isDataLayer, SceneDataLayerProvider, SceneDataProvider, SceneLayout, SceneObject } from '../types';
 import { lookupVariable } from '../../variables/lookupVariable';
 import { getClosest } from './utils';
-import { SceneQueryControllerLike, isQueryController } from '../../behaviors/SceneQueryController';
 import { VariableInterpolation } from '@grafana/runtime';
-import { QueryVariable } from '../../variables/variants/query/QueryVariable';
 import { UrlSyncManagerLike } from '../../services/UrlSyncManager';
+import { ScopesVariable } from '../../variables/variants/ScopesVariable';
+import { SCOPES_VARIABLE_NAME } from '../../variables/constants';
 
 /**
  * Get the closest node with variables
@@ -77,9 +77,10 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   }
 
   for (const name of sceneObject.variableDependency.getNames()) {
-    // This is for backwards compability. In the old architecture query variables could reference itself in a query without breaking.
-    if (sceneObject instanceof QueryVariable && sceneObject.state.name === name) {
-      console.warn('Query variable is referencing itself');
+    // This is for backwards compatibility to prevent infinite loading.
+    //  In the old architecture variables could reference itself without breaking.
+    if ('name' in sceneObject.state && sceneObject.state.name === name) {
+      console.warn(`Variable ${name} is referencing itself`);
       continue;
     }
 
@@ -117,7 +118,11 @@ function findObjectInternal(
     let maybe = findObjectInternal(child, check);
     if (maybe) {
       found = maybe;
+      // break (exit early) the foreach loop
+      return false;
     }
+
+    return;
   });
 
   if (found) {
@@ -235,10 +240,7 @@ interface SceneType<T> extends Function {
  * A utility function to find the closest ancestor of a given type. This function expects
  * to find it and will throw an error if it does not.
  */
-export function getAncestor<ParentType>(
-  sceneObject: SceneObject,
-  ancestorType: SceneType<ParentType>
-): ParentType {
+export function getAncestor<ParentType>(sceneObject: SceneObject, ancestorType: SceneType<ParentType>): ParentType {
   let parent: SceneObject | undefined = sceneObject;
 
   while (parent) {
@@ -268,26 +270,6 @@ export function findDescendents<T extends SceneObject>(scene: SceneObject, desce
 }
 
 /**
- * Returns the closest query controller undefined if none found
- */
-export function getQueryController(sceneObject: SceneObject): SceneQueryControllerLike | undefined {
-  let parent: SceneObject | undefined = sceneObject;
-
-  while (parent) {
-    if (parent.state.$behaviors) {
-      for (const behavior of parent.state.$behaviors) {
-        if (isQueryController(behavior)) {
-          return behavior;
-        }
-      }
-    }
-    parent = parent.parent;
-  }
-
-  return undefined;
-}
-
-/**
  * Returns the closest SceneObject that has a state property with the
  * name urlSyncManager that is of type UrlSyncManager
  */
@@ -299,6 +281,18 @@ export function getUrlSyncManager(sceneObject: SceneObject): UrlSyncManagerLike 
       return parent.state.urlSyncManager as UrlSyncManagerLike;
     }
     parent = parent.parent;
+  }
+
+  return undefined;
+}
+
+/**
+ * Will return the scopes from the scopes variable if available.
+ */
+export function getScopes(sceneObject: SceneObject): Scope[] | undefined {
+  const scopesVariable = lookupVariable(SCOPES_VARIABLE_NAME, sceneObject);
+  if (scopesVariable instanceof ScopesVariable) {
+    return scopesVariable.state.scopes;
   }
 
   return undefined;

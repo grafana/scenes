@@ -1,4 +1,5 @@
-import React, { RefCallback, useCallback, useMemo } from 'react';
+import { Trans } from '@grafana/i18n';
+import React, { RefCallback, useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
 import { useMeasure } from 'react-use';
 
 // @ts-ignore
@@ -13,6 +14,8 @@ import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '..
 import { VizPanel } from './VizPanel';
 import { css, cx } from '@emotion/css';
 import { debounce } from 'lodash';
+import { VizPanelSeriesLimit } from './VizPanelSeriesLimit';
+import { useLazyLoaderIsInView } from '../layout/LazyLoader';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const {
@@ -22,46 +25,102 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     _pluginLoadError,
     displayMode,
     hoverHeader,
+    showMenuAlways,
     hoverHeaderOffset,
     menu,
     headerActions,
+    subHeader,
     titleItems,
+    seriesLimit,
+    seriesLimitShowAll,
     description,
+    collapsible,
+    collapsed,
     _renderCounter = 0,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const appEvents = useMemo(() => getAppEvents(), []);
 
   const setPanelAttention = useCallback(() => {
-    appEvents.publish(new SetPanelAttentionEvent({ panelId: model.state.key }));
-  }, [model.state.key, appEvents]);
+    if (model.state.key) {
+      appEvents.publish(new SetPanelAttentionEvent({ panelId: model.getPathId() }));
+    }
+  }, [model, appEvents]);
+
   const debouncedMouseMove = useMemo(
     () => debounce(setPanelAttention, 100, { leading: true, trailing: false }),
     [setPanelAttention]
   );
 
+  // S3.0 RENDER TRACKING: Simple timing for performance measurement
+  const profiler = useMemo(() => model.getProfiler(), [model]);
+
+  // Capture render start time immediately when component function runs
+  const currentRenderStart = performance.now();
+
+  const endRenderCallbackRef = React.useRef<((endTimestamp: number, duration: number) => void) | null>(null);
+
+  useLayoutEffect(() => {
+    if (profiler) {
+      const callback = profiler.onSimpleRenderStart(currentRenderStart);
+      endRenderCallbackRef.current = callback || null;
+    }
+  });
+
+  // Use useEffect (after DOM updates) to measure complete render cycle timing
+  useEffect(() => {
+    if (endRenderCallbackRef.current) {
+      const timestamp = performance.now();
+      // Measure from component start to after DOM updates AND effects (complete render cycle)
+      const duration = timestamp - currentRenderStart;
+      endRenderCallbackRef.current(timestamp, duration);
+      endRenderCallbackRef.current = null; // Clear callback after use
+    }
+  });
+
   const plugin = model.getPlugin();
 
   const { dragClass, dragClassCancel } = getDragClasses(model);
+  const dragHooks = getDragHooks(model);
   const dataObject = sceneGraph.getData(model);
 
   const rawData = dataObject.useState();
-  const dataWithFieldConfig = model.applyFieldConfig(rawData.data!);
+  const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
+  const dataWithFieldConfig = model.applyFieldConfig(dataWithSeriesLimit);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
   const timeZone = sceneTimeRange.getTimeZone();
   const timeRange = model.getTimeRange(dataWithFieldConfig);
 
+  // Switch to manual query execution if the panel is outside viewport
+  const isInView = useLazyLoaderIsInView();
+  useEffect(() => {
+    if (dataObject.isInViewChanged) {
+      dataObject.isInViewChanged(isInView);
+    }
+  }, [isInView, dataObject]);
+
   // Interpolate title
   const titleInterpolated = model.interpolate(title, undefined, 'text');
-
   const alertStateStyles = useStyles2(getAlertStateStyles);
 
   if (!plugin) {
-    return <div>Loading plugin panel...</div>;
+    return (
+      <div>
+        <Trans i18nKey="grafana-scenes.components.viz-panel-renderer.loading-plugin-panel">
+          Loading plugin panel...
+        </Trans>
+      </div>
+    );
   }
 
   if (!plugin.panel) {
-    return <div>Panel plugin has no panel component</div>;
+    return (
+      <div>
+        <Trans i18nKey="grafana-scenes.components.viz-panel-renderer.panel-plugin-has-no-panel-component">
+          Panel plugin has no panel component
+        </Trans>
+      </div>
+    );
   }
 
   const PanelComponent = plugin.panel;
@@ -69,6 +128,22 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // If we have a query runner on our level inform it of the container width (used to set auto max data points)
   if (dataObject && dataObject.setContainerWidth) {
     dataObject.setContainerWidth(Math.round(width));
+  }
+
+  let subHeaderElement: React.ReactNode[] = [];
+
+  if (subHeader) {
+    if (Array.isArray(subHeader)) {
+      subHeaderElement = subHeaderElement.concat(
+        subHeader.map((subHeaderItem) => {
+          return <subHeaderItem.Component model={subHeaderItem} key={`${subHeaderItem.state.key}`} />;
+        })
+      );
+    } else if (isSceneObject(subHeader)) {
+      subHeaderElement.push(<subHeader.Component model={subHeader} key={`${subHeader.state.key}`} />);
+    } else {
+      subHeaderElement.push(subHeader);
+    }
   }
 
   let titleItemsElement: React.ReactNode[] = [];
@@ -85,6 +160,18 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     } else {
       titleItemsElement.push(titleItems);
     }
+  }
+
+  if (seriesLimit) {
+    titleItemsElement.push(
+      <VizPanelSeriesLimit
+        key="series-limit"
+        data={rawData.data}
+        seriesLimit={seriesLimit}
+        showAll={seriesLimitShowAll}
+        onShowAllSeries={() => model.setState({ seriesLimitShowAll: !seriesLimitShowAll })}
+      />
+    );
   }
 
   // If we have local time range show that in panel header
@@ -155,20 +242,31 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             statusMessageOnClick={model.onStatusMessageClick}
             width={width}
             height={height}
+            selectionId={model.state.key}
             displayMode={displayMode}
-            hoverHeader={hoverHeader}
-            hoverHeaderOffset={hoverHeaderOffset}
-            titleItems={titleItemsElement}
+            titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
             dragClass={dragClass}
             actions={actionsElement}
             dragClassCancel={dragClassCancel}
             padding={plugin.noPadding ? 'none' : 'md'}
             menu={panelMenu}
             onCancelQuery={model.onCancelQuery}
-            // @ts-ignore
             onFocus={setPanelAttention}
             onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
+            // @ts-expect-error remove this on next grafana/ui update
+            subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
+            onDragStart={(e: React.PointerEvent) => {
+              dragHooks.onDragStart?.(e, model);
+            }}
+            showMenuAlways={showMenuAlways}
+            {...(collapsible
+              ? {
+                  collapsible: Boolean(collapsible),
+                  collapsed,
+                  onToggleCollapse: model.onToggleCollapse,
+                }
+              : { hoverHeader, hoverHeaderOffset })}
           >
             {(innerWidth, innerHeight) => (
               <>
@@ -184,7 +282,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                           timeZone={timeZone}
                           options={options}
                           fieldConfig={fieldConfig}
-                          transparent={false}
+                          transparent={displayMode === 'transparent'}
                           width={innerWidth}
                           height={innerHeight}
                           renderCounter={_renderCounter}
@@ -207,6 +305,19 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   );
 }
 
+function useDataWithSeriesLimit(data: PanelData | undefined, seriesLimit?: number, showAllSeries?: boolean) {
+  return useMemo(() => {
+    if (!data?.series || !seriesLimit || showAllSeries) {
+      return data;
+    }
+
+    return {
+      ...data,
+      series: data.series.slice(0, seriesLimit),
+    };
+  }, [data, seriesLimit, showAllSeries]);
+}
+
 function getDragClasses(panel: VizPanel) {
   const parentLayout = sceneGraph.getLayout(panel);
   const isDraggable = parentLayout?.isDraggable();
@@ -218,19 +329,28 @@ function getDragClasses(panel: VizPanel) {
   return { dragClass: parentLayout.getDragClass?.(), dragClassCancel: parentLayout?.getDragClassCancel?.() };
 }
 
+function getDragHooks(panel: VizPanel) {
+  const parentLayout = sceneGraph.getLayout(panel);
+  return parentLayout?.getDragHooks?.() ?? {};
+}
+
 /**
  * Walks up the parent chain until it hits the layout object, trying to find the closest SceneGridItemLike ancestor.
  * It is not always the direct parent, because the VizPanel can be wrapped in other objects.
  */
 function itemDraggingDisabled(item: SceneObject, layout: SceneLayout) {
-  let ancestor = item.parent;
+  let obj: SceneObject | undefined = item;
 
-  while (ancestor && ancestor !== layout) {
-    if ('isDraggable' in ancestor.state && ancestor.state.isDraggable === false) {
+  while (obj && obj !== layout) {
+    if ('isDraggable' in obj.state && obj.state.isDraggable === false) {
       return true;
     }
 
-    ancestor = ancestor.parent;
+    if ('repeatSourceKey' in obj.state && obj.state.repeatSourceKey) {
+      return true;
+    }
+
+    obj = obj.parent;
   }
 
   return false;

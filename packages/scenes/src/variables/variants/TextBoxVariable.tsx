@@ -21,7 +21,7 @@ export class TextBoxVariable
       ...initialState,
     });
 
-    this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: () => [this.getKey()] });
+    this._urlSync = new SceneObjectUrlSyncConfig(this, { keys: () => this.getKeys() });
   }
 
   public getValue(): VariableValue {
@@ -39,7 +39,19 @@ export class TextBoxVariable
     return `var-${this.state.name}`;
   }
 
+  public getKeys(): string[] {
+    if (this.state.skipUrlSync) {
+      return [];
+    }
+
+    return [this.getKey()];
+  }
+
   public getUrlState() {
+    if (this.state.skipUrlSync) {
+      return {};
+    }
+
     return { [this.getKey()]: this.state.value };
   }
 

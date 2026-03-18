@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { rangeUtil, SelectableValue } from '@grafana/data';
 import { VariableRefresh } from '@grafana/schema';
 import { Select } from '@grafana/ui';
@@ -128,7 +129,7 @@ export class IntervalVariable
     return (
       <Select
         id={key}
-        placeholder="Select value"
+        placeholder={t('grafana-scenes.variables.interval-variable.placeholder-select-value', 'Select value')}
         width="auto"
         value={value}
         tabSelectsValue={false}

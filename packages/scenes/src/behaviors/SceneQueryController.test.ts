@@ -2,8 +2,16 @@ import { LoadingState } from '@grafana/schema';
 import { Observable } from 'rxjs';
 import { SceneObject } from '../core/types';
 import { TestScene } from '../variables/TestScene';
-import { QueryResultWithState, SceneQueryController } from './SceneQueryController';
+import { SceneQueryController } from './SceneQueryController';
 import { registerQueryWithController } from '../querying/registerQueryWithController';
+import { QueryResultWithState } from './types';
+
+// Mock crypto.randomUUID for generateOperationId
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: jest.fn(() => 'test-uuid-1234-5678-9abc-def012345678'),
+  },
+});
 
 describe('SceneQueryController', () => {
   let controller: SceneQueryController;
@@ -81,6 +89,22 @@ describe('SceneQueryController', () => {
     expect(streamFuncs2.cleanup).toHaveBeenCalledTimes(1);
     expect(sub1.closed).toBe(true);
     expect(sub2.closed).toBe(true);
+  });
+
+  it('clears running queries on deactivate', async () => {
+    const deactivate = scene.activate();
+    const { query } = registerQuery(scene);
+    const sub = query.subscribe(() => {});
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(1);
+
+    deactivate();
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(0);
+
+    sub.unsubscribe();
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(0);
   });
 });
 

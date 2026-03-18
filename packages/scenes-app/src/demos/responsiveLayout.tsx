@@ -12,7 +12,6 @@ import { getQueryRunnerWithRandomWalkQuery, getEmbeddedSceneDefaults, getRowWith
 export function getResponsiveLayoutDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Show casing the default and custom responsive options of SceneFlexLayout',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

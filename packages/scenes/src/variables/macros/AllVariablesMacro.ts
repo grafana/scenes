@@ -24,7 +24,7 @@ export class AllVariablesMacro implements FormatVariable {
       const variable = allVars[name];
 
       if (variable instanceof MultiValueVariable && variable.hasAllValue() && !variable.state.allValue) {
-        params.push(format.formatter(ALL_VARIABLE_VALUE, [], variable))
+        params.push(format.formatter(ALL_VARIABLE_VALUE, [], variable));
         continue;
       }
 

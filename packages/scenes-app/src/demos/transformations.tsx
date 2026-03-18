@@ -14,7 +14,6 @@ import { getEmbeddedSceneDefaults, getQueryRunnerWithRandomWalkQuery } from './u
 export function getTransformationsTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Transformations support ',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

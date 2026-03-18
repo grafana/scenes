@@ -19,17 +19,16 @@ import {
 import { Button, Stack } from '@grafana/ui';
 import React from 'react';
 import { getEmbeddedSceneDefaults } from './utils';
+import { SimpleControllerDemo } from './adhocFiltersControllerExample';
 
 export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: `Adhoc filters variable can be used in auto mode. By default datasources will apply the filters automatically to all queries of the same data source.
-     In manual mode you can use it as a normal variable in queries or use it programmtically.
-    `,
     tabs: [
       new SceneAppPage({
         title: 'Apply mode auto',
         url: `${defaults.url}/auto`,
+        routePath: `auto`,
         getScene: () => {
           return new EmbeddedScene({
             ...getEmbeddedSceneDefaults(),
@@ -73,6 +72,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Apply mode manual',
         url: `${defaults.url}/manual`,
+        routePath: `manual`,
         getScene: () => {
           const filtersVar = new AdHocFiltersVariable({
             applyMode: 'manual',
@@ -128,6 +128,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
       new SceneAppPage({
         title: 'Vertical Variants',
         url: `${defaults.url}/vertical`,
+        routePath: `vertical`,
         getScene: () => {
           return new EmbeddedScene({
             ...getEmbeddedSceneDefaults(),
@@ -201,6 +202,7 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
       }),
       new SceneAppPage({
         title: 'New Filters UI',
+        routePath: `new-filters`,
         url: `${defaults.url}/new-filters`,
         getScene: () => {
           return new EmbeddedScene({
@@ -245,6 +247,158 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                       })
                     )
                     .build(),
+                }),
+              ],
+            }),
+            $timeRange: new SceneTimeRange(),
+          });
+        },
+      }),
+      new SceneAppPage({
+        title: 'Dashboard level filters',
+        routePath: `db-filters`,
+        url: `${defaults.url}/db-filters`,
+        getScene: () => {
+          return new EmbeddedScene({
+            ...getEmbeddedSceneDefaults(),
+            $variables: new SceneVariableSet({
+              variables: [
+                new AdHocFiltersVariable({
+                  name: 'ComboboxFilters',
+                  label: 'Without add filter button text',
+                  hide: VariableHide.hideLabel,
+                  datasource: { uid: 'gdev-prometheus' },
+                  filters: [{ key: 'job', operator: '=', value: 'has no text', condition: '' }],
+                  baseFilters: [{ key: 'dbFilterKey', operator: '=', value: 'dbFilterValue', origin: 'dashboard' }],
+                  layout: 'combobox',
+                  supportsMultiValueOperators: true,
+                }),
+              ],
+            }),
+            body: new SceneFlexLayout({
+              direction: 'column',
+              children: [
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new SceneCanvasText({
+                    text: `The query below is interpolated to ALERTS{ComboboxFilters}`,
+                    fontSize: 14,
+                  }),
+                }),
+                new SceneFlexItem({
+                  body: PanelBuilders.table()
+                    .setTitle('ALERTS')
+                    .setData(
+                      new SceneQueryRunner({
+                        datasource: { uid: 'gdev-prometheus' },
+                        queries: [
+                          {
+                            refId: 'A',
+                            expr: 'ALERTS',
+                            format: 'table',
+                            instant: true,
+                          },
+                        ],
+                      })
+                    )
+                    .build(),
+                }),
+              ],
+            }),
+            $timeRange: new SceneTimeRange(),
+          });
+        },
+      }),
+      new SceneAppPage({
+        title: 'Individually read-only filters',
+        routePath: `readonly-filters`,
+        url: `${defaults.url}/readonly-filters`,
+        getScene: () => {
+          return new EmbeddedScene({
+            ...getEmbeddedSceneDefaults(),
+            $variables: new SceneVariableSet({
+              variables: [
+                new AdHocFiltersVariable({
+                  name: 'ComboboxFilters',
+                  label: 'Without add filter button text',
+                  hide: VariableHide.hideLabel,
+                  datasource: { uid: 'gdev-prometheus' },
+                  filters: [
+                    {
+                      key: 'job',
+                      operator: '=',
+                      value: 'has no text',
+                      condition: '',
+                      readOnly: true,
+                      origin: 'Demo app',
+                    },
+                    {
+                      key: 'foo',
+                      operator: '=',
+                      value: 'bar',
+                      condition: '',
+                      readOnly: true,
+                    },
+                  ],
+                  layout: 'combobox',
+                  supportsMultiValueOperators: true,
+                }),
+              ],
+            }),
+            body: new SceneFlexLayout({
+              direction: 'column',
+              children: [
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new SceneCanvasText({
+                    text: `The query below is interpolated to ALERTS{ComboboxFilters}`,
+                    fontSize: 14,
+                  }),
+                }),
+                new SceneFlexItem({
+                  body: PanelBuilders.table()
+                    .setTitle('ALERTS')
+                    .setData(
+                      new SceneQueryRunner({
+                        datasource: { uid: 'gdev-prometheus' },
+                        queries: [
+                          {
+                            refId: 'A',
+                            expr: 'ALERTS',
+                            format: 'table',
+                            instant: true,
+                          },
+                        ],
+                      })
+                    )
+                    .build(),
+                }),
+              ],
+            }),
+            $timeRange: new SceneTimeRange(),
+          });
+        },
+      }),
+      new SceneAppPage({
+        title: 'Custom Controller',
+        routePath: `custom-controller`,
+        url: `${defaults.url}/custom-controller`,
+        getScene: () => {
+          return new EmbeddedScene({
+            ...getEmbeddedSceneDefaults(),
+            body: new SceneFlexLayout({
+              direction: 'column',
+              children: [
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new SceneCanvasText({
+                    text: `This demo shows AdHocFiltersComboboxRenderer with a simple custom controller. Try filtering by "vowels" or "consonants". It is not connected to any datasource.`,
+                    fontSize: 14,
+                  }),
+                }),
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new SimpleControllerDemo({}),
                 }),
               ],
             }),

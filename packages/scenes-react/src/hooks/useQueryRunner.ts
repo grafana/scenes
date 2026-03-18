@@ -12,6 +12,12 @@ export interface UseQueryOptions {
   cacheKey?: CacheKey;
   liveStreaming?: boolean;
   maxDataPointsFromWidth?: boolean;
+  minInterval?: string;
+  /**
+   * Optional prefix for the requestId. When set, request IDs will be formatted as `{requestIdPrefix}{counter}`.
+   * Useful for identifying requests from specific panels or components.
+   */
+  requestIdPrefix?: string;
 }
 
 /**
@@ -31,6 +37,8 @@ export function useQueryRunner(options: UseQueryOptions): SceneQueryRunner {
         datasource: options.datasource,
         liveStreaming: options.liveStreaming,
         maxDataPointsFromWidth: options.maxDataPointsFromWidth,
+        minInterval: options.minInterval,
+        requestIdPrefix: options.requestIdPrefix,
       }),
     objectConstructor: SceneQueryRunner,
     cacheKey: options.cacheKey,

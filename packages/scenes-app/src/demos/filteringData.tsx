@@ -14,10 +14,10 @@ import {
   SceneObjectState,
   SceneQueryRunner,
   VizPanel,
+  ControlsLabel,
 } from '@grafana/scenes';
 import { InlineSwitch, Input } from '@grafana/ui';
 import { getEmbeddedSceneDefaults } from './utils';
-import { ControlsLabel } from '@grafana/scenes/src/utils/ControlsLabel';
 import { DataTransformerConfig, MatcherConfig } from '@grafana/schema';
 import { BasicValueMatcherOptions, DataTransformerID, ValueMatcherID } from '@grafana/data';
 import { DATASOURCE_REF } from '../constants';
@@ -58,7 +58,6 @@ export function getDataFilteringTest(defaults: SceneAppPageState) {
 
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Demo showing a simple data filtering case',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

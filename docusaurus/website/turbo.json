@@ -1,0 +1,15 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".docusaurus/**", "build/**"],
+      "cache": false
+    },
+    "build:dev": {
+      "dependsOn": ["^build"],
+      "outputs": [".docusaurus/**", "build/**"],
+      "cache": false
+    }
+  }
+}

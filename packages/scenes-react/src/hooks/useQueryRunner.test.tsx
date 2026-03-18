@@ -1,10 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { useQueryRunner } from './useQueryRunner';
-import {
-  DataSourceApi,
-  DataQueryRequest,
-  toDataFrame,
-} from '@grafana/data';
+import { DataSourceApi, DataQueryRequest, toDataFrame } from '@grafana/data';
 import { getHookContextWrapper, runRequestMock } from '../utils/testUtils';
 import { of } from 'rxjs';
 
@@ -65,6 +61,7 @@ describe('useQueryRunner', () => {
     // Can update queries
     rerender({
       queries: [{ uid: 'gdev-testdata', refId: 'first', scenarioId: 'random_walk', alias: 'Updated alias' }],
+      maxDataPoints: 20,
     });
     expect(queryRunner.state.queries[0].alias).toBe('Updated alias');
 

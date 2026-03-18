@@ -1,34 +1,45 @@
-import resolve from '@rollup/plugin-node-resolve';
+import { createRequire } from 'node:module';
+import nodeResolve from '@rollup/plugin-node-resolve';
 import path from 'path';
 import dts from 'rollup-plugin-dts';
 import esbuild from 'rollup-plugin-esbuild';
 import eslint from '@rollup/plugin-eslint';
-import { externals } from 'rollup-plugin-node-externals';
+import { nodeExternals } from 'rollup-plugin-node-externals';
 const env = process.env.NODE_ENV || 'production';
-const pkg = require('./package.json');
+const rq = createRequire(import.meta.url);
+
+const pkg = rq('./package.json');
+const projectCwd = process.env.PROJECT_CWD ?? '../../';
 
 const plugins = [
-  externals({ deps: true, devDeps: true, packagePath: './package.json' }),
-  resolve({ browser: true }),
-  esbuild(),
+  nodeExternals({ deps: true, devDeps: true, packagePath: './package.json' }),
+  nodeResolve({ browser: true }),
+  esbuild({
+    target: 'es2018',
+    tsconfig: './tsconfig.json',
+  }),
   eslint(),
 ];
 
 export default [
   {
     input: 'src/index.ts',
-    plugins: env === 'development' ? [...plugins] : plugins,
+    treeshake: env === 'development' ? false : true,
+    plugins,
     output: [
       {
         format: 'cjs',
         sourcemap: env === 'production' ? true : 'inline',
         dir: path.dirname(pkg.main),
+        esModule: true,
+        interop: 'compat',
       },
       {
         format: 'esm',
         sourcemap: env === 'production' ? true : 'inline',
         dir: path.dirname(pkg.module),
         preserveModules: true,
+        preserveModulesRoot: path.resolve(projectCwd, 'packages/scenes-react/src'),
       },
     ],
     watch: {

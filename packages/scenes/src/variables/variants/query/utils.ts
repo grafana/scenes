@@ -1,10 +1,27 @@
 import { isNumber, sortBy, toLower, uniqBy } from 'lodash';
 
-import { stringToJsRegex, VariableSort } from '@grafana/data';
+import {
+  stringToJsRegex,
+  VariableSort,
+  // @ts-expect-error TODO: remove suppression after updating grafana/data
+  VariableRegexApplyTo,
+} from '@grafana/data';
 
 import { VariableValueOption } from '../../types';
 
-export const metricNamesToVariableValues = (variableRegEx: string, sort: VariableSort, metricNames: any[]) => {
+interface MetricNamesToVariableValuesArgs {
+  variableRegEx: string;
+  variableRegexApplyTo: VariableRegexApplyTo;
+  sort: VariableSort;
+  metricNames: any[];
+}
+
+export function metricNamesToVariableValues({
+  variableRegEx,
+  variableRegexApplyTo,
+  sort,
+  metricNames,
+}: MetricNamesToVariableValuesArgs) {
   let regex;
   let options: VariableValueOption[] = [];
 
@@ -14,8 +31,8 @@ export const metricNamesToVariableValues = (variableRegEx: string, sort: Variabl
 
   for (let i = 0; i < metricNames.length; i++) {
     const item = metricNames[i];
-    let text = item.text === undefined || item.text === null ? item.value : item.text;
-    let value = item.value === undefined || item.value === null ? item.text : item.value;
+    let text = item.text ?? item.value ?? '';
+    let value = item.value ?? item.text ?? '';
 
     if (isNumber(value)) {
       value = value.toString();
@@ -26,7 +43,8 @@ export const metricNamesToVariableValues = (variableRegEx: string, sort: Variabl
     }
 
     if (regex) {
-      const matches = getAllMatches(value, regex);
+      const applyTo = variableRegexApplyTo === 'text' ? text : value;
+      const matches = getAllMatches(applyTo, regex);
       if (!matches.length) {
         continue;
       }
@@ -51,12 +69,12 @@ export const metricNamesToVariableValues = (variableRegEx: string, sort: Variabl
       }
     }
 
-    options.push({ label: text, value: value });
+    options.push({ label: text, value: value, properties: item.properties });
   }
 
   options = uniqBy(options, 'value');
   return sortVariableValues(options, sort);
-};
+}
 
 const getAllMatches = (str: string, regex: RegExp): RegExpExecArray[] => {
   const results: RegExpExecArray[] = [];
@@ -74,39 +92,10 @@ const getAllMatches = (str: string, regex: RegExp): RegExpExecArray[] => {
   return results;
 };
 
-export const sortVariableValues = (options: any[], sortOrder: VariableSort) => {
+export const sortVariableValues = (options: VariableValueOption[], sortOrder: VariableSort) => {
   if (sortOrder === VariableSort.disabled) {
     return options;
   }
-
-  // @ts-ignore
-  const sortByNumeric = (opt) => {
-    if (!opt.text) {
-      return -1;
-    }
-    const matches = opt.text.match(/.*?(\d+).*/);
-    if (!matches || matches.length < 2) {
-      return -1;
-    } else {
-      return parseInt(matches[1], 10);
-    }
-  };
-
-  // @ts-ignore
-  const sortByNaturalSort = (options) => {
-    //@ts-ignore
-    return options.sort((a, b) => {
-      if (!a.text) {
-        return -1;
-      }
-
-      if (!b.text) {
-        return 1;
-      }
-
-      return a.text.localeCompare(b.text, undefined, { numeric: true });
-    });
-  };
 
   switch (sortOrder) {
     case VariableSort.alphabeticalAsc:
@@ -133,11 +122,11 @@ export const sortVariableValues = (options: any[], sortOrder: VariableSort) => {
       });
       options = options.reverse();
       break;
-    case VariableSort.naturalAsc || 7:
+    case VariableSort.naturalAsc:
       // Sort by natural sort
       options = sortByNaturalSort(options);
       break;
-    case VariableSort.naturalDesc || 8:
+    case VariableSort.naturalDesc:
       options = sortByNaturalSort(options);
       options = options.reverse();
       break;
@@ -146,3 +135,23 @@ export const sortVariableValues = (options: any[], sortOrder: VariableSort) => {
   }
   return options;
 };
+
+function sortByNumeric(opt: VariableValueOption) {
+  if (!opt.label) {
+    return -1;
+  }
+  const matches = opt.label.match(/.*?(\d+).*/);
+  if (!matches || matches.length < 2) {
+    return -1;
+  } else {
+    return parseInt(matches[1], 10);
+  }
+}
+
+const collator = new Intl.Collator(undefined, { sensitivity: 'accent', numeric: true });
+
+function sortByNaturalSort(options: VariableValueOption[]) {
+  return options.slice().sort((a, b) => {
+    return collator.compare(a.label, b.label);
+  });
+}

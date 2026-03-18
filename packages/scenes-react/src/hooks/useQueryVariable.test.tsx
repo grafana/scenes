@@ -2,7 +2,18 @@ import { renderHook } from '@testing-library/react';
 import { getHookContextWrapper } from '../utils/testUtils';
 import { useQueryVariable } from './useQueryVariable';
 import { of } from 'rxjs';
-import { DataSourceApi, DataSourceRef, FieldType, LoadingState, PanelData, PluginType, ScopedVars, VariableSupportType, getDefaultTimeRange, toDataFrame } from '@grafana/data';
+import {
+  DataSourceApi,
+  DataSourceRef,
+  FieldType,
+  LoadingState,
+  PanelData,
+  PluginType,
+  ScopedVars,
+  VariableSupportType,
+  getDefaultTimeRange,
+  toDataFrame,
+} from '@grafana/data';
 import { setRunRequest } from '@grafana/runtime';
 import { QueryVariable } from '@grafana/scenes';
 
@@ -70,13 +81,13 @@ describe('useQueryVariable', () => {
   it('Should create and return query variable', async () => {
     const { wrapper } = getHookContextWrapper({});
 
-    const { result } = renderHook((useQueryVariable), {
+    const { result } = renderHook(useQueryVariable, {
       wrapper,
       initialProps: {
         name: 'test',
         datasource: 'fake',
         query: 'query',
-        regex: '/.*/'
+        regex: '/.*/',
       },
     });
 
@@ -90,22 +101,22 @@ describe('useQueryVariable', () => {
   it('Should find, update and return query variable', async () => {
     const variable = new QueryVariable({
       name: 'test',
-      datasource: { uid: 'fake'},
+      datasource: { uid: 'fake' },
       query: 'query',
-      regex: '/.*/'
-    })
+      regex: '/.*/',
+    });
 
     const { wrapper } = getHookContextWrapper({
       variables: [variable],
     });
 
-    const { result } = renderHook((useQueryVariable), {
+    const { result } = renderHook(useQueryVariable, {
       wrapper,
       initialProps: {
         name: 'test',
         datasource: 'other-fake',
         query: 'other-query',
-        regex: '/[ABCDE]/'
+        regex: '/[ABCDE]/',
       },
     });
 

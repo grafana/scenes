@@ -1,17 +1,19 @@
+import { t } from '@grafana/i18n';
 import { Observable, Subject } from 'rxjs';
 
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
 import { queryMetricTree } from '../../utils/metricTree';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
-import { renderSelectForVariable } from '../components/VariableValueSelect';
+import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
 import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 import { VariableRefresh } from '@grafana/data';
 import { getClosest } from '../../core/sceneGraph/utils';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
-import { SceneQueryControllerEntry } from '../../behaviors/SceneQueryController';
+import { SceneQueryControllerEntry } from '../../behaviors/types';
+import React from 'react';
 
 export interface TestVariableState extends MultiValueVariableState {
   query: string;
@@ -41,7 +43,7 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
       type: 'custom',
       name: 'Test',
       value: 'Value',
-      text: 'Text',
+      text: t('grafana-scenes.variables.test-variable.text.text', 'Text'),
       query: 'Query',
       options: [],
       refresh: VariableRefresh.onDashboardLoad,
@@ -136,6 +138,6 @@ export class TestVariable extends MultiValueVariable<TestVariableState> {
   }
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
-    return renderSelectForVariable(model);
+    return <MultiOrSingleValueSelect model={model} />;
   };
 }

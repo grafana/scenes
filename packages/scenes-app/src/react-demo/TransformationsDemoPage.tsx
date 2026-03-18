@@ -5,6 +5,7 @@ import { DemoVizLayout } from './utils';
 import { DataTransformerID, ReducerID } from '@grafana/data';
 import { VizPanel, useDataTransformer, useQueryRunner } from '@grafana/scenes-react';
 import { plainGraph } from './visualizations';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function TransformationsDemoPage() {
   const [reducer, setReducer] = useState(ReducerID.mean);
@@ -32,7 +33,15 @@ export function TransformationsDemoPage() {
   });
 
   return (
-    <PageWrapper title="Transformations" subTitle="Transformations demo page">
+    <PageWrapper
+      title="Transformations"
+      subTitle={
+        <DemoSubTitle
+          text={'Transformations demo page'}
+          getSourceCodeModule={() => import('!!raw-loader!./TransformationsDemoPage')}
+        />
+      }
+    >
       <Select
         onChange={(e) => setReducer(e.value ?? ReducerID.mean)}
         value={reducer}

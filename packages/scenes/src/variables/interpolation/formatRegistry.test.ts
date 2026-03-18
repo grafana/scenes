@@ -5,6 +5,16 @@ import { TestVariable } from '../variants/TestVariable';
 import { formatRegistry } from './formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  getTemplateSrv: () => ({
+    getAdhocFilters: jest.fn().mockReturnValue([]),
+  }),
+  getDataSourceSrv: () => ({
+    getInstanceSettings: jest.fn(),
+  }),
+}));
+
 function formatValue<T extends VariableValue>(
   formatId: VariableFormatID,
   value: T,
@@ -74,15 +84,94 @@ describe('formatRegistry', () => {
     expect(formatValue(VariableFormatID.Date, 1594671549254, 'text', ['YYYY-MM', 'ss'])).toBe('2020-07:09');
     expect(formatValue(VariableFormatID.Date, 1594671549254, 'text', ['YYYY', 'MM', 'DD'])).toBe('2020:07:13');
 
+    // @ts-expect-error join not in depended @grafana/schema yet
+    expect(formatValue('join', 'hello', 'text', undefined)).toBe('hello'); // handles non-arrays
+    // @ts-expect-error
+    expect(formatValue('join', ['hello'], 'text', undefined)).toBe('hello'); // handles arrays of 1 length
+    // @ts-expect-error
+    expect(formatValue('join', ['hello', 'world'], 'text', undefined)).toBe('hello,world'); // has a default separator
+    // @ts-expect-error
+    expect(formatValue('join', ['hello', 'world'], 'text', [' | '])).toBe('hello | world'); // has a custom separator
+
+    // customqueryparam - multi-array values
+    // @ts-expect-error customqueryparam not in depended @grafana/schema yet
+    expect(formatValue('customqueryparam', ['api', 'database'], 'text', undefined)).toBe('server=api&server=database'); // default name
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['api', 'database'], 'text', ['p-server'])).toBe(
+      'p-server=api&p-server=database'
+    ); // custom name
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['api', 'database'], 'text', ['p-server', 'v-'])).toBe(
+      'p-server=v-api&p-server=v-database'
+    ); // value prefix
+
+    // customqueryparam - multi-array values
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['api'], 'text', undefined)).toBe('server=api'); // default name
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['api'], 'text', ['p-server'])).toBe('p-server=api'); // custom name, optional value
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['api'], 'text', ['p-server', 'v-'])).toBe('p-server=v-api'); // value prefix
+
+    // customqueryparam - string values
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', 'api', 'text', undefined)).toBe('server=api'); // default name
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', 'api', 'text', ['p-server'])).toBe('p-server=api'); // custom name, optional value
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', 'api', 'text', ['p-server', 'v-'])).toBe('p-server=v-api'); // value prefix
+
+    // customqueryparam - url encoding
+    // @ts-expect-error
+    expect(formatValue('customqueryparam', ['mysql&postgres', 'databases!'], 'text', ['p-server', 'v-'])).toBe(
+      'p-server=v-mysql%26postgres&p-server=v-databases%21'
+    ); // variable value encoded
+    expect(
+      // @ts-expect-error
+      formatValue('customqueryparam', ['mysql&postgres', 'databases!'], 'text', ['space & ampersand!', 'v& '])
+    ).toBe('space%20%26%20ampersand%21=v%26%20mysql%26postgres&space%20%26%20ampersand%21=v%26%20databases%21'); // custom name + prefix encoded
+
     expect(formatValue(VariableFormatID.UriEncode, '/any-path/any-second-path?query=foo()bar BAZ')).toBe(
       '/any-path/any-second-path?query=foo%28%29bar%20BAZ'
     );
+  });
+
+  describe('text format', () => {
+    it("should use variable's getValueText with fieldPath", () => {
+      const variable = new TestVariable({
+        name: 'user',
+        value: '10',
+        text: 'Clementina DuBuque',
+        options: [{ label: 'Clementina DuBuque', value: '10', properties: { username: 'alice' } }],
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+
+      const getValueText = jest
+        .spyOn(variable, 'getValueText')
+        .mockImplementation((fieldPath?: string) => (fieldPath === 'username' ? 'alice' : 'Clementina DuBuque'));
+
+      const { formatter } = formatRegistry.get(VariableFormatID.Text);
+
+      const result = formatter('10', [], variable, 'username');
+      expect(getValueText).toHaveBeenCalledWith('username');
+      expect(result).toBe('alice');
+    });
   });
 
   describe('queryparam', () => {
     it('should url encode value', () => {
       const result = formatValue(VariableFormatID.QueryParam, 'helloAZ%=');
       expect(result).toBe('var-server=helloAZ%25%3D');
+    });
+
+    it('should use fieldPath when provided', () => {
+      const variable = new AdHocFiltersVariable({});
+
+      const result = formatRegistry
+        .get(VariableFormatID.QueryParam)
+        .formatter(['key1=val1', 'key5=val5'], [], variable, 'originFilters');
+      expect(result).toBe('var-Filters=key1%3Dval1&var-Filters=key5%3Dval5');
     });
 
     it('should use variable url sync handler', () => {

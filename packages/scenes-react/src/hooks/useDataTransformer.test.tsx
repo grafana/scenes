@@ -1,9 +1,9 @@
-import { DataQueryRequest, DataSourceApi, standardTransformersRegistry, toDataFrame } from "@grafana/data";
-import { getHookContextWrapper, runRequestMock } from "../utils/testUtils";
-import { renderHook } from "@testing-library/react";
-import { useQueryRunner } from "./useQueryRunner";
-import { useDataTransformer } from "./useDataTransformer";
-import { map, of } from "rxjs";
+import { DataQueryRequest, DataSourceApi, standardTransformersRegistry, toDataFrame } from '@grafana/data';
+import { getHookContextWrapper, runRequestMock } from '../utils/testUtils';
+import { renderHook } from '@testing-library/react';
+import { useQueryRunner } from './useQueryRunner';
+import { useDataTransformer } from './useDataTransformer';
+import { map, of } from 'rxjs';
 
 export const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',

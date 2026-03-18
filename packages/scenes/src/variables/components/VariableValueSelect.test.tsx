@@ -1,4 +1,4 @@
-import { VariableValueSelect, VariableValueSelectMulti } from './VariableValueSelect';
+import { MultiOrSingleValueSelect } from './VariableValueSelect';
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
@@ -39,7 +39,7 @@ describe('VariableValueSelect', () => {
   });
 
   it('should render VariableValueSelect component', async () => {
-    render(<VariableValueSelect model={model} />);
+    render(<MultiOrSingleValueSelect model={model} />);
     const variableValueSelectElement = screen.getByTestId(
       selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${model.state.value}`)
     );
@@ -71,7 +71,7 @@ describe('VariableValueSelect', () => {
 
     scene.activate();
 
-    render(<VariableValueSelectMulti model={model} />);
+    render(<MultiOrSingleValueSelect model={model} />);
     const variableValueSelectElement = screen.getByTestId(
       selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${model.state.value}`)
     );
@@ -80,6 +80,7 @@ describe('VariableValueSelect', () => {
     expect(variableValueSelectElement).toBeInTheDocument();
     expect(inputElement).toBeDisabled();
   });
+
   it('should render VariableValueSelect component with disabled value', async () => {
     const model = new CustomVariable({
       name: 'test',
@@ -105,7 +106,7 @@ describe('VariableValueSelect', () => {
 
     scene.activate();
 
-    render(<VariableValueSelect model={model} />);
+    render(<MultiOrSingleValueSelect model={model} />);
     const variableValueSelectElement = screen.getByTestId(
       selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${model.state.value}`)
     );
@@ -116,7 +117,7 @@ describe('VariableValueSelect', () => {
   });
 
   it('should render options in VariableValueSelect component', async () => {
-    render(<VariableValueSelect model={model} />);
+    render(<MultiOrSingleValueSelect model={model} />);
     const variableValueSelectElement = screen.getByTestId(
       selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${model.state.value}`)
     );
@@ -132,7 +133,7 @@ describe('VariableValueSelect', () => {
   });
 
   it('should render custom values in VariableValueSelect component', async () => {
-    render(<VariableValueSelect model={model} />);
+    render(<MultiOrSingleValueSelect model={model} />);
     const variableValueSelectElement = screen.getByTestId(
       selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${model.state.value}`)
     );
@@ -152,7 +153,7 @@ describe('VariableValueSelect', () => {
   it('should not render custom values when allowCustomValue is false in VariableValueSelect component', async () => {
     model.setState({ allowCustomValue: false });
 
-    render(<VariableValueSelect model={model} />);
+    render(<MultiOrSingleValueSelect model={model} />);
     const variableValueSelectElement = screen.getByTestId(
       selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${model.state.value}`)
     );

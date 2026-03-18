@@ -18,6 +18,7 @@ import { TestVariable } from '../../variables/variants/TestVariable';
 import { SceneDataNode } from '../SceneDataNode';
 import { SceneObject, SceneObjectState } from '../types';
 import { SceneObjectBase } from '../SceneObjectBase';
+import { CustomVariable } from '../../variables/variants/CustomVariable';
 
 describe('sceneGraph', () => {
   it('Can find object', () => {
@@ -41,6 +42,20 @@ describe('sceneGraph', () => {
     expect(sceneGraph.findObject(data, (s) => s.state.key === 'A')).toBe(item1);
     // from item deep in graph finding control
     expect(sceneGraph.findObject(item2, (s) => s.state.key === 'time-picker')).toBe(timePicker);
+  });
+
+  it('Returns first match', () => {
+    const item1 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A' }) });
+    const item2 = new SceneFlexItem({ key: 'A', body: new SceneCanvasText({ text: 'A2' }) });
+
+    const scene = new EmbeddedScene({
+      body: new SceneFlexLayout({
+        children: [item1, item2],
+      }),
+    });
+
+    // from root
+    expect(sceneGraph.findObject(scene, (s) => s.state.key === 'A')).toBe(item1);
   });
 
   it('Can find all objects given a predicate', () => {
@@ -219,45 +234,45 @@ describe('sceneGraph', () => {
   });
 
   describe('findDescendents', () => {
-    
-    class TestSceneObj extends SceneObjectBase<SceneObjectState & {children?: SceneObject[]}> {   
-    }
-    class TargetSceneObj extends TestSceneObj {   
-    }
+    class TestSceneObj extends SceneObjectBase<SceneObjectState & { children?: SceneObject[] }> {}
+    class TargetSceneObj extends TestSceneObj {}
 
     const root = new TestSceneObj({
       children: [
-        new TargetSceneObj({key: '1-target'}),
-        new TargetSceneObj({key: '2-target', children: [
-          new TargetSceneObj({key: '2-1-target'}),
-          new TestSceneObj({key: '2-2'}),
-        ]}),
-        new TestSceneObj({key: '3', children: [
-          new TargetSceneObj({key: '3-1-target'}),
-          new TestSceneObj({key: '3-2'}),
-          new TargetSceneObj({key: '3-3-target'}),
-        ]}),
-      ]
-    })
-    
-    it('Can find all descendents', ()=>{
+        new TargetSceneObj({ key: '1-target' }),
+        new TargetSceneObj({
+          key: '2-target',
+          children: [new TargetSceneObj({ key: '2-1-target' }), new TestSceneObj({ key: '2-2' })],
+        }),
+        new TestSceneObj({
+          key: '3',
+          children: [
+            new TargetSceneObj({ key: '3-1-target' }),
+            new TestSceneObj({ key: '3-2' }),
+            new TargetSceneObj({ key: '3-3-target' }),
+          ],
+        }),
+      ],
+    });
+
+    it('Can find all descendents', () => {
       const descendents = sceneGraph.findDescendents(root, TargetSceneObj);
 
       // Only the descendents of the starting point with the target type should be present
       expect(descendents.length).toBe(5);
-      expect(descendents.find((s => s.state.key === '1-target'))).toBeDefined();
-      expect(descendents.find((s => s.state.key === '2-target'))).toBeDefined();
-      expect(descendents.find((s => s.state.key === '2-1-target'))).toBeDefined();
-      expect(descendents.find((s => s.state.key === '3-1-target'))).toBeDefined();
-      expect(descendents.find((s => s.state.key === '3-3-target'))).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '1-target')).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '2-target')).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '2-1-target')).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '3-1-target')).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '3-3-target')).toBeDefined();
       // Not targets should not be present
-      expect(descendents.find((s => s.state.key === '2-2'))).toBeUndefined();
-      expect(descendents.find((s => s.state.key === '3-2'))).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '2-2')).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '3-2')).toBeUndefined();
       // Starting point scene object should not be present
-      expect(descendents.find((s => s === root))).toBeUndefined();
-    })
+      expect(descendents.find((s) => s === root)).toBeUndefined();
+    });
 
-    it('Will only find descendents', ()=>{
+    it('Will only find descendents', () => {
       const target2 = root.state.children?.[1];
 
       expect(target2).toBeDefined();
@@ -269,23 +284,23 @@ describe('sceneGraph', () => {
       expect(target2.state.key).toBe('2-target');
 
       const descendents = sceneGraph.findDescendents(target2, TargetSceneObj);
-      
+
       // Only the descendents of the starting point with the target type should be present
       expect(descendents.length).toBe(1);
-      expect(descendents.find((s => s.state.key === '2-1-target'))).toBeDefined();
+      expect(descendents.find((s) => s.state.key === '2-1-target')).toBeDefined();
       // Parents and siblings of parents should not be present
-      expect(descendents.find((s => s.state.key === '1-target'))).toBeUndefined();
-      expect(descendents.find((s => s.state.key === '2-target'))).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '1-target')).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '2-target')).toBeUndefined();
       // Cousins should not be present
-      expect(descendents.find((s => s.state.key === '3-1-target'))).toBeUndefined();
-      expect(descendents.find((s => s.state.key === '3-3-target'))).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '3-1-target')).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '3-3-target')).toBeUndefined();
       // Not targets should not be present
-      expect(descendents.find((s => s.state.key === '2-2'))).toBeUndefined();
-      expect(descendents.find((s => s.state.key === '3-2'))).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '2-2')).toBeUndefined();
+      expect(descendents.find((s) => s.state.key === '3-2')).toBeUndefined();
       // Starting point scene object should not be present
-      expect(descendents.find((s => s === target2))).toBeUndefined();
-    })
-  })
+      expect(descendents.find((s) => s === target2)).toBeUndefined();
+    });
+  });
 
   describe('can find by key (and type)', () => {
     const data = new SceneDataNode();
@@ -379,11 +394,11 @@ describe('sceneGraph', () => {
       expect(hasVariableDependencyInLoadingState(loadingDependecies)).toBe(true);
     });
 
-    it.only('should return false if the variable is a QueryVariable and it is loading because is refering itself', () => {
+    it('should return false if the variable is a QueryVariable and it is loading because is referring itself', () => {
       const logSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const loadingVariable = new QueryVariable({
-        name: 'loadingVar',
-        query: '$loadingVar',
+        name: 'queryLoadingVar',
+        query: '$queryLoadingVar',
       });
       // Mocking the getValueOptions to avoid the actual request
       jest.spyOn(loadingVariable, 'getValueOptions').mockImplementation(() => of([]));
@@ -391,7 +406,22 @@ describe('sceneGraph', () => {
       setupVariables([loadingVariable]);
 
       expect(hasVariableDependencyInLoadingState(loadingVariable)).toBe(false);
-      expect(logSpy).toHaveBeenCalledWith('Query variable is referencing itself');
+      expect(logSpy).toHaveBeenCalledWith(`Variable ${loadingVariable.state.name} is referencing itself`);
+    });
+
+    it('should return false if the variable is a CustomVariable and it is loading because is referring itself', () => {
+      const logSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const loadingVariable = new CustomVariable({
+        name: 'customLoadingVar',
+        query: '$customLoadingVar',
+      });
+      // Mocking the getValueOptions to avoid the actual request
+      jest.spyOn(loadingVariable, 'getValueOptions').mockImplementation(() => of([]));
+
+      setupVariables([loadingVariable]);
+
+      expect(hasVariableDependencyInLoadingState(loadingVariable)).toBe(false);
+      expect(logSpy).toHaveBeenCalledWith(`Variable ${loadingVariable.state.name} is referencing itself`);
     });
   });
 });

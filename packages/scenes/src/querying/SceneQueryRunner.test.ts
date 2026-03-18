@@ -1,4 +1,11 @@
-import { map, Observable, of } from 'rxjs';
+import { map, Observable, of, Subject } from 'rxjs';
+
+// Mock crypto.randomUUID for generateOperationId
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: jest.fn(() => 'test-uuid-1234-5678-9abc-def012345678'),
+  },
+});
 
 import {
   DataQueryRequest,
@@ -30,14 +37,16 @@ import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequest
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import { SceneQueryController, SceneQueryStateControllerState } from '../behaviors/SceneQueryController';
+import { SceneQueryController } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
 import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
+import { SceneQueryStateControllerState } from '../behaviors/types';
 import { config } from '@grafana/runtime';
+import { ScopesVariable } from '../variables/variants/ScopesVariable';
 
 const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -183,6 +192,35 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         ]
       `);
       expect(request).toMatchSnapshot();
+    });
+
+    it('should use requestIdPrefix when provided', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        requestIdPrefix: 'my-panel-',
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest).toBeDefined();
+      expect(sentRequest!.requestId).toMatch(/^my-panel-\d+$/);
+    });
+
+    it('should use default SQR prefix when requestIdPrefix is not provided', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest).toBeDefined();
+      expect(sentRequest!.requestId).toMatch(/^SQR\d+$/);
     });
   });
 
@@ -528,6 +566,35 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall2[1].filters).toEqual(filtersVar.state.filters);
     });
 
+    it('should pass adhoc origin filter via request object if they have a source defined', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
+        originFilters: [{ key: 'C', operator: '=', value: 'D', condition: '', origin: 'scope' }],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].filters).toEqual([...filtersVar.state.originFilters!, ...filtersVar.state.filters]);
+    });
+
     it('only passes fully completed adhoc filters', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
@@ -627,6 +694,44 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       const runRequestCall = runRequestMock.mock.calls[1];
       expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
+    });
+
+    it('should not add non-applicable filters from adhoc to query', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const scene = new EmbeddedScene({ $data: queryRunner, body: new SceneCanvasText({ text: 'hello' }) });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [],
+      });
+
+      scene.setState({ $variables: new SceneVariableSet({ variables: [filtersVar] }) });
+      deactivationHandlers.push(filtersVar.activate());
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      filtersVar.setState({
+        filters: [
+          { key: 'A', operator: '=', value: 'B' },
+          { key: 'C', operator: '=', value: 'D', nonApplicable: true },
+        ],
+      });
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[1];
+      // drops the nonApplicable filter
+      expect(runRequestCall[1].filters).toEqual([{ key: 'A', operator: '=', value: 'B' }]);
     });
 
     it('should pass group by dimensions via request object', async () => {
@@ -1043,6 +1148,44 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
 
+    it('Should execute query when new local variable is added/removed', async () => {
+      const variable = new TestVariable({ name: 'A', value: 'AA', query: 'A.*', delayMs: 0 });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+
+      const innerScene = new TestScene({
+        $data: queryRunner,
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: new SceneTimeRange(),
+        nested: innerScene,
+      });
+
+      scene.activate();
+      const deactivateInnerScene = innerScene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+      // replace variable
+      const localVar = new LocalValueVariable({ name: 'A', value: 'localValue' });
+      innerScene.setState({ $variables: new SceneVariableSet({ variables: [localVar] }) });
+
+      // deactivate and activate
+      deactivateInnerScene();
+      innerScene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      // Should execute query
+      expect(runRequestMock.mock.calls.length).toBe(2);
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+    });
+
     it('Should execute query again after variable changed while whole scene was inactive', async () => {
       const variable = new TestVariable({ name: 'A', value: 'AA', query: 'A.*' });
       const queryRunner = new SceneQueryRunner({
@@ -1273,7 +1416,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       queryRunner.activate();
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.series[0].fields[0].values.get(0)).toBe(123);
+      expect(queryRunner.state.data?.series[0].fields[0].values[0]).toBe(123);
 
       runtimeDataSources.clear();
     });
@@ -2564,6 +2707,98 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(clone['_layerAnnotations']?.length).toBe(1);
       expect(clone['_layerAnnotations']).toStrictEqual(queryRunner['_layerAnnotations']);
       expect(clone['_results']['_buffer']).not.toEqual([]);
+    });
+  });
+
+  describe('scopes', () => {
+    it('should run queries with scopes when ScopesVariable is provided', async () => {
+      const scopesVariable = new ScopesVariable({
+        scopes: [
+          {
+            metadata: { name: 'Scope 1' },
+            spec: {
+              title: 'Scope 1',
+              type: 'test',
+              description: 'Test scope',
+              category: 'test',
+              filters: [],
+            },
+          },
+        ],
+        loading: false,
+      });
+
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        $variables: new SceneVariableSet({ variables: [scopesVariable] }),
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest?.scopes).toBeDefined();
+      expect(sentRequest?.scopes?.[0]).toMatchObject({
+        metadata: { name: 'Scope 1' },
+        spec: {
+          title: 'Scope 1',
+          type: 'test',
+        },
+      });
+    });
+  });
+
+  it('should not pass scopes in request when no ScopesVariable in scene', async () => {
+    const queryRunner = new SceneQueryRunner({
+      queries: [{ refId: 'A' }],
+      $timeRange: new SceneTimeRange(),
+    });
+
+    queryRunner.activate();
+
+    await new Promise((r) => setTimeout(r, 1));
+
+    expect(sentRequest?.scopes).toBeUndefined();
+  });
+
+  describe('onDataReceived series identity preservation', () => {
+    let subject: Subject<DataQueryResponse>;
+    let queryRunner: SceneQueryRunner;
+    const tick = () => new Promise((r) => setTimeout(r, 1));
+
+    beforeEach(async () => {
+      subject = new Subject<DataQueryResponse>();
+      runRequestMock.mockImplementationOnce(() =>
+        subject.pipe(map((packet) => ({ state: LoadingState.Done, series: packet.data, timeRange: {} as any })))
+      );
+      queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }], $timeRange: new SceneTimeRange() });
+      queryRunner.activate();
+      await tick();
+    });
+
+    it('should preserve series reference when same frame objects are emitted again', async () => {
+      const frame = toDataFrame({ refId: 'A', datapoints: [[100, 1]] });
+
+      subject.next({ data: [frame] });
+      await tick();
+      const firstSeries = queryRunner.state.data?.series;
+
+      subject.next({ data: [frame] });
+      await tick();
+
+      expect(queryRunner.state.data?.series).toBe(firstSeries);
+    });
+
+    it('should emit new series reference when frame objects change', async () => {
+      subject.next({ data: [toDataFrame({ refId: 'A', datapoints: [[100, 1]] })] });
+      await tick();
+      const firstSeries = queryRunner.state.data?.series;
+
+      subject.next({ data: [toDataFrame({ refId: 'A', datapoints: [[999, 1]] })] });
+      await tick();
+
+      expect(queryRunner.state.data?.series).not.toBe(firstSeries);
     });
   });
 });

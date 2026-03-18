@@ -28,9 +28,7 @@ const changepointDetector = new SceneChangepointDetector({
   pinned: false,
   onChangepointDetected: (changepoint: Changepoint) => {},
 });
-const panel = PanelBuilders.timeseries()
-  .setHeaderActions([outlierDetector])
-  .build();
+const panel = PanelBuilders.timeseries().setHeaderActions([outlierDetector]).build();
 ```
 
 :::note

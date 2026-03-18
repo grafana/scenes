@@ -13,7 +13,7 @@ A scene is a collection of objects, called _scene objects_. These objects repres
 
 Scenes allow you to group and nest objects. Things like data, time ranges, or variables can be added to any object in the tree, making them available to that object and all descendant objects. Because of this, scenes allow you to create dashboards that have multiple time ranges, queries that can be shared and transformed, or nested variables.
 
-@grafana/scenes comes with multiple objects&#151;like `SceneQueryRunner`, `SceneFlexLayout`, `VizPanel`, and more&#151;to solve common problems. However, you can also create your own scene objects to extend functionality.
+@grafana/scenes comes with multiple objects—like `SceneQueryRunner`, `SceneFlexLayout`, `VizPanel`, and more—to solve common problems. However, you can also create your own scene objects to extend functionality.
 
 ## Scene object
 
@@ -253,9 +253,8 @@ const scene = new EmbeddedScene({
 
 It's very important that you do not reuse the same instance to a scene object in multiple different scenes or locations within the same scene. A scene object's parent is automatically set when it's part of the state of another scene object. So if you want to use the same scene object instance as the part of the state of more than one scene object you have two options.
 
-* Clone the source scene object. This will create a separate instance with no connection to the source object.
-* Use `SceneObjectRef` to wrap the instance. This makes sure the object's original parent is not changed while allowing you to store a reference to the instance in the state of another scene object.
-
+- Clone the source scene object. This will create a separate instance with no connection to the source object.
+- Use `SceneObjectRef` to wrap the instance. This makes sure the object's original parent is not changed while allowing you to store a reference to the instance in the state of another scene object.
 
 ## Source code
 

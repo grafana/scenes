@@ -20,7 +20,6 @@ import { GraphDrawStyle, LegendDisplayMode, StackingMode, TooltipDisplayMode, Vi
 export function getDynamicVizOptionsTest(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'A panel with actions that change visualization settings',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
@@ -62,15 +61,13 @@ class VizChange extends SceneObjectBase<VizChangeState> {
     } else if (value === 'stat') {
       viz.changePluginType('stat');
     } else if (value === 'gauge_extra') {
-      const options = PanelOptionsBuilders.gauge()
-      .setOption('orientation', VizOrientation.Vertical)
-      .build();
+      const options = PanelOptionsBuilders.gauge().setOption('orientation', VizOrientation.Vertical).build();
 
       const fieldConfig = FieldConfigBuilders.gauge().setUnit('accMS2').build();
-      
+
       viz.changePluginType('gauge', options, fieldConfig);
     }
-  }
+  };
 
   public static Component = ({ model }: SceneComponentProps<VizOptions>) => {
     const { value } = model.useState();

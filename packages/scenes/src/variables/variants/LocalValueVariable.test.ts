@@ -20,6 +20,42 @@ describe('LocalValueVariable', () => {
 
       expect(localVar.isAncestorLoading()).toBe(false);
     });
+
+    it('Supports multiple properties', async () => {
+      const localVar = new LocalValueVariable({
+        name: 'test',
+        value: 'value',
+        properties: { prop1: 'one', prop2: 'two' },
+      });
+
+      expect(localVar.getValue()).toBe('value');
+      expect(localVar.getValue('prop2')).toBe('two');
+    });
+  });
+
+  describe('getValueText', () => {
+    it('Returns text when no fieldPath is provided', () => {
+      const localVar = new LocalValueVariable({
+        name: 'user',
+        value: '10',
+        text: 'Clementina DuBuque',
+        properties: { username: 'Moriah.Stanton' },
+      });
+
+      expect(localVar.getValueText()).toBe('Clementina DuBuque');
+    });
+
+    it('Returns property text for fieldPath and falls back to text when the property is absent', () => {
+      const localVar = new LocalValueVariable({
+        name: 'user',
+        value: '10',
+        text: 'Clementina DuBuque',
+        properties: { username: 'Moriah.Stanton' },
+      });
+
+      expect(localVar.getValueText('username')).toBe('Moriah.Stanton');
+      expect(localVar.getValueText('unknown')).toBe('Clementina DuBuque');
+    });
   });
 });
 

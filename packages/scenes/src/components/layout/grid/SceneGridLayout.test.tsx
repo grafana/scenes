@@ -6,6 +6,7 @@ import { SceneComponentProps, SceneObjectState } from '../../../core/types';
 import { EmbeddedScene } from '../../EmbeddedScene';
 import { SceneGridItem } from './SceneGridItem';
 
+import { DEFAULT_PANEL_SPAN } from './constants';
 import { SceneGridLayout } from './SceneGridLayout';
 import { SceneGridRow } from './SceneGridRow';
 import * as utils from './utils';
@@ -1077,6 +1078,58 @@ describe('SceneGridLayout', () => {
       expect(panelOutsideARow.state!.y).toEqual(2);
       expect(rowB.state!.y).toEqual(3);
       expect(rowBChild1.state!.y).toEqual(4);
+    });
+  });
+
+  describe('float gridPos handling', () => {
+    it('should preserve float values without rounding', () => {
+      const layout = new SceneGridLayout({
+        children: [
+          new SceneGridItem({
+            key: 'float-panel',
+            x: 2.3,
+            y: 1.7,
+            width: 4.8,
+            height: 6.5,
+            isDraggable: false,
+            isResizable: false,
+            body: new TestObject({}),
+          }),
+        ],
+        isLazy: false,
+      });
+
+      const gridLayout = layout.buildGridLayout(800, 600);
+
+      expect(gridLayout[0].x).toBe(2.3);
+      expect(gridLayout[0].y).toBe(1.7);
+      expect(gridLayout[0].w).toBe(4.8);
+      expect(gridLayout[0].h).toBe(6.5);
+    });
+
+    it('should default to DEFAULT_PANEL_SPAN for non-finite values and 0 for undefined position', () => {
+      const layoutWithNaN = new SceneGridLayout({
+        children: [
+          new SceneGridItem({
+            key: 'invalid',
+            x: NaN,
+            y: Infinity,
+            width: NaN,
+            height: Infinity,
+            isDraggable: false,
+            isResizable: false,
+            body: new TestObject({}),
+          }),
+        ],
+        isLazy: false,
+      });
+
+      const gridLayout = layoutWithNaN.buildGridLayout(800, 600);
+
+      expect(gridLayout[0].x).toBe(0);
+      expect(gridLayout[0].y).toBe(0);
+      expect(gridLayout[0].w).toBe(DEFAULT_PANEL_SPAN);
+      expect(gridLayout[0].h).toBe(DEFAULT_PANEL_SPAN);
     });
   });
 });

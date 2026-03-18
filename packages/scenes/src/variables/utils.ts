@@ -1,11 +1,18 @@
 import { isEqual } from 'lodash';
 import { VariableValue } from './types';
-// @ts-expect-error Remove when 11.1.x is released
-import { AdHocVariableFilter, DataQueryError, GetTagResponse, MetricFindValue, SelectableValue } from '@grafana/data';
+import {
+  AdHocVariableFilter,
+  DataQueryError,
+  GetTagResponse,
+  GrafanaTheme2,
+  MetricFindValue,
+  SelectableValue,
+} from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneDataQuery, SceneObject, SceneObjectState } from '../core/types';
 import { SceneQueryRunner } from '../querying/SceneQueryRunner';
 import { DataSourceRef } from '@grafana/schema';
+import { css } from '@emotion/css';
 
 export function isVariableValueEqual(a: VariableValue | null | undefined, b: VariableValue | null | undefined) {
   if (a === b) {
@@ -49,12 +56,12 @@ function renderFilter(filter: AdHocVariableFilter) {
 
   // map "one of" operator to regex
   if (operator === '=|') {
-    operator = '=~'
+    operator = '=~';
     // TODO remove when we're on the latest version of @grafana/data
     // @ts-expect-error
     value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
   } else if (operator === '!=|') {
-    operator = '!~'
+    operator = '!~';
     // TODO remove when we're on the latest version of @grafana/data
     // @ts-expect-error
     value = filter.values?.map(escapeLabelValueInRegexSelector).join('|');
@@ -106,8 +113,25 @@ export function getQueriesForVariables(
     (o) => o instanceof SceneQueryRunner
   ) as SceneQueryRunner[];
 
+  const interpolatedDsUuid = sceneGraph.interpolate(sourceObject, sourceObject.state.datasource?.uid);
+
   const applicableRunners = filterOutInactiveRunnerDuplicates(runners).filter((r) => {
-    return r.state.datasource?.uid === sourceObject.state.datasource?.uid;
+    // First check if the runner's datasource matches
+    if (r.state.datasource?.uid) {
+      const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, r.state.datasource.uid);
+      return interpolatedQueryDsUuid === interpolatedDsUuid;
+    }
+
+    // If the runner has no datasource set, check if any of its queries have a matching datasource
+    // This handles the case where panel-level datasource is not set but individual queries have datasources
+    // (e.g., in v2 schema dashboards where non-mixed panels don't have panel.datasource)
+    return r.state.queries.some((q) => {
+      if (!q.datasource?.uid) {
+        return false;
+      }
+      const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, q.datasource.uid);
+      return interpolatedQueryDsUuid === interpolatedDsUuid;
+    });
   });
 
   if (applicableRunners.length === 0) {
@@ -116,7 +140,16 @@ export function getQueriesForVariables(
 
   const result: SceneDataQuery[] = [];
   applicableRunners.forEach((r) => {
-    result.push(...r.state.queries);
+    result.push(
+      ...r.state.queries.filter((q) => {
+        if (!q.datasource || !q.datasource.uid) {
+          return true;
+        }
+
+        const interpolatedQueryDsUuid = sceneGraph.interpolate(sourceObject, q.datasource.uid);
+        return interpolatedQueryDsUuid === interpolatedDsUuid;
+      })
+    );
   });
 
   return result;
@@ -167,6 +200,23 @@ export function escapeUrlCommaDelimiters(value: string | undefined): string {
   return /,/g[Symbol.replace](value, '__gfc__');
 }
 
+export function escapeUrlHashDelimiters(value: string | undefined): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+
+  // Replace the hash due to using it as a value/label separator
+  return /#/g[Symbol.replace](value, '__gfh__');
+}
+
+export function escapeOriginFilterUrlDelimiters(value: string | undefined): string {
+  return escapeUrlHashDelimiters(escapeUrlPipeDelimiters(value));
+}
+
+export function escapeURLDelimiters(value: string | undefined): string {
+  return escapeUrlCommaDelimiters(escapeUrlPipeDelimiters(value));
+}
+
 export function unescapeUrlDelimiters(value: string | undefined): string {
   if (value === null || value === undefined) {
     return '';
@@ -174,6 +224,7 @@ export function unescapeUrlDelimiters(value: string | undefined): string {
 
   value = /__gfp__/g[Symbol.replace](value, '|');
   value = /__gfc__/g[Symbol.replace](value, ',');
+  value = /__gfh__/g[Symbol.replace](value, '#');
 
   return value;
 }
@@ -191,7 +242,9 @@ export function dataFromResponse(response: GetTagResponse | MetricFindValue[]) {
   return Array.isArray(response) ? response : response.data;
 }
 
-export function responseHasError(response: GetTagResponse | MetricFindValue[]): response is GetTagResponse & { error: DataQueryError } {
+export function responseHasError(
+  response: GetTagResponse | MetricFindValue[]
+): response is GetTagResponse & { error: DataQueryError } {
   return !Array.isArray(response) && Boolean(response.error);
 }
 
@@ -218,4 +271,20 @@ export function handleOptionGroups(values: SelectableValue[]): Array<SelectableV
   }
 
   return result;
+}
+
+export function getNonApplicablePillStyles(theme: GrafanaTheme2) {
+  return {
+    disabledPill: css({
+      background: theme.colors.action.selected,
+      color: theme.colors.text.disabled,
+      border: 0,
+      '&:hover': {
+        background: theme.colors.action.selected,
+      },
+    }),
+    strikethrough: css({
+      textDecoration: 'line-through',
+    }),
+  };
 }

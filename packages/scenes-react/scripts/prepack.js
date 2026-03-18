@@ -16,4 +16,7 @@ fs.copyFileSync(PACKAGE_JSON, TMP_PACKAGE_JSON);
 const pkg = fs.readFileSync(PACKAGE_JSON, 'utf8');
 const parsed = JSON.parse(pkg);
 parsed.types = COMPILED_TYPES;
+if (parsed.exports && parsed.exports['.']) {
+  parsed.exports['.'].types = `./${COMPILED_TYPES}`;
+}
 fs.writeFileSync(PACKAGE_JSON, JSON.stringify(parsed, null, 2));

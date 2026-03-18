@@ -1,39 +1,84 @@
-import React from 'react';
-// @ts-expect-error Remove when 11.1.x is released
-import { AdHocVariableFilter, GetTagResponse, GrafanaTheme2, MetricFindValue, SelectableValue } from '@grafana/data';
+import React, { useMemo } from 'react';
+import {
+  AdHocVariableFilter,
+  GetTagResponse,
+  GrafanaTheme2,
+  MetricFindValue,
+  // @ts-expect-error (temporary till we update grafana/data)
+  DrilldownsApplicability,
+  Scope,
+  SelectableValue,
+} from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
-import { ControlsLayout, SceneComponentProps } from '../../core/types';
+import { ControlsLayout, SceneComponentProps, SceneDataQuery } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
-import { dataFromResponse, getQueriesForVariables, renderPrometheusLabelFilters, responseHasError } from '../utils';
+import {
+  dataFromResponse,
+  escapeOriginFilterUrlDelimiters,
+  getQueriesForVariables,
+  renderPrometheusLabelFilters,
+  responseHasError,
+} from '../utils';
 import { patchGetAdhocFilters } from './patchGetAdhocFilters';
 import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { getDataSourceSrv } from '@grafana/runtime';
-import { AdHocFiltersVariableUrlSyncHandler } from './AdHocFiltersVariableUrlSyncHandler';
+import { AdHocFiltersVariableUrlSyncHandler, toArray } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
+import { debounce, isEqual } from 'lodash';
+import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
+import { VariableDependencyConfig } from '../VariableDependencyConfig';
+import { getQueryController } from '../../core/sceneGraph/getQueryController';
+import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
+import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
+import { AdHocFiltersRecommendations } from './AdHocFiltersRecommendations';
 
-export interface AdHocFilterWithLabels extends AdHocVariableFilter {
+export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
   valueLabels?: string[];
   // this is used to externally trigger edit mode in combobox filter UI
   forceEdit?: boolean;
+  // hide the filter from AdHocFiltersVariableRenderer and the URL
+  hidden?: boolean;
+  meta?: M;
+  // filter origin, it can be either scopes, dashboards or undefined,
+  // which means it won't appear in the UI
+  origin?: FilterOrigin;
+  // whether this is basically a cancelled filter through filter-key =~ .*
+  matchAllFilter?: boolean;
+  // whether this specific filter is read-only and cannot be edited
+  readOnly?: boolean;
+  // whether this specific filter is restorable to some value from _originalValues
+  restorable?: boolean;
+  // sets this filter as non-applicable
+  nonApplicable?: boolean;
+  // reason with reason for nonApplicable filters
+  nonApplicableReason?: string;
 }
 
+const ORIGIN_FILTERS_KEY: keyof AdHocFiltersVariableState = 'originFilters';
+
 export type AdHocControlsLayout = ControlsLayout | 'combobox';
+
+export type FilterOrigin = 'dashboard' | 'scope' | string;
 
 export interface AdHocFiltersVariableState extends SceneVariableState {
   /** Optional text to display on the 'add filter' button */
   addFilterButtonText?: string;
+  /** Optional placeholder text for the filter input field */
+  inputPlaceholder?: string;
   /** The visible filters */
   filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
   baseFilters?: AdHocFilterWithLabels[];
+  /** Filters originated from a source */
+  originFilters?: AdHocFilterWithLabels[];
   /** Datasource to use for getTagKeys and getTagValues and also controls which scene queries the filters should apply to */
   datasource: DataSourceRef | null;
   /** Controls if the filters can be changed */
@@ -104,13 +149,37 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @internal state of the new filter being added
    */
   _wip?: AdHocFilterWithLabels;
+
+  /**
+   * Allows custom formatting of a value before saving to filter state
+   */
+  onAddCustomValue?: OnAddCustomValueFn;
+  /**
+   * state for checking whether drilldown applicability is enabled
+   */
+  applicabilityEnabled?: boolean;
+  /**
+   * When true, enables a collapse button that appears when filters wrap to multiple lines.
+   * Allows users to collapse the filter UI to save vertical space.
+   */
+  collapsible?: boolean;
+
+  /**
+   * enables drilldown recommendations
+   */
+  drilldownRecommendationsEnabled?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
+export type OnAddCustomValueFn = (
+  item: SelectableValue<string> & { isCustom?: boolean },
+  filter: AdHocFilterWithLabels
+) => { value: string | undefined; valueLabels: string[] };
 
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
-  currentKey: string | null
+  currentKey: string | null,
+  operators?: OperatorDefinition[]
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type getTagValuesProvider = (
@@ -124,6 +193,7 @@ export type OperatorDefinition = {
   value: string;
   description?: string;
   isMulti?: Boolean;
+  isRegex?: Boolean;
 };
 
 export const OPERATORS: OperatorDefinition[] = [
@@ -148,20 +218,37 @@ export const OPERATORS: OperatorDefinition[] = [
   {
     value: '=~',
     description: 'Matches regex',
+    isRegex: true,
   },
   {
     value: '!~',
     description: 'Does not match regex',
+    isRegex: true,
   },
   {
     value: '<',
     description: 'Less than',
   },
   {
+    value: '<=',
+    description: 'Less than or equal to',
+  },
+  {
     value: '>',
     description: 'Greater than',
   },
+  {
+    value: '>=',
+    description: 'Greater than or equal to',
+  },
 ];
+
+interface OriginalValue {
+  value: string[];
+  operator: string;
+  nonApplicable?: boolean;
+  nonApplicableReason?: string;
+}
 
 export class AdHocFiltersVariable
   extends SceneObjectBase<AdHocFiltersVariableState>
@@ -171,30 +258,153 @@ export class AdHocFiltersVariable
 
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _dataSourceSrv = getDataSourceSrv();
+  // holds the originalValues of all baseFilters in a map. The values
+  // are set on construct and used to restore a baseFilter with an origin
+  // to its original value if edited at some point
+  private _originalValues: Map<string, OriginalValue> = new Map();
+  private _prevScopes: Scope[] = [];
+
+  /** Needed for scopes dependency */
+  protected _variableDependency = new VariableDependencyConfig(this, {
+    dependsOnScopes: true,
+    onReferencedVariableValueChanged: () => this._updateScopesFilters(),
+  });
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
+  private _debouncedVerifyApplicability = debounce(this._verifyApplicability, 100);
+
+  private _recommendations: AdHocFiltersRecommendations | undefined;
+
   public constructor(state: Partial<AdHocFiltersVariableState>) {
+    const behaviors = state.$behaviors ?? [];
+    const recommendations = state.drilldownRecommendationsEnabled ? new AdHocFiltersRecommendations() : undefined;
+
+    if (recommendations) {
+      behaviors.push(recommendations);
+    }
+
     super({
       type: 'adhoc',
       name: state.name ?? 'Filters',
       filters: [],
       datasource: null,
       applyMode: 'auto',
-      filterExpression: state.filterExpression ?? renderExpression(state.expressionBuilder, state.filters),
+      filterExpression:
+        state.filterExpression ??
+        renderExpression(state.expressionBuilder, [...(state.originFilters ?? []), ...(state.filters ?? [])]),
       ...state,
+      $behaviors: behaviors.length > 0 ? behaviors : undefined,
     });
+
+    this._recommendations = recommendations;
 
     if (this.state.applyMode === 'auto') {
       patchGetAdhocFilters(this);
     }
+
+    this.state.originFilters?.forEach((filter) => {
+      this._setOriginalValue(filter);
+    });
+
+    this.addActivationHandler(this._activationHandler);
+  }
+
+  private _activationHandler = () => {
+    this._debouncedVerifyApplicability();
+
+    return () => {
+      this.state.originFilters?.forEach((filter) => {
+        if (filter.restorable) {
+          this.restoreOriginalFilter(filter);
+        }
+      });
+
+      this.setState({ applicabilityEnabled: false });
+    };
+  };
+
+  public getRecommendations(): AdHocFiltersRecommendations | undefined {
+    return this._recommendations;
+  }
+
+  private _updateScopesFilters() {
+    const scopes = sceneGraph.getScopes(this);
+
+    if (!scopes || !scopes.length) {
+      this.setState({
+        originFilters: this.state.originFilters?.filter((filter) => filter.origin !== 'scope'),
+      });
+      return;
+    }
+
+    const scopeFilters = getAdHocFiltersFromScopes(scopes);
+
+    if (!scopeFilters.length) {
+      return;
+    }
+
+    let finalFilters = scopeFilters;
+    const scopeInjectedFilters: AdHocFilterWithLabels[] = [];
+    const remainingFilters: AdHocFilterWithLabels[] = [];
+
+    // set original values for scope filters as well
+    finalFilters.forEach((scopeFilter) => {
+      this._setOriginalValue(scopeFilter);
+    });
+
+    this.state.originFilters?.forEach((filter) => {
+      if (filter.origin === 'scope') {
+        scopeInjectedFilters.push(filter);
+      } else {
+        remainingFilters.push(filter);
+      }
+    });
+
+    if (this._prevScopes.length) {
+      this.setState({ originFilters: [...finalFilters, ...remainingFilters] });
+      this._prevScopes = scopes;
+
+      this._debouncedVerifyApplicability();
+      return;
+    }
+
+    const editedScopeFilters = scopeInjectedFilters.filter((filter) => filter.restorable);
+    const editedScopeFilterKeys = editedScopeFilters.map((filter) => filter.key);
+    const scopeFilterKeys = scopeFilters.map((filter) => filter.key);
+
+    // if the scope filters contain the key of an edited scope filter, we replace
+    // with the edited filter. We also add the remaining unedited scope filters
+    // when not overwriting
+    finalFilters = [
+      ...editedScopeFilters.filter((filter) => scopeFilterKeys.includes(filter.key)),
+      ...scopeFilters.filter((filter) => !editedScopeFilterKeys.includes(filter.key)),
+    ];
+
+    // maintain other originFilters in the array, only update scopes ones
+    this.setState({ originFilters: [...finalFilters, ...remainingFilters] });
+    this._prevScopes = scopes;
+
+    this._debouncedVerifyApplicability();
+  }
+
+  private async verifyApplicabilityAndStoreRecentFilter(update: AdHocFilterWithLabels) {
+    await this._verifyApplicability();
+    this._recommendations?.storeRecentFilter(update);
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
 
-    if (update.filters && update.filters !== this.state.filters && !update.filterExpression) {
-      update.filterExpression = renderExpression(this.state.expressionBuilder, update.filters);
+    if (
+      ((update.filters && update.filters !== this.state.filters) ||
+        (update.originFilters && update.originFilters !== this.state.originFilters)) &&
+      !update.filterExpression
+    ) {
+      const filters = update.filters ?? this.state.filters;
+      const originFilters = update.originFilters ?? this.state.originFilters;
+
+      update.filterExpression = renderExpression(this.state.expressionBuilder, [...(originFilters ?? []), ...filters]);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
     }
 
@@ -205,17 +415,229 @@ export class AdHocFiltersVariable
     }
   }
 
-  public getValue(): VariableValue | undefined {
+  private _resolveOriginFlags(
+    key: string,
+    origin: string,
+    values: string[],
+    operator: string,
+    singleValue: string
+  ): { restorable: boolean; matchAllFilter: boolean } {
+    const original = this._originalValues.get(`${key}-${origin}`);
+    const isMatchAll = operator === '=~' && singleValue === '.*';
+    const isRestorable = !isEqual(values, original?.value) || operator !== original?.operator;
+
+    return {
+      matchAllFilter: isMatchAll,
+      restorable: isRestorable,
+    };
+  }
+
+  public validateOriginFilters(filters: AdHocFilterWithLabels[]): AdHocFilterWithLabels[] {
+    return filters.map((filter) => {
+      if (!filter.origin) {
+        return filter;
+      }
+
+      if (!this._originalValues.has(`${filter.key}-${filter.origin}`)) {
+        return filter;
+      }
+
+      const updateValues = filter.values || (filter.value ? [filter.value] : undefined);
+      if (!updateValues) {
+        return {
+          ...filter,
+          operator: '=~',
+          value: '.*',
+          values: ['.*'],
+          valueLabels: ['All'],
+          matchAllFilter: true,
+          nonApplicable: false,
+          restorable: true,
+        };
+      }
+
+      const flags = this._resolveOriginFlags(filter.key, filter.origin, updateValues, filter.operator, filter.value);
+      return { ...filter, ...flags };
+    });
+  }
+
+  /**
+   * Updates the variable's `filters` and `filterExpression` state.
+   * If `skipPublish` option is true, this will not emit the `SceneVariableValueChangedEvent`,
+   * allowing consumers to update the filters without triggering dependent data providers.
+   */
+  public updateFilters(
+    filters: AdHocFilterWithLabels[],
+    options?: {
+      skipPublish?: boolean;
+      forcePublish?: boolean;
+    }
+  ): void {
+    let filterExpressionChanged = false;
+    let filterExpression: string | undefined = undefined;
+
+    if (filters && filters !== this.state.filters) {
+      filterExpression = renderExpression(this.state.expressionBuilder, [
+        ...(this.state.originFilters ?? []),
+        ...filters,
+      ]);
+      filterExpressionChanged = filterExpression !== this.state.filterExpression;
+    }
+
+    super.setState({
+      filters,
+      filterExpression,
+    });
+
+    if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
+      this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+    }
+  }
+
+  public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
+    if (!filter.restorable) {
+      return;
+    }
+
+    const originalFilter = this._originalValues.get(`${filter.key}-${filter.origin}`);
+    if (!originalFilter) {
+      return;
+    }
+
+    const queryController = getQueryController(this);
+    queryController?.startProfile(FILTER_RESTORED_INTERACTION);
+    this._updateFilter(filter, {
+      value: originalFilter.value[0],
+      values: isMultiValueOperator(originalFilter.operator) ? originalFilter.value : undefined,
+      valueLabels: originalFilter.value,
+      operator: originalFilter.operator,
+      nonApplicable: originalFilter.nonApplicable,
+    });
+  }
+
+  /**
+   * Get the original value for an origin filter before any user modifications.
+   * Returns undefined if no original is tracked for this filter.
+   */
+  public getOriginalValue(filter: AdHocFilterWithLabels): { value: string[]; operator: string } | undefined {
+    return this._originalValues.get(`${filter.key}-${filter.origin}`);
+  }
+
+  /**
+   * Store a snapshot of the filter's current value and operator so it can be restored later.
+   */
+  private _setOriginalValue(filter: AdHocFilterWithLabels): void {
+    this._originalValues.set(`${filter.key}-${filter.origin}`, {
+      value: filter.values ?? [filter.value],
+      operator: filter.operator,
+    });
+  }
+
+  /**
+   * Get original filters from original values.
+   * Returns filters from _originalValues map.
+   */
+  public getOriginalFilters(): AdHocFilterWithLabels[] {
+    return [...this._originalValues.entries()].map(([mapKey, original]) => {
+      const delimiter = mapKey.lastIndexOf('-');
+      const key = mapKey.substring(0, delimiter);
+      const origin = mapKey.substring(delimiter + 1);
+      return {
+        key,
+        origin,
+        value: original.value[0],
+        values: isMultiValueOperator(original.operator) ? original.value : undefined,
+        valueLabels: original.value,
+        keyLabel: key,
+        operator: original.operator,
+        nonApplicable: original.nonApplicable,
+      } as AdHocFilterWithLabels;
+    });
+  }
+
+  /**
+   * Replace all stored original values from the given filters array.
+   */
+  public setOriginalFilters(filters: AdHocFilterWithLabels[]): void {
+    this._originalValues.clear();
+    filters.forEach((filter) => {
+      this._setOriginalValue(filter);
+    });
+  }
+
+  /**
+   * Clear all user-added filters and restore origin filters to their original values.
+   */
+  public clearAll(): void {
+    // Restore all restorable origin filters to their original values
+    this.state.originFilters?.forEach((filter) => {
+      if (filter.restorable) {
+        this.restoreOriginalFilter(filter);
+      }
+    });
+
+    // Clear all user-added filters
+    this.setState({ filters: [] });
+  }
+
+  public getValue(fieldPath?: string): VariableValue | undefined {
+    if (fieldPath === ORIGIN_FILTERS_KEY) {
+      const originFilters = this.state.originFilters;
+
+      if (!originFilters || originFilters?.length === 0) {
+        return [];
+      }
+
+      return [
+        ...originFilters.map((filter) =>
+          toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}`)
+        ),
+      ];
+    }
+
     return this.state.filterExpression;
   }
 
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
-    const { filters, _wip } = this.state;
+    const { originFilters, filters, _wip } = this.state;
+
+    if ('value' in update && !('values' in update)) {
+      update = { ...update, values: undefined };
+    }
+
+    if (filter.origin) {
+      const updateValues = update.values || (update.value ? [update.value] : undefined);
+
+      if (updateValues) {
+        const effectiveOperator = update.operator ?? filter.operator;
+        const effectiveValue = update.value ?? filter.value;
+        const flags = this._resolveOriginFlags(
+          filter.key,
+          filter.origin,
+          updateValues,
+          effectiveOperator,
+          effectiveValue
+        );
+        Object.assign(update, flags);
+      }
+
+      const updatedFilters =
+        originFilters?.map((f) => {
+          return f === filter ? { ...f, ...update } : f;
+        }) ?? [];
+      this.setState({ originFilters: updatedFilters });
+
+      return;
+    }
 
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
-        this.setState({ filters: [...filters, { ..._wip, ...update }], _wip: undefined });
+        this.setState({
+          filters: [...filters, { ..._wip, ...update }],
+          _wip: undefined,
+        });
+        this.verifyApplicabilityAndStoreRecentFilter({ ..._wip, ...update });
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -227,6 +649,23 @@ export class AdHocFiltersVariable
     });
 
     this.setState({ filters: updatedFilters });
+
+    this._recommendations?.storeRecentFilter({
+      ...filter,
+      ...update,
+    });
+  }
+
+  public updateToMatchAll(filter: AdHocFilterWithLabels) {
+    this._updateFilter(filter, {
+      operator: '=~',
+      value: '.*',
+      values: ['.*'],
+      valueLabels: ['All'],
+      matchAllFilter: true,
+      nonApplicable: false,
+      restorable: true,
+    });
   }
 
   public _removeFilter(filter: AdHocFilterWithLabels) {
@@ -234,8 +673,11 @@ export class AdHocFiltersVariable
       this.setState({ _wip: undefined });
       return;
     }
+    const queryController = getQueryController(this);
+    queryController?.startProfile(FILTER_REMOVED_INTERACTION);
 
     this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
+    this._debouncedVerifyApplicability();
   }
 
   public _removeLastFilter() {
@@ -259,8 +701,38 @@ export class AdHocFiltersVariable
 
       this.setState({
         filters: this.state.filters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
+          // adjust forceEdit of preceding filter if not readOnly
+          if (index === filterToForceIndex && !f.readOnly) {
+            return [
+              ...acc,
+              {
+                ...f,
+                forceEdit: true,
+              },
+            ];
+          }
+          // remove current filter
+          if (f === filter) {
+            return acc;
+          }
+
+          return [...acc, f];
+        }, []),
+      });
+    } else if (this.state.originFilters?.length) {
+      // default forceEdit last filter (when triggering from wip filter)
+      let filterToForceIndex = this.state.originFilters.length - 1;
+
+      // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
+      //  to avoid triggering forceEdit logic
+      if (filter !== this.state._wip) {
+        filterToForceIndex = -1;
+      }
+
+      this.setState({
+        originFilters: this.state.originFilters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
           // adjust forceEdit of preceding filter
-          if (index === filterToForceIndex) {
+          if (index === filterToForceIndex && !f.readOnly) {
             return [
               ...acc,
               {
@@ -278,6 +750,78 @@ export class AdHocFiltersVariable
         }, []),
       });
     }
+  }
+
+  public async getFiltersApplicabilityForQueries(
+    filters: AdHocFilterWithLabels[],
+    queries: SceneDataQuery[]
+  ): Promise<DrilldownsApplicability[] | undefined> {
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    // @ts-expect-error (temporary till we update grafana/data)
+    if (!ds || !ds.getDrilldownsApplicability) {
+      return;
+    }
+
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+
+    // @ts-expect-error (temporary till we update grafana/data)
+    return await ds.getDrilldownsApplicability({
+      filters,
+      queries,
+      timeRange,
+      scopes: sceneGraph.getScopes(this),
+      ...getEnrichedFiltersRequest(this),
+    });
+  }
+
+  public async _verifyApplicability() {
+    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
+
+    if (!response) {
+      return;
+    }
+
+    const responseMap = new Map<string, DrilldownsApplicability>();
+    response.forEach((filter: DrilldownsApplicability) => {
+      responseMap.set(`${filter.key}${filter.origin ? `-${filter.origin}` : ''}`, filter);
+    });
+
+    const update = {
+      applicabilityEnabled: true,
+      filters: [...this.state.filters],
+      originFilters: [...(this.state.originFilters ?? [])],
+    };
+
+    update.filters.forEach((f) => {
+      const filter = responseMap.get(f.key);
+
+      if (filter) {
+        f.nonApplicable = !filter.applicable;
+        f.nonApplicableReason = filter.reason;
+      }
+    });
+
+    update.originFilters?.forEach((f) => {
+      const filter = responseMap.get(`${f.key}-${f.origin}`);
+
+      if (filter) {
+        if (!f.matchAllFilter) {
+          f.nonApplicable = !filter.applicable;
+          f.nonApplicableReason = filter.reason;
+        }
+
+        const originalValue = this._originalValues.get(`${f.key}-${f.origin}`);
+        if (originalValue) {
+          originalValue.nonApplicable = !filter.applicable;
+          originalValue.nonApplicableReason = filter?.reason;
+        }
+      }
+    });
+
+    this.setState(update);
   }
 
   /**
@@ -299,18 +843,22 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const otherFilters = this.state.filters.filter((f) => f.key !== currentKey).concat(this.state.baseFilters ?? []);
+    const applicableOriginFilters = this.state.originFilters?.filter((f) => !f.nonApplicable) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== currentKey && !f.nonApplicable)
+      .concat(this.state.baseFilters ?? [])
+      .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
     const response = await ds.getTagKeys({
       filters: otherFilters,
       queries,
       timeRange,
+      scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
     });
 
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
 
@@ -321,7 +869,6 @@ export class AdHocFiltersVariable
 
     const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
     if (tagKeyRegexFilter) {
-      // @ts-expect-error Remove when 11.1.x is released
       keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
     }
 
@@ -344,22 +891,39 @@ export class AdHocFiltersVariable
       return [];
     }
 
+    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key) ?? [];
     // Filter out the current filter key from the list of all filters
-    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(this.state.baseFilters ?? []);
+    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(originFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
+    let scopes = sceneGraph.getScopes(this);
+
+    // if current filter is a scope originated one we need to filter out
+    // filters with same key in scopes prop, similar to how we do in adhocFilters prop
+    if (filter.origin === 'scope') {
+      scopes = scopes?.map((scope) => {
+        return {
+          ...scope,
+          spec: {
+            ...scope.spec,
+            filters: scope.spec.filters?.filter((f) => f.key !== filter.key),
+          },
+        };
+      });
+    }
+
     const response = await ds.getTagValues({
       key: filter.key,
       filters: otherFilters,
-      timeRange, // @ts-expect-error TODO: remove this once 11.1.x is released
+      timeRange,
       queries,
+      scopes,
       ...getEnrichedFiltersRequest(this),
     });
 
     if (responseHasError(response)) {
-      // @ts-expect-error Remove when 11.1.x is released
       this.setState({ error: response.error.message });
     }
 
@@ -378,10 +942,17 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const filteredOperators = this.state.supportsMultiValueOperators
-      ? OPERATORS
-      : OPERATORS.filter((operator) => !operator.isMulti);
-    return filteredOperators.map<SelectableValue<string>>(({ value, description }) => ({
+    const { supportsMultiValueOperators, allowCustomValue = true } = this.state;
+
+    return OPERATORS.filter(({ isMulti, isRegex }) => {
+      if (!supportsMultiValueOperators && isMulti) {
+        return false;
+      }
+      if (!allowCustomValue && isRegex) {
+        return false;
+      }
+      return true;
+    }).map<SelectableValue<string>>(({ value, description }) => ({
       label: value,
       value,
       description,
@@ -393,24 +964,32 @@ function renderExpression(
   builder: AdHocVariableExpressionBuilderFn | undefined,
   filters: AdHocFilterWithLabels[] | undefined
 ) {
-  return (builder ?? renderPrometheusLabelFilters)(filters ?? []);
+  return (builder ?? renderPrometheusLabelFilters)(filters?.filter((f) => isFilterApplicable(f)) ?? []);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
   const { filters, readOnly, addFilterButtonText } = model.useState();
   const styles = useStyles2(getStyles);
 
-  if (model.state.layout === 'combobox') {
-    return <AdHocFiltersComboboxRenderer model={model} />;
+  // Create controller adapter for combobox mode
+  const controller = useMemo(
+    () => (model.state.layout === 'combobox' ? new AdHocFiltersVariableController(model) : undefined),
+    [model]
+  );
+
+  if (controller) {
+    return <AdHocFiltersComboboxRenderer controller={controller} />;
   }
 
   return (
     <div className={styles.wrapper}>
-      {filters.map((filter, index) => (
-        <React.Fragment key={index}>
-          <AdHocFilterRenderer filter={filter} model={model} />
-        </React.Fragment>
-      ))}
+      {filters
+        .filter((filter) => !filter.hidden)
+        .map((filter, index) => (
+          <React.Fragment key={index}>
+            <AdHocFilterRenderer filter={filter} model={model} />
+          </React.Fragment>
+        ))}
 
       {!readOnly && <AdHocFilterBuilder model={model} key="'builder" addFilterButtonText={addFilterButtonText} />}
     </div>
@@ -430,7 +1009,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
 export function toSelectableValue(input: MetricFindValue): SelectableValue<string> {
   const { text, value } = input;
   const result: SelectableValue<string> = {
-    label: text,
+    // converting text to string due to some edge cases where it can be a number
+    // TODO: remove once https://github.com/grafana/grafana/issues/99021 is closed
+    label: String(text),
     value: String(value ?? text),
   };
 
@@ -438,11 +1019,23 @@ export function toSelectableValue(input: MetricFindValue): SelectableValue<strin
     result.group = input.group;
   }
 
+  if ('meta' in input) {
+    result.meta = input.meta;
+  }
+
   return result;
+}
+
+export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
+  return filter.operator === '=~' && filter.value === '.*';
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
   return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+}
+
+export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
+  return !filter.nonApplicable;
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {

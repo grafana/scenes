@@ -24,7 +24,6 @@ import { DataFrameView } from '@grafana/data';
 export function getInteractiveTableDemo(defaults: SceneAppPageState): SceneAppPage {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Interactive table',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),
@@ -50,38 +49,40 @@ interface TableVizState extends SceneObjectState {
 }
 
 class TableViz extends SceneObjectBase<TableVizState> {
-  static Component = ({ model }: SceneComponentProps<TableViz>) => {
-    const { data } = sceneGraph.getData(model).useState();
+  static Component = TableVizRenderer;
+}
 
-    const columns = useMemo(
-      () => [
-        { id: 'handler', header: 'Handler' },
-        { id: 'method', header: 'Method' },
-        { id: 'status_code', header: 'Status code' },
-        { id: 'Value', header: 'Value' },
-      ],
-      []
-    );
+function TableVizRenderer({ model }: SceneComponentProps<TableViz>) {
+  const { data } = sceneGraph.getData(model).useState();
 
-    const tableData = useMemo(() => {
-      if (!data || data.series.length === 0) {
-        return [];
-      }
+  const columns = useMemo(
+    () => [
+      { id: 'handler', header: 'Handler' },
+      { id: 'method', header: 'Method' },
+      { id: 'status_code', header: 'Status code' },
+      { id: 'Value', header: 'Value' },
+    ],
+    []
+  );
 
-      const frame = data.series[0];
-      const view = new DataFrameView<TableRow>(frame);
-      return view.toArray();
-    }, [data]);
+  const tableData = useMemo(() => {
+    if (!data || data.series.length === 0) {
+      return [];
+    }
 
-    return (
-      <InteractiveTable
-        columns={columns}
-        getRowId={(row: any) => row.handler}
-        data={tableData}
-        renderExpandedRow={(row) => <TableVizExpandedRow tableViz={model} row={row} />}
-      />
-    );
-  };
+    const frame = data.series[0];
+    const view = new DataFrameView<TableRow>(frame);
+    return view.toArray();
+  }, [data]);
+
+  return (
+    <InteractiveTable
+      columns={columns}
+      getRowId={(row: any) => row.handler}
+      data={tableData}
+      renderExpandedRow={(row) => <TableVizExpandedRow tableViz={model} row={row} />}
+    />
+  );
 }
 
 interface TableRow {

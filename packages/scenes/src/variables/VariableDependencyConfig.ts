@@ -2,7 +2,7 @@ import { DataLinkBuiltInVars } from '@grafana/data';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObject, SceneObjectState } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
-import { VARIABLE_REGEX } from './constants';
+import { SCOPES_VARIABLE_NAME, VARIABLE_REGEX } from './constants';
 
 import { SceneVariable, SceneVariableDependencyConfigLike } from './types';
 import { safeStringifyValue } from './utils';
@@ -42,6 +42,11 @@ interface VariableDependencyConfigOptions<TState extends SceneObjectState> {
    * Handle time macros.
    */
   handleTimeMacros?: boolean;
+
+  /**
+   * Will add ScopesVariable as a dependency which will cause updates when the scopes change.
+   */
+  dependsOnScopes?: boolean;
 }
 
 export class VariableDependencyConfig<TState extends SceneObjectState> implements SceneVariableDependencyConfigLike {
@@ -75,11 +80,8 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
    */
   public variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean) {
     const deps = this.getNames();
-    let dependencyChanged = false;
-
-    if ((deps.has(variable.state.name) || deps.has(DataLinkBuiltInVars.includeVars)) && hasChanged) {
-      dependencyChanged = true;
-    }
+    const dependencyChanged =
+      (deps.has(variable.state.name) || deps.has(DataLinkBuiltInVars.includeVars)) && hasChanged;
 
     writeSceneLog(
       'VariableDependencyConfig',
@@ -89,9 +91,7 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
       this._isWaitingForVariables
     );
 
-    if (this._options.onAnyVariableChanged) {
-      this._options.onAnyVariableChanged(variable);
-    }
+    this._options.onAnyVariableChanged?.(variable);
 
     // If custom handler called when dependency is changed or when we are waiting for variables
     if (this._options.onVariableUpdateCompleted && (this._isWaitingForVariables || dependencyChanged)) {
@@ -99,11 +99,9 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     }
 
     if (dependencyChanged) {
-      if (this._options.onReferencedVariableValueChanged) {
-        this._options.onReferencedVariableValueChanged(variable);
-      }
+      this._options.onReferencedVariableValueChanged?.(variable);
 
-      // if no callbacks are specified then just do a forceRender
+      // If no callbacks are specified then just do a forceRender
       if (!this._options.onReferencedVariableValueChanged && !this._options.onVariableUpdateCompleted) {
         this._sceneObject.forceRender();
       }
@@ -111,37 +109,26 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
   }
 
   public hasDependencyInLoadingState() {
-    if (sceneGraph.hasVariableDependencyInLoadingState(this._sceneObject)) {
-      this._isWaitingForVariables = true;
-      return true;
-    }
-
-    this._isWaitingForVariables = false;
-    return false;
+    this._isWaitingForVariables = sceneGraph.hasVariableDependencyInLoadingState(this._sceneObject);
+    return this._isWaitingForVariables;
   }
 
   public getNames(): Set<string> {
     const prevState = this._state;
     const newState = (this._state = this._sceneObject.state);
 
-    if (!prevState) {
-      // First time we always scan for dependencies
-      this.scanStateForDependencies(this._state);
-      return this._dependencies;
-    }
+    const noPreviousState = !prevState;
+    const stateDiffers = newState !== prevState;
 
+    // First time we always scan for dependencies
     // Second time we only scan if state is a different and if any specific state path has changed
-    if (newState !== prevState) {
-      if (this._statePaths) {
-        for (const path of this._statePaths) {
-          if (path === '*' || newState[path] !== prevState[path]) {
-            this.scanStateForDependencies(newState);
-            break;
-          }
-        }
-      } else {
-        this.scanStateForDependencies(newState);
-      }
+    const shouldScanForDependencies =
+      noPreviousState ||
+      (stateDiffers &&
+        (!this._statePaths || this._statePaths.some((path) => path === '*' || newState[path] !== prevState[path])));
+
+    if (shouldScanForDependencies) {
+      this.scanStateForDependencies(newState);
     }
 
     return this._dependencies;
@@ -161,12 +148,16 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
 
   private scanStateForDependencies(state: TState) {
     this._dependencies.clear();
-    this.scanCount += 1;
+    this.scanCount++;
 
     if (this._options.variableNames) {
       for (const name of this._options.variableNames) {
         this._dependencies.add(name);
       }
+    }
+
+    if (this._options.dependsOnScopes) {
+      this._dependencies.add(SCOPES_VARIABLE_NAME);
     }
 
     if (this._statePaths) {

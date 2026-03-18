@@ -47,7 +47,7 @@ const config = (env): Configuration => ({
     'react-redux',
     'redux',
     'rxjs',
-    'react-router-dom',
+    'react-router',
     'd3',
     'angular',
     '@grafana/ui',
@@ -118,7 +118,7 @@ const config = (env): Configuration => ({
   },
 
   output: {
-    clean: true,
+    // clean: true,
     filename: '[name].js',
     libraryTarget: 'amd',
     path: path.resolve(process.cwd(), DIST_DIR),

@@ -25,9 +25,7 @@ const outlierDetector = new SceneOutlierDetector({
   pinned: false,
   onOutlierDetected: (outlier: Outlier) => {},
 });
-const panel = PanelBuilders.timeseries()
-  .setHeaderActions([outlierDetector])
-  .build();
+const panel = PanelBuilders.timeseries().setHeaderActions([outlierDetector]).build();
 ```
 
 :::note

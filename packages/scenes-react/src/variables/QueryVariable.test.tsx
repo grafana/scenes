@@ -9,7 +9,7 @@ import { of } from 'rxjs';
 
 const QueryVariableClass = jest.requireActual('@grafana/scenes').QueryVariable;
 
-describe('QueryVariable', () => {  
+describe('QueryVariable', () => {
   beforeEach(() => {
     jest.spyOn(QueryVariableClass.prototype, 'getValueOptions').mockImplementation(() => of([]));
   });
@@ -19,7 +19,12 @@ describe('QueryVariable', () => {
 
     render(
       <TestContextProvider value={scene}>
-        <QueryVariable name="queryVar" query={{ query: '*', refId: 'A' }} datasource={{ uid: 'gdev-testdata' }}  initialValue="A">
+        <QueryVariable
+          name="queryVar"
+          query={{ query: '*', refId: 'A' }}
+          datasource={{ uid: 'gdev-testdata' }}
+          initialValue="A"
+        >
           <VariableControl name="queryVar" />
         </QueryVariable>
       </TestContextProvider>
@@ -36,7 +41,13 @@ describe('QueryVariable', () => {
 
     const { rerender } = render(
       <TestContextProvider value={scene}>
-        <QueryVariable name="queryVar" query={{ query: '*', refId: 'A' }} datasource={{ uid: 'gdev-testdata' }} initialValue="A" label="test1">
+        <QueryVariable
+          name="queryVar"
+          query={{ query: '*', refId: 'A' }}
+          datasource={{ uid: 'gdev-testdata' }}
+          initialValue="A"
+          label="test1"
+        >
           <VariableControl name="queryVar" />
         </QueryVariable>
       </TestContextProvider>
@@ -50,7 +61,13 @@ describe('QueryVariable', () => {
 
     rerender(
       <TestContextProvider value={scene}>
-        <QueryVariable name="queryVar" query={{ query: '*', refId: 'A' }} datasource={{ uid: 'gdev-testdata' }}initialValue="A" label="test2">
+        <QueryVariable
+          name="queryVar"
+          query={{ query: '*', refId: 'A' }}
+          datasource={{ uid: 'gdev-testdata' }}
+          initialValue="A"
+          label="test2"
+        >
           <VariableControl name="queryVar" />
         </QueryVariable>
       </TestContextProvider>
@@ -59,5 +76,5 @@ describe('QueryVariable', () => {
     expect(variable).toBeDefined();
     expect(variable.state.label).toBe('test2');
     expect(screen.getByText('test2')).toBeInTheDocument();
-  })
+  });
 });

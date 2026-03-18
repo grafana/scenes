@@ -56,6 +56,7 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
 
   protected _variableDependency: VariableDependencyConfig<T> = new VariableDependencyConfig(this, {
     onVariableUpdateCompleted: this.onVariableUpdateCompleted.bind(this),
+    dependsOnScopes: true,
   });
 
   /**

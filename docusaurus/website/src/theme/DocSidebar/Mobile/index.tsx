@@ -6,15 +6,12 @@ import {
   ThemeClassNames,
 } from '@docusaurus/theme-common';
 // @ts-ignore
-import {useNavbarMobileSidebar} from '@docusaurus/theme-common/internal';
+import { useNavbarMobileSidebar } from '@docusaurus/theme-common/internal';
 import DocSidebarItems from '@theme/DocSidebarItems';
-import type {Props} from '@theme/DocSidebar/Mobile';
+import type { Props } from '@theme/DocSidebar/Mobile';
 
 // eslint-disable-next-line react/function-component-definition
-const DocSidebarMobileSecondaryMenu: NavbarSecondaryMenuComponent<Props> = ({
-  sidebar,
-  path,
-}) => {
+const DocSidebarMobileSecondaryMenu: NavbarSecondaryMenuComponent<Props> = ({ sidebar, path }) => {
   const mobileSidebar = useNavbarMobileSidebar();
   return (
     <ul className={clsx(ThemeClassNames.docs.docSidebarMenu, 'menu__list')}>
@@ -37,12 +34,7 @@ const DocSidebarMobileSecondaryMenu: NavbarSecondaryMenuComponent<Props> = ({
 };
 
 function DocSidebarMobile(props: Props) {
-  return (
-    <NavbarSecondaryMenuFiller
-      component={DocSidebarMobileSecondaryMenu}
-      props={props}
-    />
-  );
+  return <NavbarSecondaryMenuFiller component={DocSidebarMobileSecondaryMenu} props={props} />;
 }
 
 export default React.memo(DocSidebarMobile);

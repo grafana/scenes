@@ -33,36 +33,22 @@ describe('getExploreURL', () => {
     );
   });
 
-  it('should interpolate queries via data source and return well formed URL', async () => {
+  it('should handle a single query from a single datasource and return a well-formed Explore URL', async () => {
     const data: PanelData = {
       request: {
         targets: [
           {
-            datasource: {
-              uid: 'test-ds',
-            },
+            datasource: { uid: 'test-ds' },
             refId: 'A',
             query: 'test-query',
-          },
-          {
-            datasource: {
-              uid: 'test-ds',
-            },
-            refId: 'A',
-            query: 'test-query2',
           },
         ],
         filters: [],
       },
     } as any;
 
-    const model = new VizPanel({
-      pluginId: 'custom-plugin-id',
-    });
-    const timeRange: RawTimeRange = {
-      from: 'now - 10m',
-      to: 'now',
-    };
+    const model = new VizPanel({ pluginId: 'custom-plugin-id' });
+    const timeRange: RawTimeRange = { from: 'now - 10m', to: 'now' };
 
     const url = await getExploreURL(data, model, timeRange);
 
@@ -74,17 +60,66 @@ describe('getExploreURL', () => {
           refId: 'A',
           query: 'test-query interpolated',
         },
+      ],
+      range: timeRange,
+    };
+
+    expect(mockDataSourceSrv.get).toHaveBeenCalledTimes(1);
+    expect(mockDataSource.interpolateVariablesInQueries).toHaveBeenCalledWith(
+      [data.request!.targets[0]],
+      { __sceneObject: wrapInSafeSerializableSceneObject(model) },
+      data.request!.filters
+    );
+
+    const parsed = new URL(url, 'http://example.com');
+    expect(parsed.pathname).toBe('/explore');
+    const left = parsed.searchParams.get('left');
+    expect(left).not.toBeNull();
+    expect(JSON.parse(decodeURIComponent(left!))).toStrictEqual(expectedLeft);
+  });
+
+  it('should handle multiple queries from different datasources and return a well-formed Explore URL', async () => {
+    const data: PanelData = {
+      request: {
+        targets: [
+          {
+            datasource: { uid: 'prometheus-ds' },
+            refId: 'Prom A',
+            query: 'prometheus_query',
+          },
+          {
+            datasource: { uid: 'loki-ds' },
+            refId: 'Loki B',
+            query: 'loki_query',
+          },
+        ],
+        filters: [],
+      },
+    } as any;
+
+    const model = new VizPanel({ pluginId: 'custom-plugin-id' });
+    const timeRange: RawTimeRange = { from: 'now - 10m', to: 'now' };
+
+    const url = await getExploreURL(data, model, timeRange, (query) => query);
+
+    const expectedLeft = {
+      datasource: '-- Mixed --',
+      queries: [
         {
-          datasource: { uid: 'test-ds' },
-          refId: 'A',
-          query: 'test-query2 interpolated',
+          datasource: { uid: 'prometheus-ds' },
+          refId: 'Prom A',
+          query: 'prometheus_query interpolated',
+        },
+        {
+          datasource: { uid: 'loki-ds' },
+          refId: 'Loki B',
+          query: 'loki_query interpolated',
         },
       ],
       range: timeRange,
     };
 
     expect(mockDataSourceSrv.get).toHaveBeenCalledTimes(2);
-    expect(mockDataSourceSrv.get).toHaveBeenCalledWith({ uid: 'test-ds' });
     expect(mockDataSource.interpolateVariablesInQueries).toHaveBeenCalledTimes(2);
     expect(mockDataSource.interpolateVariablesInQueries).toHaveBeenNthCalledWith(
       1,

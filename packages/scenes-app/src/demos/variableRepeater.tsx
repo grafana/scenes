@@ -17,7 +17,6 @@ import { getQueryRunnerWithRandomWalkQuery } from './utils';
 export function getVariableRepeaterDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Test of repeating layout by variable',
     $timeRange: new SceneTimeRange(),
     getScene: () => {
       return new EmbeddedScene({

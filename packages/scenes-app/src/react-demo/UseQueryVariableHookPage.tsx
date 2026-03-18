@@ -5,6 +5,7 @@ import { PageWrapper } from './PageWrapper';
 import { DemoVizLayout } from './utils';
 import { VariableValueOption } from '@grafana/scenes';
 import { PlainGraphWithRandomWalk } from './PlainGraphWithRandomWalk';
+import { DemoSubTitle } from '../pages/DemoSubTitle';
 
 export function UseQueryVariableHookPage() {
   const [regex, setRegex] = React.useState<string | undefined>(undefined);
@@ -12,7 +13,7 @@ export function UseQueryVariableHookPage() {
   const options = queryVar?.useState()?.options;
 
   if (!options) {
-   return <div>No variable options found</div>;
+    return <div>No variable options found</div>;
   }
 
   const onUpdateQueryVarRegex = () => {
@@ -22,22 +23,27 @@ export function UseQueryVariableHookPage() {
   return (
     <PageWrapper
       title="useQueryVariable hook"
-      subTitle="Testing a hook that provides an alternative way of creating a query variable"
+      subTitle={
+        <DemoSubTitle
+          text={'Testing a hook that provides an alternative way of creating a query variable'}
+          getSourceCodeModule={() => import('!!raw-loader!./UseQueryVariableHookPage')}
+        />
+      }
     >
       <Stack direction="column">
         <Stack direction="column" gap={2}>
-          <div>Variable label: {options.map(val => val.label).join(',')}</div>
-          <div>Variable value: {options.map(val => val.value).join(',')}</div>
+          <div>Variable label: {options.map((val) => val.label).join(',')}</div>
+          <div>Variable value: {options.map((val) => val.value).join(',')}</div>
           <Button variant="secondary" onClick={onUpdateQueryVarRegex}>
             Update query variable regex
           </Button>
         </Stack>
       </Stack>
       <DemoVizLayout>
-      {options.map((option: VariableValueOption) => (
-        <PlainGraphWithRandomWalk key={option.label} title={`${option.value} Panel`} />
-      ))}
-    </DemoVizLayout>
+        {options.map((option: VariableValueOption) => (
+          <PlainGraphWithRandomWalk key={option.label} title={`${option.value} Panel`} />
+        ))}
+      </DemoVizLayout>
     </PageWrapper>
   );
 }

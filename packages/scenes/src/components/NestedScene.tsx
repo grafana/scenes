@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import { css, cx } from '@emotion/css';
 import React from 'react';
 
@@ -57,7 +58,7 @@ export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>)
         variant={'default'}
         onClick={model.onRemove}
         key="remove-button"
-        aria-label="Remove scene"
+        aria-label={t('grafana-scenes.components.nested-scene-renderer.remove-button-label', 'Remove scene')}
       />
     );
   }
@@ -68,7 +69,11 @@ export function NestedSceneRenderer({ model }: SceneComponentProps<NestedScene>)
         <button
           onClick={model.onToggle}
           className={gridRow.rowTitleButton}
-          aria-label={isCollapsed ? 'Expand scene' : 'Collapse scene'}
+          aria-label={
+            isCollapsed
+              ? t('grafana-scenes.components.nested-scene-renderer.expand-button-label', 'Expand scene')
+              : t('grafana-scenes.components.nested-scene-renderer.collapse-button-label', 'Collapse scene')
+          }
         >
           {canCollapse && <Icon name={isCollapsed ? 'angle-right' : 'angle-down'} />}
           <span className={gridRow.rowTitle} role="heading">

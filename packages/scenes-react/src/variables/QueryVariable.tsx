@@ -28,6 +28,8 @@ export function QueryVariable({
   initialValue,
   isMulti,
   includeAll,
+  skipUrlSync,
+  allValue,
   children,
 }: QueryVariableProps): React.ReactNode {
   const scene = useSceneContext();
@@ -36,19 +38,21 @@ export function QueryVariable({
   let variable: QueryVariableObject | undefined = scene.findVariable(name);
 
   if (!variable) {
-    variable = new QueryVariableObject({ 
+    variable = new QueryVariableObject({
       name,
       label,
       query,
-      datasource, 
-      refresh, 
-      sort, 
-      regex, 
-      value: initialValue, 
+      datasource,
+      refresh,
+      sort,
+      regex,
+      value: initialValue,
       isMulti,
-      hide, 
+      hide,
       includeAll,
-     });
+      skipUrlSync,
+      allValue,
+    });
   }
 
   useEffect(() => {
@@ -70,7 +74,9 @@ export function QueryVariable({
       variable.state.hide === hide &&
       variable.state.includeAll === includeAll &&
       variable.state.refresh === refresh &&
-      variable.state.sort === sort
+      variable.state.sort === sort &&
+      variable.state.skipUrlSync === skipUrlSync &&
+      variable.state.allValue === allValue
     ) {
       return;
     }
@@ -78,17 +84,31 @@ export function QueryVariable({
     variable.setState({
       label,
       query,
-      datasource, 
-      refresh, 
-      sort, 
-      regex, 
-      hide, 
+      datasource,
+      refresh,
+      sort,
+      regex,
+      hide,
       includeAll,
+      skipUrlSync,
+      allValue,
     });
 
     variable.refreshOptions();
-  }, [datasource, hide, includeAll, label, query, refresh, regex, sort, variable, variableAdded]);
- 
+  }, [
+    skipUrlSync,
+    allValue,
+    datasource,
+    hide,
+    includeAll,
+    label,
+    query,
+    refresh,
+    regex,
+    sort,
+    variable,
+    variableAdded,
+  ]);
 
   // Need to block child rendering until the variable is added so that child components like RVariableSelect find the variable
   if (!variableAdded) {

@@ -22,7 +22,6 @@ export function getPanelRepeaterTest(defaults: SceneAppPageState) {
 
   return new SceneAppPage({
     ...defaults,
-    subTitle: 'Here we use the SceneByFrameRepeater to dynamically build a layout for each frame',
     getScene: () => {
       return new EmbeddedScene({
         ...getEmbeddedSceneDefaults(),

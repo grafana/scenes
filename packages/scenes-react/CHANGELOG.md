@@ -1,3 +1,213 @@
+# v7.0.1 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- fix: make rxjs a peer dep due to its brittle types [#1375](https://github.com/grafana/scenes/pull/1375) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v7.0.0 (Thu Feb 26 2026)
+
+### Release Notes
+
+#### fix esm builds ([#1368](https://github.com/grafana/scenes/pull/1368))
+
+`@grafana/scenes` and `@grafana/scenes-react` now ship with exports defined in package.json, allowing only specific files to be exposed while blocking access to the packages internals. We consider this a breaking change.
+
+---
+
+#### 💥 Breaking Change
+
+- fix esm builds [#1368](https://github.com/grafana/scenes/pull/1368) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v6.54.0 (Wed Feb 18 2026)
+
+#### 🚀 Enhancement
+
+- scenes react: ad hoc filters, groupby, localvalue [#1353](https://github.com/grafana/scenes/pull/1353) ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+#### 🐛 Bug Fix
+
+- chore!: update peer dependencies of scenes packages [#1213](https://github.com/grafana/scenes/pull/1213) ([@NWRichmond](https://github.com/NWRichmond))
+
+#### Authors: 2
+
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+- Nick Richmond ([@NWRichmond](https://github.com/NWRichmond))
+
+---
+
+# v6.52.15 (Wed Feb 11 2026)
+
+#### 🐛 Bug Fix
+
+- ScenesReact: Add allValue to variables [#1254](https://github.com/grafana/scenes/pull/1254) ([@slaughtlaught](https://github.com/slaughtlaught))
+
+#### Authors: 1
+
+- Bogdan Tiet ([@slaughtlaught](https://github.com/slaughtlaught))
+
+---
+
+# v6.52.5 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- feat: add requestIdPrefix option to SceneQueryRunner [#1336](https://github.com/grafana/scenes/pull/1336) ([@svennergr](https://github.com/svennergr))
+
+#### Authors: 1
+
+- Sven Grossmann ([@svennergr](https://github.com/svennergr))
+
+---
+
+# v6.42.1 (Thu Oct 30 2025)
+
+#### 🐛 Bug Fix
+
+- Data Layers: Add `placement` property [#1289](https://github.com/grafana/scenes/pull/1289) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
+# v6.35.0 (Wed Sep 10 2025)
+
+#### 🚀 Enhancement
+
+- useQueryRunner: Add minInterval option [#1183](https://github.com/grafana/scenes/pull/1183) ([@krevedkokun](https://github.com/krevedkokun))
+
+#### Authors: 1
+
+- Nikita Domnitskii ([@krevedkokun](https://github.com/krevedkokun))
+
+---
+
+# v6.30.0 (Wed Aug 20 2025)
+
+#### 🐛 Bug Fix
+
+- ScenesReact: Add skipUrlSync to variables [#1182](https://github.com/grafana/scenes/pull/1182) ([@krevedkokun](https://github.com/krevedkokun))
+
+#### Authors: 1
+
+- Nikita Domnitskii ([@krevedkokun](https://github.com/krevedkokun))
+
+---
+
+# v6.27.2 (Wed Jul 09 2025)
+
+#### 🐛 Bug Fix
+
+- chore: unify license change in #327 [#1137](https://github.com/grafana/scenes/pull/1137) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 1
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
+# v6.21.0 (Wed Jun 18 2025)
+
+#### 🚀 Enhancement
+
+- Internationalisation: Add markup for translations [#1151](https://github.com/grafana/scenes/pull/1151) ([@joshhunt](https://github.com/joshhunt))
+
+#### 🐛 Bug Fix
+
+- Update eslint to v9 [#1150](https://github.com/grafana/scenes/pull/1150) ([@joshhunt](https://github.com/joshhunt))
+
+#### Authors: 1
+
+- Josh Hunt ([@joshhunt](https://github.com/joshhunt))
+
+---
+
+# v6.6.1 (Tue Apr 01 2025)
+
+#### 🐛 Bug Fix
+
+- Bump rollup and related deps [#1077](https://github.com/grafana/scenes/pull/1077) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v6.0.0 (Fri Feb 07 2025)
+
+#### 💥 Breaking Change
+
+- Update to `react-router@6` [#979](https://github.com/grafana/scenes/pull/979) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
+# v5.41.2 (Tue Feb 04 2025)
+
+#### 🐛 Bug Fix
+
+- Dependencies: Bump Grafana packages to v11.5 [#1040](https://github.com/grafana/scenes/pull/1040) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
+# v5.31.0 (Thu Dec 12 2024)
+
+#### 🚀 Enhancement
+
+- feat: (scenes-react) - VizPanel add missing props and tests [#998](https://github.com/grafana/scenes/pull/998) ([@L2D2Grafana](https://github.com/L2D2Grafana) [@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 2
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+---
+
+# v5.29.0 (Thu Dec 05 2024)
+
+#### 🐛 Bug Fix
+
+- Prettier/lint: Add prettier and lint check to CI , format all files with prettier [#988](https://github.com/grafana/scenes/pull/988) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v5.28.0 (Fri Nov 29 2024)
+
+#### 🐛 Bug Fix
+
+- Chore: Bump grafana dependencies [#965](https://github.com/grafana/scenes/pull/965) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v5.25.0 (Wed Nov 13 2024)
 
 #### 🚀 Enhancement
@@ -91,7 +301,7 @@
 
 #### UrlSync: Support browser history steps, remove singleton ([#878](https://github.com/grafana/scenes/pull/878))
 
-getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider. 
+getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider.
 If you called getUrlSyncManager().getUrlState that util function is available via the exported object sceneUtils.
 
 ---
@@ -239,4 +449,4 @@ If you called getUrlSyncManager().getUrlState that util function is available vi
 
 ---
 
-Work in progress 
+Work in progress

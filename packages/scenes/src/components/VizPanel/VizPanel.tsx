@@ -1,3 +1,4 @@
+import { t } from '@grafana/i18n';
 import {
   AbsoluteTimeRange,
   FieldConfigSource,
@@ -36,6 +37,11 @@ import { cloneDeep, isArray, isEmpty, merge, mergeWith } from 'lodash';
 import { UserActionEvent } from '../../core/events';
 import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
+import { VizPanelRenderProfiler } from '../../performance/VizPanelRenderProfiler';
+import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
+import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
+import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { buildPathIdFor } from '../../utils/pathId';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -58,6 +64,14 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   hoverHeaderOffset?: number;
   /**
+   * Allows adding elements to the subheader of the panel.
+   */
+  subHeader?: React.ReactNode | SceneObject | SceneObject[];
+  /**
+   * Only shows vizPanelMenu on hover if false, otherwise the menu is always visible in the header
+   */
+  showMenuAlways?: boolean;
+  /**
    * Defines a menu in the top right of the panel. The menu object is only activated when the dropdown menu itself is shown.
    * So the best way to add dynamic menu actions and links is by adding them in a behavior attached to the menu.
    */
@@ -66,6 +80,8 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Defines a menu that renders panel link.
    **/
   titleItems?: React.ReactNode | SceneObject | SceneObject[];
+  seriesLimit?: number;
+  seriesLimitShowAll?: boolean;
   /**
    * Add action to the top right panel header
    */
@@ -74,6 +90,14 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Mainly for advanced use cases that need custom handling of PanelContext callbacks.
    */
   extendPanelContext?: (vizPanel: VizPanel, context: PanelContext) => void;
+
+  /**
+   * Sets panel chrome collapsed state
+   */
+  collapsible?: boolean;
+  collapsed?: boolean;
+  /** Marks object as a repeated object and a key pointer to source object */
+  repeatSourceKey?: string;
   /**
    * @internal
    * Only for use from core to handle migration from old angular panels
@@ -100,13 +124,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   private _plugin?: PanelPlugin;
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
-  private _structureRev: number = 0;
+  private _structureRev = 0;
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
       options: {} as TOptions,
       fieldConfig: { defaults: {}, overrides: [] },
-      title: 'Title',
+      title: t('grafana-scenes.components.viz-panel.title.title', 'Title'),
       pluginId: 'timeseries',
       _renderCounter: 0,
       ...state,
@@ -121,6 +145,23 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     });
   }
 
+  /**
+   * Get the VizPanelRenderProfiler behavior if attached
+   */
+  public getProfiler(): VizPanelRenderProfiler | undefined {
+    if (!this.state.$behaviors) {
+      return undefined;
+    }
+
+    for (const behavior of this.state.$behaviors) {
+      if (behavior instanceof VizPanelRenderProfiler) {
+        return behavior;
+      }
+    }
+
+    return undefined;
+  }
+
   private _onActivate() {
     if (!this._plugin) {
       this._loadPlugin(this.state.pluginId);
@@ -129,19 +170,44 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public forceRender(): void {
     // Incrementing the render counter means VizRepeater and its children will also re-render
-    this.setState({ _renderCounter: (this.state._renderCounter ?? 0) + 1});
+    this.setState({ _renderCounter: (this.state._renderCounter ?? 0) + 1 });
   }
 
-  private async _loadPlugin(pluginId: string, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
+  private async _loadPlugin(
+    pluginId: string,
+    overwriteOptions?: DeepPartial<{}>,
+    overwriteFieldConfig?: FieldConfigSource,
+    isAfterPluginChange?: boolean
+  ) {
+    const profiler = this.getProfiler();
     const plugin = loadPanelPluginSync(pluginId);
 
     if (plugin) {
+      // Plugin was loaded from cache
+      const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
+      endPluginLoadCallback?.(plugin, true);
       this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
     } else {
       const { importPanelPlugin } = getPluginImportUtils();
 
       try {
-        const result = await importPanelPlugin(pluginId);
+        // Start profiling plugin load - get end callback
+        const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
+
+        const panelPromise = importPanelPlugin(pluginId);
+
+        const queryControler = sceneGraph.getQueryController(this);
+        if (queryControler && queryControler.state.enableProfiling) {
+          wrapPromiseInStateObservable(panelPromise)
+            .pipe(registerQueryWithController({ type: `VizPanel/loadPlugin/${pluginId}`, origin: this }))
+            .subscribe(() => {});
+        }
+
+        const result = await panelPromise;
+
+        // End profiling plugin load (not from cache)
+        endPluginLoadCallback?.(result, false);
+
         this._pluginLoaded(result, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
       } catch (err: unknown) {
         this._pluginLoaded(getPanelPluginNotFound(pluginId));
@@ -154,7 +220,19 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   }
 
   public getLegacyPanelId() {
-    const panelId = parseInt(this.state.key!.replace('panel-', ''), 10);
+    /**
+     * The `/` part is here because a panel key can be in a clone chain
+     * A clone chain looks like `panel-1-clone-0/grid-item-5/panel-14` where the last part is the panel key
+     */
+    const parts = this.state.key?.split('/') ?? [];
+
+    if (parts.length === 0) {
+      return 0;
+    }
+
+    const part = parts[parts.length - 1];
+    const panelId = parseInt(part!.replace('panel-', ''), 10);
+
     if (isNaN(panelId)) {
       return 0;
     }
@@ -162,7 +240,19 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return panelId;
   }
 
-  private async _pluginLoaded(plugin: PanelPlugin, overwriteOptions?: DeepPartial<{}>, overwriteFieldConfig?: FieldConfigSource, isAfterPluginChange?: boolean) {
+  /**
+   * Unique id string that includes local variable values (for repeated panels)
+   */
+  public getPathId() {
+    return buildPathIdFor(this);
+  }
+
+  private async _pluginLoaded(
+    plugin: PanelPlugin,
+    overwriteOptions?: DeepPartial<{}>,
+    overwriteFieldConfig?: FieldConfigSource,
+    isAfterPluginChange?: boolean
+  ) {
     const { options, fieldConfig, title, pluginVersion, _UNSAFE_customMigrationHandler } = this.state;
 
     const panel: PanelModel = {
@@ -186,9 +276,28 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
     _UNSAFE_customMigrationHandler?.(panel, plugin);
 
-    if (plugin.onPanelMigration && currentVersion !== pluginVersion && !isAfterPluginChange) {
+    //@ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/108998)
+    const needsMigration = currentVersion !== pluginVersion || plugin.shouldMigrate?.(panel);
+
+    if (plugin.onPanelMigration && needsMigration && !isAfterPluginChange) {
       // These migration handlers also mutate panel.fieldConfig to migrate fieldConfig
       panel.options = await plugin.onPanelMigration(panel);
+    }
+
+    // Some panels mutate the transformations on the panel as part of migrations.
+    // Unfortunately, these mutations are not available until the panel plugin is loaded.
+    // At this time, the data provider is already set, so this is the easiest way to fix it.
+    let $data = this.state.$data;
+    if (panel.transformations && $data) {
+      if ($data instanceof SceneDataTransformer) {
+        $data.setState({ transformations: panel.transformations });
+      } else if ($data instanceof SceneQueryRunner) {
+        $data.clearParent();
+        $data = new SceneDataTransformer({
+          transformations: panel.transformations,
+          $data,
+        });
+      }
     }
 
     const withDefaults = getPanelOptionsWithDefaults({
@@ -201,6 +310,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     this._plugin = plugin;
 
     this.setState({
+      $data,
       options: withDefaults.options as DeepPartial<TOptions>,
       fieldConfig: withDefaults.fieldConfig,
       pluginVersion: currentVersion,
@@ -243,13 +353,15 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   public getTimeRange = (data?: PanelData) => {
     const liveNowTimer = sceneGraph.findObject(this, (o) => o instanceof LiveNowTimer);
     const sceneTimeRange = sceneGraph.getTimeRange(this);
+
     if (liveNowTimer instanceof LiveNowTimer && liveNowTimer.isEnabled) {
       return evaluateTimeRange(
         sceneTimeRange.state.from,
         sceneTimeRange.state.to,
         sceneTimeRange.getTimeZone(),
         sceneTimeRange.state.fiscalYearStartMonth,
-        sceneTimeRange.state.UNSAFE_nowDelay
+        sceneTimeRange.state.UNSAFE_nowDelay,
+        sceneTimeRange.state.weekStart
       );
     }
 
@@ -262,17 +374,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   };
 
   public async changePluginType(pluginId: string, newOptions?: DeepPartial<{}>, newFieldConfig?: FieldConfigSource) {
-    const {
-      options: prevOptions,
-      fieldConfig: prevFieldConfig,
-      pluginId: prevPluginId,
-    } = this.state;
+    const { options: prevOptions, fieldConfig: prevFieldConfig, pluginId: prevPluginId } = this.state;
 
     //clear field config cache to update it later
     this._dataWithFieldConfig = undefined;
 
     // If state.pluginId is already the correct plugin we don't treat this as plain user panel type change
-    const isAfterPluginChange = this.state.pluginId !== pluginId; 
+    const isAfterPluginChange = this.state.pluginId !== pluginId;
     await this._loadPlugin(pluginId, newOptions ?? {}, newFieldConfig, isAfterPluginChange);
 
     const panel: PanelModel = {
@@ -283,8 +391,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       type: pluginId,
     };
 
-    // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React. 
-    // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches. 
+    // onPanelTypeChanged is mainly used by plugins to migrate from Angular to React.
+    // For example, this will migrate options from 'graph' to 'timeseries' if the previous and new plugin ID matches.
     const updatedOptions = this._plugin?.onPanelTypeChanged?.(panel, prevPluginId, prevOptions, prevFieldConfig);
 
     if (updatedOptions && !isEmpty(updatedOptions)) {
@@ -302,6 +410,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public onDisplayModeChange = (displayMode: 'default' | 'transparent') => {
     this.setState({ displayMode });
+  };
+
+  public onToggleCollapse = (collapsed: boolean) => {
+    this.setState({
+      collapsed,
+    });
   };
 
   public onOptionsChange = (optionsUpdate: DeepPartial<TOptions>, replace = false, isAfterPluginChange = false) => {
@@ -376,17 +490,36 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
    * Called from the react render path to apply the field config to the data provided by the data provider
    */
   public applyFieldConfig(rawData?: PanelData): PanelData {
+    const timestamp = performance.now();
     const plugin = this._plugin;
+
+    const profiler = this.getProfiler();
 
     if (!plugin || plugin.meta.skipDataQuery || !rawData) {
       // TODO setup time range subscription instead
       return emptyPanelData;
     }
 
-    // If the data is the same as last time, we can skip the field config apply step and just return same result as last time
-    if (this._prevData === rawData && this._dataWithFieldConfig) {
-      return this._dataWithFieldConfig;
+    // SceneQueryRunner preserves series array identity when frames haven't changed, but
+    // still emits new PanelData on state transitions (onDataReceived). Detect this and skip
+    // the expensive applyFieldOverrides step.
+    if (this._prevData && this._dataWithFieldConfig) {
+      if (this._prevData === rawData) {
+        return this._dataWithFieldConfig;
+      }
+      if (this._prevData.series === rawData.series) {
+        this._prevData = rawData;
+        this._dataWithFieldConfig = {
+          ...rawData,
+          structureRev: this._dataWithFieldConfig.structureRev,
+          series: this._dataWithFieldConfig.series,
+        };
+        return this._dataWithFieldConfig;
+      }
     }
+
+    // Start profiling data processing - get end callback
+    const endFieldConfigCallback = profiler?.onFieldConfigStart(timestamp);
 
     const pluginDataSupport: PanelPluginDataSupport = plugin.dataSupport || { alertStates: false, annotations: false };
 
@@ -399,6 +532,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       replaceVariables: this.interpolate,
       theme: config.theme2,
       timeZone: rawData.request?.timezone,
+      // @ts-ignore - @grafana/data is getting this type in Grafana 13.
+      featureToggles: config.featureToggles,
     });
 
     if (!compareArrayValues(newFrames, prevFrames, compareDataFrameStructures)) {
@@ -422,6 +557,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         replaceVariables: this.interpolate,
         theme: config.theme2,
         timeZone: rawData.request?.timezone,
+        // @ts-ignore - @grafana/data is getting this type in Grafana 13.
+        featureToggles: config.featureToggles,
       });
     }
 
@@ -434,6 +571,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     }
 
     this._prevData = rawData;
+
+    // End profiling data processing
+    if (profiler) {
+      endFieldConfigCallback?.(performance.now());
+    }
+
     return this._dataWithFieldConfig;
   }
 
@@ -507,6 +650,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       true
     );
   };
+
+  public clone(withState?: Partial<VizPanelState>) {
+    // Clear _pluginInstanceState and _pluginLoadError as it's not safe to clone
+    return super.clone({ _pluginInstanceState: undefined, _pluginLoadError: undefined, ...withState });
+  }
 
   private buildPanelContext(): PanelContext {
     const sync = getCursorSyncScope(this);
