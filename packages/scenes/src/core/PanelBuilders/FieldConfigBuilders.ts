@@ -30,9 +30,6 @@ export const FieldConfigBuilders = {
   bargauge() {
     return new FieldConfigBuilder<{}>();
   },
-  datagrid() {
-    return new FieldConfigBuilder<{}>();
-  },
   flamegraph() {
     return new FieldConfigBuilder<{}>();
   },

@@ -48,6 +48,28 @@ describe('AdHocFiltersRecommendations', () => {
       });
     });
 
+    it('should deduplicate recentFilters loaded from browser storage', async () => {
+      const duplicatedFilters = [
+        { key: 'pod', operator: '=', value: 'abc' },
+        { key: 'cluster', operator: '=', value: 'us-east' },
+        { key: 'pod', operator: '=', value: 'abc' },
+      ];
+      localStorage.setItem(RECENT_FILTERS_KEY, JSON.stringify(duplicatedFilters));
+
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recentFilters).toEqual([
+          { key: 'cluster', operator: '=', value: 'us-east' },
+          { key: 'pod', operator: '=', value: 'abc' },
+        ]);
+      });
+    });
+
     it('should set empty recentFilters when browser storage is empty', async () => {
       const { filtersVar } = setup({
         drilldownRecommendationsEnabled: true,
@@ -111,6 +133,59 @@ describe('AdHocFiltersRecommendations', () => {
       const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
       expect(storedFilters).toBeDefined();
       expect(JSON.parse(storedFilters!)).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
+    });
+
+    it('should deduplicate when the same filter is stored multiple times', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [{ key: 'cluster', value: 'us-east', operator: '=' }],
+      });
+
+      let recommendations: AdHocFiltersRecommendations | undefined;
+      await waitFor(() => {
+        recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      const filter: AdHocFilterWithLabels = { key: 'cluster', value: 'us-east', operator: '=' };
+
+      act(() => {
+        recommendations!.storeRecentFilter(filter);
+        recommendations!.storeRecentFilter(filter);
+        recommendations!.storeRecentFilter(filter);
+      });
+
+      const storedFilters = JSON.parse(localStorage.getItem(RECENT_FILTERS_KEY)!);
+      expect(storedFilters).toHaveLength(1);
+      expect(storedFilters[0]).toEqual(filter);
+    });
+
+    it('should move re-added filter to the most recent position and not duplicate', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [{ key: 'cluster', value: '1', operator: '=' }],
+      });
+
+      let recommendations: AdHocFiltersRecommendations | undefined;
+      await waitFor(() => {
+        recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      const filterA: AdHocFilterWithLabels = { key: 'cluster', value: 'a', operator: '=' };
+      const filterB: AdHocFilterWithLabels = { key: 'cluster', value: 'b', operator: '=' };
+      const filterC: AdHocFilterWithLabels = { key: 'cluster', value: 'c', operator: '=' };
+
+      act(() => {
+        recommendations!.storeRecentFilter(filterA);
+        recommendations!.storeRecentFilter(filterB);
+        recommendations!.storeRecentFilter(filterC);
+        recommendations!.storeRecentFilter(filterA);
+      });
+
+      const storedFilters = JSON.parse(localStorage.getItem(RECENT_FILTERS_KEY)!);
+      expect(storedFilters).toHaveLength(3);
+      expect(storedFilters).toEqual([filterB, filterC, filterA]);
     });
 
     it('should update state with limited recent filters for display', async () => {

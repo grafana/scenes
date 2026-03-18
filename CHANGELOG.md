@@ -1,3 +1,114 @@
+# v7.1.7 (Fri Mar 13 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersRecommendations: Dedupe filters [#1379](https://github.com/grafana/scenes/pull/1379) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.1.6 (Thu Mar 12 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: filter values [#1391](https://github.com/grafana/scenes/pull/1391) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.5 (Thu Mar 12 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add SetExactly mode to series visibility config factory [#1385](https://github.com/grafana/scenes/pull/1385) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v7.1.4 (Tue Mar 10 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: add getOriginalFilters / setOriginalFilters public API [#1389](https://github.com/grafana/scenes/pull/1389) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.3 (Tue Mar 10 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Do not show recommendations unless DS supports them [#1382](https://github.com/grafana/scenes/pull/1382) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.1.2 (Fri Mar 06 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VariableDependencyCheck: Make self referencing variable check more general [#1381](https://github.com/grafana/scenes/pull/1381) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v7.1.1 (Wed Mar 04 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - groupBy variable update logic cleaup [#1380](https://github.com/grafana/scenes/pull/1380) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.0 (Tue Mar 03 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - QueryController: clear running query count on deactivate [#1349](https://github.com/grafana/scenes/pull/1349) ([@perfilyev](https://github.com/perfilyev))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Datagrid: Drop support ahead of deprecation [#1378](https://github.com/grafana/scenes/pull/1378) ([@fastfrwrd](https://github.com/fastfrwrd))
+  - FieldOverrides: Pass featureToggles into applyFieldOverrides [#1377](https://github.com/grafana/scenes/pull/1377) ([@fastfrwrd](https://github.com/fastfrwrd))
+
+#### Authors: 2
+
+- Igor Perfilyev ([@perfilyev](https://github.com/perfilyev))
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+
+---
+
 # v7.0.3 (Thu Feb 26 2026)
 
 #### 🐛 Bug Fix
