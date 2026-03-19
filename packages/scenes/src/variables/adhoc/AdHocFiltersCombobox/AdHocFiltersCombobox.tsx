@@ -51,6 +51,7 @@ import {
 interface AdHocComboboxProps {
   filter?: AdHocFilterWithLabels;
   isAlwaysWip?: boolean;
+  isGroupBy?: boolean;
   controller: AdHocFiltersController;
   handleChangeViewMode?: (event?: React.MouseEvent, shouldFocusOnPillWrapperOverride?: boolean) => void;
   focusOnWipInputRef?: () => void;
@@ -65,6 +66,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     filter,
     controller,
     isAlwaysWip,
+    isGroupBy,
     handleChangeViewMode,
     focusOnWipInputRef,
     populateInputOnEdit,
@@ -84,7 +86,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // control multi values with local state in order to commit all values at once and avoid wip reset mid creation
   const [filterMultiValues, setFilterMultiValues] = useState<Array<SelectableValue<string>>>([]);
   const [_, setForceRefresh] = useState({});
-  const { allowCustomValue = true, onAddCustomValue, filters, inputPlaceholder } = controller.useState();
+  const { allowCustomValue = true, onAddCustomValue, filters, inputPlaceholder, groupByInputPlaceholder } =
+    controller.useState();
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -297,7 +300,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       try {
         if (inputType === 'key') {
-          options = await controller.getKeys(null);
+          if (isGroupBy && controller.getGroupByKeys) {
+            options = await controller.getGroupByKeys(null);
+          } else {
+            options = await controller.getKeys(null);
+          }
         } else if (inputType === 'operator') {
           options = controller.getOperators();
         } else if (inputType === 'value') {
@@ -324,7 +331,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       controller.stopInteraction?.();
     },
-    [filter, controller]
+    [filter, controller, isGroupBy]
   );
 
   const rowVirtualizer = useVirtualizer({
@@ -459,6 +466,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         }
         const selectedItem = filteredDropDownItems[activeIndex];
 
+        if (isGroupBy && isAlwaysWip) {
+          controller.addGroupByFilter?.(selectedItem);
+          handleResetWip();
+          setActiveIndex(null);
+          return;
+        }
+
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
           setInputValue('');
@@ -514,6 +528,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       isLastFilter,
       focusOnWipInputRef,
       onAddCustomValue,
+      isGroupBy,
+      isAlwaysWip,
+      handleResetWip,
     ]
   );
 
@@ -607,7 +624,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   return (
     <div className={styles.comboboxWrapper}>
-      {filter ? (
+      {filter && !isGroupBy ? (
         <div className={styles.pillWrapper}>
           {/* Filter key pill render */}
           {filter?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{keyLabel}</div> : null}
@@ -674,7 +691,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           onChange,
           value: inputValue,
           // dynamic placeholder to display operator and/or value in filter edit mode
-          placeholder: generatePlaceholder(filter!, filterInputType, isMultiValueEdit, isAlwaysWip, inputPlaceholder),
+          placeholder: generatePlaceholder(
+            filter!,
+            filterInputType,
+            isMultiValueEdit,
+            isAlwaysWip,
+            inputPlaceholder,
+            isGroupBy,
+            groupByInputPlaceholder
+          ),
           'aria-autocomplete': 'list',
           onKeyDown(event) {
             if (!open) {
@@ -690,7 +715,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             handleEnterInput(event, isMultiValueEdit);
           },
         })}
-        className={cx(styles.inputStyle, { [styles.loadingInputPadding]: !optionsLoading })}
+        className={cx(styles.inputStyle)}
         onClick={(event) => {
           event.stopPropagation();
           onInputClick?.();
@@ -774,6 +799,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                             onClick(event) {
                               if (filterInputType !== 'value') {
                                 event.stopPropagation();
+                              }
+
+                              if (isGroupBy && isAlwaysWip) {
+                                event.stopPropagation();
+                                controller.addGroupByFilter?.(item);
+                                handleResetWip();
+                                return;
                               }
 
                               if (isMultiValueEdit) {
@@ -905,16 +937,15 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   inputStyle: css({
     paddingBlock: 0,
+    fieldSizing: 'content',
     '&:focus': {
       outline: 'none',
     },
   }),
   loadingIndicator: css({
+    display: 'flex',
     color: theme.colors.text.secondary,
     marginLeft: theme.spacing(0.5),
-  }),
-  loadingInputPadding: css({
-    paddingRight: theme.spacing(2.5),
   }),
   optionGroupLabel: css({
     padding: theme.spacing(1),
