@@ -13,7 +13,6 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public useState(): AdHocFiltersControllerState {
     const state = this.model.useState();
-
     return {
       filters: state.filters,
       originFilters: state.originFilters,
@@ -23,9 +22,11 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
       inputPlaceholder: state.inputPlaceholder,
+      groupByInputPlaceholder: state.groupByInputPlaceholder,
       collapsible: state.collapsible,
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
+      groupBy: state.groupBy ? { ...state.groupBy } : undefined,
     };
   }
 
@@ -81,6 +82,18 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public clearAll(): void {
     this.model.clearAll();
+  }
+
+  public async getGroupByOptions(): Promise<Array<SelectableValue<string>>> {
+    return this.model._getGroupByKeys();
+  }
+
+  public changeGroupByValue(values: string[], texts: string[]): void {
+    this.model.changeGroupByValueTo(values, texts);
+  }
+
+  public clearGroupBy(): void {
+    this.model.changeGroupByValueTo([], []);
   }
 
   public startProfile(name: string): void {

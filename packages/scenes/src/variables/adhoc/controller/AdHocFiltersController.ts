@@ -2,6 +2,14 @@ import { SelectableValue } from '@grafana/data';
 import { AdHocFilterWithLabels, OnAddCustomValueFn } from '../AdHocFiltersVariable';
 import { AdHocFiltersRecommendations } from '../AdHocFiltersRecommendations';
 
+export interface GroupByControllerState {
+  current: {
+    value: string[];
+    text: string[];
+  };
+  readOnly?: boolean;
+}
+
 /**
  * Controller state returned by useState hook
  */
@@ -14,12 +22,14 @@ export interface AdHocFiltersControllerState {
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
   inputPlaceholder?: string;
+  groupByInputPlaceholder?: string;
   /**
    * When true, enables a collapse button that appears when filters wrap to multiple lines.
    */
   collapsible?: boolean;
   valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
+  groupBy?: GroupByControllerState;
 }
 
 /**
@@ -125,4 +135,10 @@ export interface AdHocFiltersController {
    * Optional: Stop tracking the current interaction.
    */
   stopInteraction?(): void;
+
+  getGroupByOptions?(): Promise<Array<SelectableValue<string>>>;
+
+  changeGroupByValue?(values: string[], texts: string[]): void;
+
+  clearGroupBy?(): void;
 }
