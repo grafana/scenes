@@ -149,6 +149,30 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
         done();
       });
     });
+
+    it('should create one frame per event when multiLane is enabled', (done) => {
+      const layer = new AnnotationsDataLayer({
+        name: 'Test layer',
+        multiLane: true,
+        query: { enable: true, iconColor: 'red', name: 'Test' },
+      });
+
+      mockedEvents = [
+        { name: 'time', values: [1, 2, 2, 5, 5] },
+        { name: 'id', values: ['1', '2', '2', '5', '5'] },
+        { name: 'text', values: ['t1', 't2', 't3', 't4', 't5'] },
+      ];
+
+      layer.activate();
+
+      layer.getResultsStream().subscribe((res) => {
+        expect(res.data.series).toBeDefined();
+        // 3 unique events after dedup, each in its own frame
+        expect(res.data.series?.length).toBe(3);
+        expect(res.data.series?.[0].length).toBe(1);
+        done();
+      });
+    });
   });
 
   describe('variables support', () => {
