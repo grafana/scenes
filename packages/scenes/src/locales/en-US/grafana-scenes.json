@@ -37,8 +37,8 @@
         "title-scene-debugger": "Scene debugger"
       },
       "scene-grid-row": {
-        "collapse-row": "Collapse row",
-        "expand-row": "Expand row"
+        "collapse-row": "Collapse row with title {{title}}",
+        "expand-row": "Expand row with title {{title}}"
       },
       "scene-refresh-picker": {
         "text-cancel": "Cancel",
