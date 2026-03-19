@@ -7,6 +7,8 @@ import {
   MetricFindValue,
   // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
+  // @ts-expect-error (temporary till we update grafana/data)
+  DEFAULT_APPLICABILITY_KEY,
   Scope,
   SelectableValue,
 } from '@grafana/data';
@@ -756,7 +758,7 @@ export class AdHocFiltersVariable
       ...getEnrichedFiltersRequest(this),
     });
 
-    return result?.get('_default_');
+    return result?.get(DEFAULT_APPLICABILITY_KEY);
   }
 
   public async _verifyApplicability() {
