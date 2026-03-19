@@ -97,7 +97,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         />
       ))}
 
-      {!readOnly && !shouldCollapse ? (
+      {!readOnly ? (
         <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} />
       ) : null}
 
