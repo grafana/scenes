@@ -32,7 +32,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   // Single line height is approximately minHeight (4 spacing units) + small buffer
   const singleLineThreshold = theme.spacing.gridSize * 5;
   const isMultiLine = collapsible && wrapperHeight > singleLineThreshold;
-  
+
   const handleCollapseToggle = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (collapsible) {
@@ -57,7 +57,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   const visibleFilters = filters.filter((f) => !f.hidden);
   const allFilters = [...visibleOriginFilters, ...visibleFilters];
   const totalFiltersCount = allFilters.length;
-  
+
   const shouldCollapse = collapsible && collapsed && totalFiltersCount > 0;
 
   const filtersToRender = shouldCollapse ? allFilters.slice(0, MAX_VISIBLE_FILTERS) : allFilters;
