@@ -163,15 +163,22 @@ export const generateFilterUpdatePayload = ({
   };
 };
 
-export const INPUT_PLACEHOLDER_DEFAULT = 'Filter by label values';
+export const INPUT_PLACEHOLDER_DEFAULT = '+ key = value';
+export const GROUP_BY_PLACEHOLDER_DEFAULT = '+ key';
 
 export const generatePlaceholder = (
   filter: AdHocFilterWithLabels,
   filterInputType: AdHocInputType,
   isMultiValueEdit: boolean,
   isAlwaysWip?: boolean,
-  inputPlaceholder?: string
+  inputPlaceholder?: string,
+  isGroupBy?: boolean,
+  groupByInputPlaceholder?: string
 ) => {
+  if (isGroupBy) {
+    return groupByInputPlaceholder || GROUP_BY_PLACEHOLDER_DEFAULT;
+  }
+
   if (filterInputType === 'key') {
     return inputPlaceholder || INPUT_PLACEHOLDER_DEFAULT;
   }
