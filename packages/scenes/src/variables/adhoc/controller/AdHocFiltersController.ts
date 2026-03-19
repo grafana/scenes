@@ -28,6 +28,10 @@ export interface AdHocFiltersControllerState {
  */
 export interface AdHocFiltersController {
   /**
+   * used as id for the input element
+   */
+  key?: string;
+  /**
    * React hook to access controller state.
    * Components should call this to get current filters and configuration.
    */

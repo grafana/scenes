@@ -37,7 +37,7 @@ import {
   VIRTUAL_LIST_ITEM_HEIGHT_WITH_DESCRIPTION,
   VIRTUAL_LIST_OVERSCAN,
 } from './utils';
-import { handleOptionGroups } from '../../utils';
+import { getVariableControlId, handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
 import { MultiValuePill } from './MultiValuePill';
 import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
@@ -72,6 +72,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }: AdHocComboboxProps,
   parentRef
 ) {
+  const variableState = controller.useState();
   const [open, setOpen] = useState(false);
   const [options, setOptions] = useState<Array<SelectableValue<string>>>([]);
   const [optionsLoading, setOptionsLoading] = useState<boolean>(false);
@@ -671,6 +672,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       <input
         {...getReferenceProps({
           ref: refs.setReference,
+          id: getVariableControlId('adhoc', variableState.key),
           onChange,
           value: inputValue,
           // dynamic placeholder to display operator and/or value in filter edit mode
@@ -694,9 +696,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         onClick={(event) => {
           event.stopPropagation();
           onInputClick?.();
-          setOpen(true);
-        }}
-        onFocus={() => {
           setOpen(true);
         }}
       />

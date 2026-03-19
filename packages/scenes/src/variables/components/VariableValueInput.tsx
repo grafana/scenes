@@ -5,6 +5,7 @@ import { AutoSizeInput } from '@grafana/ui';
 
 import { SceneComponentProps } from '../../core/types';
 import { TextBoxVariable } from '../variants/TextBoxVariable';
+import { getVariableControlId } from '../utils';
 
 export function VariableValueInput({ model }: SceneComponentProps<TextBoxVariable>) {
   const { value, key, loading } = model.useState();
@@ -27,7 +28,7 @@ export function VariableValueInput({ model }: SceneComponentProps<TextBoxVariabl
 
   return (
     <AutoSizeInput
-      id={key}
+      id={getVariableControlId(model.state.type, key ?? '')}
       placeholder={t('grafana-scenes.variables.variable-value-input.placeholder-enter-value', 'Enter value')}
       minWidth={15}
       maxWidth={30}
