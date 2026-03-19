@@ -1,3 +1,68 @@
+# v7.1.7 (Fri Mar 13 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersRecommendations: Dedupe filters [#1379](https://github.com/grafana/scenes/pull/1379) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.1.6 (Thu Mar 12 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: filter values [#1391](https://github.com/grafana/scenes/pull/1391) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.5 (Thu Mar 12 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add SetExactly mode to series visibility config factory [#1385](https://github.com/grafana/scenes/pull/1385) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v7.1.4 (Tue Mar 10 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: add getOriginalFilters / setOriginalFilters public API [#1389](https://github.com/grafana/scenes/pull/1389) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.3 (Tue Mar 10 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Do not show recommendations unless DS supports them [#1382](https://github.com/grafana/scenes/pull/1382) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.1.2 (Fri Mar 06 2026)
 
 #### 🐛 Bug Fix

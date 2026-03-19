@@ -26,6 +26,30 @@ export const getRecentFiltersKey = (datasourceUid: string | undefined) =>
 export interface AdHocFiltersRecommendationsState extends SceneObjectState {
   recentFilters?: AdHocFilterWithLabels[];
   recommendedFilters?: AdHocFilterWithLabels[];
+  datasourceSupportsRecommendations?: boolean;
+}
+
+/**
+ * Keeps only the last occurrence of each unique (key, operator, value) triple,
+ * preserving the most-recent-wins ordering.
+ */
+function getFilterIdentity(filter: AdHocFilterWithLabels): string {
+  return `${filter.key}|${filter.operator}|${filter.value}`;
+}
+
+function deduplicateFilters(filters: AdHocFilterWithLabels[]): AdHocFilterWithLabels[] {
+  const filterMap = new Map<string, AdHocFilterWithLabels>();
+
+  for (const filter of filters) {
+    const identity = getFilterIdentity(filter);
+    // Re-insert duplicates so the last occurrence is kept at the latest position.
+    if (filterMap.has(identity)) {
+      filterMap.delete(identity);
+    }
+    filterMap.set(identity, filter);
+  }
+
+  return Array.from(filterMap.values());
 }
 
 export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRecommendationsState> {
@@ -114,8 +138,11 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
 
     // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getRecommendedDrilldowns) {
+      this.setState({ datasourceSupportsRecommendations: false });
       return;
     }
+
+    this.setState({ datasourceSupportsRecommendations: true });
 
     const queries = adhoc.state.useQueriesAsFilterForOptions ? getQueriesForVariables(adhoc) : undefined;
     const timeRange = sceneGraph.getTimeRange(adhoc).state.value;
@@ -149,7 +176,8 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const response = await adhoc.getFiltersApplicabilityForQueries(storedFilters, queries ?? []);
 
     if (!response) {
-      this.setState({ recentFilters: storedFilters.slice(-MAX_RECENT_DRILLDOWNS) });
+      const deduped = deduplicateFilters(storedFilters);
+      this.setState({ recentFilters: deduped.slice(-MAX_RECENT_DRILLDOWNS) });
       return;
     }
 
@@ -158,14 +186,14 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
       applicabilityMap.set(item.key, item.applicable !== false);
     });
 
-    const applicableFilters = storedFilters
-      .filter((f) => {
-        const isApplicable = applicabilityMap.get(f.key);
-        return isApplicable === undefined || isApplicable === true;
-      })
-      .slice(-MAX_RECENT_DRILLDOWNS);
+    const applicableFilters = storedFilters.filter((f) => {
+      const isApplicable = applicabilityMap.get(f.key);
+      return isApplicable === undefined || isApplicable === true;
+    });
 
-    this.setState({ recentFilters: applicableFilters });
+    const recentFilters = deduplicateFilters(applicableFilters).slice(-MAX_RECENT_DRILLDOWNS);
+
+    this.setState({ recentFilters });
   }
 
   /**
@@ -177,7 +205,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const storedFilters = store.get(key);
     const allRecentFilters = storedFilters ? JSON.parse(storedFilters) : [];
 
-    const updatedStoredFilters = [...allRecentFilters, filter].slice(-MAX_STORED_RECENT_DRILLDOWNS);
+    const updatedStoredFilters = deduplicateFilters([...allRecentFilters, filter]).slice(-MAX_STORED_RECENT_DRILLDOWNS);
     store.set(key, JSON.stringify(updatedStoredFilters));
 
     const adhoc = this._adHocFilter;
@@ -193,7 +221,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
 }
 
 function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHocFiltersRecommendations>) {
-  const { recentFilters, recommendedFilters } = model.useState();
+  const { recentFilters, recommendedFilters, datasourceSupportsRecommendations } = model.useState();
   const { filters } = model._adHocFilter.useState();
 
   const recentDrilldowns: DrilldownPill[] | undefined = recentFilters?.map((filter) => ({
@@ -216,5 +244,11 @@ function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHo
     },
   }));
 
-  return <DrilldownRecommendations recentDrilldowns={recentDrilldowns} recommendedDrilldowns={recommendedDrilldowns} />;
+  return (
+    <DrilldownRecommendations
+      recentDrilldowns={recentDrilldowns}
+      recommendedDrilldowns={recommendedDrilldowns}
+      showRecommended={datasourceSupportsRecommendations}
+    />
+  );
 }
