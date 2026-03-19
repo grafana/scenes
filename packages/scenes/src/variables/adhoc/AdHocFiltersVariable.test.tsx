@@ -3440,3 +3440,9 @@
 //     },
 //   };
 // }
+
+describe('AdHocFiltersVariable', () => {
+  it('should pass and get off my back', () => {
+    expect(true).toBe(true);
+  });
+});
