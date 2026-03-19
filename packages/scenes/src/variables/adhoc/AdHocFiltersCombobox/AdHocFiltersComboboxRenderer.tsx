@@ -97,6 +97,10 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         />
       ))}
 
+      {shouldCollapse && hiddenFiltersCount > 0 && (
+        <span className={styles.moreIndicator}>+{hiddenFiltersCount}</span>
+      )}
+
       {!readOnly ? (
         <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} />
       ) : null}
@@ -121,7 +125,6 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
         {shouldCollapse && hiddenFiltersCount > 0 && (
           <>
-            <span className={styles.moreIndicator}>+{hiddenFiltersCount}</span>
             <div className={styles.sectionDivider} />
             <Icon name="angle-down" className={styles.dropdownIndicator} />
           </>
