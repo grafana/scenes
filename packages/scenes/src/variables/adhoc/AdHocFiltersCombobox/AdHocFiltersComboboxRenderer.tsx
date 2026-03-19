@@ -97,13 +97,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         />
       ))}
 
-      {shouldCollapse && hiddenFiltersCount > 0 && (
-        <span className={styles.moreIndicator}>+{hiddenFiltersCount}</span>
-      )}
+      {shouldCollapse && hiddenFiltersCount > 0 && <span className={styles.moreIndicator}>+{hiddenFiltersCount}</span>}
 
-      {!readOnly ? (
-        <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} />
-      ) : null}
+      {!readOnly ? <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} /> : null}
 
       {/* Right-side controls: +X more, collapse button, and clear all */}
       <div className={styles.rightControls}>
