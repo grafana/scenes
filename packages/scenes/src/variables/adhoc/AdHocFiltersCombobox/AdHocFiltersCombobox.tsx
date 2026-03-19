@@ -56,6 +56,10 @@ interface AdHocComboboxProps {
   focusOnWipInputRef?: () => void;
   populateInputOnEdit?: boolean;
   onInputClick?: () => void;
+  /** When provided, called immediately on key selection and the normal operator/value flow is skipped */
+  onKeySelected?: (item: SelectableValue<string>) => void;
+  /** When provided, replaces controller.getKeys() for the key step */
+  getOptions?: () => Promise<Array<SelectableValue<string>>>;
 }
 
 export type AdHocInputType = 'key' | 'operator' | 'value';
@@ -69,6 +73,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     focusOnWipInputRef,
     populateInputOnEdit,
     onInputClick,
+    onKeySelected,
+    getOptions,
   }: AdHocComboboxProps,
   parentRef
 ) {
@@ -84,7 +90,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // control multi values with local state in order to commit all values at once and avoid wip reset mid creation
   const [filterMultiValues, setFilterMultiValues] = useState<Array<SelectableValue<string>>>([]);
   const [_, setForceRefresh] = useState({});
-  const { allowCustomValue = true, onAddCustomValue, filters, inputPlaceholder } = controller.useState();
+  const {
+    allowCustomValue = true,
+    onAddCustomValue,
+    filters,
+    inputPlaceholder: controllerInputPlaceholder,
+    groupByInputPlaceholder,
+  } = controller.useState();
+  const inputPlaceholder = (onKeySelected ? groupByInputPlaceholder : undefined) ?? controllerInputPlaceholder;
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -114,11 +127,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // reset wip filter. Used when navigating away with incomplete wip filer or when selecting wip filter value
   const handleResetWip = useCallback(() => {
     if (isAlwaysWip) {
-      controller.addWip();
+      // group-by WIP uses a local filter and must not touch the shared _wip state
+      if (!onKeySelected) {
+        controller.addWip();
+      }
       setInputType('key');
       setInputValue('');
     }
-  }, [controller, isAlwaysWip]);
+  }, [controller, isAlwaysWip, onKeySelected]);
 
   const handleMultiValueFilterCommit = useCallback(
     (
@@ -297,7 +313,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       try {
         if (inputType === 'key') {
-          options = await controller.getKeys(null);
+          options = getOptions ? await getOptions() : await controller.getKeys(null);
         } else if (inputType === 'operator') {
           options = controller.getOperators();
         } else if (inputType === 'value') {
@@ -324,7 +340,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       controller.stopInteraction?.();
     },
-    [filter, controller]
+    [filter, controller, getOptions]
   );
 
   const rowVirtualizer = useVirtualizer({
@@ -462,6 +478,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (multiValueEdit) {
           handleLocalMultiValueChange(selectedItem);
           setInputValue('');
+        } else if (filterInputType === 'key' && onKeySelected) {
+          // Key-only mode (e.g. group-by WIP): commit immediately after key selection
+          onKeySelected(selectedItem);
+          setInputValue('');
+          setOpen(false);
+          handleResetWip();
         } else {
           const payload = generateFilterUpdatePayload({
             filterInputType,
@@ -477,6 +499,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           }
 
           controller.updateFilter(filter!, payload);
+
+          // groupBy operator requires no value — WIP is committed by _updateFilter, just reset
+          if (filterInputType === 'operator' && payload.operator === 'groupBy') {
+            setInputValue('');
+            setOpen(false);
+            handleResetWip();
+            return;
+          }
 
           populateInputValueOnInputTypeSwitch({
             populateInputOnEdit,
@@ -514,6 +544,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       isLastFilter,
       focusOnWipInputRef,
       onAddCustomValue,
+      onKeySelected,
+      handleResetWip,
     ]
   );
 
@@ -782,6 +814,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                 handleLocalMultiValueChange(item);
                                 setInputValue('');
                                 refs.domReference.current?.focus();
+                              } else if (filterInputType === 'key' && onKeySelected) {
+                                // Key-only mode (e.g. group-by WIP): commit immediately after key selection
+                                event.stopPropagation();
+                                onKeySelected(item);
+                                setInputValue('');
+                                setOpen(false);
+                                handleResetWip();
                               } else {
                                 const payload = generateFilterUpdatePayload({
                                   filterInputType,
@@ -795,6 +834,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                   controller.startProfile?.(FILTER_CHANGED_INTERACTION);
                                 }
                                 controller.updateFilter(filter!, payload);
+
+                                // groupBy operator requires no value — WIP is committed, just reset
+                                if (filterInputType === 'operator' && payload.operator === 'groupBy') {
+                                  setInputValue('');
+                                  setOpen(false);
+                                  handleResetWip();
+                                  return;
+                                }
 
                                 populateInputValueOnInputTypeSwitch({
                                   populateInputOnEdit,
@@ -904,6 +951,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     zIndex: theme.zIndex.portal,
   }),
   inputStyle: css({
+    fieldSizing: 'content',
     paddingBlock: 0,
     '&:focus': {
       outline: 'none',

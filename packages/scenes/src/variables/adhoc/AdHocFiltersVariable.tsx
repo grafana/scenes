@@ -73,6 +73,8 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   addFilterButtonText?: string;
   /** Optional placeholder text for the filter input field */
   inputPlaceholder?: string;
+  /** Optional placeholder text for the group-by key input field */
+  groupByInputPlaceholder?: string;
   /** The visible filters */
   filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
@@ -111,6 +113,13 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   getTagValuesProvider?: getTagValuesProvider;
 
   /**
+   * Extension hook for customizing the group-by key lookup.
+   * Return replace: true if you want to override the default lookup
+   * Return replace: false if you want to combine the results with the default lookup
+   */
+  getGroupByKeysProvider?: getGroupByKeysProvider;
+
+  /**
    * Optionally provide an array of static keys that override getTagKeys
    */
   defaultKeys?: MetricFindValue[];
@@ -131,6 +140,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Whether the filter supports new multi-value operators like =| and !=|
    */
   supportsMultiValueOperators?: boolean;
+
+  /**
+   * Whether the filter supports the groupBy operator 
+   */
+  supportsGroupByOperator?: boolean;
 
   /**
    * When querying the datasource for label names and values to determine keys and values
@@ -187,6 +201,10 @@ export type getTagValuesProvider = (
   filter: AdHocFilterWithLabels
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
+export type getGroupByKeysProvider = (
+  variable: AdHocFiltersVariable
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
+
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
 
 export type OperatorDefinition = {
@@ -194,6 +212,7 @@ export type OperatorDefinition = {
   description?: string;
   isMulti?: Boolean;
   isRegex?: Boolean;
+  isGroupBy?: Boolean;
 };
 
 export const OPERATORS: OperatorDefinition[] = [
@@ -240,6 +259,11 @@ export const OPERATORS: OperatorDefinition[] = [
   {
     value: '>=',
     description: 'Greater than or equal to',
+  },
+  {
+    value: 'groupBy',
+    description: 'Group by',
+    isGroupBy: true,
   },
 ];
 
@@ -631,8 +655,10 @@ export class AdHocFiltersVariable
     }
 
     if (filter === _wip) {
-      // If we set value we are done with this "work in progress" filter and we can add it
-      if ('value' in update && update['value'] !== '') {
+      const effectiveOperator = update.operator ?? _wip.operator;
+      const isGroupByOperator = effectiveOperator === 'groupBy';
+      // Commit WIP when value is set, or when groupBy operator is selected (no value needed)
+      if (('value' in update && update['value'] !== '') || isGroupByOperator) {
         this.setState({
           filters: [...filters, { ..._wip, ...update }],
           _wip: undefined,
@@ -876,6 +902,50 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Get possible group-by keys. Prefers ds.getGroupByKeys, falls back to ds.getTagKeys.
+   * Do not call from plugins directly
+   */
+  public async _getGroupByKeys(): Promise<Array<SelectableValue<string>>> {
+    const override = await this.state.getGroupByKeysProvider?.(this);
+
+    if (override && override.replace) {
+      return dataFromResponse(override.values).map(toSelectableValue);
+    }
+
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+
+    const groupByMethod =
+      ds && 'getGroupByKeys' in ds && typeof (ds as any).getGroupByKeys === 'function'
+        ? (ds as any).getGroupByKeys.bind(ds)
+        : ds?.getTagKeys?.bind(ds);
+
+    if (!groupByMethod) {
+      return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
+    }
+
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+    const response = await groupByMethod({
+      filters: this.state.baseFilters ?? [],
+      queries,
+      timeRange,
+      scopes: sceneGraph.getScopes(this),
+      ...getEnrichedFiltersRequest(this),
+    });
+
+    if (responseHasError(response)) {
+      this.setState({ error: response.error.message });
+    }
+
+    let keys = dataFromResponse(response);
+    if (override) {
+      keys = keys.concat(dataFromResponse(override.values));
+    }
+
+    return keys.map(toSelectableValue);
+  }
+
+  /**
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
   public async _getValuesFor(filter: AdHocFilterWithLabels): Promise<Array<SelectableValue<string>>> {
@@ -942,13 +1012,16 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const { supportsMultiValueOperators, allowCustomValue = true } = this.state;
+    const { supportsMultiValueOperators, supportsGroupByOperator, allowCustomValue = true } = this.state;
 
-    return OPERATORS.filter(({ isMulti, isRegex }) => {
+    return OPERATORS.filter(({ isMulti, isRegex, isGroupBy }) => {
       if (!supportsMultiValueOperators && isMulti) {
         return false;
       }
       if (!allowCustomValue && isRegex) {
+        return false;
+      }
+      if (!supportsGroupByOperator && isGroupBy) {
         return false;
       }
       return true;
@@ -1031,11 +1104,15 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
-  return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+  return filter.key !== '' && filter.operator !== '' && (filter.value !== '' || filter.operator === 'groupBy');
 }
 
 export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
-  return !filter.nonApplicable;
+  return !filter.nonApplicable && filter.operator !== 'groupBy';
+}
+
+export function isGroupByFilter(filter: AdHocFilterWithLabels): boolean {
+  return filter.operator === 'groupBy';
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {

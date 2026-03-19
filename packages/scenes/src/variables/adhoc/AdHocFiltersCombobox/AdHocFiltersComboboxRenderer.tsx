@@ -7,15 +7,19 @@ import { useMeasure } from 'react-use';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
+import { GroupByPill } from './GroupByPill';
+import { GroupByWipCombobox } from './GroupByWipCombobox';
 
 const MAX_VISIBLE_FILTERS = 5;
+const MAX_VISIBLE_GROUP_BY = 3;
 
 interface Props {
   controller: AdHocFiltersController;
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, collapsible, valueRecommendations } = controller.useState();
+  const { originFilters, filters, readOnly, collapsible, valueRecommendations, supportsGroupByOperator } =
+    controller.useState();
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
@@ -52,21 +56,27 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     }
   };
 
-  // Combine all visible filters into one array
+  // Combine all visible filters, split into regular and group-by
   const visibleOriginFilters = originFilters?.filter((f) => f.origin) ?? [];
   const visibleFilters = filters.filter((f) => !f.hidden);
   const allFilters = [...visibleOriginFilters, ...visibleFilters];
-  const totalFiltersCount = allFilters.length;
 
-  const shouldCollapse = collapsible && collapsed && totalFiltersCount > 0;
-  const filtersToRender = shouldCollapse ? allFilters.slice(0, MAX_VISIBLE_FILTERS) : allFilters;
+  const regularFilters = allFilters.filter((f) => f.operator !== 'groupBy');
+  const groupByFilters = allFilters.filter((f) => f.operator === 'groupBy');
+
+  const totalFiltersCount = regularFilters.length;
+  const shouldCollapse = collapsible && collapsed && (regularFilters.length > 0 || groupByFilters.length > 0);
+  const filtersToRender = shouldCollapse ? regularFilters.slice(0, MAX_VISIBLE_FILTERS) : regularFilters;
+
+  const visibleGroupBy = shouldCollapse ? groupByFilters.slice(0, MAX_VISIBLE_GROUP_BY) : groupByFilters;
+  const hiddenGroupByCount = groupByFilters.length - visibleGroupBy.length;
 
   // Reset collapsed state when there are no filters (only when collapsible)
   useEffect(() => {
-    if (collapsible && totalFiltersCount === 0 && collapsed) {
+    if (collapsible && regularFilters.length === 0 && groupByFilters.length === 0 && collapsed) {
       setCollapsed(false);
     }
-  }, [collapsible, totalFiltersCount, collapsed]);
+  }, [collapsible, regularFilters.length, groupByFilters.length, collapsed]);
 
   // Only show collapse button when expanded and content wraps to multiple lines
   const showCollapseButton = collapsible && isMultiLine && !collapsed;
@@ -81,7 +91,6 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       })}
       onClick={handleExpand}
     >
-      <Icon name="filter" className={styles.filterIcon} size="lg" />
 
       {valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 
@@ -98,6 +107,31 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       {!readOnly && !shouldCollapse ? (
         <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} />
       ) : null}
+
+      {supportsGroupByOperator && (
+        <>
+          <div className={styles.groupBySeparator} />
+          <span className={styles.groupByLabel}>
+            {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.group-by', 'Group by:')}
+          </span>
+
+          {visibleGroupBy.map((filter, index) => (
+            <GroupByPill
+              key={`groupby-${index}-${filter.key}`}
+              filter={filter}
+              controller={controller}
+              readOnly={readOnly}
+              focusOnWipInputRef={focusOnWipInputRef.current}
+            />
+          ))}
+
+          {hiddenGroupByCount > 0 && (
+            <span className={styles.moreIndicator}>(+{hiddenGroupByCount})</span>
+          )}
+
+          {!readOnly && !shouldCollapse && <GroupByWipCombobox controller={controller} />}
+        </>
+      )}
 
       {/* Right-side controls: +X more, collapse button, and clear all */}
       <div className={styles.rightControls}>
@@ -161,10 +195,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
       zIndex: 2,
     },
   }),
-  filterIcon: css({
-    color: theme.colors.text.secondary,
-    alignSelf: 'center',
-  }),
   collapsed: css({
     flexWrap: 'nowrap',
     overflow: 'hidden',
@@ -206,5 +236,19 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       color: theme.colors.text.primary,
     },
+  }),
+  groupBySeparator: css({
+    width: '1px',
+    height: theme.spacing(2.5),
+    background: theme.colors.border.medium,
+    flexShrink: 0,
+    alignSelf: 'center',
+  }),
+  groupByLabel: css({
+    ...theme.typography.bodySmall,
+    color: theme.colors.text.primary,
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+    alignSelf: 'center',
   }),
 });
