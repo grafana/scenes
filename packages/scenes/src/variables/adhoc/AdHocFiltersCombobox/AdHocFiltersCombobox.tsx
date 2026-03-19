@@ -912,6 +912,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
   loadingIndicator: css({
     color: theme.colors.text.secondary,
     marginLeft: theme.spacing(0.5),
+    display: 'flex',
+    alignItems: 'center',
   }),
   loadingInputPadding: css({
     paddingRight: theme.spacing(2.5),
