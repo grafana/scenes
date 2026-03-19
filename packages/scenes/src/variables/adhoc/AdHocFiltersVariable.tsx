@@ -921,8 +921,7 @@ export class AdHocFiltersVariable
   }
 
   /**
-   * Get possible group-by keys. Prefers ds.getGroupByKeys, falls back to ds.getTagKeys.
-   * Do not call from plugins directly
+   * Get possible group-by keys.
    */
   public async _getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
     const override = await this.state.getGroupByKeysProvider?.(this, currentKey);
