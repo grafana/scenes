@@ -2843,6 +2843,16 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
     });
 
+    it('adds a label announcer tab stop before existing filter pills', async () => {
+      await userEvent.click(screen.getByRole('combobox'));
+
+      await userEvent.keyboard('{shift>}{tab}{tab}{tab}{tab}{tab}{/shift}');
+
+      const labelAnnouncer = screen.getByTestId('AdHocFilter-label-announcer');
+      expect(labelAnnouncer).toHaveFocus();
+      expect(labelAnnouncer).toHaveAccessibleName();
+    });
+
     it('does not display hidden filters', async () => {
       const { filtersVar } = setup();
 

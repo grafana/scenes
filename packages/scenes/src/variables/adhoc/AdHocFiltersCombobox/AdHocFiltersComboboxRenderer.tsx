@@ -7,6 +7,7 @@ import { useMeasure } from 'react-use';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
+import { getVariableControlId } from '../../utils';
 
 const MAX_VISIBLE_FILTERS = 5;
 
@@ -20,6 +21,8 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
   const [wrapperRef, { height: wrapperHeight }] = useMeasure<HTMLDivElement>();
+
+  const variableState = controller.useState();
 
   const clearAll = () => {
     controller.clearAll?.();
@@ -60,6 +63,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   const shouldCollapse = collapsible && collapsed && totalFiltersCount > 0;
   const filtersToRender = shouldCollapse ? allFilters.slice(0, MAX_VISIBLE_FILTERS) : allFilters;
+  const variableControlId = getVariableControlId('adhoc', variableState.key ?? '');
 
   // Reset collapsed state when there are no filters (only when collapsible)
   useEffect(() => {
@@ -84,6 +88,17 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       <Icon name="filter" className={styles.filterIcon} size="lg" />
 
       {valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
+
+      {filtersToRender.length > 0 && (
+        // if there are filters already selected, this makes sure
+        // that the input is announced before focussing on the pills
+        <span
+          tabIndex={0}
+          aria-labelledby={variableControlId}
+          className={styles.screenReaderOnlyLabel}
+          data-testid="AdHocFilter-label-announcer"
+        />
+      )}
 
       {filtersToRender.map((filter, index) => (
         <AdHocFilterPill
@@ -206,5 +221,16 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       color: theme.colors.text.primary,
     },
+  }),
+  screenReaderOnlyLabel: css({
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: 0,
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
   }),
 });
