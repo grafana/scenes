@@ -8,7 +8,7 @@ import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
 
-const MAX_VISIBLE_FILTERS = 5;
+const MAX_VISIBLE_FILTERS = 4;
 
 interface Props {
   controller: AdHocFiltersController;
