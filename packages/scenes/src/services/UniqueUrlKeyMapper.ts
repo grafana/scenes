@@ -5,6 +5,11 @@ export interface SceneObjectWithDepth {
   depth: number;
 }
 
+interface SceneObjectWithPath {
+  sceneObject: SceneObject;
+  path: number[];
+}
+
 export interface UniqueUrlKeyMapperOptions {
   namespace?: string;
   excludeFromNamespace?: string[];
@@ -37,7 +42,12 @@ export class UniqueUrlKeyMapper {
 
   public getUniqueKey(keyWithoutNamespace: string, obj: SceneObject) {
     const key = this.getNamespacedKey(keyWithoutNamespace);
-    const objectsWithKey = this.index.get(key);
+    const root = obj.getRoot();
+    let objectsWithKey = this.index.get(key);
+
+    if (isVariableKey(keyWithoutNamespace)) {
+      objectsWithKey = this.buildDeterministicVariableIndex(keyWithoutNamespace, key, root);
+    }
 
     if (!objectsWithKey) {
       this.index.set(key, [obj]);
@@ -46,9 +56,8 @@ export class UniqueUrlKeyMapper {
 
     let address = objectsWithKey.findIndex((o) => o === obj);
     if (address === -1) {
-      filterOutOrphanedObjects(objectsWithKey, obj.getRoot());
+      filterOutOrphanedObjects(objectsWithKey, root);
       objectsWithKey.push(obj);
-
       address = objectsWithKey.length - 1;
     }
 
@@ -62,6 +71,60 @@ export class UniqueUrlKeyMapper {
   public clear() {
     this.index.clear();
   }
+
+  private buildDeterministicVariableIndex(
+    keyWithoutNamespace: string,
+    namespacedKey: string,
+    root: SceneObject
+  ): SceneObject[] {
+    const matchingObjectsWithPath = collectObjectsWithPathForKey(root, keyWithoutNamespace);
+    matchingObjectsWithPath.sort(compareByDepthThenPath);
+    const matchingObjects = matchingObjectsWithPath.map((obj) => obj.sceneObject);
+
+    this.index.set(namespacedKey, matchingObjects);
+    return matchingObjects;
+  }
+}
+
+function isVariableKey(keyWithoutNamespace: string): boolean {
+  return keyWithoutNamespace.startsWith('var-');
+}
+
+function compareByDepthThenPath(a: SceneObjectWithPath, b: SceneObjectWithPath): number {
+  if (a.path.length !== b.path.length) {
+    return a.path.length - b.path.length;
+  }
+
+  return comparePathSegments(a.path, b.path);
+}
+
+function comparePathSegments(aPath: number[], bPath: number[]): number {
+  const minLength = Math.min(aPath.length, bPath.length);
+  for (let i = 0; i < minLength; i++) {
+    if (aPath[i] !== bPath[i]) {
+      return aPath[i] - bPath[i];
+    }
+  }
+
+  return aPath.length - bPath.length;
+}
+
+function collectObjectsWithPathForKey(root: SceneObject, keyWithoutNamespace: string): SceneObjectWithPath[] {
+  const result: SceneObjectWithPath[] = [];
+  const visit = (obj: SceneObject, path: number[]) => {
+    if (obj.urlSync?.getKeys().includes(keyWithoutNamespace)) {
+      result.push({ sceneObject: obj, path: [...path] });
+    }
+
+    let childIndex = 0;
+    obj.forEachChild((child) => {
+      visit(child, [...path, childIndex]);
+      childIndex++;
+    });
+  };
+
+  visit(root, []);
+  return result;
 }
 
 function filterOutOrphanedObjects(sceneObjects: SceneObject[], root: SceneObject) {
