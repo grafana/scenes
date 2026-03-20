@@ -3544,36 +3544,6 @@ describe('setOriginalFilters', () => {
       });
     });
 
-    describe('_getOperators', () => {
-      it('includes groupBy when enableGroupBy is true', () => {
-        const variable = new AdHocFiltersVariable({
-          datasource: { uid: 'test' },
-          applyMode: 'manual',
-          filters: setTemplateSrvWithFilters([]),
-          enableGroupBy: true,
-        });
-        variable.activate();
-
-        const operators = variable._getOperators();
-        const groupBy = operators.find((o) => o.value === 'groupBy');
-
-        expect(groupBy).toEqual({ label: 'groupBy', value: 'groupBy', description: 'Group by' });
-      });
-
-      it('excludes groupBy when enableGroupBy is false', () => {
-        const variable = new AdHocFiltersVariable({
-          datasource: { uid: 'test' },
-          applyMode: 'manual',
-          filters: setTemplateSrvWithFilters([]),
-          enableGroupBy: false,
-        });
-        variable.activate();
-
-        const operators = variable._getOperators();
-        expect(operators.some((o) => o.value === 'groupBy')).toBe(false);
-      });
-    });
-
     describe('_getGroupByKeys', () => {
       it('returns provider values when getGroupByKeysProvider returns replace true', async () => {
         const variable = new AdHocFiltersVariable({

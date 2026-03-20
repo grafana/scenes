@@ -260,11 +260,6 @@ export const OPERATORS: OperatorDefinition[] = [
     value: '>=',
     description: 'Greater than or equal to',
   },
-  {
-    value: 'groupBy',
-    description: 'Group by',
-    isGroupBy: true,
-  },
 ];
 
 interface OriginalValue {
@@ -1023,16 +1018,13 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const { supportsMultiValueOperators, allowCustomValue = true, enableGroupBy } = this.state;
+    const { supportsMultiValueOperators, allowCustomValue = true } = this.state;
 
-    return OPERATORS.filter(({ isMulti, isRegex, isGroupBy }) => {
+    return OPERATORS.filter(({ isMulti, isRegex }) => {
       if (!supportsMultiValueOperators && isMulti) {
         return false;
       }
       if (!allowCustomValue && isRegex) {
-        return false;
-      }
-      if (!enableGroupBy && isGroupBy) {
         return false;
       }
       return true;
