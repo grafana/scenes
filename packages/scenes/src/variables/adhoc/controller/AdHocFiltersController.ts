@@ -6,6 +6,10 @@ import { AdHocFiltersRecommendations } from '../AdHocFiltersRecommendations';
  * Controller state returned by useState hook
  */
 export interface AdHocFiltersControllerState {
+  /**
+   * used as id for the input element
+   */
+  key?: string;
   filters: AdHocFilterWithLabels[];
   originFilters?: AdHocFilterWithLabels[];
   readOnly?: boolean;

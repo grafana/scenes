@@ -12,6 +12,7 @@ import {
   escapeLabelValueInRegexSelector,
   escapeURLDelimiters,
   renderPrometheusLabelFilters,
+  getVariableControlId,
 } from './variables/utils';
 import {
   isAdHocVariable,
@@ -165,6 +166,7 @@ export const sceneUtils = {
   escapeLabelValueInRegexSelector,
   escapeLabelValueInExactSelector,
   escapeURLDelimiters,
+  getVariableControlId,
 
   // Variable guards
   isAdHocVariable,

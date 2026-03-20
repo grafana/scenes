@@ -27,7 +27,13 @@ import { getDataSource } from '../../utils/getDataSource';
 import { components, GroupBase, MenuProps } from 'react-select';
 import { InputActionMeta, MultiSelect, Select, useStyles2 } from '@grafana/ui';
 import { isArray, isEqual } from 'lodash';
-import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
+import {
+  dataFromResponse,
+  getQueriesForVariables,
+  getVariableControlId,
+  handleOptionGroups,
+  responseHasError,
+} from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
@@ -565,6 +571,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
           'Group by selector'
         )}
+        inputId={getVariableControlId(model.state.type, key)}
         data-testid={`GroupBySelect-${key}`}
         id={key}
         placeholder={t(

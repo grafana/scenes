@@ -20,6 +20,7 @@ import { css, cx } from '@emotion/css';
 import { getOptionSearcher } from './getOptionSearcher';
 import { sceneGraph } from '../../core/sceneGraph';
 import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../performance/interactionConstants';
+import { getVariableControlId } from '../utils';
 
 const filterNoOp = () => true;
 
@@ -83,6 +84,7 @@ export function VariableValueSelect({ model, state }: { model: MultiValueVariabl
   return (
     <Select<VariableValue>
       id={key}
+      inputId={getVariableControlId(model.state.type, key ?? '')}
       isValidNewOption={(inputValue) => inputValue.trim().length > 0}
       placeholder={t('grafana-scenes.variables.variable-value-select.placeholder-select-value', 'Select value')}
       width="auto"
@@ -162,6 +164,7 @@ export function VariableValueSelectMulti({
   return (
     <MultiSelect<VariableValueSingle>
       id={key}
+      inputId={getVariableControlId(model.state.type, key ?? '')}
       placeholder={placeholder}
       width="auto"
       inputValue={inputValue}
