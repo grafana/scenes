@@ -6,6 +6,10 @@ import { AdHocFiltersRecommendations } from '../AdHocFiltersRecommendations';
  * Controller state returned by useState hook
  */
 export interface AdHocFiltersControllerState {
+  /**
+   * used as id for the input element
+   */
+  key?: string;
   filters: AdHocFilterWithLabels[];
   originFilters?: AdHocFilterWithLabels[];
   readOnly?: boolean;
@@ -27,10 +31,6 @@ export interface AdHocFiltersControllerState {
  * Decouples the UI from AdHocFiltersVariable, allowing usage with or without a variable.
  */
 export interface AdHocFiltersController {
-  /**
-   * used as id for the input element
-   */
-  key?: string;
   /**
    * React hook to access controller state.
    * Components should call this to get current filters and configuration.

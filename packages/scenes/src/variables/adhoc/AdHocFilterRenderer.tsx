@@ -153,7 +153,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
       // instead, we explicitly control the menu visibility and prevent showing it until the options have fully loaded
       isOpen={isValuesOpen && !isValuesLoading}
       isLoading={isValuesLoading}
-      openMenuOnFocus={false}
+      openMenuOnFocus={true}
       onOpenMenu={async () => {
         setIsValuesLoading(true);
         setIsValuesOpen(true);
