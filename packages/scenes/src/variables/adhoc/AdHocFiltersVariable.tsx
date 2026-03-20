@@ -73,6 +73,8 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   addFilterButtonText?: string;
   /** Optional placeholder text for the filter input field */
   inputPlaceholder?: string;
+  /** Optional placeholder for the group-by key input */
+  groupByInputPlaceholder?: string;
   /** The visible filters */
   filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
@@ -103,6 +105,12 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Return replace: false if you want to combine the results with the default lookup
    */
   getTagKeysProvider?: getTagKeysProvider;
+  /**
+   * Extension hook for customizing the group-by key lookup.
+   * Return replace: true to override the default lookup (ds.getGroupByKeys or ds.getTagKeys).
+   * Return replace: false to combine the results with the default lookup.
+   */
+  getGroupByKeysProvider?: getGroupByKeysProvider;
   /**
    * Extension hook for customizing the value lookup.
    * Return replace: true if you want to override the default lookup.
@@ -173,18 +181,6 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * When true, the "groupBy" operator is available and filters can be used as group-by dimensions.
    */
   enableGroupBy?: boolean;
-
-  /**
-   * Placeholder for the group-by key input when using key-only (group-by) mode.
-   */
-  groupByInputPlaceholder?: string;
-
-  /**
-   * Extension hook for customizing the group-by key lookup.
-   * Return replace: true to override the default lookup (ds.getGroupByKeys or ds.getTagKeys).
-   * Return replace: false to combine the results with the default lookup.
-   */
-  getGroupByKeysProvider?: getGroupByKeysProvider;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
