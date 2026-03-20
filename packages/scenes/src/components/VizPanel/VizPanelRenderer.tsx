@@ -1,6 +1,6 @@
 import { Trans } from '@grafana/i18n';
-import React, { RefCallback, useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
-import { useMeasure } from 'react-use';
+import React, { RefCallback, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useMeasure, usePrevious } from 'react-use';
 
 // @ts-ignore
 import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider, SetPanelAttentionEvent } from '@grafana/data';
@@ -85,6 +85,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dataObject = sceneGraph.getData(model);
 
   const rawData = dataObject.useState();
+
+  useClearPreviousData(rawData.data);
+
   const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
   const dataWithFieldConfig = model.applyFieldConfig(dataWithSeriesLimit);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
@@ -303,6 +306,46 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       </div>
     </div>
   );
+}
+
+function useClearPreviousData(data?: PanelData) {
+  // this holds all value arrays from all series and anno frames
+  // so we can empty any previous ones that no loger appear in current data
+  // why? because React fiber: https://github.com/facebook/react/issues/14380
+  const prevVals = useRef<Set<any[]>>();
+  const currVals = useRef<Set<any[]>>();
+  prevVals.current ??= new Set();
+  currVals.current ??= new Set();
+
+  const currSeries = data?.series;
+  const prevSeries = usePrevious(currSeries);
+
+  if (currSeries != null && currSeries !== prevSeries) {
+    // populate new
+    currVals.current.clear();
+
+    for (let i = 0; i < currSeries.length; i++) {
+      let fields = currSeries[i].fields;
+
+      for (let i = 0; i < fields.length; i++) {
+        currVals.current.add(fields[i].values);
+      }
+    }
+
+    // empty out all prev not seen in new
+    // prevVals.current.difference(currVals.current);
+    prevVals.current.forEach((vals) => {
+      if (!currVals.current!.has(vals)) {
+        vals.length = 0;
+      }
+    });
+    prevVals.current.clear();
+    prevVals.current = new Set(currVals.current);
+
+    // prevSeries.length = 0;
+  }
+
+  // const prevAnnos = usePrevious(data.annotations);
 }
 
 function useDataWithSeriesLimit(data: PanelData | undefined, seriesLimit?: number, showAllSeries?: boolean) {
