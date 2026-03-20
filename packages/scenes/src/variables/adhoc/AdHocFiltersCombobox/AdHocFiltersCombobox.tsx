@@ -905,7 +905,13 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   inputStyle: css({
     paddingBlock: 0,
-    fieldSizing: 'content',
+    width: '90px',
+    minWidth: '90px',
+    maxWidth: '200px',
+    '@supports (field-sizing: content)': {
+      width: 'auto',
+      fieldSizing: 'content',
+    },
     '&:focus': {
       outline: 'none',
     },
