@@ -8,7 +8,7 @@ import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
 
-const MAX_VISIBLE_FILTERS = 5;
+const MAX_VISIBLE_FILTERS = 4;
 
 interface Props {
   controller: AdHocFiltersController;
@@ -59,7 +59,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   const totalFiltersCount = allFilters.length;
 
   const shouldCollapse = collapsible && collapsed && totalFiltersCount > 0;
+
   const filtersToRender = shouldCollapse ? allFilters.slice(0, MAX_VISIBLE_FILTERS) : allFilters;
+  const hiddenFiltersCount = shouldCollapse ? Math.max(0, totalFiltersCount - MAX_VISIBLE_FILTERS) : 0;
 
   // Reset collapsed state when there are no filters (only when collapsible)
   useEffect(() => {
@@ -95,9 +97,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         />
       ))}
 
-      {!readOnly && !shouldCollapse ? (
-        <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} />
-      ) : null}
+      {shouldCollapse && hiddenFiltersCount > 0 && <span className={styles.moreIndicator}>+{hiddenFiltersCount}</span>}
+
+      {!readOnly ? <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} /> : null}
 
       {/* Right-side controls: +X more, collapse button, and clear all */}
       <div className={styles.rightControls}>
@@ -117,18 +119,16 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           </Button>
         )}
 
-        <div className={styles.clearAllButton}>
-          <Icon name="times" size="md" onClick={clearAll} />
-        </div>
-
-        {shouldCollapse && (
+        {shouldCollapse && hiddenFiltersCount > 0 && (
           <>
-            {totalFiltersCount > MAX_VISIBLE_FILTERS && (
-              <span className={styles.moreIndicator}>(+{totalFiltersCount - MAX_VISIBLE_FILTERS})</span>
-            )}
+            <div className={styles.sectionDivider} />
             <Icon name="angle-down" className={styles.dropdownIndicator} />
           </>
         )}
+
+        <div className={styles.clearAllButton}>
+          <Icon name="times" size="md" onClick={clearAll} />
+        </div>
       </div>
     </div>
   );
@@ -180,10 +180,16 @@ const getStyles = (theme: GrafanaTheme2) => ({
     alignItems: 'center',
     marginLeft: 'auto',
     flexShrink: 0,
+    gap: theme.spacing(1.5),
   }),
   moreIndicator: css({
-    color: theme.colors.text.secondary,
+    color: theme.colors.text.primary,
     whiteSpace: 'nowrap',
+    ...theme.typography.bodySmall,
+    fontWeight: theme.typography.fontWeightBold,
+    background: theme.colors.action.selected,
+    borderRadius: theme.shape.radius.default,
+    padding: theme.spacing(0.25, 0.75),
   }),
   dropdownIndicator: css({
     color: theme.colors.text.secondary,
@@ -206,5 +212,11 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       color: theme.colors.text.primary,
     },
+  }),
+  sectionDivider: css({
+    width: '1px',
+    alignSelf: 'stretch',
+    backgroundColor: theme.colors.border.weak,
+    flexShrink: 0,
   }),
 });
