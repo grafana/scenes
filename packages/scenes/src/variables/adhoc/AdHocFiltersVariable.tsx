@@ -73,6 +73,8 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   addFilterButtonText?: string;
   /** Optional placeholder text for the filter input field */
   inputPlaceholder?: string;
+  /** Optional placeholder for the group-by key input */
+  groupByInputPlaceholder?: string;
   /** The visible filters */
   filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
@@ -103,6 +105,12 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Return replace: false if you want to combine the results with the default lookup
    */
   getTagKeysProvider?: getTagKeysProvider;
+  /**
+   * Extension hook for customizing the group-by key lookup.
+   * Return replace: true to override the default lookup (ds.getGroupByKeys or ds.getTagKeys).
+   * Return replace: false to combine the results with the default lookup.
+   */
+  getGroupByKeysProvider?: getGroupByKeysProvider;
   /**
    * Extension hook for customizing the value lookup.
    * Return replace: true if you want to override the default lookup.
@@ -168,6 +176,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * enables drilldown recommendations
    */
   drilldownRecommendationsEnabled?: boolean;
+
+  /**
+   * When true, the "groupBy" operator is available and filters can be used as group-by dimensions.
+   */
+  enableGroupBy?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -187,6 +200,11 @@ export type getTagValuesProvider = (
   filter: AdHocFilterWithLabels
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
+export type getGroupByKeysProvider = (
+  variable: AdHocFiltersVariable,
+  currentKey?: string | null
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
+
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
 
 export type OperatorDefinition = {
@@ -194,6 +212,7 @@ export type OperatorDefinition = {
   description?: string;
   isMulti?: Boolean;
   isRegex?: Boolean;
+  isGroupBy?: boolean;
 };
 
 export const OPERATORS: OperatorDefinition[] = [
@@ -492,6 +511,23 @@ export class AdHocFiltersVariable
     if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
+  }
+
+  /**
+   * Add a group-by filter (key only, operator 'groupBy', no value).
+   * Only relevant when enableGroupBy is true.
+   */
+  public _addGroupByFilter(item: SelectableValue<string>): void {
+    const key = item.value ?? '';
+    const keyLabel = item.label ?? key;
+    const newFilter: AdHocFilterWithLabels = {
+      key,
+      keyLabel,
+      operator: 'groupBy',
+      value: '',
+      condition: '',
+    };
+    this.updateFilters([...this.state.filters, newFilter]);
   }
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
@@ -876,6 +912,46 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Get possible group-by keys.
+   */
+  public async _getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    const override = await this.state.getGroupByKeysProvider?.(this, currentKey);
+
+    if (override && override.replace) {
+      return dataFromResponse(override.values).map(toSelectableValue);
+    }
+
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
+    if (!ds || !ds.getGroupByKeys) {
+      return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
+    }
+
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
+    const response = await ds.getGroupByKeys({
+      filters: [],
+      queries,
+      timeRange,
+      scopes: sceneGraph.getScopes(this),
+      ...getEnrichedFiltersRequest(this),
+    });
+
+    if (responseHasError(response)) {
+      this.setState({ error: response.error.message });
+    }
+
+    let keys = dataFromResponse(response);
+    if (override) {
+      keys = keys.concat(dataFromResponse(override.values));
+    }
+
+    return keys.map(toSelectableValue);
+  }
+
+  /**
    * Get possible key values for a specific key given current filters. Do not call from plugins directly
    */
   public async _getValuesFor(filter: AdHocFilterWithLabels): Promise<Array<SelectableValue<string>>> {
@@ -1031,7 +1107,7 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
-  return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+  return filter.key !== '' && filter.operator !== '' && (filter.operator === 'groupBy' || filter.value !== '');
 }
 
 export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
