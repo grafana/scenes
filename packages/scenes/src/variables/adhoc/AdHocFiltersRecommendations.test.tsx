@@ -1,7 +1,15 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
-import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
+import {
+  DataQueryRequest,
+  DataSourceApi,
+  getDefaultTimeRange,
+  LoadingState,
+  PanelData,
+  // @ts-expect-error (temporary till we update grafana/data)
+  DEFAULT_APPLICABILITY_KEY,
+} from '@grafana/data';
 import { Observable, of } from 'rxjs';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneFlexLayout, SceneFlexItem } from '../../components/layout/SceneFlexLayout';
@@ -234,7 +242,7 @@ let runRequestSet = false;
 function setup(overrides?: Partial<AdHocFiltersVariableState>) {
   const getTagKeysSpy = jest.fn();
   const getTagValuesSpy = jest.fn();
-  const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(new Map([['_default_', []]]));
+  const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(new Map([[DEFAULT_APPLICABILITY_KEY, []]]));
   const getRecommendedDrilldownsSpy = jest.fn().mockResolvedValue({ filters: [] });
 
   setDataSourceSrv({

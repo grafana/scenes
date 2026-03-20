@@ -26,6 +26,8 @@ import {
   PanelData,
   Scope,
   ScopeSpecFilter,
+  // @ts-expect-error (temporary till we update grafana/data)
+  DEFAULT_APPLICABILITY_KEY,
 } from '@grafana/data';
 import { Observable, of } from 'rxjs';
 import userEvent from '@testing-library/user-event';
@@ -3327,7 +3329,7 @@ function setup(
               ...(nonApplicableKeys.has(f.key) && { reason: 'reason' }),
               ...(f.origin && { origin: f.origin }),
             }));
-            return new Map([['_default_', results]]);
+            return new Map([[DEFAULT_APPLICABILITY_KEY, results]]);
           },
         }),
       };
