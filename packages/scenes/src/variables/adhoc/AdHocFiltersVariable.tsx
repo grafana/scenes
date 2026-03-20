@@ -172,7 +172,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
    * When true, the "groupBy" operator is available and filters can be used as group-by dimensions.
    */
-  supportsGroupByOperator?: boolean;
+  enableGroupBy?: boolean;
 
   /**
    * Placeholder for the group-by key input when using key-only (group-by) mode.
@@ -524,7 +524,7 @@ export class AdHocFiltersVariable
 
   /**
    * Add a group-by filter (key only, operator 'groupBy', no value).
-   * Only relevant when supportsGroupByOperator is true.
+   * Only relevant when enableGroupBy is true.
    */
   public _addGroupByFilter(item: SelectableValue<string>): void {
     const key = item.value ?? '';
@@ -1027,7 +1027,7 @@ export class AdHocFiltersVariable
   }
 
   public _getOperators() {
-    const { supportsMultiValueOperators, allowCustomValue = true, supportsGroupByOperator } = this.state;
+    const { supportsMultiValueOperators, allowCustomValue = true, enableGroupBy } = this.state;
 
     return OPERATORS.filter(({ isMulti, isRegex, isGroupBy }) => {
       if (!supportsMultiValueOperators && isMulti) {
@@ -1036,7 +1036,7 @@ export class AdHocFiltersVariable
       if (!allowCustomValue && isRegex) {
         return false;
       }
-      if (!supportsGroupByOperator && isGroupBy) {
+      if (!enableGroupBy && isGroupBy) {
         return false;
       }
       return true;

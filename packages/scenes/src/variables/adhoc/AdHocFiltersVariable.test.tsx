@@ -3545,12 +3545,12 @@ describe('setOriginalFilters', () => {
     });
 
     describe('_getOperators', () => {
-      it('includes groupBy when supportsGroupByOperator is true', () => {
+      it('includes groupBy when enableGroupBy is true', () => {
         const variable = new AdHocFiltersVariable({
           datasource: { uid: 'test' },
           applyMode: 'manual',
           filters: setTemplateSrvWithFilters([]),
-          supportsGroupByOperator: true,
+          enableGroupBy: true,
         });
         variable.activate();
 
@@ -3560,12 +3560,12 @@ describe('setOriginalFilters', () => {
         expect(groupBy).toEqual({ label: 'groupBy', value: 'groupBy', description: 'Group by' });
       });
 
-      it('excludes groupBy when supportsGroupByOperator is false', () => {
+      it('excludes groupBy when enableGroupBy is false', () => {
         const variable = new AdHocFiltersVariable({
           datasource: { uid: 'test' },
           applyMode: 'manual',
           filters: setTemplateSrvWithFilters([]),
-          supportsGroupByOperator: false,
+          enableGroupBy: false,
         });
         variable.activate();
 

@@ -299,6 +299,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (inputType === 'key') {
           options = await controller.getKeys(null);
         } else if (inputType === 'operator') {
+          debugger
           options = controller.getOperators();
         } else if (inputType === 'value') {
           options = await controller.getValuesFor(filter!);

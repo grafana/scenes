@@ -20,7 +20,7 @@ export interface AdHocFiltersControllerState {
   collapsible?: boolean;
   valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
-  supportsGroupByOperator?: boolean;
+  enableGroupBy?: boolean;
   groupByInputPlaceholder?: string;
 }
 
@@ -43,7 +43,7 @@ export interface AdHocFiltersController {
 
   /**
    * Get possible keys for the group-by dropdown.
-   * Only relevant when supportsGroupByOperator is true.
+   * Only relevant when enableGroupBy is true.
    * @param currentKey - The key being edited (to exclude from filter context), if any
    */
   getGroupByKeys?(currentKey: string | null): Promise<Array<SelectableValue<string>>>;
@@ -109,7 +109,7 @@ export interface AdHocFiltersController {
 
   /**
    * Add a group-by filter (key only, operator 'groupBy', no value).
-   * Only relevant when supportsGroupByOperator is true.
+   * Only relevant when enableGroupBy is true.
    */
   addGroupByFilter?(item: SelectableValue<string>): void;
 

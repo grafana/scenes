@@ -26,7 +26,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       collapsible: state.collapsible,
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
-      supportsGroupByOperator: state.supportsGroupByOperator,
+      enableGroupBy: state.enableGroupBy,
       groupByInputPlaceholder: state.groupByInputPlaceholder,
     };
   }
