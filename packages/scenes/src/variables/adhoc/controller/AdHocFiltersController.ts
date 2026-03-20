@@ -14,6 +14,7 @@ export interface AdHocFiltersControllerState {
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
   inputPlaceholder?: string;
+  groupByInputPlaceholder?: string;
   /**
    * When true, enables a collapse button that appears when filters wrap to multiple lines.
    */
@@ -21,7 +22,6 @@ export interface AdHocFiltersControllerState {
   valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
   enableGroupBy?: boolean;
-  groupByInputPlaceholder?: string;
 }
 
 /**

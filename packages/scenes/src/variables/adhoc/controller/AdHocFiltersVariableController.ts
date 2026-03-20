@@ -23,11 +23,11 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
       inputPlaceholder: state.inputPlaceholder,
+      groupByInputPlaceholder: state.groupByInputPlaceholder,
       collapsible: state.collapsible,
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
       enableGroupBy: state.enableGroupBy,
-      groupByInputPlaceholder: state.groupByInputPlaceholder,
     };
   }
 
