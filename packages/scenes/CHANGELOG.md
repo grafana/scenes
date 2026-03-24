@@ -1,3 +1,18 @@
+# v7.1.8 (Tue Mar 24 2026)
+
+#### 🐛 Bug Fix
+
+- Adhoc: improved collapsible state [#1403](https://github.com/grafana/scenes/pull/1403) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- feat(adhoc): extend controller and variable for group-by operator (no UI) [#1399](https://github.com/grafana/scenes/pull/1399) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- Rows: Announce row title in the collapse button [#1396](https://github.com/grafana/scenes/pull/1396) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 2
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.1.7 (Fri Mar 13 2026)
 
 #### 🐛 Bug Fix
