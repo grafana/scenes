@@ -639,7 +639,7 @@ export class AdHocFiltersVariable
   }
 
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
-    const { originFilters, filters, _wip } = this.state;
+    const { originFilters, filters, _wip, _groupByWip } = this.state;
 
     if ('value' in update && !('values' in update)) {
       update = { ...update, values: undefined };
@@ -684,7 +684,7 @@ export class AdHocFiltersVariable
       return;
     }
 
-    if (filter === this.state._groupByWip) {
+    if (filter === _groupByWip) {
       this.setState({ _groupByWip: { ...filter, ...update } });
       return;
     }
