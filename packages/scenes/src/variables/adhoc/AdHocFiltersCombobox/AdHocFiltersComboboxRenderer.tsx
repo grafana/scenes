@@ -18,8 +18,7 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, collapsible, valueRecommendations, enableGroupBy } =
-    controller.useState();
+  const { originFilters, filters, readOnly, collapsible, valueRecommendations, enableGroupBy } = controller.useState();
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
@@ -59,7 +58,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   const adhocFilters = allFilters.filter((f) => f.operator !== 'groupBy');
   const groupByFilters = allFilters.filter((f) => f.operator === 'groupBy');
-  
+
   const shouldCollapse = collapsible && collapsed && totalFiltersCount > 0;
 
   const maxVisibleAdhocFilters = enableGroupBy ? MAX_VISIBLE_FILTERS_WITH_GROUP_BY : MAX_VISIBLE_FILTERS_DEFAULT;
@@ -102,7 +101,11 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       {shouldCollapse && adhocHiddenCount > 0 && (
         <button
           className={styles.moreIndicator}
-          aria-label={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.show-more-filters', 'Show {{count}} more filters', { count: adhocHiddenCount })}
+          aria-label={t(
+            'grafana-scenes.variables.adhoc-filters-combobox-renderer.show-more-filters',
+            'Show {{count}} more filters',
+            { count: adhocHiddenCount }
+          )}
           onClick={(e) => {
             e.stopPropagation();
             handleExpand();
@@ -137,7 +140,11 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           {shouldCollapse && groupByHiddenCount > 0 && (
             <button
               className={styles.moreIndicator}
-              aria-label={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.show-more-group-by', 'Show {{count}} more group by', { count: groupByHiddenCount })}
+              aria-label={t(
+                'grafana-scenes.variables.adhoc-filters-combobox-renderer.show-more-group-by',
+                'Show {{count}} more group by',
+                { count: groupByHiddenCount }
+              )}
               onClick={(e) => {
                 e.stopPropagation();
                 handleExpand();
@@ -149,11 +156,11 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           )}
 
           {!readOnly ? (
-            <AdHocFiltersAlwaysWipCombobox 
-              ref={focusOnGroupByWipInputRef} 
-              controller={controller} 
-              onInputClick={handleExpand} 
-              isGroupBy 
+            <AdHocFiltersAlwaysWipCombobox
+              ref={focusOnGroupByWipInputRef}
+              controller={controller}
+              onInputClick={handleExpand}
+              isGroupBy
             />
           ) : null}
         </>
@@ -178,16 +185,13 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
             <Icon name="angle-up" size="md" />
           </Button>
         )}
-      
+
         {shouldCollapse && (adhocHiddenCount > 0 || groupByHiddenCount > 0) && (
           <IconButton
             name="angle-down"
             size="md"
             className={styles.dropdownIndicator}
-            tooltip={t(
-              'grafana-scenes.variables.adhoc-filters-combobox-renderer.expand-filters',
-              'Expand filters'
-            )}
+            tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.expand-filters', 'Expand filters')}
             onClick={(e) => {
               e.stopPropagation();
               handleExpand();
@@ -199,10 +203,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           name="times"
           size="md"
           className={styles.clearAllButton}
-          tooltip={t(
-            'grafana-scenes.variables.adhoc-filters-combobox-renderer.clear-all',
-            'Clear all'
-          )}
+          tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.clear-all', 'Clear all')}
           onClick={clearAll}
         />
       </div>

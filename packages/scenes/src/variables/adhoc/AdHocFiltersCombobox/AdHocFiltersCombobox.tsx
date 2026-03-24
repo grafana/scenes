@@ -89,8 +89,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // control multi values with local state in order to commit all values at once and avoid wip reset mid creation
   const [filterMultiValues, setFilterMultiValues] = useState<Array<SelectableValue<string>>>([]);
   const [_, setForceRefresh] = useState({});
-  const { allowCustomValue = true, onAddCustomValue, filters, inputPlaceholder, groupByInputPlaceholder } =
-    controller.useState();
+  const {
+    allowCustomValue = true,
+    onAddCustomValue,
+    filters,
+    inputPlaceholder,
+    groupByInputPlaceholder,
+  } = controller.useState();
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -708,7 +713,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             isMultiValueEdit,
             isAlwaysWip,
             isGroupBy ? groupByInputPlaceholder : inputPlaceholder,
-            isGroupBy,
+            isGroupBy
           ),
           'aria-autocomplete': 'list',
           onKeyDown(event) {

@@ -39,9 +39,7 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
 ) {
   const styles = useStyles2(getStyles);
 
-  const pillText = (
-    <span className={cx(styles.pillText, strikethrough && styles.strikethrough)}>{label}</span>
-  );
+  const pillText = <span className={cx(styles.pillText, strikethrough && styles.strikethrough)}>{label}</span>;
 
   return (
     <div
@@ -75,10 +73,7 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
           name="times"
           size="md"
           className={cx(styles.pillIcon, disabled && styles.disabledPillIcon)}
-          tooltip={
-            removeAriaLabel ??
-            t('grafana-scenes.components.base-pill.remove', 'Remove {{label}}', { label })
-          }
+          tooltip={removeAriaLabel ?? t('grafana-scenes.components.base-pill.remove', 'Remove {{label}}', { label })}
         />
       ) : null}
 

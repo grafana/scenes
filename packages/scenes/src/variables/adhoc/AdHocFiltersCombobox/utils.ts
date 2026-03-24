@@ -172,11 +172,9 @@ export const generatePlaceholder = (
   isMultiValueEdit: boolean,
   isAlwaysWip?: boolean,
   inputPlaceholder?: string,
-  isGroupBy?: boolean,
+  isGroupBy?: boolean
 ) => {
-  const defaultPlaceholder = isGroupBy 
-    ? GROUP_BY_PLACEHOLDER_DEFAULT 
-    : INPUT_PLACEHOLDER_DEFAULT;
+  const defaultPlaceholder = isGroupBy ? GROUP_BY_PLACEHOLDER_DEFAULT : INPUT_PLACEHOLDER_DEFAULT;
 
   if (isGroupBy && !isAlwaysWip) {
     return filter.keyLabel || filter.key || inputPlaceholder || defaultPlaceholder;

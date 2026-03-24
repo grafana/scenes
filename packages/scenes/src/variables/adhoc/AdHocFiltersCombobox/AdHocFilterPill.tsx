@@ -90,11 +90,9 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
           <>
             {filter.origin && filter.readOnly && (
               <Tooltip
-                content={t(
-                  'grafana-scenes.components.adhoc-filter-pill.managed-filter',
-                  '{{origin}} managed filter',
-                  { origin: filter.origin }
-                )}
+                content={t('grafana-scenes.components.adhoc-filter-pill.managed-filter', '{{origin}} managed filter', {
+                  origin: filter.origin,
+                })}
                 placement={'bottom'}
               >
                 <Icon name="lock" size="md" className={styles.readOnlyPillIcon} />

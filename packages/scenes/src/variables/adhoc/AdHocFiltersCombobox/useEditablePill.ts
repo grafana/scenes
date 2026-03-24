@@ -42,13 +42,16 @@ export function useEditablePill({
     }
   }, [shouldFocusOnPillWrapper]);
 
+  // set viewMode to false when filter.forceEdit is defined
   useEffect(() => {
     if (filter.forceEdit && viewMode) {
       setViewMode(false);
+      // immediately set forceEdit back to undefined as a clean up
       controller.updateFilter(filter, { forceEdit: undefined });
     }
   }, [filter, controller, viewMode]);
 
+  // reset populateInputOnEdit when pill goes into view mode
   useEffect(() => {
     if (viewMode) {
       setPopulateInputOnEdit((prevValue) => (prevValue ? false : prevValue));

@@ -34,11 +34,7 @@ export function GroupByPill({ filter, controller, readOnly, focusOnWipInputRef }
         readOnly={readOnly}
         onClick={handlePillClick}
         onKeyDown={handlePillKeyDown}
-        ariaLabel={t(
-          'grafana-scenes.components.group-by-pill.group-by-key',
-          'Group by {{keyLabel}}',
-          { keyLabel }
-        )}
+        ariaLabel={t('grafana-scenes.components.group-by-pill.group-by-key', 'Group by {{keyLabel}}', { keyLabel })}
         onRemove={!readOnly ? handleRemove : undefined}
         removeAriaLabel={t(
           'grafana-scenes.components.group-by-pill.remove-group-by-key',
