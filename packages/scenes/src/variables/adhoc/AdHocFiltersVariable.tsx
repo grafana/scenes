@@ -947,6 +947,11 @@ export class AdHocFiltersVariable
       keys = keys.concat(dataFromResponse(override.values));
     }
 
+    const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
+    if (tagKeyRegexFilter) {
+      keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
+    }
+
     return keys.map(toSelectableValue);
   }
 
