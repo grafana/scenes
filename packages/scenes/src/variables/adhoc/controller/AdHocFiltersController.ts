@@ -14,12 +14,14 @@ export interface AdHocFiltersControllerState {
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
   inputPlaceholder?: string;
+  groupByInputPlaceholder?: string;
   /**
    * When true, enables a collapse button that appears when filters wrap to multiple lines.
    */
   collapsible?: boolean;
   valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
+  enableGroupBy?: boolean;
 }
 
 /**
@@ -38,6 +40,13 @@ export interface AdHocFiltersController {
    * @param currentKey - The key being edited (to exclude from filter context)
    */
   getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>>;
+
+  /**
+   * Get possible keys for the group-by dropdown.
+   * Only relevant when enableGroupBy is true.
+   * @param currentKey - The key being edited (to exclude from filter context), if any
+   */
+  getGroupByKeys?(currentKey: string | null): Promise<Array<SelectableValue<string>>>;
 
   /**
    * Get possible values for a specific filter key.
@@ -97,6 +106,12 @@ export interface AdHocFiltersController {
    * Add a new work-in-progress filter.
    */
   addWip(): void;
+
+  /**
+   * Add a group-by filter (key only, operator 'groupBy', no value).
+   * Only relevant when enableGroupBy is true.
+   */
+  addGroupByFilter?(item: SelectableValue<string>): void;
 
   /**
    * Restore an origin filter to its original value.
