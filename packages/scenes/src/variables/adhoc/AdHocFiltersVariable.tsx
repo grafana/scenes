@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import {
   AdHocVariableFilter,
-  DataSourceApi,
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
@@ -278,9 +277,6 @@ export class AdHocFiltersVariable
 
   private _debouncedVerifyApplicability = debounce(this._verifyApplicability, 100);
 
-  private _resolvedDs?: DataSourceApi;
-  private _resolvedDsUid?: string;
-
   private _recommendations: AdHocFiltersRecommendations | undefined;
 
   public constructor(state: Partial<AdHocFiltersVariableState>) {
@@ -324,8 +320,6 @@ export class AdHocFiltersVariable
     this._debouncedVerifyApplicability();
 
     return () => {
-      this._resolvedDs = undefined;
-      this._resolvedDsUid = undefined;
       this.state.originFilters?.forEach((filter) => {
         if (filter.restorable) {
           this.restoreOriginalFilter(filter);
@@ -723,18 +717,8 @@ export class AdHocFiltersVariable
     }
   }
 
-  public async getResolvedDataSource(): Promise<DataSourceApi | undefined> {
-    const currentUid = this.state.datasource?.uid;
-    if (this._resolvedDs && this._resolvedDsUid === currentUid) {
-      return this._resolvedDs;
-    }
-
-    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
-    if (ds) {
-      this._resolvedDs = ds;
-      this._resolvedDsUid = currentUid;
-    }
-    return ds;
+  public async getResolvedDataSource() {
+    return this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
   }
 
   public async getFiltersApplicabilityForQueries(
