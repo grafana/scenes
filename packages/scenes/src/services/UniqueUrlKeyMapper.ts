@@ -46,7 +46,11 @@ export class UniqueUrlKeyMapper {
     let objectsWithKey = this.index.get(key);
 
     if (isVariableKey(keyWithoutNamespace)) {
-      objectsWithKey = this.buildDeterministicVariableIndex(keyWithoutNamespace, key, root);
+      // For variable keys, avoid rebuilding deterministic index on every call.
+      // Rebuild only when cache is missing or does not include current object.
+      if (!objectsWithKey || objectsWithKey.findIndex((o) => o === obj) === -1) {
+        objectsWithKey = this.buildDeterministicVariableIndex(keyWithoutNamespace, key, root);
+      }
     }
 
     if (!objectsWithKey) {

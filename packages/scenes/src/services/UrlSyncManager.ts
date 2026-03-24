@@ -144,9 +144,7 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     const newUrlState = changedObject.urlSync.getUrlState();
     const searchParams = this._locationService.getSearch();
     const mappedUpdated: SceneObjectUrlValues = {};
-    const nextKeys = changedObject.urlSync
-      .getKeys()
-      .map((key) => this._urlKeyMapper.getUniqueKey(key, changedObject));
+    const nextKeys = changedObject.urlSync.getKeys().map((key) => this._urlKeyMapper.getUniqueKey(key, changedObject));
 
     for (const [key, newUrlValue] of Object.entries(newUrlState)) {
       const uniqueKey = this._urlKeyMapper.getUniqueKey(key, changedObject);
