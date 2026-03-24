@@ -5,10 +5,11 @@ import { AdHocCombobox } from './AdHocFiltersCombobox';
 interface Props {
   controller: AdHocFiltersController;
   onInputClick?: () => void;
+  isGroupBy?: boolean;
 }
 
 export const AdHocFiltersAlwaysWipCombobox = forwardRef(function AdHocFiltersAlwaysWipCombobox(
-  { controller, onInputClick }: Props,
+  { controller, onInputClick, isGroupBy }: Props,
   // pass ability to focus on input element back to parent
   //    parentRef is coming from AdHocFiltersComboboxRenderer
   //    parentRef is mutated through useImperativeHandle in AdHocCombobox
@@ -26,5 +27,14 @@ export const AdHocFiltersAlwaysWipCombobox = forwardRef(function AdHocFiltersAlw
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [wip]);
 
-  return <AdHocCombobox controller={controller} filter={wip} isAlwaysWip ref={parentRef} onInputClick={onInputClick} />;
+  return (
+    <AdHocCombobox
+      controller={controller}
+      filter={wip}
+      isAlwaysWip
+      isGroupBy={isGroupBy}
+      ref={parentRef}
+      onInputClick={onInputClick}
+    />
+  );
 });
