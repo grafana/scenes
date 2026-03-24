@@ -86,9 +86,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         [styles.collapsed]: shouldCollapse,
       })}
     >
-      {!readOnly && valueRecommendations && (
-        <valueRecommendations.Component model={valueRecommendations} />
-      )}
+      {!readOnly && valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 
       {adhocFiltersToRender.map((filter, index) => (
         <AdHocFilterPill
