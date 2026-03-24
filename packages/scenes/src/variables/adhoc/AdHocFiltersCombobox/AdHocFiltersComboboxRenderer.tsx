@@ -41,15 +41,14 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   };
 
   const handleExpand = () => {
-    if (!collapsible) {
-      focusOnWipInputRef.current?.();
-      return;
-    }
-    if (collapsed) {
+    if (collapsible && collapsed) {
       setCollapsed(false);
-    } else {
-      focusOnWipInputRef.current?.();
     }
+  };
+
+  const handleWrapperClick = () => {
+    handleExpand();
+    focusOnWipInputRef.current?.();
   };
 
   // Combine all visible filters into one array
@@ -81,10 +80,8 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         [styles.collapsed]: shouldCollapse,
         [styles.clickableCollapsed]: shouldCollapse,
       })}
-      onClick={handleExpand}
+      onClick={handleWrapperClick}
     >
-      <Icon name="filter" className={styles.filterIcon} size="lg" />
-
       {valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 
       {filtersToRender.map((filter, index) => (
@@ -99,7 +96,13 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
       {shouldCollapse && hiddenFiltersCount > 0 && <span className={styles.moreIndicator}>+{hiddenFiltersCount}</span>}
 
-      {!readOnly ? <AdHocFiltersAlwaysWipCombobox controller={controller} ref={focusOnWipInputRef} /> : null}
+      {!readOnly ? (
+        <AdHocFiltersAlwaysWipCombobox
+          ref={focusOnWipInputRef}
+          controller={controller}
+          onInputClick={handleExpand}
+        />
+      ) : null}
 
       {/* Right-side controls: +X more, collapse button, and clear all */}
       <div className={styles.rightControls}>
