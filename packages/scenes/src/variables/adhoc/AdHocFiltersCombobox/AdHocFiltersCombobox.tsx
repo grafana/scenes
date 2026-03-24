@@ -690,7 +690,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             handleEnterInput(event, isMultiValueEdit);
           },
         })}
-        className={cx(styles.inputStyle, { [styles.loadingInputPadding]: !optionsLoading })}
+        className={cx(styles.inputStyle)}
         onClick={(event) => {
           event.stopPropagation();
           onInputClick?.();
@@ -905,6 +905,13 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   inputStyle: css({
     paddingBlock: 0,
+    width: '90px',
+    minWidth: '90px',
+    maxWidth: '200px',
+    '@supports (field-sizing: content)': {
+      width: 'auto',
+      fieldSizing: 'content',
+    },
     '&:focus': {
       outline: 'none',
     },
@@ -912,9 +919,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
   loadingIndicator: css({
     color: theme.colors.text.secondary,
     marginLeft: theme.spacing(0.5),
-  }),
-  loadingInputPadding: css({
-    paddingRight: theme.spacing(2.5),
+    display: 'flex',
+    alignItems: 'center',
   }),
   optionGroupLabel: css({
     padding: theme.spacing(1),
