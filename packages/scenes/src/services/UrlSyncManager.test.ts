@@ -83,6 +83,38 @@ class DynamicKeyObjUrlSyncHandler implements SceneObjectUrlSyncHandler {
   }
 }
 
+interface ConditionalClearObjState extends SceneObjectState {
+  value: string;
+  optional?: string;
+  shouldClearOptional?: boolean;
+}
+
+class ConditionalClearObj extends SceneObjectBase<ConditionalClearObjState> {
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['value', 'optional'] });
+
+  public getUrlState() {
+    const urlState: SceneObjectUrlValues = {
+      value: this.state.value,
+    };
+
+    if (this.state.shouldClearOptional) {
+      urlState.optional = null;
+    }
+
+    return urlState;
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues) {
+    if (typeof values.value === 'string') {
+      this.setState({ value: values.value });
+    }
+
+    if (values.hasOwnProperty('optional')) {
+      this.setState({ optional: typeof values.optional === 'string' ? values.optional : undefined });
+    }
+  }
+}
+
 describe.each([
   ['Without namespace', undefined],
   ['With a namespace', { namespace: 'ns' }],
@@ -178,6 +210,53 @@ describe.each([
         obj.setState({ urlKey: 'custom0' });
 
         expect(locationService.getSearchObject()).toEqual({ [`${keyPrefix}var-custom0`]: 'value-a' });
+      });
+
+      it('should not remove declared keys omitted from getUrlState', () => {
+        const obj = new ConditionalClearObj({ value: 'a' });
+        const keyPrefix = options?.namespace ? `${options.namespace}-` : '';
+        const optionalKey = `${keyPrefix}optional`;
+        const valueKey = `${keyPrefix}value`;
+
+        scene = new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: obj })],
+        });
+
+        locationService.partial({ [optionalKey]: 'keep-me' });
+
+        urlManager = new UrlSyncManager(options);
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        obj.setState({ value: 'b' });
+
+        expect(locationService.getSearchObject()).toEqual({
+          [optionalKey]: 'keep-me',
+          [valueKey]: 'b',
+        });
+      });
+
+      it('should still clear omitted key when handler explicitly sets null', () => {
+        const obj = new ConditionalClearObj({ value: 'a' });
+        const keyPrefix = options?.namespace ? `${options.namespace}-` : '';
+        const optionalKey = `${keyPrefix}optional`;
+        const valueKey = `${keyPrefix}value`;
+
+        scene = new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: obj })],
+        });
+
+        locationService.partial({ [optionalKey]: 'clear-me' });
+
+        urlManager = new UrlSyncManager(options);
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        obj.setState({ value: 'b', shouldClearOptional: true });
+
+        expect(locationService.getSearchObject()).toEqual({
+          [valueKey]: 'b',
+        });
       });
     });
 
