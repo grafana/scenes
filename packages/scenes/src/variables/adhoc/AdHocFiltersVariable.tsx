@@ -212,7 +212,6 @@ export type OperatorDefinition = {
   description?: string;
   isMulti?: Boolean;
   isRegex?: Boolean;
-  isGroupBy?: boolean;
 };
 
 export const OPERATORS: OperatorDefinition[] = [
