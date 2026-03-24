@@ -102,6 +102,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         <Button
           className={styles.moreIndicator}
           fill="text"
+          size="sm"
           aria-label={t(
             'grafana-scenes.variables.adhoc-filters-combobox-renderer.show-more-filters',
             'Show {{count}} more filters',
@@ -142,6 +143,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
             <Button
               className={styles.moreIndicator}
               fill="text"
+              size="sm"
               aria-label={t(
                 'grafana-scenes.variables.adhoc-filters-combobox-renderer.show-more-group-by',
                 'Show {{count}} more group by',
@@ -176,6 +178,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           <Button
             className={styles.collapseButton}
             fill="text"
+            size="sm"
             onClick={handleCollapseToggle}
             aria-label={t(
               'grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse-filters',
@@ -240,10 +243,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
       zIndex: 2,
     },
   }),
-  filterIcon: css({
-    color: theme.colors.text.secondary,
-    alignSelf: 'center',
-  }),
   collapsed: css({
     flexWrap: 'nowrap',
     overflow: 'hidden',
@@ -257,14 +256,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   moreIndicator: css({
     color: theme.colors.text.primary,
-    whiteSpace: 'nowrap',
-    ...theme.typography.bodySmall,
-    fontWeight: theme.typography.fontWeightBold,
     background: theme.colors.action.selected,
-    borderRadius: theme.shape.radius.default,
-    padding: theme.spacing(0.25, 0.75),
-    border: 'none',
-    cursor: 'pointer',
     '&:hover': {
       background: theme.colors.action.hover,
     },
@@ -276,8 +268,6 @@ const getStyles = (theme: GrafanaTheme2) => ({
   collapseButton: css({
     color: theme.colors.text.secondary,
     padding: 0,
-    fontSize: theme.typography.bodySmall.fontSize,
-    border: 'none',
     '&:hover': {
       background: 'transparent',
       color: theme.colors.text.primary,
