@@ -3499,75 +3499,75 @@ describe('setOriginalFilters', () => {
       operator: '!=',
     });
   });
+});
 
-  describe('group-by', () => {
-    describe('isFilterComplete', () => {
-      it('returns true for groupBy filter with key and operator and empty value', () => {
-        expect(
-          isFilterComplete({ key: 'namespace', keyLabel: 'namespace', operator: 'groupBy', value: '', condition: '' })
-        ).toBe(true);
-      });
-
-      it('returns false for regular filter with empty value', () => {
-        expect(isFilterComplete({ key: 'key1', operator: '=', value: '', condition: '' })).toBe(false);
-      });
-
-      it('returns true for regular filter with non-empty value', () => {
-        expect(isFilterComplete({ key: 'key1', operator: '=', value: 'val1', condition: '' })).toBe(true);
-      });
-
-      it('returns false when key or operator is missing even for groupBy', () => {
-        expect(isFilterComplete({ key: '', operator: 'groupBy', value: '', condition: '' })).toBe(false);
-        expect(isFilterComplete({ key: 'k', operator: '', value: '', condition: '' })).toBe(false);
-      });
+describe('group-by', () => {
+  describe('isFilterComplete', () => {
+    it('returns true for groupBy filter with key and operator and empty value', () => {
+      expect(
+        isFilterComplete({ key: 'namespace', keyLabel: 'namespace', operator: 'groupBy', value: '', condition: '' })
+      ).toBe(true);
     });
 
-    describe('_addGroupByFilter', () => {
-      it('appends a filter with operator groupBy and empty value', () => {
-        const variable = new AdHocFiltersVariable({
-          datasource: { uid: 'test' },
-          applyMode: 'manual',
-          filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
-        });
-        variable.activate();
-
-        variable._addGroupByFilter({ value: 'namespace', label: 'Namespace' });
-
-        expect(variable.state.filters).toHaveLength(2);
-        expect(variable.state.filters[1]).toEqual({
-          key: 'namespace',
-          keyLabel: 'Namespace',
-          operator: 'groupBy',
-          value: '',
-          condition: '',
-        });
-      });
+    it('returns false for regular filter with empty value', () => {
+      expect(isFilterComplete({ key: 'key1', operator: '=', value: '', condition: '' })).toBe(false);
     });
 
-    describe('_getGroupByKeys', () => {
-      it('returns provider values when getGroupByKeysProvider returns replace true', async () => {
-        const variable = new AdHocFiltersVariable({
-          datasource: { uid: 'test' },
-          applyMode: 'manual',
-          filters: setTemplateSrvWithFilters([]),
-          getGroupByKeysProvider: () =>
-            Promise.resolve({
-              replace: true,
-              values: [
-                { text: 'dim1', value: 'dim1' },
-                { text: 'dim2', value: 'dim2' },
-              ],
-            }),
-        });
-        variable.activate();
+    it('returns true for regular filter with non-empty value', () => {
+      expect(isFilterComplete({ key: 'key1', operator: '=', value: 'val1', condition: '' })).toBe(true);
+    });
 
-        const keys = await variable._getGroupByKeys(null);
+    it('returns false when key or operator is missing even for groupBy', () => {
+      expect(isFilterComplete({ key: '', operator: 'groupBy', value: '', condition: '' })).toBe(false);
+      expect(isFilterComplete({ key: 'k', operator: '', value: '', condition: '' })).toBe(false);
+    });
+  });
 
-        expect(keys).toEqual([
-          { label: 'dim1', value: 'dim1' },
-          { label: 'dim2', value: 'dim2' },
-        ]);
+  describe('_addGroupByFilter', () => {
+    it('appends a filter with operator groupBy and empty value', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
+      variable.activate();
+
+      variable._addGroupByFilter({ value: 'namespace', label: 'Namespace' });
+
+      expect(variable.state.filters).toHaveLength(2);
+      expect(variable.state.filters[1]).toEqual({
+        key: 'namespace',
+        keyLabel: 'Namespace',
+        operator: 'groupBy',
+        value: '',
+        condition: '',
+      });
+    });
+  });
+
+  describe('_getGroupByKeys', () => {
+    it('returns provider values when getGroupByKeysProvider returns replace true', async () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([]),
+        getGroupByKeysProvider: () =>
+          Promise.resolve({
+            replace: true,
+            values: [
+              { text: 'dim1', value: 'dim1' },
+              { text: 'dim2', value: 'dim2' },
+            ],
+          }),
+      });
+      variable.activate();
+
+      const keys = await variable._getGroupByKeys(null);
+
+      expect(keys).toEqual([
+        { label: 'dim1', value: 'dim1' },
+        { label: 'dim2', value: 'dim2' },
+      ]);
     });
   });
 });

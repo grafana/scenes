@@ -862,15 +862,17 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                   setInputValue,
                                   filter,
                                 });
-
                                 switchToNextInputType(
                                   filterInputType,
                                   setInputType,
                                   handleChangeViewMode,
                                   refs.domReference.current,
-                                  // explicitly preventing focus on filter pill due to a11y error
-                                  false
+                                  // preventing focus on filter pill only when last filter for better backspace experience
+                                  isLastFilter ? false : undefined
                                 );
+                                if (isLastFilter) {
+                                  focusOnWipInputRef?.();
+                                }
                               }
                             },
                           })}

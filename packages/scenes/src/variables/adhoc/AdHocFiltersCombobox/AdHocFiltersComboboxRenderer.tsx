@@ -134,7 +134,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
               key={`groupby-${index}-${filter.key}`}
               filter={filter}
               controller={controller}
-              readOnly={readOnly}
+              readOnly={readOnly || filter.readOnly}
               focusOnWipInputRef={focusOnGroupByWipInputRef.current}
             />
           ))}
