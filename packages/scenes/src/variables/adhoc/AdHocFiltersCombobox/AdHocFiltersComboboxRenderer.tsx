@@ -86,7 +86,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         [styles.collapsed]: shouldCollapse,
       })}
     >
-      {valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
+      {!readOnly && valueRecommendations && (
+        <valueRecommendations.Component model={valueRecommendations} />
+      )}
 
       {adhocFiltersToRender.map((filter, index) => (
         <AdHocFilterPill
@@ -204,13 +206,15 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           />
         )}
 
-        <IconButton
-          name="times"
-          size="md"
-          className={styles.clearAllButton}
-          tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.clear-all', 'Clear all')}
-          onClick={clearAll}
-        />
+        {!readOnly && (
+          <IconButton
+            name="times"
+            size="md"
+            className={styles.clearAllButton}
+            tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.clear-all', 'Clear all')}
+            onClick={clearAll}
+          />
+        )}
       </div>
     </div>
   );
@@ -257,6 +261,9 @@ const getStyles = (theme: GrafanaTheme2) => ({
   moreIndicator: css({
     color: theme.colors.text.primary,
     background: theme.colors.action.selected,
+    height: 'auto',
+    lineHeight: 'normal',
+    alignSelf: 'stretch',
     '&:hover': {
       background: theme.colors.action.hover,
     },
@@ -268,6 +275,8 @@ const getStyles = (theme: GrafanaTheme2) => ({
   collapseButton: css({
     color: theme.colors.text.secondary,
     padding: 0,
+    height: 'auto',
+    lineHeight: 'normal',
     '&:hover': {
       background: 'transparent',
       color: theme.colors.text.primary,
