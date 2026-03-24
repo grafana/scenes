@@ -22,6 +22,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       supportsMultiValueOperators: state.supportsMultiValueOperators,
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
+      groupByWip: state._groupByWip,
       inputPlaceholder: state.inputPlaceholder,
       groupByInputPlaceholder: state.groupByInputPlaceholder,
       collapsible: state.collapsible,
@@ -79,6 +80,10 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public addWip(): void {
     this.model._addWip();
+  }
+
+  public addGroupByWip(): void {
+    this.model._addGroupByWip();
   }
 
   public addGroupByFilter(item: SelectableValue<string>): void {

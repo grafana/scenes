@@ -15,22 +15,27 @@ export const AdHocFiltersAlwaysWipCombobox = forwardRef(function AdHocFiltersAlw
   //    parentRef is mutated through useImperativeHandle in AdHocCombobox
   parentRef
 ) {
-  const { wip } = controller.useState();
+  const { wip, groupByWip } = controller.useState();
+  const activeWip = isGroupBy ? groupByWip : wip;
 
   // when combobox is in wip mode then check and add wip if its missing
   //    needed on first render and when wip is reset on filter value commit
   useLayoutEffect(() => {
-    if (!wip) {
-      controller.addWip();
+    if (!activeWip) {
+      if (isGroupBy) {
+        controller.addGroupByWip?.();
+      } else {
+        controller.addWip();
+      }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wip]);
+  }, [activeWip]);
 
   return (
     <AdHocCombobox
       controller={controller}
-      filter={wip}
+      filter={activeWip}
       isAlwaysWip
       isGroupBy={isGroupBy}
       ref={parentRef}

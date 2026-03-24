@@ -159,6 +159,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   _wip?: AdHocFilterWithLabels;
 
   /**
+   * @internal state of the new group-by filter being added
+   */
+  _groupByWip?: AdHocFilterWithLabels;
+
+  /**
    * Allows custom formatting of a value before saving to filter state
    */
   onAddCustomValue?: OnAddCustomValueFn;
@@ -679,6 +684,11 @@ export class AdHocFiltersVariable
       return;
     }
 
+    if (filter === this.state._groupByWip) {
+      this.setState({ _groupByWip: { ...filter, ...update } });
+      return;
+    }
+
     const updatedFilters = this.state.filters.map((f) => {
       return f === filter ? { ...f, ...update } : f;
     });
@@ -706,6 +716,10 @@ export class AdHocFiltersVariable
   public _removeFilter(filter: AdHocFilterWithLabels) {
     if (filter === this.state._wip) {
       this.setState({ _wip: undefined });
+      return;
+    }
+    if (filter === this.state._groupByWip) {
+      this.setState({ _groupByWip: undefined });
       return;
     }
     const queryController = getQueryController(this);
@@ -1018,6 +1032,12 @@ export class AdHocFiltersVariable
   public _addWip() {
     this.setState({
       _wip: { key: '', value: '', operator: '=', condition: '' },
+    });
+  }
+
+  public _addGroupByWip() {
+    this.setState({
+      _groupByWip: { key: '', value: '', operator: 'groupBy', condition: '' },
     });
   }
 

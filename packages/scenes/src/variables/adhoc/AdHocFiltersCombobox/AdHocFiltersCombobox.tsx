@@ -125,11 +125,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   // reset wip filter. Used when navigating away with incomplete wip filer or when selecting wip filter value
   const handleResetWip = useCallback(() => {
     if (isAlwaysWip) {
-      controller.addWip();
+      if (isGroupBy) {
+        controller.addGroupByWip?.();
+      } else {
+        controller.addWip();
+      }
       setInputType('key');
       setInputValue('');
     }
-  }, [controller, isAlwaysWip]);
+  }, [controller, isAlwaysWip, isGroupBy]);
 
   const handleMultiValueFilterCommit = useCallback(
     (

@@ -13,6 +13,7 @@ export interface AdHocFiltersControllerState {
   supportsMultiValueOperators?: boolean;
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
+  groupByWip?: AdHocFilterWithLabels;
   inputPlaceholder?: string;
   groupByInputPlaceholder?: string;
   /**
@@ -106,6 +107,12 @@ export interface AdHocFiltersController {
    * Add a new work-in-progress filter.
    */
   addWip(): void;
+
+  /**
+   * Add a new work-in-progress group-by filter.
+   * Only relevant when enableGroupBy is true.
+   */
+  addGroupByWip?(): void;
 
   /**
    * Add a group-by filter (key only, operator 'groupBy', no value).

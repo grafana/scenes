@@ -99,8 +99,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       ))}
 
       {shouldCollapse && adhocHiddenCount > 0 && (
-        <button
+        <Button
           className={styles.moreIndicator}
+          fill="text"
           aria-label={t(
             'grafana-scenes.variables.adhoc-filters-combobox-renderer.show-more-filters',
             'Show {{count}} more filters',
@@ -113,7 +114,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           }}
         >
           +{adhocHiddenCount}
-        </button>
+        </Button>
       )}
 
       {!readOnly ? (
@@ -138,8 +139,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           ))}
 
           {shouldCollapse && groupByHiddenCount > 0 && (
-            <button
+            <Button
               className={styles.moreIndicator}
+              fill="text"
               aria-label={t(
                 'grafana-scenes.variables.adhoc-filters-combobox-renderer.show-more-group-by',
                 'Show {{count}} more group by',
@@ -152,7 +154,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
               }}
             >
               +{groupByHiddenCount}
-            </button>
+            </Button>
           )}
 
           {!readOnly ? (
