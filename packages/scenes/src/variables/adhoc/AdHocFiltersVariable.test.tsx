@@ -5,7 +5,9 @@ import {
   AdHocFiltersVariable,
   AdHocFiltersVariableState,
   AdHocFilterWithLabels,
+  GROUP_BY_OPERATOR,
   isFilterComplete,
+  isGroupByFilter,
 } from './AdHocFiltersVariable';
 import {
   MAX_RECENT_DRILLDOWNS,
@@ -3631,6 +3633,191 @@ describe('group-by', () => {
         { label: 'dim1', value: 'dim1' },
         { label: 'dim2', value: 'dim2' },
       ]);
+    });
+  });
+
+  describe('isGroupByFilter', () => {
+    it('returns true for groupBy operator', () => {
+      expect(isGroupByFilter({ key: 'ns', operator: GROUP_BY_OPERATOR, value: '', condition: '' })).toBe(true);
+    });
+
+    it('returns false for regular operators', () => {
+      expect(isGroupByFilter({ key: 'k', operator: '=', value: 'v', condition: '' })).toBe(false);
+      expect(isGroupByFilter({ key: 'k', operator: '!=', value: 'v', condition: '' })).toBe(false);
+      expect(isGroupByFilter({ key: 'k', operator: '=~', value: '.*', condition: '' })).toBe(false);
+    });
+  });
+
+  describe('filterExpression excludes groupBy', () => {
+    it('should not include groupBy entries in the filter expression', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([
+          { key: 'host', operator: '=', value: 'web-1' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+      variable.activate();
+
+      expect(variable.state.filterExpression).toBe('host="web-1"');
+    });
+
+    it('should produce an empty expression when only groupBy filters exist', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+          { key: 'zone', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+      variable.activate();
+
+      expect(variable.state.filterExpression).toBe('');
+    });
+
+    it('should update expression correctly when adding a groupBy alongside regular filters', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([{ key: 'host', operator: '=', value: 'web-1' }]),
+      });
+      variable.activate();
+
+      expect(variable.state.filterExpression).toBe('host="web-1"');
+
+      variable._addGroupByFilter({ value: 'region', label: 'Region' });
+
+      expect(variable.state.filterExpression).toBe('host="web-1"');
+      expect(variable.state.filters).toHaveLength(2);
+    });
+  });
+
+  describe('groupBy changes publish variable change events', () => {
+    it('should publish SceneVariableValueChangedEvent when a groupBy filter is added', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([]),
+      });
+      variable.activate();
+
+      const events: SceneVariableValueChangedEvent[] = [];
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (e) => events.push(e));
+
+      variable._addGroupByFilter({ value: 'region', label: 'Region' });
+
+      expect(events).toHaveLength(1);
+    });
+
+    it('should publish SceneVariableValueChangedEvent when groupBy filters are replaced', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([{ key: 'region', operator: GROUP_BY_OPERATOR, value: '' }]),
+      });
+      variable.activate();
+
+      const events: SceneVariableValueChangedEvent[] = [];
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (e) => events.push(e));
+
+      variable.updateFilters([{ key: 'zone', operator: GROUP_BY_OPERATOR, value: '', condition: '' }]);
+
+      expect(events).toHaveLength(1);
+    });
+
+    it('should publish SceneVariableValueChangedEvent when a groupBy filter is removed', () => {
+      const groupByFilter: AdHocFilterWithLabels = {
+        key: 'region',
+        operator: GROUP_BY_OPERATOR,
+        value: '',
+        condition: '',
+      };
+
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([{ key: 'host', operator: '=', value: 'web-1' }]),
+      });
+      variable.activate();
+
+      variable.setState({
+        filters: [...variable.state.filters, groupByFilter],
+      });
+
+      const events: SceneVariableValueChangedEvent[] = [];
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (e) => events.push(e));
+
+      variable._removeFilter(groupByFilter);
+
+      expect(events).toHaveLength(1);
+    });
+
+    it('should not publish event when groupBy filters are identical', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([{ key: 'region', operator: GROUP_BY_OPERATOR, value: '' }]),
+      });
+      variable.activate();
+
+      const events: SceneVariableValueChangedEvent[] = [];
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (e) => events.push(e));
+
+      variable.updateFilters([{ key: 'region', operator: GROUP_BY_OPERATOR, value: '', condition: '' }]);
+
+      expect(events).toHaveLength(0);
+    });
+  });
+
+  describe('mixed filters and groupBy', () => {
+    it('should correctly separate real filters from groupBy in the state', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([
+          { key: 'host', operator: '=', value: 'web-1' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+          { key: 'env', operator: '!=', value: 'staging' },
+          { key: 'zone', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+      variable.activate();
+
+      const realFilters = variable.state.filters.filter((f) => !isGroupByFilter(f));
+      const groupByFilters = variable.state.filters.filter((f) => isGroupByFilter(f));
+
+      expect(realFilters).toHaveLength(2);
+      expect(realFilters.map((f) => f.key)).toEqual(['host', 'env']);
+
+      expect(groupByFilters).toHaveLength(2);
+      expect(groupByFilters.map((f) => f.key)).toEqual(['region', 'zone']);
+
+      expect(variable.state.filterExpression).toBe('host="web-1",env!="staging"');
+    });
+
+    it('should fire event when only groupBy changes in a mixed set', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([
+          { key: 'host', operator: '=', value: 'web-1' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+      variable.activate();
+
+      const events: SceneVariableValueChangedEvent[] = [];
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (e) => events.push(e));
+
+      variable.updateFilters([
+        { key: 'host', operator: '=', value: 'web-1', condition: '' },
+        { key: 'zone', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+      ]);
+
+      expect(events).toHaveLength(1);
+      expect(variable.state.filterExpression).toBe('host="web-1"');
     });
   });
 });

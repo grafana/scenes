@@ -1,6 +1,6 @@
 import { getDataSourceSrv, getTemplateSrv } from '@grafana/runtime';
 import { AdHocVariableFilter } from '@grafana/data';
-import { AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, isGroupByFilter } from './AdHocFiltersVariable';
 import { interpolate } from '../../core/sceneGraph/sceneGraph';
 import { SceneObject } from '../../core/types';
 
@@ -37,7 +37,7 @@ export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {
 
     for (const filter of allActiveFilterSets.values()) {
       if (filter.state.datasource?.uid === ds.uid) {
-        return filter.state.filters;
+        return filter.state.filters.filter((f) => !isGroupByFilter(f));
       }
     }
 

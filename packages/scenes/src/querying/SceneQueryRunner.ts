@@ -41,7 +41,6 @@ import { passthroughProcessor, extraQueryProcessingOperator } from './extraQuery
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { registerQueryWithController, QueryProfilerLike } from './registerQueryWithController';
-import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { SceneVariable } from '../variables/types';
@@ -271,28 +270,19 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   /**
-   * Check if value changed is a adhoc filter o group by variable that did not exist when we issued the last query
+   * Check if value changed is an adhoc filter variable that did not exist when we issued the last query
    */
   private onAnyVariableChanged(variable: SceneVariable) {
-    // If this variable has already been detected this variable as a dependency onVariableUpdatesCompleted above will handle value changes
-    if (
-      this._drilldownDependenciesManager.adHocFiltersVar === variable ||
-      this._drilldownDependenciesManager.groupByVar === variable ||
-      !this.isQueryModeAuto()
-    ) {
+    if (this._drilldownDependenciesManager.adHocFiltersVar === variable || !this.isQueryModeAuto()) {
       return;
     }
 
     if (variable instanceof AdHocFiltersVariable && this._isRelevantAutoVariable(variable)) {
       this.runQueries();
     }
-
-    if (variable instanceof GroupByVariable && this._isRelevantAutoVariable(variable)) {
-      this.runQueries();
-    }
   }
 
-  private _isRelevantAutoVariable(variable: AdHocFiltersVariable | GroupByVariable) {
+  private _isRelevantAutoVariable(variable: AdHocFiltersVariable) {
     const datasource = this.state.datasource ?? findFirstDatasource(this.state.queries);
     return variable.state.applyMode === 'auto' && datasource?.uid === variable.state.datasource?.uid;
   }

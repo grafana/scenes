@@ -23,8 +23,6 @@ import { config, RefreshEvent } from '@grafana/runtime';
 import { ScopesVariable } from '../../../variables/variants/ScopesVariable';
 import { act } from 'react-dom/test-utils';
 import { AdHocFiltersVariable } from '../../../variables/adhoc/AdHocFiltersVariable';
-import { GroupByVariable } from '../../../variables/groupby/GroupByVariable';
-import { allActiveGroupByVariables } from '../../../variables/groupby/findActiveGroupByVariablesByUid';
 import { allActiveFilterSets } from '../../../variables/adhoc/patchGetAdhocFilters';
 
 let mockedEvents: Array<Partial<Field>> = [];
@@ -102,7 +100,6 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
     sentRequest = undefined;
 
     // Clear the global variable sets to avoid cross-test contamination
-    allActiveGroupByVariables.clear();
     allActiveFilterSets.clear();
   });
 
@@ -513,21 +510,15 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
   });
 
   describe('drilldown dependencies support', () => {
-    it('should find and subscribe to ad-hoc filters and group-by variables', async () => {
+    it('should find and subscribe to ad-hoc filters and group-by dimensions', async () => {
       const adHocVar = new AdHocFiltersVariable({
         name: 'adhoc',
         datasource: { type: 'prometheus', uid: 'test-uid' },
-        filters: [{ key: 'label1', operator: '=', value: 'value1' }],
-      });
-
-      const groupByVar = new GroupByVariable({
-        name: 'groupby',
-        datasource: { type: 'prometheus', uid: 'test-uid' },
-        value: ['key1'],
-        options: [
-          { label: 'key1', value: 'key1' },
-          { label: 'key2', value: 'key2' },
+        filters: [
+          { key: 'label1', operator: '=', value: 'value1' },
+          { key: 'key1', operator: 'groupBy', value: '', condition: '' },
         ],
+        enableGroupBy: true,
       });
 
       const layer = new AnnotationsDataLayer({
@@ -541,19 +532,17 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
       });
 
       const scene = new TestScene({
-        $variables: new SceneVariableSet({ variables: [adHocVar, groupByVar] }),
+        $variables: new SceneVariableSet({ variables: [adHocVar] }),
         $timeRange: new SceneTimeRange(),
         $data: new SceneDataLayerSet({
           layers: [layer],
         }),
       });
 
-      // Activate the variables first to ensure they are registered before the layer runs
       adHocVar.activate();
-      groupByVar.activate();
       scene.activate();
 
-      // Wait longer for the layer query to run after variables are active
+      // Wait for the layer query to run after variables are active
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock).toHaveBeenCalledTimes(1);

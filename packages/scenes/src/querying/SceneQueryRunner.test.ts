@@ -34,9 +34,8 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
-import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable, GROUP_BY_OPERATOR } from '../variables/adhoc/AdHocFiltersVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
-import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneQueryController } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
@@ -734,21 +733,25 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall[1].filters).toEqual([{ key: 'A', operator: '=', value: 'B' }]);
     });
 
-    it('should pass group by dimensions via request object', async () => {
+    it('should pass group by dimensions via request object from AdHocFiltersVariable', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
         queries: [{ refId: 'A' }],
       });
 
-      const groupByVariable = new GroupByVariable({
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
         datasource: { uid: 'test-uid' },
-        defaultOptions: [{ text: 'A' }, { text: 'B' }],
-        value: ['A', 'B'],
+        filters: [
+          { key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+          { key: 'B', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        ],
+        enableGroupBy: true,
       });
 
       const scene = new EmbeddedScene({
         $data: queryRunner,
-        $variables: new SceneVariableSet({ variables: [groupByVariable] }),
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
         body: new SceneCanvasText({ text: 'hello' }),
       });
 
@@ -762,8 +765,11 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       expect(runRequestCall[1].groupByKeys).toEqual(['A', 'B']);
 
-      // Verify updating filter re-triggers query
-      groupByVariable.changeValueTo(['C', 'D']);
+      // Verify updating groupBy filters re-triggers query
+      filtersVar.updateFilters([
+        { key: 'C', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        { key: 'D', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+      ]);
 
       await new Promise((r) => setTimeout(r, 1));
 

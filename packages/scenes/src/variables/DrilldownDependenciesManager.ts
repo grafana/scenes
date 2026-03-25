@@ -3,25 +3,23 @@ import {
   findGlobalAdHocFilterVariableByUid,
 } from '../variables/adhoc/patchGetAdhocFilters';
 import {
-  findClosestGroupByInHierarchy,
-  findGlobalGroupByVariableByUid,
-} from '../variables/groupby/findActiveGroupByVariablesByUid';
-import { GroupByVariable } from '../variables/groupby/GroupByVariable';
-import {
   AdHocFilterWithLabels,
   AdHocFiltersVariable,
   isFilterApplicable,
   isFilterComplete,
+  isGroupByFilter,
 } from '../variables/adhoc/AdHocFiltersVariable';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneObject, SceneObjectState } from '../core/types';
 
 /**
- * Manages ad-hoc filters and group-by variables for data providers
+ * Manages ad-hoc filters and group-by dimensions for data providers.
+ *
+ * Both regular filters and groupBy keys are sourced from AdHocFiltersVariable.
+ * GroupBy entries are distinguished by operator === 'groupBy'.
  */
 export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   private _adhocFiltersVar?: AdHocFiltersVariable;
-  private _groupByVar?: GroupByVariable;
   private _variableDependency: VariableDependencyConfig<TState>;
 
   public constructor(variableDependency: VariableDependencyConfig<TState>) {
@@ -29,7 +27,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   }
 
   /**
-   * Find drilldown variables matching the given datasource UID.
+   * Find the AdHocFiltersVariable matching the given datasource UID.
    * When sceneObject is provided, walks up the hierarchy to find the closest match.
    * Otherwise falls back to searching the global active variable sets.
    */
@@ -37,23 +35,9 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     const filtersVar = sceneObject
       ? findClosestAdHocFilterInHierarchy(interpolatedUid, sceneObject)
       : findGlobalAdHocFilterVariableByUid(interpolatedUid);
-    const groupByVar = sceneObject
-      ? findClosestGroupByInHierarchy(interpolatedUid, sceneObject)
-      : findGlobalGroupByVariableByUid(interpolatedUid);
-
-    let hasChanges = false;
 
     if (this._adhocFiltersVar !== filtersVar) {
       this._adhocFiltersVar = filtersVar;
-      hasChanges = true;
-    }
-
-    if (this._groupByVar !== groupByVar) {
-      this._groupByVar = groupByVar;
-      hasChanges = true;
-    }
-
-    if (hasChanges) {
       this._updateExplicitDrilldownVariableDependencies();
     }
   }
@@ -65,10 +49,6 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       explicitDependencies.push(this._adhocFiltersVar.state.name);
     }
 
-    if (this._groupByVar) {
-      explicitDependencies.push(this._groupByVar.state.name);
-    }
-
     this._variableDependency.setVariableNames(explicitDependencies);
   }
 
@@ -76,24 +56,39 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     return this._adhocFiltersVar;
   }
 
-  public get groupByVar(): GroupByVariable | undefined {
-    return this._groupByVar;
+  private _getAllFilters(): AdHocFilterWithLabels[] {
+    if (!this._adhocFiltersVar) {
+      return [];
+    }
+    return [...(this._adhocFiltersVar.state.originFilters ?? []), ...this._adhocFiltersVar.state.filters];
   }
 
+  /**
+   * Returns only "real" ad-hoc filters, excluding groupBy entries embedded in the filters array.
+   */
   public getFilters(): AdHocFilterWithLabels[] | undefined {
     return this._adhocFiltersVar
-      ? [...(this._adhocFiltersVar.state.originFilters ?? []), ...this._adhocFiltersVar.state.filters].filter(
-          (f) => isFilterComplete(f) && isFilterApplicable(f)
-        )
+      ? this._getAllFilters().filter((f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f))
       : undefined;
   }
 
+  /**
+   * Returns group-by keys extracted from the AdHocFiltersVariable (operator === 'groupBy').
+   * Returns undefined when no groupBy entries are present.
+   */
   public getGroupByKeys(): string[] | undefined {
-    return this._groupByVar ? this._groupByVar.getApplicableKeys() : undefined;
+    if (!this._adhocFiltersVar) {
+      return undefined;
+    }
+
+    const groupByKeys = this._getAllFilters()
+      .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && isFilterApplicable(f))
+      .map((f) => f.key);
+
+    return groupByKeys.length > 0 ? groupByKeys : undefined;
   }
 
   public cleanup(): void {
     this._adhocFiltersVar = undefined;
-    this._groupByVar = undefined;
   }
 }
