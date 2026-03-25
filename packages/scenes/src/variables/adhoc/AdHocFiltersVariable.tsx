@@ -803,7 +803,8 @@ export class AdHocFiltersVariable
 
   public async getFiltersApplicabilityForQueries(
     filters: AdHocFilterWithLabels[],
-    queries: SceneDataQuery[]
+    queries: SceneDataQuery[],
+    groupByKeys?: string[]
   ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
@@ -819,15 +820,18 @@ export class AdHocFiltersVariable
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
+      ...(groupByKeys && groupByKeys.length > 0 ? { groupByKeys } : {}),
       ...getEnrichedFiltersRequest(this),
     });
   }
 
   public async _verifyApplicability() {
-    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+    const allFilters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+    const filters = allFilters.filter((f) => !isGroupByFilter(f));
+    const groupByKeys = allFilters.filter((f) => isGroupByFilter(f)).map((f) => f.key);
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
-    const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
+    const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? [], groupByKeys);
 
     if (!response) {
       return;
