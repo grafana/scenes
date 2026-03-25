@@ -539,6 +539,7 @@ export class AdHocFiltersVariable
       value: '',
       condition: '',
     };
+    this._recommendations?.storeRecentGrouping(key);
     this.updateFilters([...this.state.filters, newFilter]);
   }
 

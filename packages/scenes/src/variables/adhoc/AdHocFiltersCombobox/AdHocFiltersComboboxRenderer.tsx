@@ -9,6 +9,7 @@ import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
 import { GroupByPill } from './GroupByPill';
 import { isGroupByFilter } from '../AdHocFiltersVariable';
+import { AdHocGroupByRecommendationsRenderer } from '../AdHocFiltersRecommendations';
 
 const MAX_VISIBLE_FILTERS_DEFAULT = 4;
 const MAX_VISIBLE_FILTERS_WITH_GROUP_BY = 2;
@@ -130,6 +131,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           <span className={styles.groupByLabel}>
             {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.group-by-label', 'Group by:')}
           </span>
+          {!readOnly && valueRecommendations && <AdHocGroupByRecommendationsRenderer model={valueRecommendations} />}
 
           {groupByFiltersToRender.map((filter, index) => (
             <GroupByPill

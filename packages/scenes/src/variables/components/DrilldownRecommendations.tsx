@@ -84,7 +84,7 @@ export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldow
   return (
     <>
       <IconButton
-        name="plus"
+        name="bars-clock"
         tooltip={t('grafana-scenes.components.drilldown-recommendations.tooltip', 'Show recommendations')}
         ref={ref}
         className={cx(isPopoverVisible && styles.iconActive)}
