@@ -77,6 +77,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   // Only show collapse button when expanded and content wraps to multiple lines
   const showCollapseButton = collapsible && isMultiLine && !collapsed;
+  const showExpandButton = shouldCollapse && (adhocHiddenCount > 0 || groupByHiddenCount > 0);
 
   return (
     <div
@@ -171,6 +172,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       )}
 
       {/* Right-side controls: collapse button and clear all */}
+      {(showCollapseButton || showExpandButton || !readOnly) && (
       <div className={styles.rightControls}>
         <div className={styles.sectionDivider} />
 
@@ -191,7 +193,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           </Button>
         )}
 
-        {shouldCollapse && (adhocHiddenCount > 0 || groupByHiddenCount > 0) && (
+        {showExpandButton && (
           <IconButton
             name="angle-down"
             size="md"
@@ -214,6 +216,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           />
         )}
       </div>
+      )}
     </div>
   );
 });

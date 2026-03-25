@@ -3632,4 +3632,47 @@ describe('group-by', () => {
       expect(variable.state.filters).toHaveLength(1);
     });
   });
+
+  describe('_handleComboboxBackspace with _groupByWip', () => {
+    it('force-edits the last groupBy filter when triggered from _groupByWip', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'ns', operator: 'groupBy', value: '' },
+          { key: 'region', operator: 'groupBy', value: '' },
+        ]),
+      });
+      variable.activate();
+      variable._addGroupByWip();
+
+      variable._handleComboboxBackspace(variable.state._groupByWip!);
+
+      expect(variable.state.filters).toHaveLength(3);
+      expect(variable.state.filters[2]).toMatchObject({ key: 'region', operator: 'groupBy', forceEdit: true });
+      expect(variable.state.filters[1].forceEdit).toBeUndefined();
+      expect(variable.state.filters[0].forceEdit).toBeUndefined();
+    });
+
+    it('skips readOnly groupBy filters when looking for the last one to force-edit', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([
+          { key: 'ns', operator: 'groupBy', value: '' },
+          { key: 'region', operator: 'groupBy', value: '' },
+        ]),
+      });
+      variable.activate();
+      variable.state.filters[1].readOnly = true;
+      variable._addGroupByWip();
+
+      variable._handleComboboxBackspace(variable.state._groupByWip!);
+
+      expect(variable.state.filters).toHaveLength(2);
+      expect(variable.state.filters[0].forceEdit).toBeUndefined();
+      expect(variable.state.filters[1].forceEdit).toBeUndefined();
+    });
+  });
 });

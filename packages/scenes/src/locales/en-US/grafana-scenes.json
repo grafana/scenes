@@ -115,8 +115,8 @@
         "group-by-label": "Group by:",
         "show-more-filters_one": "Show {{count}} more filters",
         "show-more-filters_other": "Show {{count}} more filters",
-        "show-more-group-by_one": "Show {{count}} more group by",
-        "show-more-group-by_other": "Show {{count}} more group by"
+        "show-more-group-by_one": "Show {{count}} more group by keys",
+        "show-more-group-by_other": "Show {{count}} more group by keys"
       },
       "data-source-variable": {
         "label": {
