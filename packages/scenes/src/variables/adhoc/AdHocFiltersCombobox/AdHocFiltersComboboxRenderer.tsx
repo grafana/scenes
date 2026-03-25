@@ -118,9 +118,9 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         </Button>
       )}
 
-      {!readOnly ? (
+      {!readOnly && (
         <AdHocFiltersAlwaysWipCombobox ref={focusOnWipInputRef} controller={controller} onInputClick={handleExpand} />
-      ) : null}
+      )}
 
       {enableGroupBy && (
         <>
@@ -159,14 +159,14 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
             </Button>
           )}
 
-          {!readOnly ? (
+          {!readOnly && (
             <AdHocFiltersAlwaysWipCombobox
               ref={focusOnGroupByWipInputRef}
               controller={controller}
               onInputClick={handleExpand}
               isGroupBy
             />
-          ) : null}
+          )}
         </>
       )}
 
