@@ -173,49 +173,49 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
       {/* Right-side controls: collapse button and clear all */}
       {(showCollapseButton || showExpandButton || !readOnly) && (
-      <div className={styles.rightControls}>
-        <div className={styles.sectionDivider} />
+        <div className={styles.rightControls}>
+          <div className={styles.sectionDivider} />
 
-        {showCollapseButton && (
-          <Button
-            className={styles.collapseButton}
-            fill="text"
-            size="sm"
-            onClick={handleCollapseToggle}
-            aria-label={t(
-              'grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse-filters',
-              'Collapse filters'
-            )}
-            aria-expanded={!collapsed}
-          >
-            {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse', 'Collapse')}
-            <Icon name="angle-up" size="md" />
-          </Button>
-        )}
+          {showCollapseButton && (
+            <Button
+              className={styles.collapseButton}
+              fill="text"
+              size="sm"
+              onClick={handleCollapseToggle}
+              aria-label={t(
+                'grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse-filters',
+                'Collapse filters'
+              )}
+              aria-expanded={!collapsed}
+            >
+              {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.collapse', 'Collapse')}
+              <Icon name="angle-up" size="md" />
+            </Button>
+          )}
 
-        {showExpandButton && (
-          <IconButton
-            name="angle-down"
-            size="md"
-            className={styles.dropdownIndicator}
-            tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.expand-filters', 'Expand filters')}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleExpand();
-            }}
-          />
-        )}
+          {showExpandButton && (
+            <IconButton
+              name="angle-down"
+              size="md"
+              className={styles.dropdownIndicator}
+              tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.expand-filters', 'Expand filters')}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleExpand();
+              }}
+            />
+          )}
 
-        {!readOnly && (
-          <IconButton
-            name="times"
-            size="md"
-            className={styles.clearAllButton}
-            tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.clear-all', 'Clear all')}
-            onClick={clearAll}
-          />
-        )}
-      </div>
+          {!readOnly && (
+            <IconButton
+              name="times"
+              size="md"
+              className={styles.clearAllButton}
+              tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.clear-all', 'Clear all')}
+              onClick={clearAll}
+            />
+          )}
+        </div>
       )}
     </div>
   );
