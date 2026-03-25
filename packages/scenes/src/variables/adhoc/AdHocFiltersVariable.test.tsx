@@ -3632,5 +3632,4 @@ describe('group-by', () => {
       expect(variable.state.filters).toHaveLength(1);
     });
   });
-
 });
