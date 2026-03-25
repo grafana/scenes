@@ -76,16 +76,13 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
           'Edit filter with key {{keyLabel}}',
           { keyLabel }
         )}
-        onRemove={showRemove ? handleRemove : undefined}
-        removeAriaLabel={
-          showRemove
-            ? t(
-                'grafana-scenes.components.adhoc-filter-pill.remove-filter-with-key',
-                'Remove filter with key {{keyLabel}}',
-                { keyLabel }
-              )
-            : undefined
-        }
+        onRemove={handleRemove}
+        removeAriaLabel={t(
+          'grafana-scenes.components.adhoc-filter-pill.remove-filter-with-key',
+          'Remove filter with key {{keyLabel}}',
+          { keyLabel }
+        )}
+        removable={showRemove}
         additionalIcons={
           <>
             {filter.origin && filter.readOnly && (

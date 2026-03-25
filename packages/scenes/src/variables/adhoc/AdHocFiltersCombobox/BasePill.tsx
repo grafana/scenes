@@ -9,6 +9,7 @@ const LABEL_MAX_VISIBLE_LENGTH = 20;
 
 export interface BasePillProps {
   label: string;
+  removable?: boolean;
   onRemove?: () => void;
   onClick?: (e: React.MouseEvent) => void;
   onKeyDown?: (e: React.KeyboardEvent) => void;
@@ -25,6 +26,7 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
   {
     label,
     onRemove,
+    removable = !!onRemove,
     onClick,
     onKeyDown,
     readOnly,
@@ -64,7 +66,7 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
         </Tooltip>
       )}
 
-      {onRemove ? (
+      {removable && onRemove && (
         <IconButton
           onClick={(e) => {
             e.stopPropagation();
@@ -75,7 +77,7 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
           className={cx(styles.pillIcon, disabled && styles.disabledPillIcon)}
           tooltip={removeAriaLabel ?? t('grafana-scenes.components.base-pill.remove', 'Remove {{label}}', { label })}
         />
-      ) : null}
+      )}
 
       {additionalIcons}
     </div>

@@ -3570,4 +3570,67 @@ describe('group-by', () => {
       ]);
     });
   });
+
+  describe('_addGroupByWip', () => {
+    it('sets _groupByWip with groupBy operator and empty fields', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([]),
+      });
+      variable.activate();
+
+      variable._addGroupByWip();
+
+      expect(variable.state._groupByWip).toEqual({
+        key: '',
+        value: '',
+        operator: 'groupBy',
+        condition: '',
+      });
+    });
+  });
+
+  describe('_updateFilter with _groupByWip', () => {
+    it('updates _groupByWip', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
+      });
+      variable.activate();
+      variable._addGroupByWip();
+
+      const groupByWip = variable.state._groupByWip!;
+      variable._updateFilter(groupByWip, { key: 'namespace', keyLabel: 'Namespace' });
+
+      expect(variable.state._groupByWip).toEqual({
+        key: 'namespace',
+        keyLabel: 'Namespace',
+        value: '',
+        operator: 'groupBy',
+        condition: '',
+      });
+      expect(variable.state.filters).toHaveLength(1);
+      expect(variable.state.filters[0].key).toBe('key1');
+    });
+  });
+
+  describe('_removeFilter with _groupByWip', () => {
+    it('clears _groupByWip', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
+      });
+      variable.activate();
+      variable._addGroupByWip();
+
+      variable._removeFilter(variable.state._groupByWip!);
+
+      expect(variable.state._groupByWip).toBeUndefined();
+      expect(variable.state.filters).toHaveLength(1);
+    });
+  });
+
 });
