@@ -747,11 +747,15 @@ export class AdHocFiltersVariable
   }
 
   public _handleComboboxBackspace(filter: AdHocFilterWithLabels) {
-    const isWip = filter === this.state._wip;
-
     if (this.state.filters.length) {
       // default forceEdit last filter (when triggering from wip filter)
-      let filterToForceIndex = isWip ? this.state.filters.length - 1 : -1;
+      let filterToForceIndex = this.state.filters.length - 1;
+
+      // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
+      //  to avoid triggering forceEdit logic
+      if (filter !== this.state._wip) {
+        filterToForceIndex = -1;
+      }
 
       this.setState({
         filters: this.state.filters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
@@ -774,7 +778,14 @@ export class AdHocFiltersVariable
         }, []),
       });
     } else if (this.state.originFilters?.length) {
-      let filterToForceIndex = isWip ? this.state.originFilters.length - 1 : -1;
+      // default forceEdit last filter (when triggering from wip filter)
+      let filterToForceIndex = this.state.originFilters.length - 1;
+
+      // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
+      //  to avoid triggering forceEdit logic
+      if (filter !== this.state._wip) {
+        filterToForceIndex = -1;
+      }
 
       this.setState({
         originFilters: this.state.originFilters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
