@@ -11,10 +11,16 @@ import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { VariableValueSelectors } from '../components/VariableValueSelectors';
-import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
+import {
+  AdHocFiltersVariable,
+  AdHocFiltersVariableState,
+  AdHocFilterWithLabels,
+  GROUP_BY_OPERATOR,
+} from './AdHocFiltersVariable';
 import {
   AdHocFiltersRecommendations,
   getRecentFiltersKey,
+  getRecentGroupingKey,
   MAX_RECENT_DRILLDOWNS,
   MAX_STORED_RECENT_DRILLDOWNS,
 } from './AdHocFiltersRecommendations';
@@ -26,9 +32,11 @@ const templateSrv = {
 
 describe('AdHocFiltersRecommendations', () => {
   const RECENT_FILTERS_KEY = getRecentFiltersKey('my-ds-uid');
+  const RECENT_GROUPING_KEY = getRecentGroupingKey('my-ds-uid');
 
   beforeEach(() => {
     localStorage.removeItem(RECENT_FILTERS_KEY);
+    localStorage.removeItem(RECENT_GROUPING_KEY);
     jest.clearAllMocks();
   });
 
@@ -295,6 +303,373 @@ describe('AdHocFiltersRecommendations', () => {
       await waitFor(() => {
         expect(getRecommendedDrilldownsSpy.mock.calls.length).toBeGreaterThan(initialRecommendedCalls);
         expect(getDrilldownsApplicabilitySpy.mock.calls.length).toBeGreaterThan(initialApplicabilityCalls);
+      });
+    });
+  });
+
+  describe('groupBy recommendations — activation and initialization', () => {
+    it('should set recentGrouping from browser storage on activation when enableGroupBy is true', async () => {
+      const recentGroupings = [
+        { value: 'region', text: 'region' },
+        { value: 'zone', text: 'zone' },
+      ];
+      localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(recentGroupings));
+
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recentGrouping).toEqual(recentGroupings);
+      });
+    });
+
+    it('should set empty recentGrouping when browser storage is empty and enableGroupBy is true', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recentGrouping).toEqual([]);
+      });
+    });
+
+    it('should NOT set recentGrouping when enableGroupBy is false', async () => {
+      const recentGroupings = [{ value: 'region', text: 'region' }];
+      localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(recentGroupings));
+
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: false,
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recentFilters).toBeDefined();
+      });
+
+      const recommendations = filtersVar.getRecommendations();
+      expect(recommendations?.state.recentGrouping).toBeUndefined();
+    });
+  });
+
+  describe('storeRecentGrouping', () => {
+    it('should store grouping in localStorage when enableGroupBy is true', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+      });
+
+      let recommendations: AdHocFiltersRecommendations | undefined;
+      await waitFor(() => {
+        recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      act(() => {
+        recommendations!.storeRecentGrouping('region');
+      });
+
+      const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
+      expect(storedGroupings).toBeDefined();
+      expect(JSON.parse(storedGroupings!)).toHaveLength(1);
+      expect(JSON.parse(storedGroupings!)[0]).toEqual({ value: 'region', text: 'region' });
+    });
+
+    it('should be a no-op when enableGroupBy is false', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: false,
+      });
+
+      let recommendations: AdHocFiltersRecommendations | undefined;
+      await waitFor(() => {
+        recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      act(() => {
+        recommendations!.storeRecentGrouping('region');
+      });
+
+      const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
+      expect(storedGroupings).toBeNull();
+      expect(recommendations!.state.recentGrouping).toBeUndefined();
+    });
+
+    it('should replace existing values with the same key and preserve ordering', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+      });
+
+      let recommendations: AdHocFiltersRecommendations | undefined;
+      await waitFor(() => {
+        recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      localStorage.setItem(
+        RECENT_GROUPING_KEY,
+        JSON.stringify([
+          { value: 'region', text: 'region' },
+          { value: 'zone', text: 'zone' },
+        ])
+      );
+
+      act(() => {
+        recommendations!.storeRecentGrouping('region');
+      });
+
+      const parsed = JSON.parse(localStorage.getItem(RECENT_GROUPING_KEY)!);
+      expect(parsed).toHaveLength(2);
+      expect(parsed[0]).toEqual({ value: 'zone', text: 'zone' });
+      expect(parsed[1]).toEqual({ value: 'region', text: 'region' });
+    });
+
+    it('should limit stored groupings to MAX_STORED_RECENT_DRILLDOWNS', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+      });
+
+      let recommendations: AdHocFiltersRecommendations | undefined;
+      await waitFor(() => {
+        recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      const existingGroupings = Array.from({ length: MAX_STORED_RECENT_DRILLDOWNS - 1 }, (_, i) => ({
+        value: `existing${i}`,
+        text: `existing${i}`,
+      }));
+      localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(existingGroupings));
+
+      act(() => {
+        recommendations!.storeRecentGrouping('newValue1');
+        recommendations!.storeRecentGrouping('newValue2');
+      });
+
+      const storedGroupings = JSON.parse(localStorage.getItem(RECENT_GROUPING_KEY)!);
+      expect(storedGroupings).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
+    });
+  });
+
+  describe('addGroupByToParent', () => {
+    it('should add groupBy filter to parent variable when enableGroupBy is true', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+        filters: [{ key: 'host', value: 'web-1', operator: '=' }],
+      });
+
+      let recommendations: AdHocFiltersRecommendations | undefined;
+      await waitFor(() => {
+        recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      act(() => {
+        recommendations!.addGroupByToParent('region');
+      });
+
+      expect(filtersVar.state.filters).toHaveLength(2);
+      expect(filtersVar.state.filters[1]).toMatchObject({
+        key: 'region',
+        operator: GROUP_BY_OPERATOR,
+        value: '',
+      });
+    });
+
+    it('should be a no-op when enableGroupBy is false', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: false,
+        filters: [{ key: 'host', value: 'web-1', operator: '=' }],
+      });
+
+      let recommendations: AdHocFiltersRecommendations | undefined;
+      await waitFor(() => {
+        recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      act(() => {
+        recommendations!.addGroupByToParent('region');
+      });
+
+      expect(filtersVar.state.filters).toHaveLength(1);
+    });
+
+    it('should not add duplicate groupBy filter', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+        filters: [
+          { key: 'host', value: 'web-1', operator: '=' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        ],
+      });
+
+      let recommendations: AdHocFiltersRecommendations | undefined;
+      await waitFor(() => {
+        recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      act(() => {
+        recommendations!.addGroupByToParent('region');
+      });
+
+      const groupByFilters = filtersVar.state.filters.filter((f) => f.operator === GROUP_BY_OPERATOR);
+      expect(groupByFilters).toHaveLength(1);
+    });
+  });
+
+  describe('groupBy recommendations — fetch', () => {
+    it('should not send groupByKeys in request when enableGroupBy is false', async () => {
+      const { filtersVar, getRecommendedDrilldownsSpy } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: false,
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.datasourceSupportsRecommendations).toBe(true);
+      });
+
+      await waitFor(() => {
+        expect(getRecommendedDrilldownsSpy).toHaveBeenCalled();
+      });
+
+      const lastCall = getRecommendedDrilldownsSpy.mock.calls[getRecommendedDrilldownsSpy.mock.calls.length - 1][0];
+      expect(lastCall).not.toHaveProperty('groupByKeys');
+    });
+
+    it('should send groupByKeys in request when enableGroupBy is true', async () => {
+      const { filtersVar, getRecommendedDrilldownsSpy } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+        filters: [
+          { key: 'host', value: 'web-1', operator: '=' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        ],
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.datasourceSupportsRecommendations).toBe(true);
+      });
+
+      await waitFor(() => {
+        expect(getRecommendedDrilldownsSpy).toHaveBeenCalled();
+      });
+
+      const lastCall = getRecommendedDrilldownsSpy.mock.calls[getRecommendedDrilldownsSpy.mock.calls.length - 1][0];
+      expect(lastCall).toHaveProperty('groupByKeys');
+      expect(lastCall.groupByKeys).toEqual(['region']);
+    });
+
+    it('should set recommendedGrouping state from datasource response when enableGroupBy is true', async () => {
+      const { filtersVar, getRecommendedDrilldownsSpy } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+      });
+
+      getRecommendedDrilldownsSpy.mockResolvedValue({
+        filters: [{ key: 'env', operator: '=', value: 'prod' }],
+        groupByKeys: ['region', 'zone'],
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recommendedGrouping).toEqual([
+          { value: 'region', text: 'region' },
+          { value: 'zone', text: 'zone' },
+        ]);
+      });
+    });
+
+    it('should NOT set recommendedGrouping when enableGroupBy is false even if datasource returns groupByKeys', async () => {
+      const { filtersVar, getRecommendedDrilldownsSpy } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: false,
+      });
+
+      getRecommendedDrilldownsSpy.mockResolvedValue({
+        filters: [{ key: 'env', operator: '=', value: 'prod' }],
+        groupByKeys: ['region', 'zone'],
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recommendedFilters).toEqual([{ key: 'env', operator: '=', value: 'prod' }]);
+      });
+
+      const recommendations = filtersVar.getRecommendations();
+      expect(recommendations?.state.recommendedGrouping).toBeUndefined();
+    });
+  });
+
+  describe('groupBy recommendations — applicability', () => {
+    it('should filter out non-applicable groupings', async () => {
+      const recentGroupings = [
+        { value: 'region', text: 'region' },
+        { value: 'zone', text: 'zone' },
+        { value: 'cluster', text: 'cluster' },
+      ];
+      localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(recentGroupings));
+
+      const { filtersVar, getDrilldownsApplicabilitySpy } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+      });
+
+      getDrilldownsApplicabilitySpy.mockResolvedValue([
+        { key: 'region', applicable: true },
+        { key: 'zone', applicable: false },
+        { key: 'cluster', applicable: true },
+      ]);
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recentGrouping).toEqual([
+          { value: 'region', text: 'region' },
+          { value: 'cluster', text: 'cluster' },
+        ]);
+      });
+    });
+
+    it('should show all groupings when applicability check returns null', async () => {
+      const recentGroupings = [
+        { value: 'region', text: 'region' },
+        { value: 'zone', text: 'zone' },
+      ];
+      localStorage.setItem(RECENT_GROUPING_KEY, JSON.stringify(recentGroupings));
+
+      const { filtersVar, getDrilldownsApplicabilitySpy } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+      });
+
+      getDrilldownsApplicabilitySpy.mockResolvedValue(null);
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+        expect(recommendations?.state.recentGrouping).toEqual(recentGroupings);
       });
     });
   });

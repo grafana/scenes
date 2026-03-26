@@ -63,6 +63,22 @@ function deduplicateFilters(filters: AdHocFilterWithLabels[]): AdHocFilterWithLa
   return Array.from(filterMap.values());
 }
 
+function deduplicateGroupings(
+  groupings: Array<SelectableValue<VariableValueSingle>>
+): Array<SelectableValue<VariableValueSingle>> {
+  const seen = new Map<string, SelectableValue<VariableValueSingle>>();
+
+  for (const g of groupings) {
+    const key = String(g.value);
+    if (seen.has(key)) {
+      seen.delete(key);
+    }
+    seen.set(key, g);
+  }
+
+  return Array.from(seen.values());
+}
+
 export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRecommendationsState> {
   static Component = AdHocFiltersRecommendationsRenderer;
 
@@ -84,6 +100,10 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     return { __sceneObject: wrapInSafeSerializableSceneObject(this._adHocFilter) };
   }
 
+  private get _isGroupByEnabled(): boolean {
+    return this._adHocFilter.state.enableGroupBy === true;
+  }
+
   private _activationHandler = () => {
     const filterJson = store.get(this._getFiltersStorageKey());
     const storedFilters = filterJson ? JSON.parse(filterJson) : [];
@@ -94,13 +114,15 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
       this.setState({ recentFilters: [] });
     }
 
-    const groupingJson = store.get(this._getGroupingStorageKey());
-    const storedGroupings = groupingJson ? JSON.parse(groupingJson) : [];
+    if (this._isGroupByEnabled) {
+      const groupingJson = store.get(this._getGroupingStorageKey());
+      const storedGroupings = groupingJson ? JSON.parse(groupingJson) : [];
 
-    if (storedGroupings.length > 0) {
-      this._verifyRecentGroupingsApplicability(storedGroupings);
-    } else {
-      this.setState({ recentGrouping: [] });
+      if (storedGroupings.length > 0) {
+        this._verifyRecentGroupingsApplicability(storedGroupings);
+      } else {
+        this.setState({ recentGrouping: [] });
+      }
     }
 
     this._fetchRecommendedDrilldowns();
@@ -114,7 +136,9 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
         (scopesSubscription = scopesVariable.subscribeToState((newState, prevState) => {
           if (newState.scopes !== prevState.scopes) {
             this._reloadStoredFilters();
-            this._reloadStoredGroupings();
+            if (this._isGroupByEnabled) {
+              this._reloadStoredGroupings();
+            }
             this._fetchRecommendedDrilldowns();
           }
         }))
@@ -125,7 +149,9 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
       (adHocSubscription = this._adHocFilter.subscribeToState((newState, prevState) => {
         if (newState.filters !== prevState.filters) {
           this._reloadStoredFilters();
-          this._reloadStoredGroupings();
+          if (this._isGroupByEnabled) {
+            this._reloadStoredGroupings();
+          }
           this._fetchRecommendedDrilldowns();
         }
       }))
@@ -179,7 +205,9 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
 
     const allFilters = [...(adhoc.state.originFilters ?? []), ...adhoc.state.filters];
     const filters = allFilters.filter((f) => !isGroupByFilter(f));
-    const groupByKeys = allFilters.filter((f) => isGroupByFilter(f)).map((f) => f.key);
+    const groupByKeys = this._isGroupByEnabled
+      ? allFilters.filter((f) => isGroupByFilter(f)).map((f) => f.key)
+      : undefined;
 
     const enrichedRequest = getEnrichedDataRequest(adhoc);
     const dashboardUid = enrichedRequest?.dashboardUID;
@@ -191,7 +219,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
         dashboardUid,
         queries: queries ?? [],
         filters,
-        groupByKeys,
+        ...(groupByKeys ? { groupByKeys } : {}),
         scopes,
       });
 
@@ -201,7 +229,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
         stateUpdate.recommendedFilters = recommendedDrilldowns.filters;
       }
 
-      if (recommendedDrilldowns?.groupByKeys) {
+      if (this._isGroupByEnabled && recommendedDrilldowns?.groupByKeys) {
         stateUpdate.recommendedGrouping = recommendedDrilldowns.groupByKeys.map((key: string) => ({
           value: key,
           text: key,
@@ -254,7 +282,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const response = await adhoc.getFiltersApplicabilityForQueries(groupByFilters, queries ?? []);
 
     if (!response) {
-      this.setState({ recentGrouping: storedGroupings.slice(-MAX_RECENT_DRILLDOWNS) });
+      this.setState({ recentGrouping: deduplicateGroupings(storedGroupings).slice(-MAX_RECENT_DRILLDOWNS) });
       return;
     }
 
@@ -263,7 +291,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
       applicabilityMap.set(item.key, item.applicable !== false);
     });
 
-    const applicableGroupings = storedGroupings
+    const applicableGroupings = deduplicateGroupings(storedGroupings)
       .filter((g) => {
         const isApplicable = applicabilityMap.get(String(g.value));
         return isApplicable === undefined || isApplicable === true;
@@ -293,8 +321,13 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
 
   /**
    * Stores a recent grouping key in localStorage and updates state.
+   * No-op when enableGroupBy is false.
    */
   public storeRecentGrouping(groupByKey: string) {
+    if (!this._isGroupByEnabled) {
+      return;
+    }
+
     const storageKey = this._getGroupingStorageKey();
     const storedGroupings = store.get(storageKey);
     const allRecentGroupings: Array<SelectableValue<VariableValueSingle>> = storedGroupings
@@ -315,6 +348,10 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
   }
 
   public addGroupByToParent(key: string) {
+    if (!this._isGroupByEnabled) {
+      return;
+    }
+
     const adhoc = this._adHocFilter;
     const exists = adhoc.state.filters.some((f) => isGroupByFilter(f) && f.key === key);
     if (exists) {
