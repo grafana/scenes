@@ -72,9 +72,11 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
             e.stopPropagation();
             onRemove();
           }}
-          onKeyDown={(e) => {
+          onKeyDownCapture={(e) => {
             if (e.key === 'Enter') {
+              e.preventDefault();
               e.stopPropagation();
+              onRemove();
             }
           }}
           name="times"
