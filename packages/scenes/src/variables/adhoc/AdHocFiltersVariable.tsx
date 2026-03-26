@@ -523,9 +523,13 @@ export class AdHocFiltersVariable
 
   /**
    * Add a group-by filter (key only, operator 'groupBy', no value).
-   * Only relevant when enableGroupBy is true.
+   * No-op when enableGroupBy is false.
    */
   public _addGroupByFilter(item: SelectableValue<string>): void {
+    if (!this.state.enableGroupBy) {
+      return;
+    }
+
     const key = item.value ?? '';
     const keyLabel = item.label ?? key;
     const newFilter: AdHocFilterWithLabels = {
@@ -924,6 +928,10 @@ export class AdHocFiltersVariable
    * Get possible group-by keys.
    */
   public async _getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    if (!this.state.enableGroupBy) {
+      return [];
+    }
+
     const override = await this.state.getGroupByKeysProvider?.(this, currentKey);
 
     if (override && override.replace) {
@@ -936,12 +944,18 @@ export class AdHocFiltersVariable
       return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
     }
 
+    const applicableOriginFilters =
+      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f)) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f))
+      .concat(this.state.baseFilters ?? [])
+      .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     const response = await ds.getGroupByKeys({
-      filters: [],
+      filters: otherFilters,
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),

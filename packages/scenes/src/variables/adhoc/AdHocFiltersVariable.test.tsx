@@ -3553,6 +3553,7 @@ describe('group-by', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'test' },
         applyMode: 'manual',
+        enableGroupBy: true,
         filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
       variable.activate();
@@ -3615,6 +3616,7 @@ describe('group-by', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'test' },
         applyMode: 'manual',
+        enableGroupBy: true,
         filters: setTemplateSrvWithFilters([]),
         getGroupByKeysProvider: () =>
           Promise.resolve({
@@ -3681,6 +3683,7 @@ describe('group-by', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'test' },
         applyMode: 'manual',
+        enableGroupBy: true,
         filters: setTemplateSrvWithFilters([{ key: 'host', operator: '=', value: 'web-1' }]),
       });
       variable.activate();
@@ -3699,6 +3702,7 @@ describe('group-by', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'test' },
         applyMode: 'manual',
+        enableGroupBy: true,
         filters: setTemplateSrvWithFilters([]),
       });
       variable.activate();

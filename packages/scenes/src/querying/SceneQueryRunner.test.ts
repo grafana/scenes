@@ -778,6 +778,39 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       const runRequestCall2 = runRequestMock.mock.calls[1];
       expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
     });
+
+    it('should not pass group by dimensions when enableGroupBy is false', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [
+          { key: 'host', operator: '=', value: 'web-1', condition: '' },
+          { key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+          { key: 'B', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        ],
+        enableGroupBy: false,
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].groupByKeys).toBeUndefined();
+      expect(runRequestCall[1].filters).toEqual([{ key: 'host', operator: '=', value: 'web-1', condition: '' }]);
+    });
   });
 
   describe('Query controller', () => {

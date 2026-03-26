@@ -74,10 +74,10 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
 
   /**
    * Returns group-by keys extracted from the AdHocFiltersVariable (operator === 'groupBy').
-   * Returns undefined when no groupBy entries are present.
+   * Returns undefined when enableGroupBy is false or no groupBy entries are present.
    */
   public getGroupByKeys(): string[] | undefined {
-    if (!this._adhocFiltersVar) {
+    if (!this._adhocFiltersVar || !this._adhocFiltersVar.state.enableGroupBy) {
       return undefined;
     }
 
