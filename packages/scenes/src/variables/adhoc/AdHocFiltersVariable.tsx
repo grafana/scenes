@@ -828,7 +828,9 @@ export class AdHocFiltersVariable
   public async _verifyApplicability() {
     const allFilters = [...this.state.filters, ...(this.state.originFilters ?? [])];
     const filters = allFilters.filter((f) => !isGroupByFilter(f));
-    const groupByKeys = allFilters.filter((f) => isGroupByFilter(f)).map((f) => f.key);
+    const groupByKeys = this.state.enableGroupBy
+      ? allFilters.filter((f) => isGroupByFilter(f)).map((f) => f.key)
+      : undefined;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? [], groupByKeys);
