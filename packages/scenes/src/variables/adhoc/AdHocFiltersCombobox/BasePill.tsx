@@ -72,6 +72,11 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
             e.stopPropagation();
             onRemove();
           }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.stopPropagation();
+            }
+          }}
           name="times"
           size="md"
           className={cx(styles.pillIcon, disabled && styles.disabledPillIcon)}

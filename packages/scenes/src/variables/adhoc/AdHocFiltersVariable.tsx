@@ -750,9 +750,7 @@ export class AdHocFiltersVariable
         }
       }
       if (lastGroupByIndex !== -1 && !this.state.filters[lastGroupByIndex].readOnly) {
-        this.setState({
-          filters: this.state.filters.map((f, index) => (index === lastGroupByIndex ? { ...f, forceEdit: true } : f)),
-        });
+        this._removeFilter(this.state.filters[lastGroupByIndex]);
       }
       return;
     }
