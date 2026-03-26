@@ -28,7 +28,7 @@ export function VariableValueInput({ model }: SceneComponentProps<TextBoxVariabl
 
   return (
     <AutoSizeInput
-      id={getVariableControlId(model.state.type, key ?? '')}
+      id={getVariableControlId(model.state.type, key)}
       placeholder={t('grafana-scenes.variables.variable-value-input.placeholder-enter-value', 'Enter value')}
       minWidth={15}
       maxWidth={30}

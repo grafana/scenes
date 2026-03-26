@@ -63,7 +63,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   const shouldCollapse = collapsible && collapsed && totalFiltersCount > 0;
   const filtersToRender = shouldCollapse ? allFilters.slice(0, MAX_VISIBLE_FILTERS) : allFilters;
-  const variableControlId = getVariableControlId('adhoc', variableState.key ?? '');
+  const variableControlId = controller.getControlId();
 
   // Reset collapsed state when there are no filters (only when collapsible)
   useEffect(() => {

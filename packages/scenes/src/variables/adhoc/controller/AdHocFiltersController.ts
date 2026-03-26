@@ -6,10 +6,6 @@ import { AdHocFiltersRecommendations } from '../AdHocFiltersRecommendations';
  * Controller state returned by useState hook
  */
 export interface AdHocFiltersControllerState {
-  /**
-   * used as id for the input element
-   */
-  key?: string;
   filters: AdHocFilterWithLabels[];
   originFilters?: AdHocFilterWithLabels[];
   readOnly?: boolean;
@@ -60,6 +56,11 @@ export interface AdHocFiltersController {
    * @param update - Partial filter properties to update
    */
   updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>): void;
+
+  /**
+   * Get id for the form control. Used for accessibility.
+   */
+  getControlId(): string;
 
   /**
    * Update filters list
