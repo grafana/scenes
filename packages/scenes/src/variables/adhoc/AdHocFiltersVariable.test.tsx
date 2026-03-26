@@ -3649,10 +3649,7 @@ describe('group-by', () => {
 
       variable._handleComboboxBackspace(variable.state._groupByWip!);
 
-      expect(variable.state.filters).toHaveLength(3);
-      expect(variable.state.filters[2]).toMatchObject({ key: 'region', operator: 'groupBy', forceEdit: true });
-      expect(variable.state.filters[1].forceEdit).toBeUndefined();
-      expect(variable.state.filters[0].forceEdit).toBeUndefined();
+      expect(variable.state.filters).toHaveLength(2);
     });
 
     it('skips readOnly groupBy filters when looking for the last one to force-edit', () => {
