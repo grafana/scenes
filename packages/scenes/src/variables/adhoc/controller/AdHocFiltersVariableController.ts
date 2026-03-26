@@ -74,6 +74,10 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
     this.model._removeLastFilter();
   }
 
+  public removeLastGroupByFilter(): void {
+    this.model._removeLastGroupByFilter();
+  }
+
   public handleComboboxBackspace(filter: AdHocFilterWithLabels): void {
     this.model._handleComboboxBackspace(filter);
   }

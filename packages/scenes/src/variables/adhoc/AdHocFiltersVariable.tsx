@@ -737,23 +737,17 @@ export class AdHocFiltersVariable
     }
   }
 
+  public _removeLastGroupByFilter() {
+    for (let i = this.state.filters.length - 1; i >= 0; i--) {
+      if (this.state.filters[i].operator === 'groupBy' && !this.state.filters[i].readOnly) {
+        this._removeFilter(this.state.filters[i]);
+        return;
+      }
+    }
+  }
+
   public _handleComboboxBackspace(filter: AdHocFilterWithLabels) {
     const isWip = filter === this.state._wip;
-    const isGroupByWip = filter === this.state._groupByWip;
-
-    if (isGroupByWip) {
-      let lastGroupByIndex = -1;
-      for (let i = this.state.filters.length - 1; i >= 0; i--) {
-        if (this.state.filters[i].operator === 'groupBy') {
-          lastGroupByIndex = i;
-          break;
-        }
-      }
-      if (lastGroupByIndex !== -1 && !this.state.filters[lastGroupByIndex].readOnly) {
-        this._removeFilter(this.state.filters[lastGroupByIndex]);
-      }
-      return;
-    }
 
     if (this.state.filters.length) {
       // default forceEdit last filter (when triggering from wip filter)
