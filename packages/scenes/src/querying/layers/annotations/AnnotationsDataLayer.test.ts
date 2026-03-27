@@ -23,6 +23,8 @@ import { config, RefreshEvent } from '@grafana/runtime';
 import { ScopesVariable } from '../../../variables/variants/ScopesVariable';
 import { act } from 'react-dom/test-utils';
 import { AdHocFiltersVariable } from '../../../variables/adhoc/AdHocFiltersVariable';
+import { GroupByVariable } from '../../../variables/groupby/GroupByVariable';
+import { allActiveGroupByVariables } from '../../../variables/groupby/findActiveGroupByVariablesByUid';
 import { allActiveFilterSets } from '../../../variables/adhoc/patchGetAdhocFilters';
 
 let mockedEvents: Array<Partial<Field>> = [];
@@ -100,6 +102,7 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
     sentRequest = undefined;
 
     // Clear the global variable sets to avoid cross-test contamination
+    allActiveGroupByVariables.clear();
     allActiveFilterSets.clear();
   });
 
@@ -543,6 +546,56 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
       scene.activate();
 
       // Wait for the layer query to run after variables are active
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock).toHaveBeenCalledTimes(1);
+
+      const { filters, groupByKeys } = sentRequest!;
+      expect(filters).toBeDefined();
+      expect(groupByKeys).toBeDefined();
+      expect(filters).toEqual([{ key: 'label1', operator: '=', value: 'value1' }]);
+      expect(groupByKeys).toEqual(['key1']);
+    });
+
+    it('should find and subscribe to legacy GroupByVariable when enableGroupBy is false', async () => {
+      const adHocVar = new AdHocFiltersVariable({
+        name: 'adhoc',
+        datasource: { type: 'prometheus', uid: 'test-uid' },
+        filters: [{ key: 'label1', operator: '=', value: 'value1' }],
+      });
+
+      const groupByVar = new GroupByVariable({
+        name: 'groupby',
+        datasource: { type: 'prometheus', uid: 'test-uid' },
+        value: ['key1'],
+        options: [
+          { label: 'key1', value: 'key1' },
+          { label: 'key2', value: 'key2' },
+        ],
+      });
+
+      const layer = new AnnotationsDataLayer({
+        name: 'Test layer',
+        query: {
+          name: 'Test',
+          enable: true,
+          iconColor: 'red',
+          datasource: { type: 'prometheus', uid: 'test-uid' },
+        },
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [adHocVar, groupByVar] }),
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({
+          layers: [layer],
+        }),
+      });
+
+      adHocVar.activate();
+      groupByVar.activate();
+      scene.activate();
+
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock).toHaveBeenCalledTimes(1);

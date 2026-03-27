@@ -35,6 +35,7 @@ import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
 import { AdHocFiltersVariable, GROUP_BY_OPERATOR } from '../variables/adhoc/AdHocFiltersVariable';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneQueryController } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
@@ -810,6 +811,44 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       expect(runRequestCall[1].groupByKeys).toBeUndefined();
       expect(runRequestCall[1].filters).toEqual([{ key: 'host', operator: '=', value: 'web-1', condition: '' }]);
+    });
+
+    it('should pass group by dimensions from legacy GroupByVariable when enableGroupBy is not set', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const groupByVariable = new GroupByVariable({
+        datasource: { uid: 'test-uid' },
+        defaultOptions: [{ text: 'A' }, { text: 'B' }],
+        value: ['A', 'B'],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [groupByVariable] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].groupByKeys).toEqual(['A', 'B']);
+
+      groupByVariable.changeValueTo(['C', 'D']);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+
+      const runRequestCall2 = runRequestMock.mock.calls[1];
+      expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
     });
   });
 

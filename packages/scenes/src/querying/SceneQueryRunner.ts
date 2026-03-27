@@ -43,6 +43,7 @@ import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { registerQueryWithController, QueryProfilerLike } from './registerQueryWithController';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
@@ -270,19 +271,27 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   /**
-   * Check if value changed is an adhoc filter variable that did not exist when we issued the last query
+   * Check if value changed is an adhoc filter or group by variable that did not exist when we issued the last query
    */
   private onAnyVariableChanged(variable: SceneVariable) {
-    if (this._drilldownDependenciesManager.adHocFiltersVar === variable || !this.isQueryModeAuto()) {
+    if (
+      this._drilldownDependenciesManager.adHocFiltersVar === variable ||
+      this._drilldownDependenciesManager.groupByVar === variable ||
+      !this.isQueryModeAuto()
+    ) {
       return;
     }
 
     if (variable instanceof AdHocFiltersVariable && this._isRelevantAutoVariable(variable)) {
       this.runQueries();
     }
+
+    if (variable instanceof GroupByVariable && this._isRelevantAutoVariable(variable)) {
+      this.runQueries();
+    }
   }
 
-  private _isRelevantAutoVariable(variable: AdHocFiltersVariable) {
+  private _isRelevantAutoVariable(variable: AdHocFiltersVariable | GroupByVariable) {
     const datasource = this.state.datasource ?? findFirstDatasource(this.state.queries);
     return variable.state.applyMode === 'auto' && datasource?.uid === variable.state.datasource?.uid;
   }
