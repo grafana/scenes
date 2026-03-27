@@ -1291,14 +1291,18 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         originFilters: [
           {
             key: 'dbKey1',
+            keyLabel: 'dbKey1:label',
             operator: '=',
             value: 'dbValue1',
+            valueLabels: ['dbValue1:label'],
             origin: 'dashboard',
           },
           {
             key: 'dbKey2',
+            keyLabel: 'dbKey2:label',
             operator: '=',
             value: 'dbValue2',
+            valueLabels: ['dbValue2:label'],
             origin: 'dashboard',
           },
         ],
@@ -1309,9 +1313,22 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
-    expect(filtersVar['_originalValues'].get('dbKey1-dashboard')).toEqual({ value: ['dbValue1'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('dbKey2-dashboard')).toEqual({ value: ['dbValue2'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('scopeKey-scope')).toEqual({ value: ['scopeValue'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey1-dashboard')).toEqual({
+      value: ['dbValue1'],
+      operator: '=',
+      valueLabels: ['dbValue1:label'],
+      keyLabel: 'dbKey1:label',
+    });
+    expect(filtersVar['_originalValues'].get('dbKey2-dashboard')).toEqual({
+      value: ['dbValue2'],
+      operator: '=',
+      valueLabels: ['dbValue2:label'],
+      keyLabel: 'dbKey2:label',
+    });
+    expect(filtersVar['_originalValues'].get('scopeKey-scope')).toEqual({
+      value: ['scopeValue'],
+      operator: '=',
+    });
   });
 
   it('should reset dashboard level filters if they are edited on unmount', () => {
@@ -1447,6 +1464,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
     expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1', 'originValue2']);
     expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=|');
+    expect(filtersVar['_originalValues'].get(key)!.valueLabels).toBeUndefined();
+    expect(filtersVar['_originalValues'].get(key)!.keyLabel).toBeUndefined();
   });
 
   it('updated filter with no changes does not become restorable', async () => {
@@ -3458,6 +3477,7 @@ describe('getOriginalFilters', () => {
       origin: 'dashboard',
       value: 'val1',
       valueLabels: ['val1'],
+      keyLabel: 'key1',
       operator: '=',
     });
     expect(result[1]).toMatchObject({
@@ -3466,6 +3486,7 @@ describe('getOriginalFilters', () => {
       value: 'valA',
       values: ['valA', 'valB'],
       valueLabels: ['valA', 'valB'],
+      keyLabel: 'key2',
       operator: '=|',
     });
     expect(result[2]).toMatchObject({
@@ -3474,6 +3495,49 @@ describe('getOriginalFilters', () => {
       value: 'valC',
       values: ['valC'],
       valueLabels: ['valC'],
+      keyLabel: 'key3',
+      operator: '=|',
+    });
+  });
+
+  it('should preserve stored labels in reconstructed filters', () => {
+    const filtersVar = new AdHocFiltersVariable({
+      datasource: { uid: 'my-ds-uid' },
+      name: 'filters',
+      filters: [],
+    });
+
+    filtersVar['_originalValues'].set('key1-dashboard', {
+      value: ['val1'],
+      operator: '=',
+      valueLabels: ['Value One'],
+      keyLabel: 'Key 1',
+    });
+    filtersVar['_originalValues'].set('key2-scope', {
+      value: ['valA', 'valB'],
+      operator: '=|',
+      valueLabels: ['Value A', 'Value B'],
+      keyLabel: 'Key 2',
+    });
+
+    const result = filtersVar.getOriginalFilters();
+
+    expect(result).toHaveLength(2);
+    expect(result[0]).toMatchObject({
+      key: 'key1',
+      origin: 'dashboard',
+      value: 'val1',
+      valueLabels: ['Value One'],
+      keyLabel: 'Key 1',
+      operator: '=',
+    });
+    expect(result[1]).toMatchObject({
+      key: 'key2',
+      origin: 'scope',
+      value: 'valA',
+      values: ['valA', 'valB'],
+      valueLabels: ['Value A', 'Value B'],
+      keyLabel: 'Key 2',
       operator: '=|',
     });
   });
