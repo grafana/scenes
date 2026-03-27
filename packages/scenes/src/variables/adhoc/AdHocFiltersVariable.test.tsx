@@ -3191,11 +3191,12 @@ describe('validateOriginFilters', () => {
 
     const result = filtersVar.validateOriginFilters([filter]);
 
-    expect(result[0]).toMatchObject({
+    expect(result[0]).toEqual({
       key: 'key1',
       operator: '=~',
       value: '.*',
       values: ['.*'],
+      origin: 'dashboard',
       valueLabels: ['All'],
       matchAllFilter: true,
       restorable: true,
@@ -3472,7 +3473,7 @@ describe('getOriginalFilters', () => {
     const result = filtersVar.getOriginalFilters();
 
     expect(result).toHaveLength(3);
-    expect(result[0]).toMatchObject({
+    expect(result[0]).toEqual({
       key: 'key1',
       origin: 'dashboard',
       value: 'val1',
@@ -3480,7 +3481,7 @@ describe('getOriginalFilters', () => {
       keyLabel: 'key1',
       operator: '=',
     });
-    expect(result[1]).toMatchObject({
+    expect(result[1]).toEqual({
       key: 'key2',
       origin: 'scope',
       value: 'valA',
@@ -3489,7 +3490,7 @@ describe('getOriginalFilters', () => {
       keyLabel: 'key2',
       operator: '=|',
     });
-    expect(result[2]).toMatchObject({
+    expect(result[2]).toEqual({
       key: 'key3',
       origin: 'scope',
       value: 'valC',
