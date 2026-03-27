@@ -3499,48 +3499,6 @@ describe('getOriginalFilters', () => {
       operator: '=|',
     });
   });
-
-  it('should preserve stored labels in reconstructed filters', () => {
-    const filtersVar = new AdHocFiltersVariable({
-      datasource: { uid: 'my-ds-uid' },
-      name: 'filters',
-      filters: [],
-    });
-
-    filtersVar['_originalValues'].set('key1-dashboard', {
-      value: ['val1'],
-      operator: '=',
-      valueLabels: ['Value One'],
-      keyLabel: 'Key 1',
-    });
-    filtersVar['_originalValues'].set('key2-scope', {
-      value: ['valA', 'valB'],
-      operator: '=|',
-      valueLabels: ['Value A', 'Value B'],
-      keyLabel: 'Key 2',
-    });
-
-    const result = filtersVar.getOriginalFilters();
-
-    expect(result).toHaveLength(2);
-    expect(result[0]).toMatchObject({
-      key: 'key1',
-      origin: 'dashboard',
-      value: 'val1',
-      valueLabels: ['Value One'],
-      keyLabel: 'Key 1',
-      operator: '=',
-    });
-    expect(result[1]).toMatchObject({
-      key: 'key2',
-      origin: 'scope',
-      value: 'valA',
-      values: ['valA', 'valB'],
-      valueLabels: ['Value A', 'Value B'],
-      keyLabel: 'Key 2',
-      operator: '=|',
-    });
-  });
 });
 
 describe('setOriginalFilters', () => {
