@@ -2380,6 +2380,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2426,6 +2427,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy, getTagKeysSpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2488,6 +2490,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2711,6 +2714,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('should set non-applicable filters on activation', async () => {
       setup(
         {
+          applicabilityEnabled: true,
           filters: [
             { key: 'pod', operator: '=', value: 'val1' },
             { key: 'container', operator: '=', value: 'val3' },

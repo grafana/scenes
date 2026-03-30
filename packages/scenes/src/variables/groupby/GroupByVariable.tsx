@@ -232,8 +232,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
       }
-
-      this.setState({ applicabilityEnabled: false });
     };
   };
 
@@ -285,6 +283,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public async _verifyApplicability() {
+    if (!this.state.applicabilityEnabled) {
+      return;
+    }
+
     const queries = getQueriesForVariables(this);
     const value = this.state.value;
 
@@ -295,11 +297,9 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     if (!isEqual(response, this.state.keysApplicability)) {
-      this.setState({ keysApplicability: response ?? undefined, applicabilityEnabled: true });
+      this.setState({ keysApplicability: response ?? undefined });
 
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-    } else {
-      this.setState({ applicabilityEnabled: true });
     }
   }
 
