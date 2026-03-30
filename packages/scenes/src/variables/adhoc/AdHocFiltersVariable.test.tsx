@@ -3576,6 +3576,7 @@ describe('group-by', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'test' },
         applyMode: 'manual',
+        enableGroupBy: true,
         filters: setTemplateSrvWithFilters([]),
       });
       variable.activate();
@@ -3596,6 +3597,7 @@ describe('group-by', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'test' },
         applyMode: 'manual',
+        enableGroupBy: true,
         filters: setTemplateSrvWithFilters([]),
       });
       variable.activate();
