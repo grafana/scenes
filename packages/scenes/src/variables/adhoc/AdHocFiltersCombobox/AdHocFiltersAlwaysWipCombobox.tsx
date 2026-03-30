@@ -1,6 +1,9 @@
 import React, { forwardRef, useLayoutEffect } from 'react';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
+import { AdHocFilterWithLabels } from '../AdHocFiltersVariable';
+
+const GROUP_BY_WIP: AdHocFilterWithLabels = { key: '', value: '', operator: 'groupBy', condition: '' };
 
 interface Props {
   controller: AdHocFiltersController;
@@ -15,18 +18,14 @@ export const AdHocFiltersAlwaysWipCombobox = forwardRef(function AdHocFiltersAlw
   //    parentRef is mutated through useImperativeHandle in AdHocCombobox
   parentRef
 ) {
-  const { wip, groupByWip } = controller.useState();
-  const activeWip = isGroupBy ? groupByWip : wip;
+  const { wip } = controller.useState();
+  const activeWip = isGroupBy ? GROUP_BY_WIP : wip;
 
   // when combobox is in wip mode then check and add wip if its missing
   //    needed on first render and when wip is reset on filter value commit
   useLayoutEffect(() => {
     if (!activeWip) {
-      if (isGroupBy) {
-        controller.addGroupByWip?.();
-      } else {
-        controller.addWip();
-      }
+      controller.addWip();
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps

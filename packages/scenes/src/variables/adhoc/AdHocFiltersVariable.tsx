@@ -157,12 +157,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @internal state of the new filter being added
    */
   _wip?: AdHocFilterWithLabels;
-
-  /**
-   * @internal state of the new group-by filter being added
-   */
-  _groupByWip?: AdHocFilterWithLabels;
-
+  
   /**
    * Allows custom formatting of a value before saving to filter state
    */
@@ -639,7 +634,7 @@ export class AdHocFiltersVariable
   }
 
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
-    const { originFilters, filters, _wip, _groupByWip } = this.state;
+    const { originFilters, filters, _wip } = this.state;
 
     if ('value' in update && !('values' in update)) {
       update = { ...update, values: undefined };
@@ -684,11 +679,6 @@ export class AdHocFiltersVariable
       return;
     }
 
-    if (filter === _groupByWip) {
-      this.setState({ _groupByWip: { ...filter, ...update } });
-      return;
-    }
-
     const updatedFilters = this.state.filters.map((f) => {
       return f === filter ? { ...f, ...update } : f;
     });
@@ -718,10 +708,7 @@ export class AdHocFiltersVariable
       this.setState({ _wip: undefined });
       return;
     }
-    if (filter === this.state._groupByWip) {
-      this.setState({ _groupByWip: undefined });
-      return;
-    }
+
     const queryController = getQueryController(this);
     queryController?.startProfile(FILTER_REMOVED_INTERACTION);
 
@@ -1041,12 +1028,6 @@ export class AdHocFiltersVariable
   public _addWip() {
     this.setState({
       _wip: { key: '', value: '', operator: '=', condition: '' },
-    });
-  }
-
-  public _addGroupByWip() {
-    this.setState({
-      _groupByWip: { key: '', value: '', operator: 'groupBy', condition: '' },
     });
   }
 
