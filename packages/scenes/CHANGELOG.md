@@ -1,3 +1,17 @@
+# v7.1.9 (Mon Mar 30 2026)
+
+#### 🐛 Bug Fix
+
+- AdHoc: Preserve value labels when storing and restoring origin filters [#1409](https://github.com/grafana/scenes/pull/1409) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- Fix URL sync instability for duplicate variable names [#1395](https://github.com/grafana/scenes/pull/1395) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 2
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.1.8 (Tue Mar 24 2026)
 
 #### 🐛 Bug Fix
