@@ -97,12 +97,6 @@ export interface AdHocFiltersController {
   removeLastFilter(): void;
 
   /**
-   * Remove the last non-read-only group-by filter.
-   * Only relevant when enableGroupBy is true.
-   */
-  removeLastGroupByFilter?(): void;
-
-  /**
    * Handle backspace key in combobox (removes filter or navigates to previous).
    * @param filter - The filter where backspace was pressed
    */

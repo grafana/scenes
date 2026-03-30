@@ -724,21 +724,17 @@ export class AdHocFiltersVariable
     }
   }
 
-  public _removeLastGroupByFilter() {
-    for (let i = this.state.filters.length - 1; i >= 0; i--) {
-      if (this.state.filters[i].operator === 'groupBy' && !this.state.filters[i].readOnly) {
-        this._removeFilter(this.state.filters[i]);
-        return;
-      }
-    }
-  }
-
   public _handleComboboxBackspace(filter: AdHocFilterWithLabels) {
     if (isGroupByFilter(filter)) {
       if (this.state.filters.includes(filter)) {
         this._removeFilter(filter);
       } else {
-        this._removeLastGroupByFilter();
+        for (let i = this.state.filters.length - 1; i >= 0; i--) {
+          if (isGroupByFilter(this.state.filters[i]) && !this.state.filters[i].readOnly) {
+            this._removeFilter(this.state.filters[i]);
+            return;
+          }
+        }
       }
       return;
     }

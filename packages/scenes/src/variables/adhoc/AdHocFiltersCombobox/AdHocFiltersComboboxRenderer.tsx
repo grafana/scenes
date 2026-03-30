@@ -8,6 +8,7 @@ import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
 import { GroupByPill } from './GroupByPill';
+import { isGroupByFilter } from '../AdHocFiltersVariable';
 
 const MAX_VISIBLE_FILTERS_DEFAULT = 4;
 const MAX_VISIBLE_FILTERS_WITH_GROUP_BY = 2;
@@ -56,8 +57,8 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   const allFilters = [...visibleOriginFilters, ...visibleFilters];
   const totalFiltersCount = allFilters.length;
 
-  const adhocFilters = allFilters.filter((f) => f.operator !== 'groupBy');
-  const groupByFilters = allFilters.filter((f) => f.operator === 'groupBy');
+  const adhocFilters = allFilters.filter((f) => !isGroupByFilter(f));
+  const groupByFilters = allFilters.filter(isGroupByFilter);
 
   const shouldCollapse = collapsible && collapsed && totalFiltersCount > 0;
 
