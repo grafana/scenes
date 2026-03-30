@@ -1291,14 +1291,18 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         originFilters: [
           {
             key: 'dbKey1',
+            keyLabel: 'dbKey1:label',
             operator: '=',
             value: 'dbValue1',
+            valueLabels: ['dbValue1:label'],
             origin: 'dashboard',
           },
           {
             key: 'dbKey2',
+            keyLabel: 'dbKey2:label',
             operator: '=',
             value: 'dbValue2',
+            valueLabels: ['dbValue2:label'],
             origin: 'dashboard',
           },
         ],
@@ -1309,9 +1313,22 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
-    expect(filtersVar['_originalValues'].get('dbKey1-dashboard')).toEqual({ value: ['dbValue1'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('dbKey2-dashboard')).toEqual({ value: ['dbValue2'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('scopeKey-scope')).toEqual({ value: ['scopeValue'], operator: '=' });
+    expect(filtersVar['_originalValues'].get('dbKey1-dashboard')).toEqual({
+      value: ['dbValue1'],
+      operator: '=',
+      valueLabels: ['dbValue1:label'],
+      keyLabel: 'dbKey1:label',
+    });
+    expect(filtersVar['_originalValues'].get('dbKey2-dashboard')).toEqual({
+      value: ['dbValue2'],
+      operator: '=',
+      valueLabels: ['dbValue2:label'],
+      keyLabel: 'dbKey2:label',
+    });
+    expect(filtersVar['_originalValues'].get('scopeKey-scope')).toEqual({
+      value: ['scopeValue'],
+      operator: '=',
+    });
   });
 
   it('should reset dashboard level filters if they are edited on unmount', () => {
@@ -1447,6 +1464,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
     expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1', 'originValue2']);
     expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=|');
+    expect(filtersVar['_originalValues'].get(key)!.valueLabels).toBeUndefined();
+    expect(filtersVar['_originalValues'].get(key)!.keyLabel).toBeUndefined();
   });
 
   it('updated filter with no changes does not become restorable', async () => {
@@ -3172,11 +3191,12 @@ describe('validateOriginFilters', () => {
 
     const result = filtersVar.validateOriginFilters([filter]);
 
-    expect(result[0]).toMatchObject({
+    expect(result[0]).toEqual({
       key: 'key1',
       operator: '=~',
       value: '.*',
       values: ['.*'],
+      origin: 'dashboard',
       valueLabels: ['All'],
       matchAllFilter: true,
       restorable: true,
@@ -3453,27 +3473,30 @@ describe('getOriginalFilters', () => {
     const result = filtersVar.getOriginalFilters();
 
     expect(result).toHaveLength(3);
-    expect(result[0]).toMatchObject({
+    expect(result[0]).toEqual({
       key: 'key1',
       origin: 'dashboard',
       value: 'val1',
       valueLabels: ['val1'],
+      keyLabel: 'key1',
       operator: '=',
     });
-    expect(result[1]).toMatchObject({
+    expect(result[1]).toEqual({
       key: 'key2',
       origin: 'scope',
       value: 'valA',
       values: ['valA', 'valB'],
       valueLabels: ['valA', 'valB'],
+      keyLabel: 'key2',
       operator: '=|',
     });
-    expect(result[2]).toMatchObject({
+    expect(result[2]).toEqual({
       key: 'key3',
       origin: 'scope',
       value: 'valC',
       values: ['valC'],
       valueLabels: ['valC'],
+      keyLabel: 'key3',
       operator: '=|',
     });
   });

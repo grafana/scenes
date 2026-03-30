@@ -264,6 +264,8 @@ export const OPERATORS: OperatorDefinition[] = [
 interface OriginalValue {
   value: string[];
   operator: string;
+  valueLabels?: string[];
+  keyLabel?: string;
   nonApplicable?: boolean;
   nonApplicableReason?: string;
 }
@@ -544,7 +546,7 @@ export class AdHocFiltersVariable
     this._updateFilter(filter, {
       value: originalFilter.value[0],
       values: isMultiValueOperator(originalFilter.operator) ? originalFilter.value : undefined,
-      valueLabels: originalFilter.value,
+      valueLabels: originalFilter.valueLabels ?? originalFilter.value,
       operator: originalFilter.operator,
       nonApplicable: originalFilter.nonApplicable,
     });
@@ -554,7 +556,9 @@ export class AdHocFiltersVariable
    * Get the original value for an origin filter before any user modifications.
    * Returns undefined if no original is tracked for this filter.
    */
-  public getOriginalValue(filter: AdHocFilterWithLabels): { value: string[]; operator: string } | undefined {
+  public getOriginalValue(
+    filter: AdHocFilterWithLabels
+  ): { value: string[]; operator: string; valueLabels?: string[]; keyLabel?: string } | undefined {
     return this._originalValues.get(`${filter.key}-${filter.origin}`);
   }
 
@@ -565,6 +569,8 @@ export class AdHocFiltersVariable
     this._originalValues.set(`${filter.key}-${filter.origin}`, {
       value: filter.values ?? [filter.value],
       operator: filter.operator,
+      ...(filter.valueLabels && { valueLabels: filter.valueLabels }),
+      ...(filter.keyLabel && { keyLabel: filter.keyLabel }),
     });
   }
 
@@ -582,8 +588,8 @@ export class AdHocFiltersVariable
         origin,
         value: original.value[0],
         values: isMultiValueOperator(original.operator) ? original.value : undefined,
-        valueLabels: original.value,
-        keyLabel: key,
+        valueLabels: original.valueLabels ?? original.value,
+        keyLabel: original.keyLabel ?? key,
         operator: original.operator,
         nonApplicable: original.nonApplicable,
       } as AdHocFilterWithLabels;
