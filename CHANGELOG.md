@@ -1,3 +1,16 @@
+# v7.2.0 (Mon Mar 30 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHoc: add groupby and adhoc unified UI [#1402](https://github.com/grafana/scenes/pull/1402) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.1.9 (Mon Mar 30 2026)
 
 #### 🐛 Bug Fix
