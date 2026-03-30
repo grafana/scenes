@@ -157,7 +157,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * @internal state of the new filter being added
    */
   _wip?: AdHocFilterWithLabels;
-  
+
   /**
    * Allows custom formatting of a value before saving to filter state
    */
