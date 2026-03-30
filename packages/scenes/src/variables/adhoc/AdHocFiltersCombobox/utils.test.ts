@@ -1,4 +1,4 @@
-import { generatePlaceholder, INPUT_PLACEHOLDER_DEFAULT } from './utils';
+import { generatePlaceholder, INPUT_PLACEHOLDER_DEFAULT, GROUP_BY_PLACEHOLDER_DEFAULT } from './utils';
 import { AdHocFilterWithLabels } from '../AdHocFiltersVariable';
 
 describe('generatePlaceholder', () => {
@@ -106,6 +106,52 @@ describe('generatePlaceholder', () => {
     it('should use default placeholder for key input type in always wip mode when no custom placeholder', () => {
       const result = generatePlaceholder(defaultFilter, 'key', false, true);
       expect(result).toBe(INPUT_PLACEHOLDER_DEFAULT);
+    });
+  });
+
+  describe('group by mode', () => {
+    const groupByFilter: AdHocFilterWithLabels = {
+      key: 'region',
+      operator: 'groupBy',
+      value: '',
+      keyLabel: 'Region',
+    };
+
+    describe('always wip (new group-by input)', () => {
+      it('should use group-by default placeholder when no custom placeholder', () => {
+        const result = generatePlaceholder(groupByFilter, 'key', false, true, undefined, true);
+        expect(result).toBe(GROUP_BY_PLACEHOLDER_DEFAULT);
+      });
+
+      it('should use custom placeholder over group-by default', () => {
+        const result = generatePlaceholder(groupByFilter, 'key', false, true, 'Pick a dimension', true);
+        expect(result).toBe('Pick a dimension');
+      });
+    });
+
+    describe('editing existing group-by pill (not always wip)', () => {
+      it('should return keyLabel when available', () => {
+        const result = generatePlaceholder(groupByFilter, 'key', false, false, undefined, true);
+        expect(result).toBe('Region');
+      });
+
+      it('should fall back to key when keyLabel is missing', () => {
+        const filter: AdHocFilterWithLabels = { key: 'region', operator: 'groupBy', value: '' };
+        const result = generatePlaceholder(filter, 'key', false, false, undefined, true);
+        expect(result).toBe('region');
+      });
+
+      it('should fall back to custom placeholder when key and keyLabel are empty', () => {
+        const filter: AdHocFilterWithLabels = { key: '', operator: 'groupBy', value: '' };
+        const result = generatePlaceholder(filter, 'key', false, false, 'Pick a dimension', true);
+        expect(result).toBe('Pick a dimension');
+      });
+
+      it('should fall back to group-by default when key, keyLabel, and custom placeholder are all empty', () => {
+        const filter: AdHocFilterWithLabels = { key: '', operator: 'groupBy', value: '' };
+        const result = generatePlaceholder(filter, 'key', false, false, undefined, true);
+        expect(result).toBe(GROUP_BY_PLACEHOLDER_DEFAULT);
+      });
     });
   });
 });
