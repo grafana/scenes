@@ -734,63 +734,49 @@ export class AdHocFiltersVariable
   }
 
   public _handleComboboxBackspace(filter: AdHocFilterWithLabels) {
-    if (this.state.filters.length) {
-      // default forceEdit last filter (when triggering from wip filter)
-      let filterToForceIndex = this.state.filters.length - 1;
+    if (isGroupByFilter(filter)) {
+      this._removeLastGroupByFilter();
+      return;
+    }
 
-      // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
-      //  to avoid triggering forceEdit logic
-      if (filter !== this.state._wip) {
-        filterToForceIndex = -1;
-      }
+    if (isFilterComplete(filter)) {
+      const queryController = getQueryController(this);
+      queryController?.startProfile(FILTER_REMOVED_INTERACTION);
+    }
+
+    const isWip = filter === this.state._wip;
+
+    if (this.state.filters.length) {
+      const filterToForceIndex = isWip ? findLastAdhocFilterIndex(this.state.filters) : -1;
 
       this.setState({
         filters: this.state.filters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
           // adjust forceEdit of preceding filter if not readOnly
           if (index === filterToForceIndex && !f.readOnly) {
-            return [
-              ...acc,
-              {
-                ...f,
-                forceEdit: true,
-              },
-            ];
+            return [...acc, { ...f, forceEdit: true }];
           }
           // remove current filter
           if (f === filter) {
             return acc;
           }
-
           return [...acc, f];
         }, []),
       });
     } else if (this.state.originFilters?.length) {
       // default forceEdit last filter (when triggering from wip filter)
-      let filterToForceIndex = this.state.originFilters.length - 1;
-
-      // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
-      //  to avoid triggering forceEdit logic
-      if (filter !== this.state._wip) {
-        filterToForceIndex = -1;
-      }
+      const filterToForceIndex = isWip ? findLastAdhocFilterIndex(this.state.originFilters) : -1;
 
       this.setState({
         originFilters: this.state.originFilters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
           // adjust forceEdit of preceding filter
           if (index === filterToForceIndex && !f.readOnly) {
-            return [
-              ...acc,
-              {
-                ...f,
-                forceEdit: true,
-              },
-            ];
+            return [...acc, { ...f, forceEdit: true }];
           }
           // remove current filter
           if (f === filter) {
             return acc;
           }
-
+          
           return [...acc, f];
         }, []),
       });
@@ -1120,12 +1106,25 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
   return filter.operator === '=~' && filter.value === '.*';
 }
 
+export function isGroupByFilter(filter: AdHocFilterWithLabels): boolean {
+  return filter.operator === 'groupBy';
+}
+
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
-  return filter.key !== '' && filter.operator !== '' && (filter.operator === 'groupBy' || filter.value !== '');
+  return filter.key !== '' && filter.operator !== '' && (isGroupByFilter(filter) || filter.value !== '');
 }
 
 export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
   return !filter.nonApplicable;
+}
+
+function findLastAdhocFilterIndex(filters: AdHocFilterWithLabels[]): number {
+  for (let i = filters.length - 1; i >= 0; i--) {
+    if (!isGroupByFilter(filters[i])) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {

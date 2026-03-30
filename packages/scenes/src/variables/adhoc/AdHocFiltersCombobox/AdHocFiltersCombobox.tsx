@@ -14,7 +14,7 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, isFilterComplete, isMultiValueOperator, OPERATORS } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, isMultiValueOperator, OPERATORS } from '../AdHocFiltersVariable';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -42,7 +42,6 @@ import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteracti
 import { MultiValuePill } from './MultiValuePill';
 import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
 import {
-  FILTER_REMOVED_INTERACTION,
   FILTER_CHANGED_INTERACTION,
   ADHOC_KEYS_DROPDOWN_INTERACTION,
   ADHOC_VALUES_DROPDOWN_INTERACTION,
@@ -399,16 +398,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         // focus back on always wip input when you delete filter with backspace
         focusOnWipInputRef?.();
 
-        if (isGroupBy) {
-          controller.removeLastGroupByFilter?.();
-        } else {
-          if (isFilterComplete(filter!)) {
-            controller.startProfile?.(FILTER_REMOVED_INTERACTION);
-          }
-
+        if (!isGroupBy) {
           setOpen(false);
-          controller.handleComboboxBackspace(filter!);
         }
+        controller.handleComboboxBackspace(filter!);
 
         if (isAlwaysWip) {
           handleResetWip();
