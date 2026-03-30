@@ -735,7 +735,11 @@ export class AdHocFiltersVariable
 
   public _handleComboboxBackspace(filter: AdHocFilterWithLabels) {
     if (isGroupByFilter(filter)) {
-      this._removeLastGroupByFilter();
+      if (this.state.filters.includes(filter)) {
+        this._removeFilter(filter);
+      } else {
+        this._removeLastGroupByFilter();
+      }
       return;
     }
 
@@ -776,7 +780,7 @@ export class AdHocFiltersVariable
           if (f === filter) {
             return acc;
           }
-          
+
           return [...acc, f];
         }, []),
       });

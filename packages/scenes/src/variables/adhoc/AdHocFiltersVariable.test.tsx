@@ -3545,6 +3545,46 @@ describe('group-by', () => {
     });
   });
 
+  describe('_handleComboboxBackspace', () => {
+    it('removes the specific groupBy filter when editing an existing pill', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([]),
+      });
+      variable.activate();
+
+      variable._addGroupByFilter({ value: 'namespace', label: 'Namespace' });
+      variable._addGroupByFilter({ value: 'pod', label: 'Pod' });
+      variable._addGroupByFilter({ value: 'container', label: 'Container' });
+
+      const filterToRemove = variable.state.filters[1]; // Pod (middle one)
+      variable._handleComboboxBackspace(filterToRemove);
+
+      expect(variable.state.filters).toHaveLength(2);
+      expect(variable.state.filters[0].key).toBe('namespace');
+      expect(variable.state.filters[1].key).toBe('container');
+    });
+
+    it('removes the last groupBy filter when triggered from wip input', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([]),
+      });
+      variable.activate();
+
+      variable._addGroupByFilter({ value: 'namespace', label: 'Namespace' });
+      variable._addGroupByFilter({ value: 'pod', label: 'Pod' });
+
+      const wipFilter: AdHocFilterWithLabels = { key: '', value: '', operator: 'groupBy', condition: '' };
+      variable._handleComboboxBackspace(wipFilter);
+
+      expect(variable.state.filters).toHaveLength(1);
+      expect(variable.state.filters[0].key).toBe('namespace');
+    });
+  });
+
   describe('_getGroupByKeys', () => {
     it('returns provider values when getGroupByKeysProvider returns replace true', async () => {
       const variable = new AdHocFiltersVariable({
