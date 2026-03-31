@@ -277,6 +277,74 @@ describe('AdHocFiltersRecommendations', () => {
     });
   });
 
+  describe('integration with parent variable — groupBy', () => {
+    it('should store recent grouping (not recent filter) when editing a groupBy filter via _updateFilter', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+        filters: [
+          { key: 'host', value: 'web-1', operator: '=' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        ],
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      const groupByFilter = filtersVar.state.filters.find((f) => f.operator === GROUP_BY_OPERATOR)!;
+
+      act(() => {
+        filtersVar._updateFilter(groupByFilter, { key: 'zone', keyLabel: 'zone' });
+      });
+
+      const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
+      expect(storedGroupings).toBeDefined();
+      expect(JSON.parse(storedGroupings!)).toContainEqual({ value: 'zone', text: 'zone' });
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      const parsedFilters = storedFilters ? JSON.parse(storedFilters) : [];
+      const groupByInFilters = parsedFilters.some((f: AdHocFilterWithLabels) => f.operator === GROUP_BY_OPERATOR);
+      expect(groupByInFilters).toBe(false);
+    });
+
+    it('should store recent filter (not recent grouping) when editing a regular filter via _updateFilter', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        enableGroupBy: true,
+        filters: [
+          { key: 'host', value: 'web-1', operator: '=' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        ],
+      });
+
+      await waitFor(() => {
+        const recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      const regularFilter = filtersVar.state.filters.find((f) => f.operator === '=')!;
+
+      act(() => {
+        filtersVar._updateFilter(regularFilter, { value: 'web-2' });
+      });
+
+      await waitFor(() => {
+        const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+        expect(storedFilters).toBeDefined();
+        expect(JSON.parse(storedFilters!)).toContainEqual(
+          expect.objectContaining({ key: 'host', value: 'web-2', operator: '=' })
+        );
+      });
+
+      const storedGroupings = localStorage.getItem(RECENT_GROUPING_KEY);
+      const parsedGroupings = storedGroupings ? JSON.parse(storedGroupings) : [];
+      const regularFilterInGroupings = parsedGroupings.some((g: any) => g.value === 'host');
+      expect(regularFilterInGroupings).toBe(false);
+    });
+  });
+
   describe('subscriptions', () => {
     it('should recompute recommendations and recent filters when filters change', async () => {
       const recentFilters = [{ key: 'pod', operator: '=|', value: 'test1, test2', values: ['test1', 'test2'] }];
