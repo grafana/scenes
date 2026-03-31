@@ -45,7 +45,15 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       value.push(
         ...originFilters
           ?.filter(isFilterComplete)
-          .filter((filter) => !filter.hidden && filter.origin && filter.restorable)
+          .filter((filter) => {
+            if (filter.hidden || !filter.origin) {
+              return false;
+            }
+            if (isGroupByFilter(filter)) {
+              return filter.dismissedGroupBy;
+            }
+            return filter.restorable;
+          })
           .map((filter) =>
             toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}#restorable`)
           )
@@ -96,6 +104,24 @@ function updateOriginFilters(prevOriginFilters: AdHocFilterWithLabels[], filters
       // scopes are being set urlSync so we maintain all modified scopes in the adhoc
       // and leave the scopes update to reconciliate on what filters will actually show up
       updatedOriginFilters.push(filters[i]);
+    }
+  }
+
+  // Infer dismissedGroupBy for groupBy origins restored from URL.
+  // Only dismissed groupBy are serialized, so any groupBy with restorable from URL was dismissed.
+  const hasDismissedGroupBy = updatedOriginFilters.some(
+    (f) => isGroupByFilter(f) && f.origin && f.restorable && !f.dismissedGroupBy
+  );
+  if (hasDismissedGroupBy) {
+    for (let i = 0; i < updatedOriginFilters.length; i++) {
+      const f = updatedOriginFilters[i];
+      if (isGroupByFilter(f) && f.origin) {
+        if (f.restorable) {
+          updatedOriginFilters[i] = { ...f, dismissedGroupBy: true };
+        } else {
+          updatedOriginFilters[i] = { ...f, restorable: true };
+        }
+      }
     }
   }
 

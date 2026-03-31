@@ -89,6 +89,10 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
     this.model.restoreOriginalFilter(filter);
   }
 
+  public restoreOriginalGroupBy(): void {
+    this.model.restoreOriginalGroupBy();
+  }
+
   public clearAll(): void {
     this.model.clearAll();
   }

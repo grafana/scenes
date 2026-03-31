@@ -394,6 +394,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           switchInputType('key', setInputType, undefined, refs.domReference.current);
           return;
         }
+        if (isGroupBy && filter?.origin) {
+          controller.updateToMatchAll(filter);
+          focusOnWipInputRef?.();
+          return;
+        }
 
         // focus back on always wip input when you delete filter with backspace
         focusOnWipInputRef?.();

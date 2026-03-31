@@ -120,6 +120,11 @@ export interface AdHocFiltersController {
   restoreOriginalFilter(filter: AdHocFilterWithLabels): void;
 
   /**
+   * Restore all original group by filters and remove user-added group by filters.
+   */
+  restoreOriginalGroupBy?(): void;
+
+  /**
    * Clear all user-added filters and restore origin filters to original values.
    */
   clearAll?(): void;

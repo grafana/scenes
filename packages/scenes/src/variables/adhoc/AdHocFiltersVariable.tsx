@@ -56,6 +56,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   readOnly?: boolean;
   // whether this specific filter is restorable to some value from _originalValues
   restorable?: boolean;
+  // whether this groupBy origin filter was dismissed by the user (hidden from UI but kept for restore tracking)
+  dismissedGroupBy?: boolean;
   // sets this filter as non-applicable
   nonApplicable?: boolean;
   // reason with reason for nonApplicable filters
@@ -335,10 +337,12 @@ export class AdHocFiltersVariable
 
     return () => {
       this.state.originFilters?.forEach((filter) => {
-        if (filter.restorable) {
+        if (filter.restorable && !isGroupByFilter(filter)) {
           this.restoreOriginalFilter(filter);
         }
       });
+
+      this.restoreOriginalGroupBy();
 
       this.setState({ applicabilityEnabled: false });
     };
@@ -618,15 +622,37 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Restore all original group by filters.
+   */
+  public restoreOriginalGroupBy(): void {
+    const restoredOrigins = (this.state.originFilters ?? []).map((f) => {
+      if (!isGroupByFilter(f) || !f.origin) {
+        return f;
+      }
+      return { ...f, dismissedGroupBy: false, restorable: false };
+    });
+
+    const nonGroupByFilters = this.state.filters.filter((f) => !isGroupByFilter(f));
+
+    this.setState({
+      originFilters: restoredOrigins,
+      filters: nonGroupByFilters,
+    });
+  }
+
+  /**
    * Clear all user-added filters and restore origin filters to their original values.
    */
   public clearAll(): void {
     // Restore all restorable origin filters to their original values
     this.state.originFilters?.forEach((filter) => {
-      if (filter.restorable) {
+      if (filter.restorable && !isGroupByFilter(filter)) {
         this.restoreOriginalFilter(filter);
       }
     });
+
+    // Restore groupBy defaults
+    this.restoreOriginalGroupBy();
 
     // Clear all user-added filters
     this.setState({ filters: [] });
@@ -658,6 +684,32 @@ export class AdHocFiltersVariable
     }
 
     if (filter.origin) {
+      if (isGroupByFilter(filter) && 'key' in update && update.key !== filter.key) {
+        const updatedOrigins = (originFilters ?? []).map((f) => {
+          if (f === filter) {
+            return { ...f, dismissedGroupBy: true, restorable: true };
+          }
+          if (isGroupByFilter(f) && f.origin && !f.dismissedGroupBy) {
+            return { ...f, restorable: true };
+          }
+          return f;
+        });
+
+        const newFilter: AdHocFilterWithLabels = {
+          key: update.key as string,
+          keyLabel: (update.keyLabel as string) ?? (update.key as string),
+          operator: 'groupBy',
+          value: '',
+          condition: '',
+        };
+
+        this.setState({
+          originFilters: updatedOrigins,
+          filters: [...filters, newFilter],
+        });
+        return;
+      }
+
       const updateValues = update.values || (update.value ? [update.value] : undefined);
 
       if (updateValues) {
@@ -675,7 +727,13 @@ export class AdHocFiltersVariable
 
       const updatedFilters =
         originFilters?.map((f) => {
-          return f === filter ? { ...f, ...update } : f;
+          if (f === filter) {
+            return { ...f, ...update };
+          }
+          if (isGroupByFilter(filter) && update.restorable && isGroupByFilter(f) && f.origin && !f.restorable) {
+            return { ...f, restorable: true };
+          }
+          return f;
         }) ?? [];
       this.setState({ originFilters: updatedFilters });
 
@@ -709,15 +767,29 @@ export class AdHocFiltersVariable
   }
 
   public updateToMatchAll(filter: AdHocFilterWithLabels) {
-    this._updateFilter(filter, {
-      operator: '=~',
-      value: '.*',
-      values: ['.*'],
-      valueLabels: ['All'],
-      matchAllFilter: true,
-      nonApplicable: false,
-      restorable: true,
-    });
+    if (isGroupByFilter(filter) && filter.origin) {
+      const updatedOrigins = (this.state.originFilters ?? []).map((f) => {
+        if (f === filter) {
+          return { ...f, dismissedGroupBy: true, restorable: true };
+        }
+        if (isGroupByFilter(f) && f.origin && !f.dismissedGroupBy) {
+          return { ...f, restorable: true };
+        }
+        return f;
+      });
+
+      this.setState({ originFilters: updatedOrigins });
+    } else {
+      this._updateFilter(filter, {
+        operator: '=~',
+        value: '.*',
+        values: ['.*'],
+        valueLabels: ['All'],
+        matchAllFilter: true,
+        nonApplicable: false,
+        restorable: true,
+      });
+    }
   }
 
   public _removeFilter(filter: AdHocFilterWithLabels) {
@@ -749,6 +821,13 @@ export class AdHocFiltersVariable
         for (let i = this.state.filters.length - 1; i >= 0; i--) {
           if (isGroupByFilter(this.state.filters[i]) && !this.state.filters[i].readOnly) {
             this._removeFilter(this.state.filters[i]);
+            return;
+          }
+        }
+        const origins = this.state.originFilters ?? [];
+        for (let i = origins.length - 1; i >= 0; i--) {
+          if (isGroupByFilter(origins[i]) && origins[i].origin && !origins[i].dismissedGroupBy) {
+            this.updateToMatchAll(origins[i]);
             return;
           }
         }
