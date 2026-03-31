@@ -1179,7 +1179,7 @@ function renderExpression(
 
 function getGroupByKeys(filters: AdHocFilterWithLabels[]): string[] {
   return filters
-    .filter((f) => isGroupByFilter(f) && isFilterComplete(f))
+    .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && !f.dismissedGroupBy)
     .map((f) => f.key)
     .sort();
 }

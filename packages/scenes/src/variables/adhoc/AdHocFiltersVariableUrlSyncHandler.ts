@@ -95,20 +95,31 @@ function updateOriginFilters(prevOriginFilters: AdHocFilterWithLabels[], filters
   }
 
   for (let i = 0; i < filters.length; i++) {
-    const foundOriginFilterIndex = prevOriginFilters.findIndex((f) => f.key === filters[i].key);
-
     // if we find a match we update originFilters with what's in the URL.
-    if (foundOriginFilterIndex > -1 && filters[i].origin === prevOriginFilters[foundOriginFilterIndex].origin) {
+    const foundOriginFilterIndex = prevOriginFilters.findIndex(
+      (f) => f.key === filters[i].key && isGroupByFilter(f) === isGroupByFilter(filters[i])
+    );
+    const isMatchedOrigin =
+      foundOriginFilterIndex > -1 && filters[i].origin === prevOriginFilters[foundOriginFilterIndex].origin;
+
+    // if it was originating from a dashoard but has no match in the new dashboard
+    // remove it's origin, turn it into a normal filter to be set below
+    if (!isMatchedOrigin && filters[i].origin === 'dashboard') {
+      delete filters[i].origin;
+      delete filters[i].restorable;
+    }
+
+    // GroupBy origin state is recovered by the dedicated block below
+    if (isGroupByFilter(filters[i])) {
+      continue;
+    }
+
+    if (isMatchedOrigin) {
       if (isMatchAllFilter(filters[i])) {
         filters[i].matchAllFilter = true;
       }
 
       updatedOriginFilters[foundOriginFilterIndex] = filters[i];
-    } else if (filters[i].origin === 'dashboard') {
-      // if it was originating from a dashoard but has no match in the new dashboard
-      // remove it's origin, turn it into a normal filter to be set below
-      delete filters[i].origin;
-      delete filters[i].restorable;
     } else if (foundOriginFilterIndex === -1 && filters[i].origin === 'scope' && filters[i].restorable) {
       // scopes are being set urlSync so we maintain all modified scopes in the adhoc
       // and leave the scopes update to reconciliate on what filters will actually show up
