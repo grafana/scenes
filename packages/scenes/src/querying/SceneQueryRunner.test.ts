@@ -34,9 +34,9 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
-import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
-import { emptyPanelData } from '../core/SceneDataNode';
+import { AdHocFiltersVariable, GROUP_BY_OPERATOR } from '../variables/adhoc/AdHocFiltersVariable';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
+import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneQueryController } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
@@ -737,7 +737,86 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall[1].filters).toEqual([{ key: 'A', operator: '=', value: 'B' }]);
     });
 
-    it('should pass group by dimensions via request object', async () => {
+    it('should pass group by dimensions via request object from AdHocFiltersVariable', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [
+          { key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+          { key: 'B', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        ],
+        enableGroupBy: true,
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].groupByKeys).toEqual(['A', 'B']);
+
+      // Verify updating groupBy filters re-triggers query
+      filtersVar.updateFilters([
+        { key: 'C', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        { key: 'D', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+      ]);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+
+      const runRequestCall2 = runRequestMock.mock.calls[1];
+      expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
+    });
+
+    it('should not pass group by dimensions when enableGroupBy is false', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [
+          { key: 'host', operator: '=', value: 'web-1', condition: '' },
+          { key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+          { key: 'B', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        ],
+        enableGroupBy: false,
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].groupByKeys).toBeUndefined();
+      expect(runRequestCall[1].filters).toEqual([{ key: 'host', operator: '=', value: 'web-1', condition: '' }]);
+    });
+
+    it('should pass group by dimensions from legacy GroupByVariable when enableGroupBy is not set', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
         queries: [{ refId: 'A' }],
@@ -765,7 +844,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       expect(runRequestCall[1].groupByKeys).toEqual(['A', 'B']);
 
-      // Verify updating filter re-triggers query
       groupByVariable.changeValueTo(['C', 'D']);
 
       await new Promise((r) => setTimeout(r, 1));

@@ -41,9 +41,9 @@ import { passthroughProcessor, extraQueryProcessingOperator } from './extraQuery
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { registerQueryWithController, QueryProfilerLike } from './registerQueryWithController';
-import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
@@ -271,10 +271,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   /**
-   * Check if value changed is a adhoc filter o group by variable that did not exist when we issued the last query
+   * Check if value changed is an adhoc filter or group by variable that did not exist when we issued the last query
    */
   private onAnyVariableChanged(variable: SceneVariable) {
-    // If this variable has already been detected this variable as a dependency onVariableUpdatesCompleted above will handle value changes
     if (
       this._drilldownDependenciesManager.adHocFiltersVar === variable ||
       this._drilldownDependenciesManager.groupByVar === variable ||

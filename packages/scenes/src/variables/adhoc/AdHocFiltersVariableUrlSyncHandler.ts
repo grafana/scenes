@@ -4,6 +4,7 @@ import {
   AdHocFilterWithLabels,
   FilterOrigin,
   isFilterComplete,
+  isGroupByFilter,
   isMatchAllFilter,
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
@@ -113,6 +114,9 @@ function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLab
 
 export function toArray(filter: AdHocFilterWithLabels): string[] {
   const result = [toUrlCommaDelimitedString(filter.key, filter.keyLabel), filter.operator];
+  if (isGroupByFilter(filter)) {
+    return result;
+  }
   if (isMultiValueOperator(filter.operator)) {
     // TODO remove expect-error when we're on the latest version of @grafana/data
     // @ts-expect-error
@@ -146,9 +150,9 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     key,
     keyLabel,
     operator,
-    value: values[0],
+    value: values[0] ?? '',
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
-    valueLabels: values.filter((_, index) => index % 2 === 1),
+    valueLabels: values.length > 0 ? values.filter((_, index) => index % 2 === 1) : undefined,
     condition: '',
     ...(isFilterOrigin(origin) && { origin }),
     ...(!!restorable && { restorable: true }),

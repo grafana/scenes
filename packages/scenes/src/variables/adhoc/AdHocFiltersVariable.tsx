@@ -73,6 +73,8 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   addFilterButtonText?: string;
   /** Optional placeholder text for the filter input field */
   inputPlaceholder?: string;
+  /** Optional placeholder for the group-by key input */
+  groupByInputPlaceholder?: string;
   /** The visible filters */
   filters: AdHocFilterWithLabels[];
   /** Base filters to always apply when looking up keys*/
@@ -103,6 +105,12 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * Return replace: false if you want to combine the results with the default lookup
    */
   getTagKeysProvider?: getTagKeysProvider;
+  /**
+   * Extension hook for customizing the group-by key lookup.
+   * Return replace: true to override the default lookup (ds.getGroupByKeys or ds.getTagKeys).
+   * Return replace: false to combine the results with the default lookup.
+   */
+  getGroupByKeysProvider?: getGroupByKeysProvider;
   /**
    * Extension hook for customizing the value lookup.
    * Return replace: true if you want to override the default lookup.
@@ -168,6 +176,11 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * enables drilldown recommendations
    */
   drilldownRecommendationsEnabled?: boolean;
+
+  /**
+   * When true, the "groupBy" operator is available and filters can be used as group-by dimensions.
+   */
+  enableGroupBy?: boolean;
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -185,6 +198,11 @@ export type getTagKeysProvider = (
 export type getTagValuesProvider = (
   variable: AdHocFiltersVariable,
   filter: AdHocFilterWithLabels
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
+
+export type getGroupByKeysProvider = (
+  variable: AdHocFiltersVariable,
+  currentKey?: string | null
 ) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
 
 export type AdHocFiltersVariableCreateHelperArgs = AdHocFiltersVariableState;
@@ -246,6 +264,8 @@ export const OPERATORS: OperatorDefinition[] = [
 interface OriginalValue {
   value: string[];
   operator: string;
+  valueLabels?: string[];
+  keyLabel?: string;
   nonApplicable?: boolean;
   nonApplicableReason?: string;
 }
@@ -395,6 +415,7 @@ export class AdHocFiltersVariable
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
+    let groupByChanged = false;
 
     if (
       ((update.filters && update.filters !== this.state.filters) ||
@@ -406,11 +427,15 @@ export class AdHocFiltersVariable
 
       update.filterExpression = renderExpression(this.state.expressionBuilder, [...(originFilters ?? []), ...filters]);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
+      groupByChanged = haveGroupByKeysChanged(
+        [...(this.state.originFilters ?? []), ...this.state.filters],
+        [...(originFilters ?? []), ...filters]
+      );
     }
 
     super.setState(update);
 
-    if (filterExpressionChanged) {
+    if (filterExpressionChanged || groupByChanged) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -474,6 +499,7 @@ export class AdHocFiltersVariable
     }
   ): void {
     let filterExpressionChanged = false;
+    let groupByChanged = false;
     let filterExpression: string | undefined = undefined;
 
     if (filters && filters !== this.state.filters) {
@@ -482,6 +508,7 @@ export class AdHocFiltersVariable
         ...filters,
       ]);
       filterExpressionChanged = filterExpression !== this.state.filterExpression;
+      groupByChanged = haveGroupByKeysChanged(this.state.filters, filters);
     }
 
     super.setState({
@@ -489,9 +516,30 @@ export class AdHocFiltersVariable
       filterExpression,
     });
 
-    if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
+    if (((filterExpressionChanged || groupByChanged) && options?.skipPublish !== true) || options?.forcePublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
+  }
+
+  /**
+   * Add a group-by filter (key only, operator 'groupBy', no value).
+   * No-op when enableGroupBy is false.
+   */
+  public _addGroupByFilter(item: SelectableValue<string>): void {
+    if (!this.state.enableGroupBy) {
+      return;
+    }
+
+    const key = item.value ?? '';
+    const keyLabel = item.label ?? key;
+    const newFilter: AdHocFilterWithLabels = {
+      key,
+      keyLabel,
+      operator: 'groupBy',
+      value: '',
+      condition: '',
+    };
+    this.updateFilters([...this.state.filters, newFilter]);
   }
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
@@ -509,7 +557,7 @@ export class AdHocFiltersVariable
     this._updateFilter(filter, {
       value: originalFilter.value[0],
       values: isMultiValueOperator(originalFilter.operator) ? originalFilter.value : undefined,
-      valueLabels: originalFilter.value,
+      valueLabels: originalFilter.valueLabels ?? originalFilter.value,
       operator: originalFilter.operator,
       nonApplicable: originalFilter.nonApplicable,
     });
@@ -519,7 +567,9 @@ export class AdHocFiltersVariable
    * Get the original value for an origin filter before any user modifications.
    * Returns undefined if no original is tracked for this filter.
    */
-  public getOriginalValue(filter: AdHocFilterWithLabels): { value: string[]; operator: string } | undefined {
+  public getOriginalValue(
+    filter: AdHocFilterWithLabels
+  ): { value: string[]; operator: string; valueLabels?: string[]; keyLabel?: string } | undefined {
     return this._originalValues.get(`${filter.key}-${filter.origin}`);
   }
 
@@ -530,6 +580,8 @@ export class AdHocFiltersVariable
     this._originalValues.set(`${filter.key}-${filter.origin}`, {
       value: filter.values ?? [filter.value],
       operator: filter.operator,
+      ...(filter.valueLabels && { valueLabels: filter.valueLabels }),
+      ...(filter.keyLabel && { keyLabel: filter.keyLabel }),
     });
   }
 
@@ -547,8 +599,8 @@ export class AdHocFiltersVariable
         origin,
         value: original.value[0],
         values: isMultiValueOperator(original.operator) ? original.value : undefined,
-        valueLabels: original.value,
-        keyLabel: key,
+        valueLabels: original.valueLabels ?? original.value,
+        keyLabel: original.keyLabel ?? key,
         operator: original.operator,
         nonApplicable: original.nonApplicable,
       } as AdHocFilterWithLabels;
@@ -673,6 +725,7 @@ export class AdHocFiltersVariable
       this.setState({ _wip: undefined });
       return;
     }
+
     const queryController = getQueryController(this);
     queryController?.startProfile(FILTER_REMOVED_INTERACTION);
 
@@ -689,57 +742,52 @@ export class AdHocFiltersVariable
   }
 
   public _handleComboboxBackspace(filter: AdHocFilterWithLabels) {
-    if (this.state.filters.length) {
-      // default forceEdit last filter (when triggering from wip filter)
-      let filterToForceIndex = this.state.filters.length - 1;
-
-      // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
-      //  to avoid triggering forceEdit logic
-      if (filter !== this.state._wip) {
-        filterToForceIndex = -1;
+    if (isGroupByFilter(filter)) {
+      if (this.state.filters.includes(filter)) {
+        this._removeFilter(filter);
+      } else {
+        for (let i = this.state.filters.length - 1; i >= 0; i--) {
+          if (isGroupByFilter(this.state.filters[i]) && !this.state.filters[i].readOnly) {
+            this._removeFilter(this.state.filters[i]);
+            return;
+          }
+        }
       }
+      return;
+    }
+
+    if (isFilterComplete(filter)) {
+      const queryController = getQueryController(this);
+      queryController?.startProfile(FILTER_REMOVED_INTERACTION);
+    }
+
+    const isWip = filter === this.state._wip;
+
+    if (this.state.filters.length) {
+      const filterToForceIndex = isWip ? findLastAdhocFilterIndex(this.state.filters) : -1;
 
       this.setState({
         filters: this.state.filters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
           // adjust forceEdit of preceding filter if not readOnly
           if (index === filterToForceIndex && !f.readOnly) {
-            return [
-              ...acc,
-              {
-                ...f,
-                forceEdit: true,
-              },
-            ];
+            return [...acc, { ...f, forceEdit: true }];
           }
           // remove current filter
           if (f === filter) {
             return acc;
           }
-
           return [...acc, f];
         }, []),
       });
     } else if (this.state.originFilters?.length) {
       // default forceEdit last filter (when triggering from wip filter)
-      let filterToForceIndex = this.state.originFilters.length - 1;
-
-      // adjust filterToForceIndex index to -1 if backspace triggered from non wip filter
-      //  to avoid triggering forceEdit logic
-      if (filter !== this.state._wip) {
-        filterToForceIndex = -1;
-      }
+      const filterToForceIndex = isWip ? findLastAdhocFilterIndex(this.state.originFilters) : -1;
 
       this.setState({
         originFilters: this.state.originFilters.reduce<AdHocFilterWithLabels[]>((acc, f, index) => {
           // adjust forceEdit of preceding filter
           if (index === filterToForceIndex && !f.readOnly) {
-            return [
-              ...acc,
-              {
-                ...f,
-                forceEdit: true,
-              },
-            ];
+            return [...acc, { ...f, forceEdit: true }];
           }
           // remove current filter
           if (f === filter) {
@@ -843,14 +891,70 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const applicableOriginFilters = this.state.originFilters?.filter((f) => !f.nonApplicable) ?? [];
+    const applicableOriginFilters =
+      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f)) ?? [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== currentKey && !f.nonApplicable)
+      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f))
       .concat(this.state.baseFilters ?? [])
       .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
     const response = await ds.getTagKeys({
+      filters: otherFilters,
+      queries,
+      timeRange,
+      scopes: sceneGraph.getScopes(this),
+      ...getEnrichedFiltersRequest(this),
+    });
+
+    if (responseHasError(response)) {
+      this.setState({ error: response.error.message });
+    }
+
+    let keys = dataFromResponse(response);
+    if (override) {
+      keys = keys.concat(dataFromResponse(override.values));
+    }
+
+    const tagKeyRegexFilter = this.state.tagKeyRegexFilter;
+    if (tagKeyRegexFilter) {
+      keys = keys.filter((f) => f.text.match(tagKeyRegexFilter));
+    }
+
+    return keys.map(toSelectableValue);
+  }
+
+  /**
+   * Get possible group-by keys.
+   */
+  public async _getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    if (!this.state.enableGroupBy) {
+      return [];
+    }
+
+    const override = await this.state.getGroupByKeysProvider?.(this, currentKey);
+
+    if (override && override.replace) {
+      return dataFromResponse(override.values).map(toSelectableValue);
+    }
+
+    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
+    if (!ds || !ds.getGroupByKeys) {
+      return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
+    }
+
+    const applicableOriginFilters =
+      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f)) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f))
+      .concat(this.state.baseFilters ?? [])
+      .concat(applicableOriginFilters);
+    const timeRange = sceneGraph.getTimeRange(this).state.value;
+    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+
+    // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
+    const response = await ds.getGroupByKeys({
       filters: otherFilters,
       queries,
       timeRange,
@@ -891,9 +995,10 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key) ?? [];
-    // Filter out the current filter key from the list of all filters
-    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(originFilters);
+    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key && !isGroupByFilter(f)) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== filter.key && !isGroupByFilter(f))
+      .concat(originFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
@@ -964,7 +1069,27 @@ function renderExpression(
   builder: AdHocVariableExpressionBuilderFn | undefined,
   filters: AdHocFilterWithLabels[] | undefined
 ) {
-  return (builder ?? renderPrometheusLabelFilters)(filters?.filter((f) => isFilterApplicable(f)) ?? []);
+  return (builder ?? renderPrometheusLabelFilters)(
+    filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f)) ?? []
+  );
+}
+
+function getGroupByKeys(filters: AdHocFilterWithLabels[]): string[] {
+  return filters
+    .filter((f) => isGroupByFilter(f) && isFilterComplete(f))
+    .map((f) => f.key)
+    .sort();
+}
+
+function haveGroupByKeysChanged(prev: AdHocFilterWithLabels[], next: AdHocFilterWithLabels[]): boolean {
+  const prevKeys = getGroupByKeys(prev);
+  const nextKeys = getGroupByKeys(next);
+
+  if (prevKeys.length !== nextKeys.length) {
+    return true;
+  }
+
+  return prevKeys.some((key, i) => key !== nextKeys[i]);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
@@ -1030,12 +1155,27 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
   return filter.operator === '=~' && filter.value === '.*';
 }
 
+export const GROUP_BY_OPERATOR = 'groupBy';
+
+export function isGroupByFilter(filter: AdHocFilterWithLabels): boolean {
+  return filter.operator === GROUP_BY_OPERATOR;
+}
+
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
-  return filter.key !== '' && filter.operator !== '' && filter.value !== '';
+  return filter.key !== '' && filter.operator !== '' && (isGroupByFilter(filter) || filter.value !== '');
 }
 
 export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
   return !filter.nonApplicable;
+}
+
+function findLastAdhocFilterIndex(filters: AdHocFilterWithLabels[]): number {
+  for (let i = filters.length - 1; i >= 0; i--) {
+    if (!isGroupByFilter(filters[i])) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {

@@ -11,6 +11,9 @@
         "remove-filter-value": "Remove filter value - {{itemLabel}}",
         "use-custom-value": "Use custom value: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": "Remove {{label}}"
+      },
       "drilldown-recommendations": {
         "recent": "Recent",
         "recent-empty": "No recent values",
@@ -23,6 +26,13 @@
         "subTitle": "The url did not match any page",
         "title": "Not found"
       },
+      "group-by-pill": {
+        "group-by-key": "Group by {{keyLabel}}",
+        "remove-group-by-key": "Remove group by {{keyLabel}}"
+      },
+      "lazy-loader": {
+        "placeholder": "\u00a0"
+      },
       "nested-scene-renderer": {
         "collapse-button-label": "Collapse scene",
         "expand-button-label": "Expand scene",
@@ -34,8 +44,8 @@
         "title-scene-debugger": "Scene debugger"
       },
       "scene-grid-row": {
-        "collapse-row": "Collapse row",
-        "expand-row": "Expand row"
+        "collapse-row": "Collapse row with title {{title}}",
+        "expand-row": "Expand row with title {{title}}"
       },
       "scene-refresh-picker": {
         "text-cancel": "Cancel",
@@ -98,8 +108,15 @@
         }
       },
       "adhoc-filters-combobox-renderer": {
+        "clear-all": "Clear all",
         "collapse": "Collapse",
-        "collapse-filters": "Collapse filters"
+        "collapse-filters": "Collapse filters",
+        "expand-filters": "Expand filters",
+        "group-by-label": "Group by:",
+        "show-more-filters_one": "Show {{count}} more filters",
+        "show-more-filters_other": "Show {{count}} more filters",
+        "show-more-group-by_one": "Show {{count}} more group by keys",
+        "show-more-group-by_other": "Show {{count}} more group by keys"
       },
       "data-source-variable": {
         "label": {

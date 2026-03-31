@@ -11,7 +11,7 @@ import { getDataSource } from '../../utils/getDataSource';
 import { DrilldownRecommendations, DrilldownPill } from '../components/DrilldownRecommendations';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../constants';
-import { AdHocFilterWithLabels, AdHocFiltersVariable } from './AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, isGroupByFilter } from './AdHocFiltersVariable';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
@@ -147,7 +147,7 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const queries = adhoc.state.useQueriesAsFilterForOptions ? getQueriesForVariables(adhoc) : undefined;
     const timeRange = sceneGraph.getTimeRange(adhoc).state.value;
     const scopes = sceneGraph.getScopes(adhoc);
-    const filters = [...(adhoc.state.originFilters ?? []), ...adhoc.state.filters];
+    const filters = [...(adhoc.state.originFilters ?? []), ...adhoc.state.filters].filter((f) => !isGroupByFilter(f));
 
     const enrichedRequest = getEnrichedDataRequest(adhoc);
     const dashboardUid = enrichedRequest?.dashboardUID;
