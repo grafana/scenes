@@ -91,7 +91,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     >
       {!readOnly && valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 
-      {hideLabel && (
+      {enableGroupBy && hideLabel && (
         <span className={styles.filtersLabel}>
           {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.filters-label', 'Filters:')}
         </span>
