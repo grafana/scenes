@@ -28,6 +28,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
       enableGroupBy: state.enableGroupBy,
+      groupByRestorable: this.model.isGroupByRestorable(),
     };
   }
 
@@ -87,6 +88,10 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels): void {
     this.model.restoreOriginalFilter(filter);
+  }
+
+  public restoreOriginalGroupBy(): void {
+    this.model.restoreOriginalGroupBy();
   }
 
   public clearAll(): void {
