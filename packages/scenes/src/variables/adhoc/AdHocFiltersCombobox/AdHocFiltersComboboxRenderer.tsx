@@ -19,7 +19,8 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, collapsible, valueRecommendations, enableGroupBy } = controller.useState();
+  const { originFilters, filters, readOnly, collapsible, valueRecommendations, enableGroupBy, groupByRestorable } =
+    controller.useState();
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
@@ -68,11 +69,6 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   const groupByFiltersToRender = shouldCollapse ? groupByFilters.slice(0, MAX_VISIBLE_GROUP_BY) : groupByFilters;
   const groupByHiddenCount = shouldCollapse ? Math.max(0, groupByFilters.length - MAX_VISIBLE_GROUP_BY) : 0;
-
-  const hasOriginGroupBy = originFilters?.some((f) => isGroupByFilter(f) && f.origin) ?? false;
-  const groupByRestorable =
-    hasOriginGroupBy &&
-    (originFilters?.some((f) => isGroupByFilter(f) && f.origin && f.restorable) || filters.some(isGroupByFilter));
 
   // Reset collapsed state when there are no filters (only when collapsible)
   useEffect(() => {

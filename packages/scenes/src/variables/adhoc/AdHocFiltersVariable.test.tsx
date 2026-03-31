@@ -1255,7 +1255,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=someFilter%7C%3D%7CsomeValue&var-filters=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable'
+      '?var-filters=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable&var-filters=someFilter%7C%3D%7CsomeValue'
     );
 
     // restore it, URL should be cleaned
@@ -1333,7 +1333,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       operator: '=',
     });
   });
-  
+
   it('should reset dashboard level filters if they are edited on unmount', () => {
     const { filtersVar, unmount } = setup({
       originFilters: [
@@ -3169,7 +3169,10 @@ describe('validateOriginFilters', () => {
 
     // Seed original values directly
     filtersVar['_originalValues'].set(`key1${VALUE_KEY_DELIMITER}dashboard`, { value: ['val1'], operator: '=' });
-    filtersVar['_originalValues'].set(`key2${VALUE_KEY_DELIMITER}dashboard`, { value: ['valA', 'valB'], operator: '=|' });
+    filtersVar['_originalValues'].set(`key2${VALUE_KEY_DELIMITER}dashboard`, {
+      value: ['valA', 'valB'],
+      operator: '=|',
+    });
 
     return filtersVar;
   }
@@ -3940,6 +3943,62 @@ describe('group-by', () => {
       expect(filtersVar.state.filters.filter((f) => f.operator === 'groupBy')).toHaveLength(0);
       expect(filtersVar.state.originFilters![0].dismissedGroupBy).toBe(false);
       expect(filtersVar.state.originFilters![0].restorable).toBe(false);
+    });
+
+    describe('isGroupByRestorable', () => {
+      it('returns false when there are no origin groupBy filters', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [{ key: 'cpu', operator: '=', value: 'val', origin: 'dashboard', condition: '' }],
+          enableGroupBy: true,
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(false);
+      });
+
+      it('returns false when origin groupBy defaults are untouched and no user groupBys exist', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [
+            { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+            { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          ],
+          enableGroupBy: true,
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(false);
+      });
+
+      it('returns true when a groupBy origin is dismissed', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [
+            { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+            { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          ],
+          enableGroupBy: true,
+        });
+
+        act(() => {
+          filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(true);
+      });
+
+      it('returns true when a user-added groupBy exists even if defaults are untouched', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [{ key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' }],
+          enableGroupBy: true,
+        });
+
+        act(() => {
+          filtersVar._addGroupByFilter({ value: 'service', label: 'service' });
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(true);
+      });
     });
   });
 });

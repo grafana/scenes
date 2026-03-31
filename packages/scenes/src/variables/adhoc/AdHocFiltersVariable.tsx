@@ -627,6 +627,23 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Whether the groupBy state has diverged from defaults (any dismissed or user-added groupBys).
+   */
+  public isGroupByRestorable(): boolean {
+    const originFilters = this.state.originFilters ?? [];
+    const hasOriginGroupBy = originFilters.some((f) => isGroupByFilter(f) && f.origin);
+
+    if (!hasOriginGroupBy) {
+      return false;
+    }
+
+    const hasDismissedOrRestorable = originFilters.some((f) => isGroupByFilter(f) && f.origin && f.restorable);
+    const hasUserGroupBy = this.state.filters.some(isGroupByFilter);
+
+    return hasDismissedOrRestorable || hasUserGroupBy;
+  }
+
+  /**
    * Restore all original group by filters.
    */
   public restoreOriginalGroupBy(): void {

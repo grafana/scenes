@@ -28,6 +28,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
       enableGroupBy: state.enableGroupBy,
+      groupByRestorable: this.model.isGroupByRestorable(),
     };
   }
 
