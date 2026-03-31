@@ -6,6 +6,7 @@ import {
   AdHocFiltersVariableState,
   AdHocFilterWithLabels,
   GROUP_BY_OPERATOR,
+  VALUE_KEY_DELIMITER,
   isFilterComplete,
   isGroupByFilter,
 } from './AdHocFiltersVariable';
@@ -1463,7 +1464,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     expect(filtersVar.state.originFilters![0].value).toBe('newValue1');
     expect(filtersVar.state.originFilters![0].values).toEqual(['newValue1']);
-    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    const key = `${filtersVar.state.originFilters![0].key}${VALUE_KEY_DELIMITER}${
+      filtersVar.state.originFilters![0].origin
+    }`;
     expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1', 'originValue2']);
     expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=|');
     expect(filtersVar['_originalValues'].get(key)!.valueLabels).toBeUndefined();
@@ -1519,7 +1522,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.originFilters![0].restorable).toEqual(true);
-    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    const key = `${filtersVar.state.originFilters![0].key}${VALUE_KEY_DELIMITER}${
+      filtersVar.state.originFilters![0].origin
+    }`;
     expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1']);
     expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=');
 

@@ -451,7 +451,7 @@ export class AdHocFiltersVariable
     operator: string,
     singleValue: string
   ): { restorable: boolean; matchAllFilter: boolean } {
-    const original = this._originalValues.get(`${key}-${origin}`);
+    const original = this._originalValues.get(originalValueKey({ key, origin, operator }));
     const isMatchAll = operator === '=~' && singleValue === '.*';
     const isRestorable = !isEqual(values, original?.value) || operator !== original?.operator;
 
@@ -467,7 +467,7 @@ export class AdHocFiltersVariable
         return filter;
       }
 
-      if (!this._originalValues.has(`${filter.key}-${filter.origin}`)) {
+      if (!this._originalValues.has(originalValueKey(filter))) {
         return filter;
       }
 
@@ -551,7 +551,7 @@ export class AdHocFiltersVariable
       return;
     }
 
-    const originalFilter = this._originalValues.get(`${filter.key}-${filter.origin}`);
+    const originalFilter = this._originalValues.get(originalValueKey(filter));
     if (!originalFilter) {
       return;
     }
@@ -574,14 +574,14 @@ export class AdHocFiltersVariable
   public getOriginalValue(
     filter: AdHocFilterWithLabels
   ): { value: string[]; operator: string; valueLabels?: string[]; keyLabel?: string } | undefined {
-    return this._originalValues.get(`${filter.key}-${filter.origin}`);
+    return this._originalValues.get(originalValueKey(filter));
   }
 
   /**
    * Store a snapshot of the filter's current value and operator so it can be restored later.
    */
   private _setOriginalValue(filter: AdHocFilterWithLabels): void {
-    this._originalValues.set(`${filter.key}-${filter.origin}`, {
+    this._originalValues.set(originalValueKey(filter), {
       value: filter.values ?? [filter.value],
       operator: filter.operator,
       ...(filter.valueLabels && { valueLabels: filter.valueLabels }),
@@ -595,9 +595,14 @@ export class AdHocFiltersVariable
    */
   public getOriginalFilters(): AdHocFilterWithLabels[] {
     return [...this._originalValues.entries()].map(([mapKey, original]) => {
-      const delimiter = mapKey.lastIndexOf('-');
-      const key = mapKey.substring(0, delimiter);
-      const origin = mapKey.substring(delimiter + 1);
+      const suffix = `${VALUE_KEY_DELIMITER}${GROUP_BY_OPERATOR}`;
+      const isGroupBy = mapKey.endsWith(suffix);
+      const baseKey = isGroupBy ? mapKey.slice(0, -suffix.length) : mapKey;
+
+      const delimiter = baseKey.lastIndexOf(VALUE_KEY_DELIMITER);
+      const key = baseKey.substring(0, delimiter);
+      const origin = baseKey.substring(delimiter + VALUE_KEY_DELIMITER.length);
+
       return {
         key,
         origin,
@@ -942,7 +947,7 @@ export class AdHocFiltersVariable
           f.nonApplicableReason = filter.reason;
         }
 
-        const originalValue = this._originalValues.get(`${f.key}-${f.origin}`);
+        const originalValue = this._originalValues.get(originalValueKey(f));
         if (originalValue) {
           originalValue.nonApplicable = !filter.applicable;
           originalValue.nonApplicableReason = filter?.reason;
@@ -1237,6 +1242,7 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
 }
 
 export const GROUP_BY_OPERATOR = 'groupBy';
+export const VALUE_KEY_DELIMITER = '::';
 
 export function isGroupByFilter(filter: AdHocFilterWithLabels): boolean {
   return filter.operator === GROUP_BY_OPERATOR;
@@ -1257,6 +1263,12 @@ function findLastAdhocFilterIndex(filters: AdHocFilterWithLabels[]): number {
     }
   }
   return -1;
+}
+
+function originalValueKey({ key, origin, operator }: { key: string; origin?: string; operator: string }): string {
+  return operator === GROUP_BY_OPERATOR
+    ? `${key}${VALUE_KEY_DELIMITER}${origin}${VALUE_KEY_DELIMITER}${GROUP_BY_OPERATOR}`
+    : `${key}${VALUE_KEY_DELIMITER}${origin}`;
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {
