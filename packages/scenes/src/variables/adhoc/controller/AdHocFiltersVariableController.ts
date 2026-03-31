@@ -1,4 +1,4 @@
-import { SelectableValue } from '@grafana/data';
+import { SelectableValue, VariableHide } from '@grafana/data';
 import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
 import { AdHocFiltersController, AdHocFiltersControllerState } from './AdHocFiltersController';
 import { getQueryController } from '../../../core/sceneGraph/getQueryController';
@@ -28,6 +28,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
       enableGroupBy: state.enableGroupBy,
+      hideLabel: state.hide === VariableHide.hideLabel,
     };
   }
 
