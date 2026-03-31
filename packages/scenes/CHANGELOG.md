@@ -1,3 +1,16 @@
+# v7.2.1 (Tue Mar 31 2026)
+
+#### 🐛 Bug Fix
+
+- Filters: Unified groupbys with filters in SQR [#1405](https://github.com/grafana/scenes/pull/1405) ([@mdvictor](https://github.com/mdvictor) [@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 2
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.2.0 (Mon Mar 30 2026)
 
 #### 🚀 Enhancement
