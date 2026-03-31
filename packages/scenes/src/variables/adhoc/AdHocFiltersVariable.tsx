@@ -415,6 +415,7 @@ export class AdHocFiltersVariable
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
+    let groupByChanged = false;
 
     if (
       ((update.filters && update.filters !== this.state.filters) ||
@@ -426,11 +427,15 @@ export class AdHocFiltersVariable
 
       update.filterExpression = renderExpression(this.state.expressionBuilder, [...(originFilters ?? []), ...filters]);
       filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
+      groupByChanged = haveGroupByKeysChanged(
+        [...(this.state.originFilters ?? []), ...this.state.filters],
+        [...(originFilters ?? []), ...filters]
+      );
     }
 
     super.setState(update);
 
-    if (filterExpressionChanged) {
+    if (filterExpressionChanged || groupByChanged) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -494,6 +499,7 @@ export class AdHocFiltersVariable
     }
   ): void {
     let filterExpressionChanged = false;
+    let groupByChanged = false;
     let filterExpression: string | undefined = undefined;
 
     if (filters && filters !== this.state.filters) {
@@ -502,6 +508,7 @@ export class AdHocFiltersVariable
         ...filters,
       ]);
       filterExpressionChanged = filterExpression !== this.state.filterExpression;
+      groupByChanged = haveGroupByKeysChanged(this.state.filters, filters);
     }
 
     super.setState({
@@ -509,16 +516,20 @@ export class AdHocFiltersVariable
       filterExpression,
     });
 
-    if ((filterExpressionChanged && options?.skipPublish !== true) || options?.forcePublish) {
+    if (((filterExpressionChanged || groupByChanged) && options?.skipPublish !== true) || options?.forcePublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
 
   /**
    * Add a group-by filter (key only, operator 'groupBy', no value).
-   * Only relevant when enableGroupBy is true.
+   * No-op when enableGroupBy is false.
    */
   public _addGroupByFilter(item: SelectableValue<string>): void {
+    if (!this.state.enableGroupBy) {
+      return;
+    }
+
     const key = item.value ?? '';
     const keyLabel = item.label ?? key;
     const newFilter: AdHocFilterWithLabels = {
@@ -880,9 +891,10 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const applicableOriginFilters = this.state.originFilters?.filter((f) => !f.nonApplicable) ?? [];
+    const applicableOriginFilters =
+      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f)) ?? [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== currentKey && !f.nonApplicable)
+      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f))
       .concat(this.state.baseFilters ?? [])
       .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
@@ -916,6 +928,10 @@ export class AdHocFiltersVariable
    * Get possible group-by keys.
    */
   public async _getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    if (!this.state.enableGroupBy) {
+      return [];
+    }
+
     const override = await this.state.getGroupByKeysProvider?.(this, currentKey);
 
     if (override && override.replace) {
@@ -928,12 +944,18 @@ export class AdHocFiltersVariable
       return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
     }
 
+    const applicableOriginFilters =
+      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f)) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f))
+      .concat(this.state.baseFilters ?? [])
+      .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
     // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     const response = await ds.getGroupByKeys({
-      filters: [],
+      filters: otherFilters,
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
@@ -973,9 +995,10 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key) ?? [];
-    // Filter out the current filter key from the list of all filters
-    const otherFilters = this.state.filters.filter((f) => f.key !== filter.key).concat(originFilters);
+    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key && !isGroupByFilter(f)) ?? [];
+    const otherFilters = this.state.filters
+      .filter((f) => f.key !== filter.key && !isGroupByFilter(f))
+      .concat(originFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
@@ -1046,7 +1069,27 @@ function renderExpression(
   builder: AdHocVariableExpressionBuilderFn | undefined,
   filters: AdHocFilterWithLabels[] | undefined
 ) {
-  return (builder ?? renderPrometheusLabelFilters)(filters?.filter((f) => isFilterApplicable(f)) ?? []);
+  return (builder ?? renderPrometheusLabelFilters)(
+    filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f)) ?? []
+  );
+}
+
+function getGroupByKeys(filters: AdHocFilterWithLabels[]): string[] {
+  return filters
+    .filter((f) => isGroupByFilter(f) && isFilterComplete(f))
+    .map((f) => f.key)
+    .sort();
+}
+
+function haveGroupByKeysChanged(prev: AdHocFilterWithLabels[], next: AdHocFilterWithLabels[]): boolean {
+  const prevKeys = getGroupByKeys(prev);
+  const nextKeys = getGroupByKeys(next);
+
+  if (prevKeys.length !== nextKeys.length) {
+    return true;
+  }
+
+  return prevKeys.some((key, i) => key !== nextKeys[i]);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
@@ -1112,8 +1155,10 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
   return filter.operator === '=~' && filter.value === '.*';
 }
 
+export const GROUP_BY_OPERATOR = 'groupBy';
+
 export function isGroupByFilter(filter: AdHocFilterWithLabels): boolean {
-  return filter.operator === 'groupBy';
+  return filter.operator === GROUP_BY_OPERATOR;
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
