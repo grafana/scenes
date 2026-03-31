@@ -112,6 +112,7 @@
         "collapse": "Collapse",
         "collapse-filters": "Collapse filters",
         "expand-filters": "Expand filters",
+        "filters-label": "Filters:",
         "group-by-label": "Group by:",
         "show-more-filters_one": "Show {{count}} more filters",
         "show-more-filters_other": "Show {{count}} more filters",
