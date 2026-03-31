@@ -695,6 +695,8 @@ export class AdHocFiltersVariable
           return f;
         });
 
+        // The original default is dismissed (preserved for restore); the user's
+        // new key becomes a separate user filter so it doesn't overwrite the default.
         const newFilter: AdHocFilterWithLabels = {
           key: update.key as string,
           keyLabel: (update.keyLabel as string) ?? (update.key as string),

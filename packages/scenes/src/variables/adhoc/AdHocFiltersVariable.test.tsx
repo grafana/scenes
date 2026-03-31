@@ -3826,7 +3826,7 @@ describe('group-by', () => {
       expect(variable.state.filterExpression).toBe('host="web-1"');
     });
   });
-  
+
   describe('default group by (origin filters with operator groupBy)', () => {
     it('updateToMatchAll sets dismissedGroupBy on groupBy origin and marks siblings restorable', () => {
       const { filtersVar } = setup({
@@ -3917,9 +3917,7 @@ describe('group-by', () => {
     it('clearAll removes user groupBy filters along with adhoc filters', () => {
       const { filtersVar } = setup({
         filters: setTemplateSrvWithFilters([]),
-        originFilters: [
-          { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
-        ],
+        originFilters: [{ key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' }],
         enableGroupBy: true,
       });
 
