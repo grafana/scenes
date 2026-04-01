@@ -1032,8 +1032,14 @@ export class AdHocFiltersVariable
 
   /**
    * Get possible group-by keys.
+   * @param currentKey - The current key being edited (excluded from filters)
+   * @param queries - Optional queries to scope the key lookup. When provided, these are used
+   *   instead of discovering all queries in the scene via getQueriesForVariables.
    */
-  public async _getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+  public async _getGroupByKeys(
+    currentKey: string | null,
+    queries?: SceneDataQuery[]
+  ): Promise<Array<SelectableValue<string>>> {
     if (!this.state.enableGroupBy) {
       return [];
     }
@@ -1057,12 +1063,13 @@ export class AdHocFiltersVariable
       .concat(this.state.baseFilters ?? [])
       .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+    const queriesForKeys =
+      queries ?? (this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined);
 
     // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     const response = await ds.getGroupByKeys({
       filters: otherFilters,
-      queries,
+      queries: queriesForKeys,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
