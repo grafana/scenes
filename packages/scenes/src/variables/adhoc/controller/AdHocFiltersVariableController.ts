@@ -16,7 +16,6 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
     const state = this.model.useState();
 
     return {
-      key: state.key,
       filters: state.filters,
       originFilters: state.originFilters,
       readOnly: state.readOnly,

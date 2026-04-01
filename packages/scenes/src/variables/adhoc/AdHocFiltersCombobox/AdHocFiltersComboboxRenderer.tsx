@@ -7,7 +7,6 @@ import { useMeasure } from 'react-use';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
-import { getVariableControlId } from '../../utils';
 import { GroupByPill } from './GroupByPill';
 import { isGroupByFilter } from '../AdHocFiltersVariable';
 import { AdHocGroupByRecommendationsRenderer } from '../AdHocFiltersRecommendations';
@@ -27,8 +26,6 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
   const [wrapperRef, { height: wrapperHeight }] = useMeasure<HTMLDivElement>();
-
-  const variableState = controller.useState();
 
   const clearAll = () => {
     controller.clearAll?.();
