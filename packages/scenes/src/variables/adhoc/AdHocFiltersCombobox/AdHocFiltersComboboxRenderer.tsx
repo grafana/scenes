@@ -96,8 +96,6 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     >
       {!readOnly && valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 
-      {valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
-
       {adhocFiltersToRender.length > 0 && (
         // if there are filters already selected, this makes sure
         // that the input is announced before focussing on the pills
