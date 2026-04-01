@@ -30,9 +30,6 @@
         "group-by-key": "Group by {{keyLabel}}",
         "remove-group-by-key": "Remove group by {{keyLabel}}"
       },
-      "lazy-loader": {
-        "placeholder": "\u00a0"
-      },
       "nested-scene-renderer": {
         "collapse-button-label": "Collapse scene",
         "expand-button-label": "Expand scene",
