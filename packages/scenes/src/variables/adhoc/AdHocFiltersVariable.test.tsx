@@ -59,7 +59,7 @@ function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariabl
 }
 
 const getKeyComboboxElement = () => getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox')[0];
-const getAdHocInputElement = () => screen.getByPlaceholderText('Filter by label values');
+const getAdHocInputElement = () => screen.getByPlaceholderText('+ label = value');
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
