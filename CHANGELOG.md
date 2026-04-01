@@ -1,3 +1,152 @@
+# v7.3.3 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: GroupBy panel action refactor to not use applicability [#1414](https://github.com/grafana/scenes/pull/1414) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.2 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Do not pass matchall filters to getKey methods [#1413](https://github.com/grafana/scenes/pull/1413) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.1 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Move recommendations to unified adhoc [#1406](https://github.com/grafana/scenes/pull/1406) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.0 (Tue Mar 31 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Adhoc: introduces default groupbys [#1411](https://github.com/grafana/scenes/pull/1411) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.2.1 (Tue Mar 31 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Unified groupbys with filters in SQR [#1405](https://github.com/grafana/scenes/pull/1405) ([@mdvictor](https://github.com/mdvictor) [@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 2
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.2.0 (Mon Mar 30 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHoc: add groupby and adhoc unified UI [#1402](https://github.com/grafana/scenes/pull/1402) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.9 (Mon Mar 30 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHoc: Preserve value labels when storing and restoring origin filters [#1409](https://github.com/grafana/scenes/pull/1409) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - Fix URL sync instability for duplicate variable names [#1395](https://github.com/grafana/scenes/pull/1395) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 2
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.8 (Tue Mar 24 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Adhoc: improved collapsible state [#1403](https://github.com/grafana/scenes/pull/1403) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - feat(adhoc): extend controller and variable for group-by operator (no UI) [#1399](https://github.com/grafana/scenes/pull/1399) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - Rows: Announce row title in the collapse button [#1396](https://github.com/grafana/scenes/pull/1396) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 2
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.7 (Fri Mar 13 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersRecommendations: Dedupe filters [#1379](https://github.com/grafana/scenes/pull/1379) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.1.6 (Thu Mar 12 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: filter values [#1391](https://github.com/grafana/scenes/pull/1391) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.5 (Thu Mar 12 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add SetExactly mode to series visibility config factory [#1385](https://github.com/grafana/scenes/pull/1385) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v7.1.4 (Tue Mar 10 2026)
 
 #### 🐛 Bug Fix

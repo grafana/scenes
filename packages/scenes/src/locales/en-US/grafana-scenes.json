@@ -11,6 +11,9 @@
         "remove-filter-value": "Remove filter value - {{itemLabel}}",
         "use-custom-value": "Use custom value: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": "Remove {{label}}"
+      },
       "drilldown-recommendations": {
         "recent": "Recent",
         "recent-empty": "No recent values",
@@ -22,6 +25,11 @@
         "content": "If you found your way here using a link then there might be a bug in this application.",
         "subTitle": "The url did not match any page",
         "title": "Not found"
+      },
+      "group-by-pill": {
+        "applied-by-default": "Applied by default in this dashboard. If edited, it carries over to other dashboards.",
+        "group-by-key": "Group by {{keyLabel}}",
+        "remove-group-by-key": "Remove group by {{keyLabel}}"
       },
       "lazy-loader": {
         "placeholder": "\u00a0"
@@ -37,8 +45,8 @@
         "title-scene-debugger": "Scene debugger"
       },
       "scene-grid-row": {
-        "collapse-row": "Collapse row",
-        "expand-row": "Expand row"
+        "collapse-row": "Collapse row with title {{title}}",
+        "expand-row": "Expand row with title {{title}}"
       },
       "scene-refresh-picker": {
         "text-cancel": "Cancel",
@@ -101,8 +109,16 @@
         }
       },
       "adhoc-filters-combobox-renderer": {
+        "clear-all": "Clear all",
         "collapse": "Collapse",
-        "collapse-filters": "Collapse filters"
+        "collapse-filters": "Collapse filters",
+        "expand-filters": "Expand filters",
+        "group-by-label": "Group by:",
+        "restore-default-group-by": "Restore groupby set by this dashboard.",
+        "show-more-filters_one": "Show {{count}} more filters",
+        "show-more-filters_other": "Show {{count}} more filters",
+        "show-more-group-by_one": "Show {{count}} more group by keys",
+        "show-more-group-by_other": "Show {{count}} more group by keys"
       },
       "data-source-variable": {
         "label": {

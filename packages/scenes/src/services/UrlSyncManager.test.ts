@@ -5,7 +5,7 @@ import { locationService } from '@grafana/runtime';
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneTimeRange } from '../core/SceneTimeRange';
-import { SceneObjectState, SceneObjectUrlValues } from '../core/types';
+import { SceneObjectState, SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../core/types';
 
 import { SceneObjectUrlSyncConfig } from './SceneObjectUrlSyncConfig';
 import { UrlSyncManager } from './UrlSyncManager';
@@ -47,6 +47,70 @@ class TestObj extends SceneObjectBase<TestObjectState> {
 
     if (values.hasOwnProperty('nested') && !this.state.nested) {
       this.setState({ nested: new TestObj({ name: 'default name' }) });
+    }
+  }
+}
+
+interface DynamicKeyObjState extends SceneObjectState {
+  urlKey: string;
+  value: string;
+}
+
+class DynamicKeyObj extends SceneObjectBase<DynamicKeyObjState> {
+  protected _urlSync: SceneObjectUrlSyncHandler = new DynamicKeyObjUrlSyncHandler(this);
+}
+
+class DynamicKeyObjUrlSyncHandler implements SceneObjectUrlSyncHandler {
+  public constructor(private _sceneObject: DynamicKeyObj) {}
+
+  private getKey() {
+    return `var-${this._sceneObject.state.urlKey}`;
+  }
+
+  public getKeys() {
+    return [this.getKey()];
+  }
+
+  public getUrlState() {
+    return { [this.getKey()]: this._sceneObject.state.value };
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues) {
+    const value = values[this.getKey()];
+    if (typeof value === 'string') {
+      this._sceneObject.setState({ value });
+    }
+  }
+}
+
+interface ConditionalClearObjState extends SceneObjectState {
+  value: string;
+  optional?: string;
+  shouldClearOptional?: boolean;
+}
+
+class ConditionalClearObj extends SceneObjectBase<ConditionalClearObjState> {
+  protected _urlSync = new SceneObjectUrlSyncConfig(this, { keys: ['value', 'optional'] });
+
+  public getUrlState() {
+    const urlState: SceneObjectUrlValues = {
+      value: this.state.value,
+    };
+
+    if (this.state.shouldClearOptional) {
+      urlState.optional = null;
+    }
+
+    return urlState;
+  }
+
+  public updateFromUrl(values: SceneObjectUrlValues) {
+    if (typeof values.value === 'string') {
+      this.setState({ value: values.value });
+    }
+
+    if (values.hasOwnProperty('optional')) {
+      this.setState({ optional: typeof values.optional === 'string' ? values.optional : undefined });
     }
   }
 }
@@ -128,6 +192,71 @@ describe.each([
 
         // Should not update url
         expect(locationUpdates.length).toBe(1);
+      });
+
+      it('should remove stale URL key when object url key changes', () => {
+        const obj = new DynamicKeyObj({ urlKey: 'custom1', value: 'value-a' });
+        const keyPrefix = options?.namespace ? `${options.namespace}-` : '';
+        scene = new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: obj })],
+        });
+
+        urlManager = new UrlSyncManager({ ...options, updateUrlOnInit: true });
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        expect(locationService.getSearchObject()).toEqual({ [`${keyPrefix}var-custom1`]: 'value-a' });
+
+        obj.setState({ urlKey: 'custom0' });
+
+        expect(locationService.getSearchObject()).toEqual({ [`${keyPrefix}var-custom0`]: 'value-a' });
+      });
+
+      it('should not remove declared keys omitted from getUrlState', () => {
+        const obj = new ConditionalClearObj({ value: 'a' });
+        const keyPrefix = options?.namespace ? `${options.namespace}-` : '';
+        const optionalKey = `${keyPrefix}optional`;
+        const valueKey = `${keyPrefix}value`;
+
+        scene = new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: obj })],
+        });
+
+        locationService.partial({ [optionalKey]: 'keep-me' });
+
+        urlManager = new UrlSyncManager(options);
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        obj.setState({ value: 'b' });
+
+        expect(locationService.getSearchObject()).toEqual({
+          [optionalKey]: 'keep-me',
+          [valueKey]: 'b',
+        });
+      });
+
+      it('should still clear omitted key when handler explicitly sets null', () => {
+        const obj = new ConditionalClearObj({ value: 'a' });
+        const keyPrefix = options?.namespace ? `${options.namespace}-` : '';
+        const optionalKey = `${keyPrefix}optional`;
+        const valueKey = `${keyPrefix}value`;
+
+        scene = new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: obj })],
+        });
+
+        locationService.partial({ [optionalKey]: 'clear-me' });
+
+        urlManager = new UrlSyncManager(options);
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        obj.setState({ value: 'b', shouldClearOptional: true });
+
+        expect(locationService.getSearchObject()).toEqual({
+          [valueKey]: 'b',
+        });
       });
     });
 
@@ -366,6 +495,184 @@ describe.each([
         dynamicallyAddedTimeRange2.setState({ from: 'now-1s' });
         // should still use same key
         expect(locationService.getSearchObject()['from-2']).toBe('now-1s');
+      });
+
+      it('should use scene order when duplicate key appears after rename', () => {
+        const dashboardObj = new DynamicKeyObj({ urlKey: 'custom0', value: 'dashboard' });
+        const sectionObj = new DynamicKeyObj({ urlKey: 'custom1', value: 'section' });
+        const keyPrefix = options?.namespace ? `${options.namespace}-` : '';
+
+        scene = new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: dashboardObj }), new SceneFlexItem({ body: sectionObj })],
+        });
+
+        urlManager = new UrlSyncManager({ ...options, updateUrlOnInit: true });
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        sectionObj.setState({ urlKey: 'custom0' });
+
+        expect(locationService.getSearchObject()).toEqual({
+          [`${keyPrefix}var-custom0`]: 'dashboard',
+          [`${keyPrefix}var-custom0-2`]: 'section',
+        });
+      });
+
+      it('should keep duplicate-key values mapped after re-init from URL', () => {
+        const dashboardObj = new DynamicKeyObj({ urlKey: 'custom0', value: 'dashboard' });
+        const sectionObj = new DynamicKeyObj({ urlKey: 'custom1', value: 'section' });
+
+        scene = new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: dashboardObj }), new SceneFlexItem({ body: sectionObj })],
+        });
+
+        urlManager = new UrlSyncManager({ ...options, updateUrlOnInit: true });
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        sectionObj.setState({ urlKey: 'custom0' });
+        const stableSearch = locationService.getLocation().search;
+
+        deactivate();
+        urlManager.cleanUp(scene);
+
+        const refreshedDashboardObj = new DynamicKeyObj({ urlKey: 'custom0', value: 'initial-dashboard' });
+        const refreshedSectionObj = new DynamicKeyObj({ urlKey: 'custom0', value: 'initial-section' });
+
+        scene = new SceneFlexLayout({
+          children: [
+            new SceneFlexItem({ body: refreshedDashboardObj }),
+            new SceneFlexItem({ body: refreshedSectionObj }),
+          ],
+        });
+
+        locationService.replace({ search: stableSearch });
+        urlManager = new UrlSyncManager(options);
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        expect(refreshedDashboardObj.state.value).toBe('dashboard');
+        expect(refreshedSectionObj.state.value).toBe('section');
+      });
+
+      it('should keep distinct values when URL updates duplicate keys directly', () => {
+        const keyPrefix = options?.namespace ? `${options.namespace}-` : '';
+        const dashboardObj = new DynamicKeyObj({ urlKey: 'custom0', value: 'dashboard' });
+        const sectionObj = new DynamicKeyObj({ urlKey: 'custom0', value: 'section' });
+
+        scene = new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: dashboardObj }), new SceneFlexItem({ body: sectionObj })],
+        });
+
+        urlManager = new UrlSyncManager(options);
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        updateUrlStateAndSyncState(
+          {
+            [`${keyPrefix}var-custom0`]: 'foo',
+            [`${keyPrefix}var-custom0-2`]: 'bar',
+          },
+          urlManager
+        );
+
+        expect(dashboardObj.state.value).toBe('foo');
+        expect(sectionObj.state.value).toBe('bar');
+      });
+
+      it('should keep global key unsuffixed through rename and re-init flow', () => {
+        const keyPrefix = options?.namespace ? `${options.namespace}-` : '';
+        const globalVar = new DynamicKeyObj({ urlKey: 'custom0', value: 'foo' });
+        const sectionVar = new DynamicKeyObj({ urlKey: 'custom1', value: '' });
+
+        scene = new SceneFlexLayout({
+          children: [
+            new SceneFlexItem({ body: globalVar }),
+            new SceneFlexItem({
+              body: new SceneFlexLayout({
+                children: [new SceneFlexItem({ body: sectionVar })],
+              }),
+            }),
+          ],
+        });
+
+        urlManager = new UrlSyncManager({ ...options, updateUrlOnInit: true });
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        // Initial edit state mirrors URL like: var-custom0=foo&var-custom1=
+        expect(locationService.getSearchObject()).toEqual({
+          [`${keyPrefix}var-custom0`]: 'foo',
+          [`${keyPrefix}var-custom1`]: '',
+        });
+
+        // Rename section variable to collide with global variable name
+        sectionVar.setState({ urlKey: 'custom0' });
+
+        expect(locationService.getSearchObject()).toEqual({
+          [`${keyPrefix}var-custom0`]: 'foo',
+          [`${keyPrefix}var-custom0-2`]: '',
+        });
+
+        // User edits URL directly and then clears URL params before reload
+        updateUrlStateAndSyncState({ [`${keyPrefix}var-custom0`]: 'bar' }, urlManager);
+        locationService.replace({ search: '' });
+
+        // Simulate reload/init behavior that writes URL from current scene state
+        urlManager.cleanUp(scene);
+        urlManager = new UrlSyncManager({ ...options, updateUrlOnInit: true });
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        expect(locationService.getSearchObject()).toEqual({
+          [`${keyPrefix}var-custom0`]: 'bar',
+          [`${keyPrefix}var-custom0-2`]: '',
+        });
+      });
+
+      it('should not swap key ownership when only unsuffixed key is edited', () => {
+        const keyPrefix = options?.namespace ? `${options.namespace}-` : '';
+        const globalVar = new DynamicKeyObj({ urlKey: 'custom0', value: 'foo' });
+        const sectionVar = new DynamicKeyObj({ urlKey: 'custom1', value: 'section' });
+
+        scene = new SceneFlexLayout({
+          children: [
+            new SceneFlexItem({ body: globalVar }),
+            new SceneFlexItem({
+              body: new SceneFlexLayout({
+                children: [new SceneFlexItem({ body: sectionVar })],
+              }),
+            }),
+          ],
+        });
+
+        urlManager = new UrlSyncManager({ ...options, updateUrlOnInit: true });
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        sectionVar.setState({ urlKey: 'custom0' });
+        expect(locationService.getSearchObject()).toEqual({
+          [`${keyPrefix}var-custom0`]: 'foo',
+          [`${keyPrefix}var-custom0-2`]: 'section',
+        });
+
+        // User edits only unsuffixed key directly in URL
+        updateUrlStateAndSyncState({ [`${keyPrefix}var-custom0`]: 'bar' }, urlManager);
+
+        expect(globalVar.state.value).toBe('bar');
+        expect(sectionVar.state.value).toBe('section');
+
+        // Clear params and re-init to mimic reload after manual URL edits
+        locationService.replace({ search: '' });
+        urlManager.cleanUp(scene);
+        urlManager = new UrlSyncManager({ ...options, updateUrlOnInit: true });
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        expect(locationService.getSearchObject()).toEqual({
+          [`${keyPrefix}var-custom0`]: 'bar',
+          [`${keyPrefix}var-custom0-2`]: 'section',
+        });
       });
     });
 

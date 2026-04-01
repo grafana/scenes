@@ -23,14 +23,21 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
       inputPlaceholder: state.inputPlaceholder,
+      groupByInputPlaceholder: state.groupByInputPlaceholder,
       collapsible: state.collapsible,
       valueRecommendations: this.model.getRecommendations(),
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
+      enableGroupBy: state.enableGroupBy,
+      groupByRestorable: this.model.isGroupByRestorable(),
     };
   }
 
   public async getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
     return this.model._getKeys(currentKey);
+  }
+
+  public async getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    return this.model._getGroupByKeys(currentKey);
   }
 
   public async getValuesFor(filter: AdHocFilterWithLabels): Promise<Array<SelectableValue<string>>> {
@@ -75,8 +82,16 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
     this.model._addWip();
   }
 
+  public addGroupByFilter(item: SelectableValue<string>): void {
+    this.model._addGroupByFilter(item);
+  }
+
   public restoreOriginalFilter(filter: AdHocFilterWithLabels): void {
     this.model.restoreOriginalFilter(filter);
+  }
+
+  public restoreOriginalGroupBy(): void {
+    this.model.restoreOriginalGroupBy();
   }
 
   public clearAll(): void {

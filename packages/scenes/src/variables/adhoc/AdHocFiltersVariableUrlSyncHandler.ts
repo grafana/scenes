@@ -4,6 +4,7 @@ import {
   AdHocFilterWithLabels,
   FilterOrigin,
   isFilterComplete,
+  isGroupByFilter,
   isMatchAllFilter,
   isMultiValueOperator,
 } from './AdHocFiltersVariable';
@@ -30,24 +31,33 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
       return { [this.getKey()]: [''] };
     }
 
+    if (originFilters?.length) {
+      value.push(
+        ...originFilters
+          .filter((f) => isFilterComplete(f) && !f.hidden && f.origin && !isGroupByFilter(f) && f.restorable)
+          .map((f) => toArray(f).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${f.origin}#restorable`))
+      );
+
+      if (this._variable.isGroupByRestorable()) {
+        const activeGroupBys = originFilters.filter((f) => isGroupByFilter(f) && f.origin && !f.dismissedGroupBy);
+        if (activeGroupBys.length > 0) {
+          value.push(
+            ...activeGroupBys.map((f) =>
+              toArray(f).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${f.origin}#restorable`)
+            )
+          );
+        } else {
+          value.push(`|groupBy#dashboard#restorable`);
+        }
+      }
+    }
+
     if (filters.length) {
       value.push(
         ...filters
           .filter(isFilterComplete)
           .filter((filter) => !filter.hidden)
           .map((filter) => toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|'))
-      );
-    }
-
-    if (originFilters?.length) {
-      // injected filters stored in the following format: normal|adhoc|values#filterOrigin#restorable
-      value.push(
-        ...originFilters
-          ?.filter(isFilterComplete)
-          .filter((filter) => !filter.hidden && filter.origin && filter.restorable)
-          .map((filter) =>
-            toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}#restorable`)
-          )
       );
     }
 
@@ -76,25 +86,60 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
 function updateOriginFilters(prevOriginFilters: AdHocFilterWithLabels[], filters: AdHocFilterWithLabels[]) {
   const updatedOriginFilters: AdHocFilterWithLabels[] = [...prevOriginFilters];
 
-  for (let i = 0; i < filters.length; i++) {
-    const foundOriginFilterIndex = prevOriginFilters.findIndex((f) => f.key === filters[i].key);
+  // Collect active groupBy keys from URL
+  const urlGroupByKeys = new Set<string>();
+  for (const f of filters) {
+    if (isGroupByFilter(f) && f.origin && f.restorable) {
+      urlGroupByKeys.add(f.key);
+    }
+  }
 
+  for (let i = 0; i < filters.length; i++) {
     // if we find a match we update originFilters with what's in the URL.
-    if (foundOriginFilterIndex > -1 && filters[i].origin === prevOriginFilters[foundOriginFilterIndex].origin) {
+    const foundOriginFilterIndex = prevOriginFilters.findIndex(
+      (f) => f.key === filters[i].key && isGroupByFilter(f) === isGroupByFilter(filters[i])
+    );
+    const isMatchedOrigin =
+      foundOriginFilterIndex > -1 && filters[i].origin === prevOriginFilters[foundOriginFilterIndex].origin;
+
+    // if it was originating from a dashoard but has no match in the new dashboard
+    // remove it's origin, turn it into a normal filter to be set below
+    if (!isMatchedOrigin && filters[i].origin === 'dashboard') {
+      delete filters[i].origin;
+      delete filters[i].restorable;
+    }
+
+    // GroupBy origin state is recovered by the dedicated block below
+    if (isGroupByFilter(filters[i])) {
+      continue;
+    }
+
+    if (isMatchedOrigin) {
       if (isMatchAllFilter(filters[i])) {
         filters[i].matchAllFilter = true;
       }
 
       updatedOriginFilters[foundOriginFilterIndex] = filters[i];
-    } else if (filters[i].origin === 'dashboard') {
-      // if it was originating from a dashoard but has no match in the new dashboard
-      // remove it's origin, turn it into a normal filter to be set below
-      delete filters[i].origin;
-      delete filters[i].restorable;
     } else if (foundOriginFilterIndex === -1 && filters[i].origin === 'scope' && filters[i].restorable) {
       // scopes are being set urlSync so we maintain all modified scopes in the adhoc
       // and leave the scopes update to reconciliate on what filters will actually show up
       updatedOriginFilters.push(filters[i]);
+    }
+  }
+
+  // Recover groupBy state from URL.
+  // Active groupBy origins are serialized with restorable: true
+  if (urlGroupByKeys.size > 0) {
+    const allDismissed = urlGroupByKeys.has('');
+    for (let i = 0; i < updatedOriginFilters.length; i++) {
+      const f = updatedOriginFilters[i];
+      if (isGroupByFilter(f) && f.origin) {
+        if (allDismissed || !urlGroupByKeys.has(f.key)) {
+          updatedOriginFilters[i] = { ...f, dismissedGroupBy: true, restorable: true };
+        } else {
+          updatedOriginFilters[i] = { ...f, dismissedGroupBy: false, restorable: true };
+        }
+      }
     }
   }
 
@@ -113,6 +158,9 @@ function deserializeUrlToFilters(value: SceneObjectUrlValue): AdHocFilterWithLab
 
 export function toArray(filter: AdHocFilterWithLabels): string[] {
   const result = [toUrlCommaDelimitedString(filter.key, filter.keyLabel), filter.operator];
+  if (isGroupByFilter(filter)) {
+    return result;
+  }
   if (isMultiValueOperator(filter.operator)) {
     // TODO remove expect-error when we're on the latest version of @grafana/data
     // @ts-expect-error
@@ -146,9 +194,9 @@ function toFilter(urlValue: string | number | boolean | undefined | null): AdHoc
     key,
     keyLabel,
     operator,
-    value: values[0],
+    value: values[0] ?? '',
     values: isMultiValueOperator(operator) ? values.filter((_, index) => index % 2 === 0) : undefined,
-    valueLabels: values.filter((_, index) => index % 2 === 1),
+    valueLabels: values.length > 0 ? values.filter((_, index) => index % 2 === 1) : undefined,
     condition: '',
     ...(isFilterOrigin(origin) && { origin }),
     ...(!!restorable && { restorable: true }),
