@@ -332,12 +332,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   /**
-   * Get possible keys given current filters. Do not call from plugins directly.
-   * @param ds - The datasource to use for fetching keys
-   * @param queries - Optional queries to scope the key lookup. When provided, these are used
-   *   instead of discovering all queries in the scene via getQueriesForVariables.
+   * Get possible keys given current filters. Do not call from plugins directly
    */
-  public _getKeys = async (ds: DataSourceApi, queries?: SceneDataQuery[]) => {
+  public _getKeys = async (ds: DataSourceApi) => {
+    // TODO:  provide current dimensions?
     const override = await this.state.getTagKeysProvider?.(this, null);
 
     if (override && override.replace) {
@@ -356,13 +354,13 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     // @ts-expect-error (temporary till we update grafana/data)
     const keyMethod = (ds.getGroupByKeys || ds.getTagKeys).bind(ds);
 
-    const queriesForKeys = queries ?? getQueriesForVariables(this);
+    const queries = getQueriesForVariables(this);
 
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const response = await keyMethod({
       filters: otherFilters,
-      queries: queriesForKeys,
+      queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
