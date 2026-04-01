@@ -1,3 +1,16 @@
+# v7.3.2 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Do not pass matchall filters to getKey methods [#1413](https://github.com/grafana/scenes/pull/1413) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.3.1 (Wed Apr 01 2026)
 
 #### 🐛 Bug Fix
