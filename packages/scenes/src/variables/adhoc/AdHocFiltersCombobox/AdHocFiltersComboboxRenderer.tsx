@@ -20,7 +20,8 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, collapsible, valueRecommendations, enableGroupBy } = controller.useState();
+  const { originFilters, filters, readOnly, collapsible, valueRecommendations, enableGroupBy, groupByRestorable } =
+    controller.useState();
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
@@ -53,7 +54,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   };
 
   // Combine all visible filters into one array
-  const visibleOriginFilters = originFilters?.filter((f) => f.origin) ?? [];
+  const visibleOriginFilters = originFilters?.filter((f) => f.origin && !f.hidden && !f.dismissedGroupBy) ?? [];
   const visibleFilters = filters.filter((f) => !f.hidden);
   const allFilters = [...visibleOriginFilters, ...visibleFilters];
   const totalFiltersCount = allFilters.length;
@@ -171,6 +172,19 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
               isGroupBy
             />
           )}
+
+          {groupByRestorable && (
+            <IconButton
+              name="history"
+              size="md"
+              className={styles.controlButton}
+              tooltip={t(
+                'grafana-scenes.variables.adhoc-filters-combobox-renderer.restore-default-group-by',
+                'Restore groupby set by this dashboard.'
+              )}
+              onClick={() => controller.restoreOriginalGroupBy?.()}
+            />
+          )}
         </>
       )}
 
@@ -213,7 +227,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
             <IconButton
               name="times"
               size="md"
-              className={styles.clearAllButton}
+              className={styles.controlButton}
               tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.clear-all', 'Clear all')}
               onClick={clearAll}
             />
@@ -298,7 +312,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: theme.colors.text.primary,
     whiteSpace: 'nowrap',
   }),
-  clearAllButton: css({
+  controlButton: css({
     color: theme.colors.text.secondary,
     '&:hover': {
       color: theme.colors.text.primary,

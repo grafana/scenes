@@ -1,3 +1,15 @@
+# v7.3.0 (Tue Mar 31 2026)
+
+#### 🚀 Enhancement
+
+- Adhoc: introduces default groupbys [#1411](https://github.com/grafana/scenes/pull/1411) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.2.1 (Tue Mar 31 2026)
 
 #### 🐛 Bug Fix
