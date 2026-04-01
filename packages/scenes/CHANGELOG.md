@@ -1,3 +1,15 @@
+# v7.3.3 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- Filters: GroupBy panel action refactor to not use applicability [#1414](https://github.com/grafana/scenes/pull/1414) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.3.2 (Wed Apr 01 2026)
 
 #### 🐛 Bug Fix
