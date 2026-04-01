@@ -163,17 +163,25 @@ export const generateFilterUpdatePayload = ({
   };
 };
 
-export const INPUT_PLACEHOLDER_DEFAULT = 'Filter by label values';
+export const INPUT_PLACEHOLDER_DEFAULT = '+ label = value';
+export const GROUP_BY_PLACEHOLDER_DEFAULT = '+ key';
 
 export const generatePlaceholder = (
   filter: AdHocFilterWithLabels,
   filterInputType: AdHocInputType,
   isMultiValueEdit: boolean,
   isAlwaysWip?: boolean,
-  inputPlaceholder?: string
+  inputPlaceholder?: string,
+  isGroupBy?: boolean
 ) => {
+  const defaultPlaceholder = isGroupBy ? GROUP_BY_PLACEHOLDER_DEFAULT : INPUT_PLACEHOLDER_DEFAULT;
+
+  if (isGroupBy && !isAlwaysWip) {
+    return filter.keyLabel || filter.key || inputPlaceholder || defaultPlaceholder;
+  }
+
   if (filterInputType === 'key') {
-    return inputPlaceholder || INPUT_PLACEHOLDER_DEFAULT;
+    return inputPlaceholder || defaultPlaceholder;
   }
   if (filterInputType === 'value') {
     if (isMultiValueEdit) {
@@ -190,7 +198,7 @@ export const generatePlaceholder = (
 
   return filter[filterInputType] && !isAlwaysWip
     ? `${filter[filterInputType]}`
-    : inputPlaceholder || INPUT_PLACEHOLDER_DEFAULT;
+    : inputPlaceholder || defaultPlaceholder;
 };
 
 export const populateInputValueOnInputTypeSwitch = ({

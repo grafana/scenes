@@ -1,3 +1,87 @@
+# v7.3.1 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Move recommendations to unified adhoc [#1406](https://github.com/grafana/scenes/pull/1406) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.0 (Tue Mar 31 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Adhoc: introduces default groupbys [#1411](https://github.com/grafana/scenes/pull/1411) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.2.1 (Tue Mar 31 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Unified groupbys with filters in SQR [#1405](https://github.com/grafana/scenes/pull/1405) ([@mdvictor](https://github.com/mdvictor) [@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 2
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.2.0 (Mon Mar 30 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHoc: add groupby and adhoc unified UI [#1402](https://github.com/grafana/scenes/pull/1402) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.9 (Mon Mar 30 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHoc: Preserve value labels when storing and restoring origin filters [#1409](https://github.com/grafana/scenes/pull/1409) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - Fix URL sync instability for duplicate variable names [#1395](https://github.com/grafana/scenes/pull/1395) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 2
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.8 (Tue Mar 24 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Adhoc: improved collapsible state [#1403](https://github.com/grafana/scenes/pull/1403) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - feat(adhoc): extend controller and variable for group-by operator (no UI) [#1399](https://github.com/grafana/scenes/pull/1399) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - Rows: Announce row title in the collapse button [#1396](https://github.com/grafana/scenes/pull/1396) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 2
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.1.7 (Fri Mar 13 2026)
 
 #### 🐛 Bug Fix
