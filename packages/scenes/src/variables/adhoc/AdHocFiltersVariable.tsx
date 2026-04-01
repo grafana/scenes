@@ -543,6 +543,7 @@ export class AdHocFiltersVariable
       value: '',
       condition: '',
     };
+    this._recommendations?.storeRecentGrouping(key);
     this.updateFilters([...this.state.filters, newFilter]);
   }
 
@@ -784,10 +785,12 @@ export class AdHocFiltersVariable
 
     this.setState({ filters: updatedFilters });
 
-    this._recommendations?.storeRecentFilter({
-      ...filter,
-      ...update,
-    });
+    const merged = { ...filter, ...update };
+    if (isGroupByFilter(merged)) {
+      this._recommendations?.storeRecentGrouping(merged.key);
+    } else {
+      this._recommendations?.storeRecentFilter(merged);
+    }
   }
 
   public updateToMatchAll(filter: AdHocFilterWithLabels) {
