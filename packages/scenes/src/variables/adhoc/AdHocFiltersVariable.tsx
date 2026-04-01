@@ -998,9 +998,9 @@ export class AdHocFiltersVariable
     }
 
     const applicableOriginFilters =
-      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f)) ?? [];
+      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f))
+      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f))
       .concat(this.state.baseFilters ?? [])
       .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
@@ -1051,9 +1051,9 @@ export class AdHocFiltersVariable
     }
 
     const applicableOriginFilters =
-      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f)) ?? [];
+      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f))
+      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f))
       .concat(this.state.baseFilters ?? [])
       .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
@@ -1101,9 +1101,11 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key && !isGroupByFilter(f)) ?? [];
+    const originFilters =
+      this.state.originFilters?.filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f)) ??
+      [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== filter.key && !isGroupByFilter(f))
+      .filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f))
       .concat(originFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;

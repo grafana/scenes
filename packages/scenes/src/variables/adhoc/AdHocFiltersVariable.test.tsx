@@ -2083,6 +2083,42 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(keys).toEqual([]);
   });
 
+  it('Should exclude match-all filters from getTagKeys call', async () => {
+    const { filtersVar, getTagKeysSpy, timeRange } = setup({
+      filters: setTemplateSrvWithFilters([
+        { key: 'key1', operator: '=~', value: '.*' },
+        { key: 'key2', operator: '=', value: 'val2' },
+      ]),
+    });
+
+    await filtersVar._getKeys(null);
+
+    expect(getTagKeysSpy).toBeCalledTimes(1);
+    expect(getTagKeysSpy).toBeCalledWith(
+      expect.objectContaining({
+        filters: [expect.objectContaining({ key: 'key2', operator: '=', value: 'val2' })],
+        timeRange: timeRange.state.value,
+      })
+    );
+  });
+
+  it('Should exclude match-all origin filters from getTagKeys call', async () => {
+    const { filtersVar, getTagKeysSpy, timeRange } = setup({
+      filters: setTemplateSrvWithFilters([]),
+      originFilters: [{ key: 'origin1', operator: '=~', value: '.*', origin: 'dashboard' }],
+    });
+
+    await filtersVar._getKeys(null);
+
+    expect(getTagKeysSpy).toBeCalledTimes(1);
+    expect(getTagKeysSpy).toBeCalledWith(
+      expect.objectContaining({
+        filters: [],
+        timeRange: timeRange.state.value,
+      })
+    );
+  });
+
   describe('variable expression / value', () => {
     it('By default renders a prometheus / loki compatible label filter', () => {
       const variable = new AdHocFiltersVariable({
