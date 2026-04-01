@@ -1,3 +1,15 @@
+# v7.3.1 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- Filters: Move recommendations to unified adhoc [#1406](https://github.com/grafana/scenes/pull/1406) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.3.0 (Tue Mar 31 2026)
 
 #### 🚀 Enhancement
