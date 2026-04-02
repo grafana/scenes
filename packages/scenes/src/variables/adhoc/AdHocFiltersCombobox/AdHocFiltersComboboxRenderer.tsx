@@ -70,6 +70,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   const groupByFiltersToRender = shouldCollapse ? groupByFilters.slice(0, MAX_VISIBLE_GROUP_BY) : groupByFilters;
   const groupByHiddenCount = shouldCollapse ? Math.max(0, groupByFilters.length - MAX_VISIBLE_GROUP_BY) : 0;
+  const variableControlId = controller.getControlId();
 
   // Reset collapsed state when there are no filters (only when collapsible)
   useEffect(() => {
@@ -91,6 +92,17 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       })}
     >
       {!readOnly && valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
+
+      {adhocFiltersToRender.length > 0 && (
+        // if there are filters already selected, this makes sure
+        // that the input is announced before focussing on the pills
+        <span
+          tabIndex={0}
+          aria-labelledby={variableControlId}
+          className={styles.screenReaderOnlyLabel}
+          data-testid="AdHocFilter-label-announcer"
+        />
+      )}
 
       {adhocFiltersToRender.map((filter, index) => (
         <AdHocFilterPill
@@ -317,5 +329,16 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       color: theme.colors.text.primary,
     },
+  }),
+  screenReaderOnlyLabel: css({
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: 0,
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
   }),
 });
