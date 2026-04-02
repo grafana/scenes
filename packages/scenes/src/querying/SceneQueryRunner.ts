@@ -90,7 +90,7 @@ function isTemplatedDatasourceUid(uid: string | undefined): boolean {
   }
 
   // Detect any variable template usage in a datasource UID so we can evaluate runtime fan-out.
-  return /\$[A-Za-z0-9_]+|\$\{[^}]+\}/.test(uid);
+  return /^(?:\$[A-Za-z0-9_]+|\$\{[^}]+\})/.test(uid);
 }
 
 function isTemplatedDatasourceRef(datasource: DataSourceRef | null | undefined): boolean {
