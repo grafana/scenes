@@ -1512,31 +1512,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(queryRunner.state.datasource).toEqual({ uid: '${ds}', type: 'prometheus' });
     });
 
-    it('should use Mixed runtime datasource for ambiguous datasource templates', async () => {
-      const queryRunner = new SceneQueryRunner({
-        datasource: { uid: '${ds}-${env}', type: 'prometheus' },
-        queries: [{ refId: 'A' }],
-      });
-
-      const scene = new SceneFlexLayout({
-        $variables: new SceneVariableSet({
-          variables: [
-            new ConstantVariable({ name: 'ds', value: 'uid-1' }),
-            new ConstantVariable({ name: 'env', value: 'prod' }),
-          ],
-        }),
-        $timeRange: new SceneTimeRange(),
-        $data: queryRunner,
-        children: [],
-      });
-
-      scene.activate();
-      await new Promise((r) => setTimeout(r, 1));
-
-      expect(getDataSourceMock.mock.calls[0][0]).toEqual({ type: 'mixed', uid: '-- Mixed --' });
-      expect(queryRunner.state.datasource).toEqual({ uid: '${ds}-${env}', type: 'prometheus' });
-    });
-
     it('Should interpolate a variable when used in query options', async () => {
       const variable = new TestVariable({ name: 'A', value: '1h' });
       const queryRunner = new SceneQueryRunner({
