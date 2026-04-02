@@ -320,7 +320,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
 function useClearPreviousData(data?: DataFrame[]) {
   // this holds all value arrays from all series or anno frames
-  // so we can empty any previous ones that no loger appear in current data
+  // so we can empty any previous ones that no longer appear in current data
   // why? because React fiber: https://github.com/facebook/react/issues/36176
   const prevVals = useRef<Set<any[]>>();
   const currVals = useRef<Set<any[]>>();
@@ -337,8 +337,8 @@ function useClearPreviousData(data?: DataFrame[]) {
     for (let i = 0; i < currFrames.length; i++) {
       let fields = currFrames[i].fields;
 
-      for (let i = 0; i < fields.length; i++) {
-        currVals.current.add(fields[i].values);
+      for (let j = 0; j < fields.length; j++) {
+        currVals.current.add(fields[j].values);
       }
     }
 
