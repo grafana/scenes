@@ -1,3 +1,16 @@
+# v7.3.8 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SQR: Fix datasource-template runtime routing for multi-select fan-out [#1416](https://github.com/grafana/scenes/pull/1416) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 1
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+
+---
+
 # v7.3.7 (Thu Apr 02 2026)
 
 #### 🐛 Bug Fix
