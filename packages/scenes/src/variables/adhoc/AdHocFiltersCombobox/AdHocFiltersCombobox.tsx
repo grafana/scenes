@@ -709,7 +709,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       <input
         {...getReferenceProps({
           ref: refs.setReference,
-          id: controller.getControlId(),
+          id: controller.getControlId?.(),
           onChange,
           value: inputValue,
           // dynamic placeholder to display operator and/or value in filter edit mode
