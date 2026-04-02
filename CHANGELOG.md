@@ -1,3 +1,16 @@
+# v7.3.4 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: NonApplicability adapt to unified experience [#1407](https://github.com/grafana/scenes/pull/1407) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.3.3 (Wed Apr 01 2026)
 
 #### 🐛 Bug Fix
