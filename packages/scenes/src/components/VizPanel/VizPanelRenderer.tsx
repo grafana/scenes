@@ -12,7 +12,7 @@ import {
   SetPanelAttentionEvent,
 } from '@grafana/data';
 
-import { config, getAppEvents } from '@grafana/runtime';
+import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
@@ -44,6 +44,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     collapsible,
     collapsed,
     _renderCounter = 0,
+    _UNSAFE_clearPreviousFieldValues = false,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const appEvents = useMemo(() => getAppEvents(), []);
@@ -93,11 +94,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   const rawData = dataObject.useState();
 
-  // @ts-ignore
-  const clearPreviousFieldValues = Boolean(config.featureToggles.clearPreviousFieldValues);
-
-  const { series, annotations } = clearPreviousFieldValues ? rawData.data ?? {} : {};
-
+  const { series, annotations } = _UNSAFE_clearPreviousFieldValues ? rawData.data ?? {} : {};
   useClearPreviousData(series);
   useClearPreviousData(annotations);
 
