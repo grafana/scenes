@@ -390,7 +390,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     this._timeSubRange = timeRange;
     this._timeSub = timeRange.subscribeToState(() => {
-      this.runWithTimeRange(timeRange);
+      // setTimeout to let SceneVariableSet also respond to time range change
+      // So that variables that depend on time range have time to switch to loading state
+      setTimeout(() => this.runWithTimeRange(timeRange), 0);
     });
   }
 

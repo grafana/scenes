@@ -131,7 +131,7 @@ export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export { type SceneGridItemStateLike, type SceneGridItemLike } from './components/layout/grid/types';
 export { SplitLayout } from './components/layout/split/SplitLayout';
-export { LazyLoader } from './components/layout/LazyLoader';
+export { LazyLoader, type LazyLoaderMode } from './components/layout/LazyLoader';
 export {
   type SceneAppPageLike,
   type SceneRouteMatch,
