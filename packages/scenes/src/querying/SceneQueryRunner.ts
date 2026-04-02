@@ -150,9 +150,7 @@ function shouldUseMixedRuntimeDatasource(
     if (variableName) {
       const selectionCount = getDatasourceVariableSelectionCount(sceneObject, variableName);
 
-      // If we cannot determine selected count for a simple variable reference,
-      // prefer the safe fallback that preserves fan-out correctness.
-      if (selectionCount === undefined || selectionCount > 1) {
+      if (selectionCount !== undefined && selectionCount > 1) {
         return true;
       }
 
