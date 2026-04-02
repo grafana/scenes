@@ -28,6 +28,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     valueRecommendations,
     enableGroupBy,
     hideLabel,
+    variableLabel,
     groupByRestorable,
   } = controller.useState();
   const styles = useStyles2(getStyles);
@@ -102,8 +103,10 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       {!readOnly && valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 
       {enableGroupBy && hideLabel && (
-        <span className={styles.filtersLabel}>
-          {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.filters-label', 'Filters:')}
+        <span id={`${variableControlId}-label`} className={styles.filtersLabel}>
+          {variableLabel
+            ? `${variableLabel}:`
+            : t('grafana-scenes.variables.adhoc-filters-combobox-renderer.filters-label', 'Filters:')}
         </span>
       )}
 
@@ -112,7 +115,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
         // that the input is announced before focussing on the pills
         <span
           tabIndex={0}
-          aria-labelledby={variableControlId}
+          aria-labelledby={hideLabel ? `${variableControlId}-label` : variableControlId}
           className={styles.screenReaderOnlyLabel}
           data-testid="AdHocFilter-label-announcer"
         />

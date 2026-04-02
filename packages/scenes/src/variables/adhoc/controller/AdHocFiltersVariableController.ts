@@ -30,6 +30,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
       enableGroupBy: state.enableGroupBy,
       hideLabel: state.hide === VariableHide.hideLabel,
+      variableLabel: state.label,
       groupByRestorable: this.model.isGroupByRestorable(),
     };
   }
