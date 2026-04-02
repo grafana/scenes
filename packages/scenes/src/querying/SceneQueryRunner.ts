@@ -101,9 +101,6 @@ function getSimpleVariableNameFromDatasourceUid(uid: string | undefined): string
   if (!uid) {
     return undefined;
   }
-
-  // Only simple variable references are optimized via selection count checks.
-  // Examples: $ds or ${ds}
   const shortMatch = uid.match(/^\$([A-Za-z0-9_]+)$/);
   if (shortMatch) {
     return shortMatch[1];
