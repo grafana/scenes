@@ -1,3 +1,16 @@
+# v7.3.6 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Perf: Introduce `clearPreviousFieldValues` for mitigation of React fiber memory issue [#1392](https://github.com/grafana/scenes/pull/1392) ([@leeoniya](https://github.com/leeoniya))
+
+#### Authors: 1
+
+- Leon Sorokin ([@leeoniya](https://github.com/leeoniya))
+
+---
+
 # v7.3.5 (Thu Apr 02 2026)
 
 #### 🐛 Bug Fix
