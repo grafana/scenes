@@ -6,6 +6,7 @@ import {
   AdHocFiltersVariableState,
   AdHocFilterWithLabels,
   GROUP_BY_OPERATOR,
+  VALUE_KEY_DELIMITER,
   isFilterComplete,
   isGroupByFilter,
 } from './AdHocFiltersVariable';
@@ -56,6 +57,9 @@ function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariabl
   } as any);
   return filters;
 }
+
+const getKeyComboboxElement = () => getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox')[0];
+const getAdHocInputElement = () => screen.getByPlaceholderText('+ label = value');
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
@@ -472,8 +476,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
-      expect(getTagKeysSpy).toBeCalledTimes(1);
-      expect(getTagKeysSpy).toBeCalledWith({
+      const keyCombobox = getKeyComboboxElement();
+      await userEvent.click(keyCombobox);
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+      expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
         queries: undefined,
         timeRange: timeRange.state.value,
@@ -506,6 +512,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const keyCombobox = getKeyComboboxElement();
+      await userEvent.click(keyCombobox);
       expect(getTagKeysSpy).toBeCalledTimes(1);
       expect(getTagKeysSpy).toBeCalledWith({
         filters: [],
@@ -525,6 +533,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       }));
 
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const keyCombobox = getKeyComboboxElement();
+      await userEvent.click(keyCombobox);
       expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
         queries: [
@@ -1254,7 +1264,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=someFilter%7C%3D%7CsomeValue&var-filters=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable'
+      '?var-filters=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable&var-filters=someFilter%7C%3D%7CsomeValue'
     );
 
     // restore it, URL should be cleaned
@@ -1315,19 +1325,19 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
-    expect(filtersVar['_originalValues'].get('dbKey1-dashboard')).toEqual({
+    expect(filtersVar['_originalValues'].get(`dbKey1${VALUE_KEY_DELIMITER}dashboard`)).toEqual({
       value: ['dbValue1'],
       operator: '=',
       valueLabels: ['dbValue1:label'],
       keyLabel: 'dbKey1:label',
     });
-    expect(filtersVar['_originalValues'].get('dbKey2-dashboard')).toEqual({
+    expect(filtersVar['_originalValues'].get(`dbKey2${VALUE_KEY_DELIMITER}dashboard`)).toEqual({
       value: ['dbValue2'],
       operator: '=',
       valueLabels: ['dbValue2:label'],
       keyLabel: 'dbKey2:label',
     });
-    expect(filtersVar['_originalValues'].get('scopeKey-scope')).toEqual({
+    expect(filtersVar['_originalValues'].get(`scopeKey${VALUE_KEY_DELIMITER}scope`)).toEqual({
       value: ['scopeValue'],
       operator: '=',
     });
@@ -1463,7 +1473,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     expect(filtersVar.state.originFilters![0].value).toBe('newValue1');
     expect(filtersVar.state.originFilters![0].values).toEqual(['newValue1']);
-    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    const key = `${filtersVar.state.originFilters![0].key}${VALUE_KEY_DELIMITER}${
+      filtersVar.state.originFilters![0].origin
+    }`;
     expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1', 'originValue2']);
     expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=|');
     expect(filtersVar['_originalValues'].get(key)!.valueLabels).toBeUndefined();
@@ -1519,7 +1531,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.originFilters![0].restorable).toEqual(true);
-    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    const key = `${filtersVar.state.originFilters![0].key}${VALUE_KEY_DELIMITER}${
+      filtersVar.state.originFilters![0].origin
+    }`;
     expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1']);
     expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=');
 
@@ -2078,6 +2092,42 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(keys).toEqual([]);
   });
 
+  it('Should exclude match-all filters from getTagKeys call', async () => {
+    const { filtersVar, getTagKeysSpy, timeRange } = setup({
+      filters: setTemplateSrvWithFilters([
+        { key: 'key1', operator: '=~', value: '.*' },
+        { key: 'key2', operator: '=', value: 'val2' },
+      ]),
+    });
+
+    await filtersVar._getKeys(null);
+
+    expect(getTagKeysSpy).toBeCalledTimes(1);
+    expect(getTagKeysSpy).toBeCalledWith(
+      expect.objectContaining({
+        filters: [expect.objectContaining({ key: 'key2', operator: '=', value: 'val2' })],
+        timeRange: timeRange.state.value,
+      })
+    );
+  });
+
+  it('Should exclude match-all origin filters from getTagKeys call', async () => {
+    const { filtersVar, getTagKeysSpy, timeRange } = setup({
+      filters: setTemplateSrvWithFilters([]),
+      originFilters: [{ key: 'origin1', operator: '=~', value: '.*', origin: 'dashboard' }],
+    });
+
+    await filtersVar._getKeys(null);
+
+    expect(getTagKeysSpy).toBeCalledTimes(1);
+    expect(getTagKeysSpy).toBeCalledWith(
+      expect.objectContaining({
+        filters: [],
+        timeRange: timeRange.state.value,
+      })
+    );
+  });
+
   describe('variable expression / value', () => {
     it('By default renders a prometheus / loki compatible label filter', () => {
       const variable = new AdHocFiltersVariable({
@@ -2380,6 +2430,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2426,6 +2477,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy, getTagKeysSpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2488,6 +2540,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2711,6 +2764,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('should set non-applicable filters on activation', async () => {
       setup(
         {
+          applicabilityEnabled: true,
           filters: [
             { key: 'pod', operator: '=', value: 'val1' },
             { key: 'container', operator: '=', value: 'val3' },
@@ -2779,6 +2833,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await userEvent.click(podElement);
 
+      await userEvent.keyboard('{Backspace}');
       await userEvent.keyboard('{Backspace}');
       await userEvent.keyboard('{Backspace}');
 
@@ -2869,6 +2924,16 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
     });
 
+    it('adds a label announcer tab stop before existing filter pills', async () => {
+      await userEvent.click(screen.getByRole('combobox'));
+
+      await userEvent.keyboard('{shift>}{tab}{tab}{tab}{tab}{tab}{/shift}');
+
+      const labelAnnouncer = screen.getByTestId('AdHocFilter-label-announcer');
+      expect(labelAnnouncer).toHaveFocus();
+      expect(labelAnnouncer).toHaveAccessibleName();
+    });
+
     it('does not display hidden filters', async () => {
       const { filtersVar } = setup();
 
@@ -2888,11 +2953,13 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(screen.queryAllByText('visible_key = visible_val')).not.toEqual([]);
     });
 
-    it('focusing the input opens the key dropdown', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
+    it('opens the key dropdown on user action and not automatically', async () => {
+      const combobox = screen.getByRole('combobox');
+      combobox.focus();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
-      // check the key dropdown is open
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'key2' })).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'key3' })).toBeInTheDocument();
@@ -2933,21 +3000,25 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // partial chip values for key and operator are still present
       expect(screen.getByText('key2')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // input has focus
-      expect(screen.getByRole('combobox')).toHaveFocus();
-      // with the correct value
-      expect(screen.getByRole('combobox')).toHaveValue('valLabel2');
+
+      const editedInput = screen.getByDisplayValue('valLabel2');
+      expect(editedInput).toHaveFocus();
+      expect(editedInput).toHaveValue('valLabel2');
+
+      // interact with the value input to open the value dropdown
+      await userEvent.keyboard('{Backspace}');
       // and the value dropdown is open
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'valLabel2' })).toBeInTheDocument();
-
-      await userEvent.type(screen.getByRole('combobox'), '{backspace}');
+      // select another option
       await userEvent.click(screen.getByRole('option', { name: 'valLabel3' }));
 
       // input should be refocused
       expect(screen.getByRole('combobox')).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key2 = valLabel3')).toBeInTheDocument();
+
+      await userEvent.keyboard('{arrowdown}');
       // and key dropdown should be showing
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
@@ -2967,24 +3038,28 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // partial chip values for key and operator are still present
       expect(screen.getByText('key2')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // input has focus
-      expect(screen.getByRole('combobox')).toHaveFocus();
-      // with the correct value
-      expect(screen.getByRole('combobox')).toHaveValue('valLabel2');
-      // and the value dropdown is open
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      const editedInput = screen.getByDisplayValue('valLabel2');
+      expect(editedInput).toHaveFocus();
+      expect(editedInput).toHaveValue('valLabel2');
+      // interact with the value input to open the value dropdown
+      await userEvent.keyboard('{arrowdown}');
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'valLabel2' })).toBeInTheDocument();
 
-      await userEvent.type(screen.getByRole('combobox'), '{backspace}');
+      await userEvent.type(editedInput, '{backspace}');
       await userEvent.keyboard('{arrowdown}{arrowdown}');
       await userEvent.keyboard('{enter}');
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      const wipCombobox = getAdHocInputElement();
+      expect(wipCombobox).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key2 = valLabel3')).toBeInTheDocument();
-      // and key dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      // interact with the value input to open the value dropdown
+
+      await userEvent.keyboard('{arrowdown}');
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
       // other untouched filter should still be there as well
@@ -2992,78 +3067,91 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('can add a new filter by selecting key, operator and value', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
+      const wipCombobox = getAdHocInputElement();
+      await userEvent.click(wipCombobox);
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+
       await userEvent.click(screen.getByRole('option', { name: 'key3' }));
 
       // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
-      // and operator dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: '= Equals' })).toBeInTheDocument();
 
       await userEvent.click(screen.getByRole('option', { name: '= Equals' }));
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // and value dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'valLabel1' })).toBeInTheDocument();
 
       await userEvent.click(screen.getByRole('option', { name: 'valLabel3' }));
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key3 = valLabel3')).toBeInTheDocument();
-      // and key dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      // interact with the value input to open the value dropdown
+
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
     });
 
     it('can add a new filter by selecting key, operator and value with the keyboard', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
-      // TODO for some reason this needs an extra arrowdown
+      const wipCombobox = getAdHocInputElement();
+      await userEvent.click(wipCombobox);
+      // open keys list, move to key3, select
       await userEvent.keyboard('{arrowdown}{arrowdown}');
       await userEvent.keyboard('{enter}');
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
-      // and operator dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
+
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: '= Equals' })).toBeInTheDocument();
 
       await userEvent.keyboard('{enter}');
-
       // input should be refocused, partial chip committed
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // and value dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'valLabel1' })).toBeInTheDocument();
 
-      await userEvent.keyboard('{arrowdown}{arrowdown}');
+      await userEvent.keyboard('{arrowdown}');
       await userEvent.keyboard('{enter}');
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key3 = valLabel3')).toBeInTheDocument();
-      // and key dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
     });
@@ -3163,8 +3251,11 @@ describe('validateOriginFilters', () => {
     });
 
     // Seed original values directly
-    filtersVar['_originalValues'].set('key1-dashboard', { value: ['val1'], operator: '=' });
-    filtersVar['_originalValues'].set('key2-dashboard', { value: ['valA', 'valB'], operator: '=|' });
+    filtersVar['_originalValues'].set(`key1${VALUE_KEY_DELIMITER}dashboard`, { value: ['val1'], operator: '=' });
+    filtersVar['_originalValues'].set(`key2${VALUE_KEY_DELIMITER}dashboard`, {
+      value: ['valA', 'valB'],
+      operator: '=|',
+    });
 
     return filtersVar;
   }
@@ -3238,7 +3329,7 @@ describe('validateOriginFilters', () => {
 
   it('should not mark as restorable when matchAll filter matches matchAll original', () => {
     const filtersVar = createVariable();
-    filtersVar['_originalValues'].set('matchKey-dashboard', { value: ['.*'], operator: '=~' });
+    filtersVar['_originalValues'].set(`matchKey${VALUE_KEY_DELIMITER}dashboard`, { value: ['.*'], operator: '=~' });
     const filter: AdHocFilterWithLabels = { key: 'matchKey', operator: '=~', value: '.*', origin: 'dashboard' };
 
     const result = filtersVar.validateOriginFilters([filter]);
@@ -3468,9 +3559,9 @@ describe('getOriginalFilters', () => {
       filters: [],
     });
 
-    filtersVar['_originalValues'].set('key1-dashboard', { value: ['val1'], operator: '=' });
-    filtersVar['_originalValues'].set('key2-scope', { value: ['valA', 'valB'], operator: '=|' });
-    filtersVar['_originalValues'].set('key3-scope', { value: ['valC'], operator: '=|' });
+    filtersVar['_originalValues'].set(`key1${VALUE_KEY_DELIMITER}dashboard`, { value: ['val1'], operator: '=' });
+    filtersVar['_originalValues'].set(`key2${VALUE_KEY_DELIMITER}scope`, { value: ['valA', 'valB'], operator: '=|' });
+    filtersVar['_originalValues'].set(`key3${VALUE_KEY_DELIMITER}scope`, { value: ['valC'], operator: '=|' });
 
     const result = filtersVar.getOriginalFilters();
 
@@ -3512,14 +3603,14 @@ describe('setOriginalFilters', () => {
       filters: [],
     });
 
-    filtersVar['_originalValues'].set('old-dashboard', { value: ['oldVal'], operator: '=' });
+    filtersVar['_originalValues'].set(`old${VALUE_KEY_DELIMITER}dashboard`, { value: ['oldVal'], operator: '=' });
 
     filtersVar.setOriginalFilters([
       { key: 'newKey', operator: '!=', value: 'newVal', values: ['newVal'], origin: 'scope' },
     ]);
 
-    expect(filtersVar['_originalValues'].has('old-dashboard')).toBe(false);
-    expect(filtersVar['_originalValues'].get('newKey-scope')).toEqual({
+    expect(filtersVar['_originalValues'].has(`old${VALUE_KEY_DELIMITER}dashboard`)).toBe(false);
+    expect(filtersVar['_originalValues'].get(`newKey${VALUE_KEY_DELIMITER}scope`)).toEqual({
       value: ['newVal'],
       operator: '!=',
     });
@@ -3824,6 +3915,173 @@ describe('group-by', () => {
 
       expect(events).toHaveLength(1);
       expect(variable.state.filterExpression).toBe('host="web-1"');
+    });
+  });
+
+  describe('default group by (origin filters with operator groupBy)', () => {
+    it('updateToMatchAll sets dismissedGroupBy on groupBy origin and marks siblings restorable', () => {
+      const { filtersVar } = setup({
+        filters: setTemplateSrvWithFilters([]),
+        originFilters: [
+          { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+        ],
+        enableGroupBy: true,
+      });
+
+      act(() => {
+        filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      });
+
+      expect(filtersVar.state.originFilters).toHaveLength(2);
+      const dismissed = filtersVar.state.originFilters!.find((f) => f.key === 'cluster')!;
+      expect(dismissed.dismissedGroupBy).toBe(true);
+      expect(dismissed.restorable).toBe(true);
+      const sibling = filtersVar.state.originFilters!.find((f) => f.key === 'region')!;
+      expect(sibling.restorable).toBe(true);
+      expect(sibling.dismissedGroupBy).toBeUndefined();
+    });
+
+    it('restoreOriginalGroupBy restores all dismissed defaults and removes user group by', () => {
+      const { filtersVar } = setup({
+        filters: setTemplateSrvWithFilters([]),
+        originFilters: [
+          { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+        ],
+        enableGroupBy: true,
+      });
+
+      act(() => {
+        filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      });
+
+      act(() => {
+        filtersVar._addGroupByFilter({ value: 'service', label: 'service' });
+      });
+
+      expect(filtersVar.state.originFilters!.find((f) => f.key === 'cluster')!.dismissedGroupBy).toBe(true);
+      expect(filtersVar.state.filters).toHaveLength(1);
+      expect(filtersVar.state.filters[0].key).toBe('service');
+
+      act(() => {
+        filtersVar.restoreOriginalGroupBy();
+      });
+
+      const groupByOrigins = filtersVar.state.originFilters!.filter((f) => f.operator === 'groupBy');
+      expect(groupByOrigins).toHaveLength(2);
+      expect(groupByOrigins.map((f) => f.key).sort()).toEqual(['cluster', 'region']);
+      expect(groupByOrigins.every((f) => !f.restorable)).toBe(true);
+      expect(groupByOrigins.every((f) => !f.dismissedGroupBy)).toBe(true);
+      expect(filtersVar.state.filters.filter((f) => f.operator === 'groupBy')).toHaveLength(0);
+    });
+
+    it('editing a groupBy origin key dismisses origin and adds user filter', () => {
+      const { filtersVar } = setup({
+        filters: setTemplateSrvWithFilters([]),
+        originFilters: [
+          { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+        ],
+        enableGroupBy: true,
+      });
+
+      const clusterOrigin = filtersVar.state.originFilters![0];
+
+      act(() => {
+        filtersVar._updateFilter(clusterOrigin, { key: 'service', keyLabel: 'service' });
+      });
+
+      const dismissedCluster = filtersVar.state.originFilters!.find((f) => f.key === 'cluster')!;
+      expect(dismissedCluster.dismissedGroupBy).toBe(true);
+      expect(dismissedCluster.restorable).toBe(true);
+
+      const regionSibling = filtersVar.state.originFilters!.find((f) => f.key === 'region')!;
+      expect(regionSibling.restorable).toBe(true);
+
+      expect(filtersVar.state.filters).toHaveLength(1);
+      expect(filtersVar.state.filters[0].key).toBe('service');
+      expect(filtersVar.state.filters[0].operator).toBe('groupBy');
+      expect(filtersVar.state.filters[0].origin).toBeUndefined();
+    });
+
+    it('clearAll removes user groupBy filters along with adhoc filters', () => {
+      const { filtersVar } = setup({
+        filters: setTemplateSrvWithFilters([]),
+        originFilters: [{ key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' }],
+        enableGroupBy: true,
+      });
+
+      act(() => {
+        filtersVar._addGroupByFilter({ value: 'service', label: 'service' });
+        filtersVar._addGroupByFilter({ value: 'pod', label: 'pod' });
+      });
+
+      expect(filtersVar.state.filters.filter((f) => f.operator === 'groupBy')).toHaveLength(2);
+
+      act(() => {
+        filtersVar.clearAll();
+      });
+
+      expect(filtersVar.state.filters.filter((f) => f.operator === 'groupBy')).toHaveLength(0);
+      expect(filtersVar.state.originFilters![0].dismissedGroupBy).toBe(false);
+      expect(filtersVar.state.originFilters![0].restorable).toBe(false);
+    });
+
+    describe('isGroupByRestorable', () => {
+      it('returns false when there are no origin groupBy filters', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [{ key: 'cpu', operator: '=', value: 'val', origin: 'dashboard', condition: '' }],
+          enableGroupBy: true,
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(false);
+      });
+
+      it('returns false when origin groupBy defaults are untouched and no user groupBys exist', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [
+            { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+            { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          ],
+          enableGroupBy: true,
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(false);
+      });
+
+      it('returns true when a groupBy origin is dismissed', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [
+            { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+            { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          ],
+          enableGroupBy: true,
+        });
+
+        act(() => {
+          filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(true);
+      });
+
+      it('returns true when a user-added groupBy exists even if defaults are untouched', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [{ key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' }],
+          enableGroupBy: true,
+        });
+
+        act(() => {
+          filtersVar._addGroupByFilter({ value: 'service', label: 'service' });
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(true);
+      });
     });
   });
 });

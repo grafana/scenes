@@ -220,7 +220,7 @@ export function AdHocFilterRenderer({ filter, model }: Props) {
           model._removeFilter(filter);
         }
       }}
-      openMenuOnFocus={true}
+      openMenuOnFocus={false}
     />
   );
 

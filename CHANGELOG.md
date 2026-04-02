@@ -1,3 +1,68 @@
+# v7.3.4 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: NonApplicability adapt to unified experience [#1407](https://github.com/grafana/scenes/pull/1407) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.3 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: GroupBy panel action refactor to not use applicability [#1414](https://github.com/grafana/scenes/pull/1414) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.2 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Do not pass matchall filters to getKey methods [#1413](https://github.com/grafana/scenes/pull/1413) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.1 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Move recommendations to unified adhoc [#1406](https://github.com/grafana/scenes/pull/1406) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.0 (Tue Mar 31 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Adhoc: introduces default groupbys [#1411](https://github.com/grafana/scenes/pull/1411) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.2.1 (Tue Mar 31 2026)
 
 #### 🐛 Bug Fix

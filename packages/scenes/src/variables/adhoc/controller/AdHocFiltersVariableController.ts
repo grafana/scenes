@@ -3,6 +3,7 @@ import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVari
 import { AdHocFiltersController, AdHocFiltersControllerState } from './AdHocFiltersController';
 import { getQueryController } from '../../../core/sceneGraph/getQueryController';
 import { getInteractionTracker } from '../../../core/sceneGraph/getInteractionTracker';
+import { getVariableControlId } from '../../utils';
 
 /**
  * Adapter that wraps AdHocFiltersVariable to implement the AdHocFiltersController interface.
@@ -29,6 +30,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
       enableGroupBy: state.enableGroupBy,
       hideLabel: state.hide === VariableHide.hideLabel,
+      groupByRestorable: this.model.isGroupByRestorable(),
     };
   }
 
@@ -90,6 +92,10 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
     this.model.restoreOriginalFilter(filter);
   }
 
+  public restoreOriginalGroupBy(): void {
+    this.model.restoreOriginalGroupBy();
+  }
+
   public clearAll(): void {
     this.model.clearAll();
   }
@@ -107,5 +113,9 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
   public stopInteraction(): void {
     const interactionTracker = getInteractionTracker(this.model);
     interactionTracker?.stopInteraction();
+  }
+
+  public getControlId(): string {
+    return getVariableControlId(this.model.state.type, this.model.state.key);
   }
 }

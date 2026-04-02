@@ -84,7 +84,8 @@ export function DrilldownRecommendations({ recentDrilldowns, recommendedDrilldow
   return (
     <>
       <IconButton
-        name="plus"
+        // @ts-expect-error TODO remove when on the latest version of @grafana/ui
+        name="bars-clock"
         tooltip={t('grafana-scenes.components.drilldown-recommendations.tooltip', 'Show recommendations')}
         ref={ref}
         className={cx(isPopoverVisible && styles.iconActive)}

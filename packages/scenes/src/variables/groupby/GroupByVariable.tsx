@@ -27,7 +27,13 @@ import { getDataSource } from '../../utils/getDataSource';
 import { components, GroupBase, MenuProps } from 'react-select';
 import { InputActionMeta, MultiSelect, Select, useStyles2 } from '@grafana/ui';
 import { isArray, isEqual } from 'lodash';
-import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
+import {
+  dataFromResponse,
+  getQueriesForVariables,
+  getVariableControlId,
+  handleOptionGroups,
+  responseHasError,
+} from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
@@ -232,8 +238,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
       }
-
-      this.setState({ applicabilityEnabled: false });
     };
   };
 
@@ -285,6 +289,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public async _verifyApplicability() {
+    if (!this.state.applicabilityEnabled) {
+      return;
+    }
+
     const queries = getQueriesForVariables(this);
     const value = this.state.value;
 
@@ -295,11 +303,9 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     if (!isEqual(response, this.state.keysApplicability)) {
-      this.setState({ keysApplicability: response ?? undefined, applicabilityEnabled: true });
+      this.setState({ keysApplicability: response ?? undefined });
 
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-    } else {
-      this.setState({ applicabilityEnabled: true });
     }
   }
 
@@ -332,9 +338,12 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   /**
-   * Get possible keys given current filters. Do not call from plugins directly
+   * Get possible keys given current filters. Do not call from plugins directly.
+   * @param ds - The datasource to use for fetching keys
+   * @param queries - Optional queries to scope the key lookup. When provided, these are used
+   *   instead of discovering all queries in the scene via getQueriesForVariables.
    */
-  public _getKeys = async (ds: DataSourceApi) => {
+  public _getKeys = async (ds: DataSourceApi, queries?: SceneDataQuery[]) => {
     // TODO:  provide current dimensions?
     const override = await this.state.getTagKeysProvider?.(this, null);
 
@@ -354,13 +363,13 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     // @ts-expect-error (temporary till we update grafana/data)
     const keyMethod = (ds.getGroupByKeys || ds.getTagKeys).bind(ds);
 
-    const queries = getQueriesForVariables(this);
+    const queriesForKeys = queries ?? getQueriesForVariables(this);
 
     const otherFilters = this.state.baseFilters || [];
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const response = await keyMethod({
       filters: otherFilters,
-      queries,
+      queries: queriesForKeys,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
@@ -565,6 +574,7 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
           'Group by selector'
         )}
+        inputId={getVariableControlId(model.state.type, key)}
         data-testid={`GroupBySelect-${key}`}
         id={key}
         placeholder={t(

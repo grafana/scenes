@@ -27,6 +27,7 @@
         "title": "Not found"
       },
       "group-by-pill": {
+        "applied-by-default": "Applied by default in this dashboard. If edited, it carries over to other dashboards.",
         "group-by-key": "Group by {{keyLabel}}",
         "remove-group-by-key": "Remove group by {{keyLabel}}"
       },
@@ -114,6 +115,7 @@
         "expand-filters": "Expand filters",
         "filters-label": "Filters:",
         "group-by-label": "Group by:",
+        "restore-default-group-by": "Restore groupby set by this dashboard.",
         "show-more-filters_one": "Show {{count}} more filters",
         "show-more-filters_other": "Show {{count}} more filters",
         "show-more-group-by_one": "Show {{count}} more group by keys",
