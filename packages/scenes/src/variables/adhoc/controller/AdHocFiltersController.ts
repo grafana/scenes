@@ -70,7 +70,7 @@ export interface AdHocFiltersController {
   /**
    * Get id for the form control. Used for accessibility.
    */
-  getControlId(): string;
+  getControlId?(): string;
 
   /**
    * Update filters list
