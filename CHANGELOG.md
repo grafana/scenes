@@ -1,3 +1,16 @@
+# v7.3.7 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - adHoc: optional controller method [#1415](https://github.com/grafana/scenes/pull/1415) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.3.6 (Thu Apr 02 2026)
 
 #### 🐛 Bug Fix
