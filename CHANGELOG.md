@@ -1,3 +1,16 @@
+# v7.3.5 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Improve a11y [#1404](https://github.com/grafana/scenes/pull/1404) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 1
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+
+---
+
 # v7.3.4 (Thu Apr 02 2026)
 
 #### 🐛 Bug Fix
