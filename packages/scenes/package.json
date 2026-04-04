@@ -92,7 +92,7 @@
     "react-router-dom": "^6.28.0",
     "rimraf": "^3.0.2",
     "rollup": "^4.36.0",
-    "rxjs": "7.8.1",
+    "rxjs": "7.8.2",
     "typescript": "^5.4.3"
   },
   "lint-staged": {
