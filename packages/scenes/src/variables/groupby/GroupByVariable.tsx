@@ -92,12 +92,6 @@ export interface GroupByVariableState extends MultiValueVariableState {
    */
   applicabilityEnabled?: boolean;
   /**
-   * Whether the input should be wide. For example, this is needed when dashboardAdHocAndGroupByWrapper feature toggle is enabled so that
-   * the input fills the remaining space in the row.
-   */
-  wideInput?: boolean;
-
-  /**
    * enables drilldown recommendations
    */
   drilldownRecommendationsEnabled?: boolean;
@@ -482,11 +476,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     [optionSearcher, inputValue]
   );
 
-  const WideInputWrapper = (children: React.ReactNode) => <div className={styles.selectWrapper}>{children}</div>;
-
   const select = isMulti ? (
-    <ConditionalWrapper condition={model.state.wideInput ?? false} wrapper={WideInputWrapper}>
-      <MultiSelect<VariableValueSingle>
+    <MultiSelect<VariableValueSingle>
         aria-label={t(
           'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
           'Group by selector'
@@ -566,10 +557,8 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           setIsOptionsOpen(false);
         }}
       />
-    </ConditionalWrapper>
   ) : (
-    <ConditionalWrapper condition={model.state.wideInput ?? false} wrapper={WideInputWrapper}>
-      <Select
+    <Select
         aria-label={t(
           'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
           'Group by selector'
@@ -627,7 +616,6 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
           setIsOptionsOpen(false);
         }}
       />
-    </ConditionalWrapper>
   );
 
   if (!recommendations) {
@@ -644,18 +632,6 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     </div>
   );
 }
-
-const ConditionalWrapper = ({
-  condition,
-  wrapper,
-  children,
-}: {
-  condition: boolean;
-  wrapper: (children: React.ReactNode) => React.ReactElement;
-  children: React.ReactNode;
-}) => {
-  return condition ? wrapper(children) : <>{children}</>;
-};
 
 const filterNoOp = () => true;
 
@@ -685,22 +661,6 @@ function toSelectableValue(input: VariableValueOption): SelectableValue<Variable
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  selectWrapper: css({
-    display: 'flex',
-    minWidth: 0,
-    width: '100%',
-  }),
-  // Fix for noMultiValueWrap grid layout - prevent pills from stretching
-  // when the select is full width. The grid layout uses gridAutoFlow: column
-  // which stretches items by default.
-  fullWidthMultiSelect: css({
-    width: '100%',
-    // Target the value container (has data-testid) which uses grid layout
-    '& [data-testid]': {
-      gridAutoColumns: 'max-content',
-      justifyItems: 'start',
-    },
-  }),
   wrapper: css({
     display: 'flex',
   }),
