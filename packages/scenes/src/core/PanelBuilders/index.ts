@@ -30,6 +30,7 @@ import {
   defaultFieldConfig as defaultHistogramFieldConfig,
 } from '@grafana/schema/dist/esm/raw/composable/histogram/panelcfg/x/HistogramPanelCfg_types.gen';
 import { Options as LogsOptions } from '@grafana/schema/dist/esm/raw/composable/logs/panelcfg/x/LogsPanelCfg_types.gen';
+import { LogstableOptions, defaultLogstableOptions } from './logstablePanelOptions';
 import {
   Options as NewsOptions,
   defaultOptions as defaultNewsOptions,
@@ -114,6 +115,9 @@ export const PanelBuilders = {
   },
   logs() {
     return new VizPanelBuilder<LogsOptions, {}>('logs', '10.0.0');
+  },
+  logstable() {
+    return new VizPanelBuilder<LogstableOptions, {}>('logstable', '10.0.0', () => defaultLogstableOptions);
   },
   news() {
     return new VizPanelBuilder<NewsOptions, {}>('news', '10.0.0', () => defaultNewsOptions);
