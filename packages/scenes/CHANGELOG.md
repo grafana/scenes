@@ -1,3 +1,16 @@
+# v7.3.9 (Tue Apr 07 2026)
+
+#### 🐛 Bug Fix
+
+- Filters: Preserve dashboard filters settings in panel edit [#1418](https://github.com/grafana/scenes/pull/1418) ([@mdvictor](https://github.com/mdvictor))
+- Filters: Fix multi value pills interaction [#1419](https://github.com/grafana/scenes/pull/1419) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.3.8 (Thu Apr 02 2026)
 
 #### 🐛 Bug Fix
