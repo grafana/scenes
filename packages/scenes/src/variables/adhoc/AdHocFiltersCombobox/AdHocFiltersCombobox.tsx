@@ -610,6 +610,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       }
 
       refs.domReference.current?.focus();
+      setOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -746,7 +747,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       {optionsLoading ? <Spinner className={styles.loadingIndicator} inline={true} /> : null}
       <FloatingPortal>
         {open && (
-          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss modal={true}>
+          <FloatingFocusManager
+            context={context}
+            initialFocus={-1}
+            visuallyHiddenDismiss
+            modal={true}
+            closeOnFocusOut={false}
+          >
             <>
               <div
                 style={{
