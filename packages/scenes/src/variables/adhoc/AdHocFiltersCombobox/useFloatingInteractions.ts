@@ -55,18 +55,13 @@ export const useFloatingInteractions = ({
 
   const role = useRole(context, { role: 'listbox' });
   const dismiss = useDismiss(context, {
-    // if outside click lands on operator pill, then ignore outside click
     outsidePress: (event) => {
-      if (event.currentTarget instanceof Element) {
-        const target = event.currentTarget;
-        let idToCompare = target.id;
-        if (target.nodeName === 'path') {
-          idToCompare = target.parentElement?.id || '';
-        }
-
-        if (outsidePressIdsToIgnore.includes(idToCompare)) {
+      let el = event.target instanceof Element ? event.target : null;
+      while (el && el !== document.documentElement) {
+        if (el.id && outsidePressIdsToIgnore.includes(el.id)) {
           return false;
         }
+        el = el.parentElement;
       }
       return true;
     },

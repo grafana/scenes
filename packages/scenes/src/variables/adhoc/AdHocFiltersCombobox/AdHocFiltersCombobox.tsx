@@ -184,13 +184,19 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const onOpenChange = useCallback<NonNullable<UseFloatingOptions['onOpenChange']>>(
     (nextOpen, _, reason) => {
-      setOpen(nextOpen);
-      // change from filter edit mode to filter view mode when clicked
-      //   outside input or dropdown
+      const isExplicitDismiss = reason === 'outside-press' || reason === 'escape-key';
 
-      if (reason && ['outside-press', 'escape-key'].includes(reason)) {
+      // In edit mode, only allow explicit dismiss (outside-press / escape-key).
+      // Ignore every other close trigger (e.g. FloatingFocusManager focus-out
+      // when a multi-value pill is removed and focus drifts to <body>).
+      if (!nextOpen && !isAlwaysWip && !isExplicitDismiss) {
+        return;
+      }
+
+      setOpen(nextOpen);
+
+      if (isExplicitDismiss) {
         if (isMultiValueEdit) {
-          // commit multi value filter values on escape and click-away
           handleMultiValueFilterCommit(controller, filter!, filterMultiValues);
         } else {
           if (filter && filter.origin && inputValue === '') {
@@ -210,6 +216,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       handleResetWip,
       inputValue,
       isMultiValueEdit,
+      isAlwaysWip,
       controller,
     ]
   );
@@ -610,6 +617,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       }
 
       refs.domReference.current?.focus();
+      setOpen(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
