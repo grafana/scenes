@@ -184,13 +184,19 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const onOpenChange = useCallback<NonNullable<UseFloatingOptions['onOpenChange']>>(
     (nextOpen, _, reason) => {
-      setOpen(nextOpen);
-      // change from filter edit mode to filter view mode when clicked
-      //   outside input or dropdown
+      const isExplicitDismiss = reason === 'outside-press' || reason === 'escape-key';
 
-      if (reason && ['outside-press', 'escape-key'].includes(reason)) {
+      // In edit mode, only allow explicit dismiss (outside-press / escape-key).
+      // Ignore every other close trigger (e.g. FloatingFocusManager focus-out
+      // when a multi-value pill is removed and focus drifts to <body>).
+      if (!nextOpen && !isAlwaysWip && !isExplicitDismiss) {
+        return;
+      }
+
+      setOpen(nextOpen);
+
+      if (isExplicitDismiss) {
         if (isMultiValueEdit) {
-          // commit multi value filter values on escape and click-away
           handleMultiValueFilterCommit(controller, filter!, filterMultiValues);
         } else {
           if (filter && filter.origin && inputValue === '') {
@@ -210,6 +216,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       handleResetWip,
       inputValue,
       isMultiValueEdit,
+      isAlwaysWip,
       controller,
     ]
   );
@@ -747,13 +754,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       {optionsLoading ? <Spinner className={styles.loadingIndicator} inline={true} /> : null}
       <FloatingPortal>
         {open && (
-          <FloatingFocusManager
-            context={context}
-            initialFocus={-1}
-            visuallyHiddenDismiss
-            modal={true}
-            closeOnFocusOut={false}
-          >
+          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss modal={true}>
             <>
               <div
                 style={{
