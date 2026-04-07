@@ -18,7 +18,6 @@ export interface GroupByVariableProps extends VariableProps {
   applyMode?: 'auto' | 'manual';
   tagKeyRegexFilter?: RegExp;
   getTagKeysProvider?: any;
-  wideInput?: boolean;
   drilldownRecommendationsEnabled?: boolean;
   /** Allow typing custom values in the selector. Defaults to true in scenes. */
   allowCustomValue?: boolean;
@@ -49,7 +48,6 @@ export function GroupByVariable({
   applyMode,
   tagKeyRegexFilter,
   getTagKeysProvider,
-  wideInput,
   drilldownRecommendationsEnabled,
   allowCustomValue,
   isMulti,
@@ -82,7 +80,6 @@ export function GroupByVariable({
       applyMode,
       tagKeyRegexFilter,
       getTagKeysProvider,
-      wideInput,
       drilldownRecommendationsEnabled,
       allowCustomValue,
       isMulti,
@@ -116,7 +113,6 @@ export function GroupByVariable({
       variable.state.applyMode === applyMode &&
       isEqual(variable.state.tagKeyRegexFilter, tagKeyRegexFilter) &&
       variable.state.getTagKeysProvider === getTagKeysProvider &&
-      variable.state.wideInput === wideInput &&
       variable.state.drilldownRecommendationsEnabled === drilldownRecommendationsEnabled &&
       variable.state.allowCustomValue === allowCustomValue &&
       variable.state.isMulti === isMulti &&
@@ -140,7 +136,6 @@ export function GroupByVariable({
       applyMode,
       tagKeyRegexFilter,
       getTagKeysProvider,
-      wideInput,
       drilldownRecommendationsEnabled,
       allowCustomValue,
       isMulti,
@@ -169,7 +164,6 @@ export function GroupByVariable({
     tagKeyRegexFilter,
     variable,
     variableAdded,
-    wideInput,
   ]);
 
   if (!variableAdded) {
