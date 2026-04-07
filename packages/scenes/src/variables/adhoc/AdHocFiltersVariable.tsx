@@ -336,6 +336,13 @@ export class AdHocFiltersVariable
     this._debouncedVerifyApplicability();
 
     return () => {
+      // When the variable's component is temporarily unmounted (e.g. during panel edit)
+      // but the variable set is still active, skip restoring defaults — the variable
+      // is still logically part of the scene and its state should be preserved.
+      if (this.parent?.isActive) {
+        return;
+      }
+
       this.state.originFilters?.forEach((filter) => {
         if (filter.restorable && !isGroupByFilter(filter)) {
           this.restoreOriginalFilter(filter);
