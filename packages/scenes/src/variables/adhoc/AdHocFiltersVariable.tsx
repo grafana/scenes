@@ -786,10 +786,6 @@ export class AdHocFiltersVariable
           _wip: undefined,
         });
         this.verifyApplicabilityAndStoreRecentFilter(newFilter);
-        reportInteraction('grafana_unified_drilldown_filter_added', {
-          key: newFilter.key,
-          operator: newFilter.operator,
-        });
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -823,10 +819,6 @@ export class AdHocFiltersVariable
       });
 
       this.setState({ originFilters: updatedOrigins });
-      reportInteraction('grafana_unified_drilldown_groupby_removed', {
-        key: filter.key,
-        origin: filter.origin,
-      });
     } else {
       this._updateFilter(filter, {
         operator: '=~',
@@ -836,10 +828,6 @@ export class AdHocFiltersVariable
         matchAllFilter: true,
         nonApplicable: false,
         restorable: true,
-      });
-      reportInteraction('grafana_unified_drilldown_filter_match_all', {
-        key: filter.key,
-        origin: filter.origin,
       });
     }
   }
@@ -853,14 +841,8 @@ export class AdHocFiltersVariable
     const queryController = getQueryController(this);
     queryController?.startProfile(FILTER_REMOVED_INTERACTION);
 
-    const isGroupBy = isGroupByFilter(filter);
     this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
     this._debouncedVerifyApplicability();
-
-    reportInteraction(
-      isGroupBy ? 'grafana_unified_drilldown_groupby_removed' : 'grafana_unified_drilldown_filter_removed',
-      { key: filter.key }
-    );
   }
 
   public _removeLastFilter() {

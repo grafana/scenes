@@ -32,7 +32,7 @@ export function AdHocFilterBuilder({ model, addFilterButtonText }: Props) {
     );
   }
 
-  return <AdHocFilterRenderer filter={_wip} model={model} />;
+  return <AdHocFilterRenderer filter={_wip} model={model} isWip />;
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
