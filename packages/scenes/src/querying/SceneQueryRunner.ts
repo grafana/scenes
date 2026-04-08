@@ -371,13 +371,16 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private _getEffectiveDrilldownDatasource(): DataSourceRef | undefined {
-    return (this.state.datasource && this.state.datasource.uid !== MIXED_DATASOURCE_UID) 
+    return this.state.datasource && this.state.datasource.uid !== MIXED_DATASOURCE_UID
       ? this.state.datasource
       : findFirstDatasource(this.state.queries);
   }
 
   private _isRelevantAutoVariable(variable: AdHocFiltersVariable | GroupByVariable) {
-    return variable.state.applyMode === 'auto' && this._getEffectiveDrilldownDatasource()?.uid === variable.state.datasource?.uid;
+    return (
+      variable.state.applyMode === 'auto' &&
+      this._getEffectiveDrilldownDatasource()?.uid === variable.state.datasource?.uid
+    );
   }
 
   private shouldRunQueriesOnActivate() {
