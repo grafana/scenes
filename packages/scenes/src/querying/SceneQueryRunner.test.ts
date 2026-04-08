@@ -864,7 +864,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         datasource: { uid: '-- Mixed --', type: 'mixed' },
         queries: [
           { refId: 'A', datasource: { uid: 'test-uid', type: 'prometheus' } },
-          { refId: 'B', datasource: { uid: 'loki-uid', type: 'loki' } },
+          { refId: 'B', datasource: { uid: '__expr__', type: '__expr__' } },
         ],
       });
 
