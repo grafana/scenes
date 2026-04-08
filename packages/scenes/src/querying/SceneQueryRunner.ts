@@ -370,12 +370,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
   }
 
-  private _isRelevantAutoVariable(variable: AdHocFiltersVariable | GroupByVariable) {
-    const datasource = (this.state.datasource && this.state.datasource.uid !== '-- Mixed --') 
+  private _getEffectiveDatasource(): DataSourceRef | undefined {
+    return (this.state.datasource && this.state.datasource.uid !== MIXED_DATASOURCE_UID) 
       ? this.state.datasource
       : findFirstDatasource(this.state.queries);
+  }
 
-    return variable.state.applyMode === 'auto' && datasource?.uid === variable.state.datasource?.uid;
+  private _isRelevantAutoVariable(variable: AdHocFiltersVariable | GroupByVariable) {
+    return variable.state.applyMode === 'auto' && this._getEffectiveDatasource()?.uid === variable.state.datasource?.uid;
   }
 
   private shouldRunQueriesOnActivate() {
@@ -546,10 +548,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     try {
-      const datasource = (this.state.datasource && this.state.datasource.uid !== '-- Mixed --') 
-        ? this.state.datasource
-        : findFirstDatasource(this.state.queries);
-
+      const datasource = this._getEffectiveDatasource();
       const ds = await getDataSource(datasource, this._scopedVars);
 
       this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid, this);
