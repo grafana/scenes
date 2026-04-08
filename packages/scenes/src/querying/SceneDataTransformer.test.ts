@@ -737,42 +737,44 @@ describe('SceneDataTransformer', () => {
 
       expect(customTransformerSpy).toHaveBeenCalledTimes(1);
       expect(transformer.state.data?.state).toBe(LoadingState.Loading);
-it('When series and annotations are the same but loading state is not', async () => {
-  const dataNode = new SceneDataNode({
-    data: {
-      state: LoadingState.Done,
-      timeRange: getDefaultTimeRange(),
-      series: [arrayToDataFrame([1, 2, 3])],
-    },
-  });
 
-  const transformer = new SceneDataTransformer({
-    $data: dataNode,
-    transformations: [customTransformOperator],
-  });
+      it('When series and annotations are the same but loading state is not', async () => {
+        const dataNode = new SceneDataNode({
+          data: {
+            state: LoadingState.Done,
+            timeRange: getDefaultTimeRange(),
+            series: [arrayToDataFrame([1, 2, 3])],
+          },
+        });
 
-  const results: PanelData[] = [];
-  transformer.getResultsStream().subscribe((result) => {
-    results.push(result.data);
-  });
+        const transformer = new SceneDataTransformer({
+          $data: dataNode,
+          transformations: [customTransformOperator],
+        });
 
-  transformer.activate();
+        const results: PanelData[] = [];
+        transformer.getResultsStream().subscribe((result) => {
+          results.push(result.data);
+        });
 
-  await new Promise((r) => setTimeout(r, 1));
+        transformer.activate();
 
-  expect(results).toHaveLength(1);
-  expect(results[0].state).toBe(LoadingState.Done);
+        await new Promise((r) => setTimeout(r, 1));
 
-  dataNode.setState({ data: { ...dataNode.state.data, state: LoadingState.Loading } });
+        expect(results).toHaveLength(1);
+        expect(results[0].state).toBe(LoadingState.Done);
 
-  await new Promise((r) => setTimeout(r, 1));
+        dataNode.setState({ data: { ...dataNode.state.data, state: LoadingState.Loading } });
 
-  expect(customTransformerSpy).toHaveBeenCalledTimes(1);
-  expect(transformer.state.data?.state).toBe(LoadingState.Loading);
-  expect(results).toHaveLength(2);
-  expect(results[1].state).toBe(LoadingState.Loading);
-  expect(results[1].series).toBe(results[0].series);
-});
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+        expect(transformer.state.data?.state).toBe(LoadingState.Loading);
+        expect(results).toHaveLength(2);
+        expect(results[1].state).toBe(LoadingState.Loading);
+        expect(results[1].series).toBe(results[0].series);
+      });
+    });
 
     it('emits updated metadata when transformed frame references are unchanged', async () => {
       const series = [arrayToDataFrame([1, 2, 3])];
