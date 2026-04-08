@@ -370,14 +370,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
   }
 
-  private _getEffectiveDatasource(): DataSourceRef | undefined {
+  private _getEffectiveDrilldownDatasource(): DataSourceRef | undefined {
     return (this.state.datasource && this.state.datasource.uid !== MIXED_DATASOURCE_UID) 
       ? this.state.datasource
       : findFirstDatasource(this.state.queries);
   }
 
   private _isRelevantAutoVariable(variable: AdHocFiltersVariable | GroupByVariable) {
-    return variable.state.applyMode === 'auto' && this._getEffectiveDatasource()?.uid === variable.state.datasource?.uid;
+    return variable.state.applyMode === 'auto' && this._getEffectiveDrilldownDatasource()?.uid === variable.state.datasource?.uid;
   }
 
   private shouldRunQueriesOnActivate() {
@@ -548,13 +548,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     try {
-      const datasource = this._getEffectiveDatasource();
+      const datasource = this.state.datasource ?? findFirstDatasource(queries);
       const runtimeDatasource = shouldUseMixedRuntimeDatasource(this, datasource, queries)
         ? MIXED_DATASOURCE_REF
         : datasource;
       const ds = await getDataSource(runtimeDatasource, this._scopedVars);
 
-      this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid, this);
+      const drilldownUid = this._getEffectiveDrilldownDatasource()?.uid ?? ds.uid;
+      this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(drilldownUid, this);
 
       const runRequest = getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
