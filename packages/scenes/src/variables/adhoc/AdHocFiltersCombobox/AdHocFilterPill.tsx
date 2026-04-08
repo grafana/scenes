@@ -3,9 +3,8 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, FilterOrigin, isGroupByFilter, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
-import { reportInteraction } from '@grafana/runtime';
 import { t } from '@grafana/i18n';
 import { BasePill } from './BasePill';
 import { useEditablePill } from './useEditablePill';
@@ -54,19 +53,8 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
     const handleRemove = () => {
       if (filter.origin && filter.origin === 'dashboard') {
         controller.updateToMatchAll(filter);
-        if (isGroupByFilter(filter)) {
-          reportInteraction('grafana_unified_drilldown_groupby_removed', { key: filter.key, origin: filter.origin });
-        } else {
-          reportInteraction('grafana_unified_drilldown_filter_match_all', { key: filter.key, origin: filter.origin });
-        }
       } else {
         controller.removeFilter(filter);
-        reportInteraction(
-          isGroupByFilter(filter)
-            ? 'grafana_unified_drilldown_groupby_removed'
-            : 'grafana_unified_drilldown_filter_removed',
-          { key: filter.key }
-        );
       }
       setTimeout(() => focusOnWipInputRef?.());
     };

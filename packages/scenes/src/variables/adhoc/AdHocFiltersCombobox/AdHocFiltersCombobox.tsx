@@ -14,9 +14,8 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, isGroupByFilter, isMultiValueOperator, OPERATORS } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, isMultiValueOperator, OPERATORS } from '../AdHocFiltersVariable';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
-import { reportInteraction } from '@grafana/runtime';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DropdownItem,
@@ -142,7 +141,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     ) => {
       if (!filterMultiValues.length && filter.origin) {
         controller.updateToMatchAll(filter);
-        reportInteraction('grafana_unified_drilldown_filter_match_all', { key: filter.key, origin: filter.origin });
       }
 
       if (filterMultiValues.length) {
@@ -197,17 +195,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         } else {
           if (filter && filter.origin && inputValue === '') {
             controller.updateToMatchAll(filter);
-            if (isGroupByFilter(filter)) {
-              reportInteraction('grafana_unified_drilldown_groupby_removed', {
-                key: filter.key,
-                origin: filter.origin,
-              });
-            } else {
-              reportInteraction('grafana_unified_drilldown_filter_match_all', {
-                key: filter.key,
-                origin: filter.origin,
-              });
-            }
           }
         }
 
@@ -409,10 +396,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         }
         if (isGroupBy && filter?.origin) {
           controller.updateToMatchAll(filter);
-          reportInteraction('grafana_unified_drilldown_groupby_removed', {
-            key: filter.key,
-            origin: filter.origin,
-          });
           focusOnWipInputRef?.();
           return;
         }
@@ -529,13 +512,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           }
 
           controller.updateFilter(filter!, payload);
-
-          if (isAlwaysWip && filterInputType === 'value' && payload.value) {
-            reportInteraction('grafana_unified_drilldown_filter_added', {
-              key: filter!.key,
-              operator: filter!.operator,
-            });
-          }
 
           populateInputValueOnInputTypeSwitch({
             populateInputOnEdit,
@@ -877,13 +853,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                   controller.startProfile?.(FILTER_CHANGED_INTERACTION);
                                 }
                                 controller.updateFilter(filter!, payload);
-
-                                if (isAlwaysWip && filterInputType === 'value' && payload.value) {
-                                  reportInteraction('grafana_unified_drilldown_filter_added', {
-                                    key: filter!.key,
-                                    operator: filter!.operator,
-                                  });
-                                }
 
                                 populateInputValueOnInputTypeSwitch({
                                   populateInputOnEdit,

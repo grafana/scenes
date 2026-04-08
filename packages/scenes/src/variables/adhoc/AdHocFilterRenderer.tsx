@@ -1,15 +1,8 @@
 import { t } from '@grafana/i18n';
 import React, { useMemo, useState } from 'react';
 
-import {
-  AdHocFiltersVariable,
-  AdHocFilterWithLabels,
-  isGroupByFilter,
-  isMultiValueOperator,
-  OPERATORS,
-} from './AdHocFiltersVariable';
+import { AdHocFiltersVariable, AdHocFilterWithLabels, isMultiValueOperator, OPERATORS } from './AdHocFiltersVariable';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
-import { reportInteraction } from '@grafana/runtime';
 import { Button, Field, InputActionMeta, Select, useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
 import { ControlsLabel } from '../../utils/ControlsLabel';
@@ -20,7 +13,6 @@ import { OptionWithCheckbox } from '../components/VariableValueSelect';
 interface Props {
   filter: AdHocFilterWithLabels;
   model: AdHocFiltersVariable;
-  isWip?: boolean;
 }
 
 function keyLabelToOption(key: string, label?: string): SelectableValue | null {
@@ -34,7 +26,7 @@ function keyLabelToOption(key: string, label?: string): SelectableValue | null {
 
 const filterNoOp = () => true;
 
-export function AdHocFilterRenderer({ filter, model, isWip }: Props) {
+export function AdHocFilterRenderer({ filter, model }: Props) {
   const styles = useStyles2(getStyles);
 
   const [keys, setKeys] = useState<SelectableValue[]>([]);
@@ -117,13 +109,6 @@ export function AdHocFilterRenderer({ filter, model, isWip }: Props) {
         values: uncommittedValue.map((option: SelectableValue<string>) => option.value),
         valueLabels: uncommittedValue.map((option: SelectableValue<string>) => option.label),
       });
-
-      if (isWip && uncommittedValue[0]?.value) {
-        reportInteraction('grafana_unified_drilldown_filter_added', {
-          key: filter.key,
-          operator: filter.operator,
-        });
-      }
     },
   };
 
@@ -150,19 +135,12 @@ export function AdHocFilterRenderer({ filter, model, isWip }: Props) {
       inputValue={valueInputValue}
       onInputChange={onValueInputChange}
       onChange={(v) => {
-        const update =
-          onAddCustomValue && v.__isNew__
-            ? onAddCustomValue(v, filter)
-            : {
-                value: v.value,
-                valueLabels: v.label ? [v.label] : [v.value],
-              };
-        model._updateFilter(filter, update);
-
-        if (isWip && update.value) {
-          reportInteraction('grafana_unified_drilldown_filter_added', {
-            key: filter.key,
-            operator: filter.operator,
+        if (onAddCustomValue && v.__isNew__) {
+          model._updateFilter(filter, onAddCustomValue(v, filter));
+        } else {
+          model._updateFilter(filter, {
+            value: v.value,
+            valueLabels: v.label ? [v.label] : [v.value],
           });
         }
 
@@ -267,19 +245,7 @@ export function AdHocFilterRenderer({ filter, model, isWip }: Props) {
   if (model.state.layout === 'vertical') {
     if (filter.key) {
       const label = (
-        <ControlsLabel
-          layout="vertical"
-          label={filter.key ?? ''}
-          onRemove={() => {
-            model._removeFilter(filter);
-            reportInteraction(
-              isGroupByFilter(filter)
-                ? 'grafana_unified_drilldown_groupby_removed'
-                : 'grafana_unified_drilldown_filter_removed',
-              { key: filter.key }
-            );
-          }}
-        />
+        <ControlsLabel layout="vertical" label={filter.key ?? ''} onRemove={() => model._removeFilter(filter)} />
       );
 
       return (
@@ -315,15 +281,7 @@ export function AdHocFilterRenderer({ filter, model, isWip }: Props) {
         className={styles.removeButton}
         icon="times"
         data-testid={`AdHocFilter-remove-${filter.key ?? ''}`}
-        onClick={() => {
-          model._removeFilter(filter);
-          reportInteraction(
-            isGroupByFilter(filter)
-              ? 'grafana_unified_drilldown_groupby_removed'
-              : 'grafana_unified_drilldown_filter_removed',
-            { key: filter.key }
-          );
-        }}
+        onClick={() => model._removeFilter(filter)}
       />
     </div>
   );

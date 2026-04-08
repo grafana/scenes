@@ -4,7 +4,6 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { Icon, Tooltip, useStyles2 } from '@grafana/ui';
 import { AdHocFilterWithLabels } from '../AdHocFiltersVariable';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
-import { reportInteraction } from '@grafana/runtime';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { BasePill } from './BasePill';
 import { useEditablePill } from './useEditablePill';
@@ -29,10 +28,8 @@ export function GroupByPill({ filter, controller, readOnly, focusOnWipInputRef }
   const handleRemove = () => {
     if (filter.origin && filter.origin === 'dashboard') {
       controller.updateToMatchAll(filter);
-      reportInteraction('grafana_unified_drilldown_groupby_removed', { key: filter.key, origin: filter.origin });
     } else {
       controller.removeFilter(filter);
-      reportInteraction('grafana_unified_drilldown_groupby_removed', { key: filter.key });
     }
     setTimeout(() => focusOnWipInputRef?.());
   };
