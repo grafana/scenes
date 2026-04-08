@@ -858,6 +858,43 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
     });
   });
 
+  describe('mixed datasource panels', () => {
+    it('should subscribe to adhoc variable matching first query datasource and re-run on change', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: '-- Mixed --', type: 'mixed' },
+        queries: [
+          { refId: 'A', datasource: { uid: 'test-uid', type: 'prometheus' } },
+          { refId: 'B', datasource: { uid: 'loki-uid', type: 'loki' } },
+        ],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'promFilters',
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+      await new Promise((r) => setTimeout(r, 1));
+
+      const initialCallCount = runRequestMock.mock.calls.length;
+
+      filtersVar.setState({
+        filters: [{ key: 'job', operator: '=', value: 'grafana', condition: '' }],
+      });
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(initialCallCount + 1);
+    });
+  });
+
   describe('Query controller', () => {
     it('should register itself', async () => {
       const queryController = new SceneQueryController();
