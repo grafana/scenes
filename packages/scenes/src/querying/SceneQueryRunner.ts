@@ -549,7 +549,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     try {
       const datasource = this._getEffectiveDatasource();
-      const ds = await getDataSource(datasource, this._scopedVars);
+      const runtimeDatasource = shouldUseMixedRuntimeDatasource(this, datasource, queries)
+        ? MIXED_DATASOURCE_REF
+        : datasource;
+      const ds = await getDataSource(runtimeDatasource, this._scopedVars);
 
       this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid, this);
 
