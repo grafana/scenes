@@ -1,3 +1,15 @@
+# v7.3.11 (Wed Apr 08 2026)
+
+#### 🐛 Bug Fix
+
+- SceneDataTransformer: Check metadata when choosing to emit transformation data [#1408](https://github.com/grafana/scenes/pull/1408) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 1
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+
+---
+
 # v7.3.10 (Tue Apr 07 2026)
 
 #### 🐛 Bug Fix
