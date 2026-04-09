@@ -59,6 +59,9 @@ export type {
   SceneQueryControllerEntry,
 } from './behaviors/types';
 
+export type { ReportInteractionBehaviorLike } from './core/sceneGraph/getReportInteractionHandler';
+export { isReportInteractionBehavior } from './core/sceneGraph/getReportInteractionHandler';
+
 export * from './variables/types';
 export { VariableDependencyConfig } from './variables/VariableDependencyConfig';
 export { formatRegistry, type FormatVariable } from './variables/interpolation/formatRegistry';
