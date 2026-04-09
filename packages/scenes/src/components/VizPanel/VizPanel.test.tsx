@@ -48,6 +48,7 @@ jest.mock('react-use', () => ({
 interface OptionsPlugin1 {
   showThresholds: boolean;
   option2?: string;
+  option3?: string;
   sortBy?: string[];
 }
 
@@ -56,6 +57,21 @@ interface FieldConfigPlugin1 {
   customProp2?: boolean;
   customProp3?: string;
   junkProp?: boolean;
+}
+
+interface OptionsPlugin2 {
+  showThresholds: boolean;
+  option2?: string;
+  option3?: string;
+  option4?: string;
+  sortBy?: string[];
+}
+
+interface FieldConfigPlugin2 {
+  customPropInOtherPlugin?: boolean;
+  customProp2InOtherPlugin?: boolean;
+  customProp3?: string;
+  hideFrom?: boolean;
 }
 
 let panelProps: PanelProps | undefined;
@@ -90,6 +106,11 @@ function getTestPlugin1(dataSupport?: PanelPluginDataSupport) {
       name: 'option2',
       path: 'option2',
       defaultValue: undefined,
+    });
+    builder.addTextInput({
+      name: 'option3',
+      path: 'option3',
+      defaultValue: 'option3 value plugin 1',
     });
   });
 
@@ -164,6 +185,16 @@ function getTestPlugin2(dataSupport?: PanelPluginDataSupport) {
       name: 'option2',
       path: 'option2',
       defaultValue: undefined,
+    });
+    builder.addTextInput({
+      name: 'option3',
+      path: 'option3',
+      defaultValue: 'option3 value plugin 2',
+    });
+    builder.addTextInput({
+      name: 'option4',
+      path: 'option4',
+      defaultValue: 'option4 value plugin 2',
     });
   });
 
@@ -515,16 +546,34 @@ describe('VizPanel', () => {
       expect(panel.state.options.option2).not.toBeDefined();
     });
 
-    test('should allow to call getPanelOptionsWithDefaults to compute new color options for plugin', () => {
-      const spy = jest.spyOn(grafanaData, 'getPanelOptionsWithDefaults');
-      pluginToLoad = getTestPlugin1();
-      panel.activate();
+    test('should allow to override default options with empty value', () => {
+      panel.onOptionsChange({ option3: undefined });
 
-      panel.onOptionsChange({}, false, true);
+      expect(panel.state.options.option3).toBe(undefined);
+
+      panel.onOptionsChange({ option3: '' });
+
+      expect(panel.state.options.option3).toBe('');
+    });
+
+    test('should allow to call getPanelOptionsWithDefaults to compute new plugin options', async () => {
+      expect(panel.state.pluginId).toBe('custom-plugin-id');
+      expect(panel.state.pluginVersion).toBe('1.0.0');
+      panel.onOptionsChange({ option3: undefined });
+
+      pluginToLoad = getTestPlugin2();
+
+      const spy = jest.spyOn(grafanaData, 'getPanelOptionsWithDefaults');
+
+      await panel.changePluginType('custom2-plugin-id', undefined, panel.state.fieldConfig);
 
       expect(spy).toHaveBeenCalledTimes(1);
-      // Marked as after plugin change to readjust to prefered field color setting
+      // Marked as after a plugin change to readjust to preferred field color setting
       expect(spy.mock.calls[0][0].isAfterPluginChange).toBe(true);
+
+      const newPanelOptions = (panel as VizPanel<OptionsPlugin2, FieldConfigPlugin2>).state.options;
+      expect(newPanelOptions.option3).toEqual('option3 value plugin 2');
+      expect(newPanelOptions.option4).toEqual('option4 value plugin 2');
     });
   });
 
