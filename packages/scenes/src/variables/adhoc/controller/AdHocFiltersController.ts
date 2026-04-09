@@ -22,6 +22,8 @@ export interface AdHocFiltersControllerState {
   valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
   enableGroupBy?: boolean;
+  hideLabel?: boolean;
+  variableLabel?: string;
   groupByRestorable?: boolean;
 }
 
