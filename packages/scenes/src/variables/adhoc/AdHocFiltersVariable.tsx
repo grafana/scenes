@@ -26,7 +26,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
 import { getDataSourceSrv } from '@grafana/runtime';
-import { getReportInteractionHandler } from '../../core/sceneGraph/getReportInteractionHandler';
+import { getAdHocFilterInteractionHandler } from '../../core/sceneGraph/getReportInteractionHandler';
 import { AdHocFiltersVariableUrlSyncHandler, toArray } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
@@ -551,7 +551,7 @@ export class AdHocFiltersVariable
     };
     this._recommendations?.storeRecentGrouping(key);
     this.updateFilters([...this.state.filters, newFilter]);
-    getReportInteractionHandler(this)?.reportInteraction('grafana_unified_drilldown_groupby_added', { key });
+    getAdHocFilterInteractionHandler(this)?.onGroupByAdded({ key });
   }
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
@@ -573,10 +573,7 @@ export class AdHocFiltersVariable
       operator: originalFilter.operator,
       nonApplicable: originalFilter.nonApplicable,
     });
-    getReportInteractionHandler(this)?.reportInteraction('grafana_unified_drilldown_filter_restored', {
-      key: filter.key,
-      origin: filter.origin,
-    });
+    getAdHocFilterInteractionHandler(this)?.onFilterRestored({ key: filter.key, origin: filter.origin });
   }
 
   /**
@@ -672,7 +669,7 @@ export class AdHocFiltersVariable
       originFilters: restoredOrigins,
       filters: nonGroupByFilters,
     });
-    getReportInteractionHandler(this)?.reportInteraction('grafana_unified_drilldown_groupby_restored');
+    getAdHocFilterInteractionHandler(this)?.onGroupByRestored();
   }
 
   /**
@@ -695,7 +692,7 @@ export class AdHocFiltersVariable
     // Clear all user-added filters
     this.setState({ filters: [] });
 
-    getReportInteractionHandler(this)?.reportInteraction('grafana_unified_drilldown_clear_all', {
+    getAdHocFilterInteractionHandler(this)?.onClearAll({
       filtersCleared: filtersCount,
       originsRestored: restorableCount,
     });
@@ -794,10 +791,7 @@ export class AdHocFiltersVariable
           _wip: undefined,
         });
         this.verifyApplicabilityAndStoreRecentFilter(newFilter);
-        getReportInteractionHandler(this)?.reportInteraction('grafana_unified_drilldown_filter_added', {
-          key: newFilter.key,
-          operator: newFilter.operator,
-        });
+        getAdHocFilterInteractionHandler(this)?.onFilterAdded({ key: newFilter.key, operator: newFilter.operator });
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -831,10 +825,7 @@ export class AdHocFiltersVariable
       });
 
       this.setState({ originFilters: updatedOrigins });
-      getReportInteractionHandler(this)?.reportInteraction('grafana_unified_drilldown_groupby_removed', {
-        key: filter.key,
-        origin: filter.origin,
-      });
+      getAdHocFilterInteractionHandler(this)?.onGroupByRemoved({ key: filter.key, origin: filter.origin });
     } else {
       this._updateFilter(filter, {
         operator: '=~',
@@ -845,10 +836,7 @@ export class AdHocFiltersVariable
         nonApplicable: false,
         restorable: true,
       });
-      getReportInteractionHandler(this)?.reportInteraction('grafana_unified_drilldown_filter_match_all', {
-        key: filter.key,
-        origin: filter.origin,
-      });
+      getAdHocFilterInteractionHandler(this)?.onFilterMatchAll({ key: filter.key, origin: filter.origin });
     }
   }
 
@@ -865,10 +853,12 @@ export class AdHocFiltersVariable
     this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
     this._debouncedVerifyApplicability();
 
-    getReportInteractionHandler(this)?.reportInteraction(
-      isGroupBy ? 'grafana_unified_drilldown_groupby_removed' : 'grafana_unified_drilldown_filter_removed',
-      { key: filter.key }
-    );
+    const handler = getAdHocFilterInteractionHandler(this);
+    if (isGroupBy) {
+      handler?.onGroupByRemoved({ key: filter.key });
+    } else {
+      handler?.onFilterRemoved({ key: filter.key });
+    }
   }
 
   public _removeLastFilter() {
