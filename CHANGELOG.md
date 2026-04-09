@@ -1,3 +1,16 @@
+# v7.3.12 (Thu Apr 09 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Add interaction reporting [#1422](https://github.com/grafana/scenes/pull/1422) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.3.11 (Wed Apr 08 2026)
 
 #### 🐛 Bug Fix
