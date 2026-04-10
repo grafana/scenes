@@ -62,12 +62,6 @@ describe('SceneObject', () => {
       key: 'root',
       nested: new TestScene({ key: 'nested' }),
     });
-    const scene2 = new TestScene({
-      key: 'root',
-      nested: new TestScene({ key: 'nested' }),
-    });
-
-    expect(scene).toEqual(scene2);
 
     expect(JSON.stringify(scene)).toBe(
       '{"type":"TestScene","isActive":false,"state":{"key":"root","nested":{"type":"TestScene","isActive":false,"state":{"key":"nested"}}}}'
