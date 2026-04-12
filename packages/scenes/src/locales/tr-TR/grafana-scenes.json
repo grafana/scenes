@@ -4,17 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla düzenle",
         "managed-filter": "{{origin}} yönetimli filtre",
-        "non-applicable": "",
+        "non-applicable": "Filtre uygulanamaz",
         "remove-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla kaldır"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Filtre değerini kaldır - {{itemLabel}}",
         "use-custom-value": "Özel değer kullan: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": ""
+      },
+      "drilldown-recommendations": {
+        "recent": "Son",
+        "recent-empty": "Son değer yok",
+        "recommended": "Önerilen",
+        "recommended-empty": "Önerilen değer yok",
+        "tooltip": "Önerileri göster"
+      },
       "fallback-page": {
         "content": "Buraya bir bağlantı aracılığıyla ulaştıysanız uygulamada bir hata olabilir.",
         "subTitle": "URL hiçbir sayfayla eşleşmedi.",
         "title": "Bulunamadı"
+      },
+      "group-by-pill": {
+        "applied-by-default": "",
+        "group-by-key": "",
+        "remove-group-by-key": ""
       },
       "lazy-loader": {
         "placeholder": ""
@@ -30,13 +45,13 @@
         "title-scene-debugger": "Sahne hata ayıklayıcı"
       },
       "scene-grid-row": {
-        "collapse-row": "Satırı daralt",
-        "expand-row": "Satırı genişlet"
+        "collapse-row": "",
+        "expand-row": ""
       },
       "scene-refresh-picker": {
         "text-cancel": "İptal",
         "text-refresh": "Yenile",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Tüm sorguları iptal et"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Karşılaştırma",
@@ -46,8 +61,8 @@
         "aria-label-pane-resize-widget": "Bölme yeniden boyutlandırma widget'ı"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "{{moveBackwardDuration}} geri taşı",
+        "move-forward-tooltip": "{{moveForwardDuration}} ileri taşı"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +108,18 @@
           "placeholder-select-value": "Değer seçin"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "",
+        "collapse": "Daralt",
+        "collapse-filters": "Filtreleri daralt",
+        "expand-filters": "",
+        "group-by-label": "",
+        "restore-default-group-by": "",
+        "show-more-filters_one": "",
+        "show-more-filters_other": "",
+        "show-more-group-by_one": "",
+        "show-more-group-by_other": ""
+      },
       "data-source-variable": {
         "label": {
           "default": "varsayılan"
@@ -111,7 +138,7 @@
             "format-date-in-different-ways": "Tarihi farklı şekillerde biçimlendirin",
             "format-multivalued-variables-using-syntax-example": "Çok değerli değişkenleri glob söz dizimi kullanarak biçimlendirin (örneğin {value1,value2}).",
             "html-escaping-of-values": "Değerlerin HTML kaçış karakteriyle yazılması gerekir",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Değerleri virgülle ayırın",
             "json-stringify-value": "JSON stringify değeri",
             "keep-value-as-is": "Değeri olduğu gibi tut",
             "multiple-values-are-formatted-like-variablevalue": "Birden fazla değer, değişken=değer biçiminde biçimlendirilir",

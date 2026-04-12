@@ -4,17 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Редактировать фильтр с ключом {{keyLabel}}",
         "managed-filter": "фильтр, управляемый {{origin}}",
-        "non-applicable": "",
+        "non-applicable": "Фильтр не применим",
         "remove-filter-with-key": "Удалить фильтр с ключом {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Удалить значение фильтра ({{itemLabel}})",
         "use-custom-value": "Использовать пользовательское значение: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": ""
+      },
+      "drilldown-recommendations": {
+        "recent": "Последние",
+        "recent-empty": "Нет последних значений",
+        "recommended": "Рекомендуемые",
+        "recommended-empty": "Нет рекомендуемых значений",
+        "tooltip": "Показать рекомендации"
+      },
       "fallback-page": {
         "content": "Если вы попали сюда по ссылке, возможна ошибка в приложении.",
         "subTitle": "URL-адрес не соответствует ни одной странице",
         "title": "Не найдена"
+      },
+      "group-by-pill": {
+        "applied-by-default": "",
+        "group-by-key": "",
+        "remove-group-by-key": ""
       },
       "lazy-loader": {
         "placeholder": ""
@@ -30,13 +45,13 @@
         "title-scene-debugger": "Отладчик сцен"
       },
       "scene-grid-row": {
-        "collapse-row": "Свернуть строку",
-        "expand-row": "Развернуть строку"
+        "collapse-row": "",
+        "expand-row": ""
       },
       "scene-refresh-picker": {
         "text-cancel": "Отмена",
         "text-refresh": "Обновить",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Отменить все запросы"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Сравнение",
@@ -46,8 +61,8 @@
         "aria-label-pane-resize-widget": "Виджет изменения размера панелей"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Перейти на {{moveBackwardDuration}} назад",
+        "move-forward-tooltip": "Перейти на {{moveForwardDuration}} вперед"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +108,22 @@
           "placeholder-select-value": "Выбрать значение"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "",
+        "collapse": "Свернуть",
+        "collapse-filters": "Свернуть фильтры",
+        "expand-filters": "",
+        "group-by-label": "",
+        "restore-default-group-by": "",
+        "show-more-filters_one": "",
+        "show-more-filters_few": "",
+        "show-more-filters_many": "",
+        "show-more-filters_other": "",
+        "show-more-group-by_one": "",
+        "show-more-group-by_few": "",
+        "show-more-group-by_many": "",
+        "show-more-group-by_other": ""
+      },
       "data-source-variable": {
         "label": {
           "default": "по умолчанию"
@@ -111,7 +142,7 @@
             "format-date-in-different-ways": "Форматируйте дату разными способами",
             "format-multivalued-variables-using-syntax-example": "Форматируйте многозначные переменные с использованием синтаксиса glob, например {value1,value2}",
             "html-escaping-of-values": "HTML-экранирование значений",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Объединяйте значения через запятую",
             "json-stringify-value": "Значение преобразования JSON в строку",
             "keep-value-as-is": "Сохраните значение как есть",
             "multiple-values-are-formatted-like-variablevalue": "Несколько значений форматируются как «переменная=значение»",
