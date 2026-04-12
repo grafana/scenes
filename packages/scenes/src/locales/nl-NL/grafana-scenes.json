@@ -4,17 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Filter bewerken met sleutel {{keyLabel}}",
         "managed-filter": "{{origin}} beheerde filter",
-        "non-applicable": "",
+        "non-applicable": "Filter is niet van toepassing",
         "remove-filter-with-key": "Filter verwijderen met sleutel {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Filterwaarde verwijderen - {{itemLabel}}",
         "use-custom-value": "Aangepaste waarde gebruiken: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": ""
+      },
+      "drilldown-recommendations": {
+        "recent": "Recent",
+        "recent-empty": "Geen recente waarden",
+        "recommended": "Aanbevolen",
+        "recommended-empty": "Geen aanbevolen waarden",
+        "tooltip": "Aanbevelingen tonen"
+      },
       "fallback-page": {
         "content": "Als je hier bent gekomen via een link, dan kan er een bug in deze applicatie zijn.",
         "subTitle": "De URL kwam met geen enkele pagina overeen",
         "title": "Niet gevonden"
+      },
+      "group-by-pill": {
+        "applied-by-default": "",
+        "group-by-key": "",
+        "remove-group-by-key": ""
       },
       "lazy-loader": {
         "placeholder": ""
@@ -30,13 +45,13 @@
         "title-scene-debugger": "Scène-debugger"
       },
       "scene-grid-row": {
-        "collapse-row": "Rij samenvouwen",
-        "expand-row": "Rij uitvouwen"
+        "collapse-row": "",
+        "expand-row": ""
       },
       "scene-refresh-picker": {
         "text-cancel": "Annuleren",
         "text-refresh": "Vernieuwen",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Alle zoekopdrachten annuleren"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Vergelijking",
@@ -46,8 +61,8 @@
         "aria-label-pane-resize-widget": "Grootte widget wijzigen"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Ga {{moveBackwardDuration}} terug",
+        "move-forward-tooltip": "Ga {{moveForwardDuration}} naar voren"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +108,18 @@
           "placeholder-select-value": "Waarde selecteren"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "",
+        "collapse": "Inklappen",
+        "collapse-filters": "Filters inklappen",
+        "expand-filters": "",
+        "group-by-label": "",
+        "restore-default-group-by": "",
+        "show-more-filters_one": "",
+        "show-more-filters_other": "",
+        "show-more-group-by_one": "",
+        "show-more-group-by_other": ""
+      },
       "data-source-variable": {
         "label": {
           "default": "standaard"
@@ -111,7 +138,7 @@
             "format-date-in-different-ways": "Datum op verschillende manieren opmaken",
             "format-multivalued-variables-using-syntax-example": "Formatteer variabelen met meerdere waarden met behulp van glob-syntaxis, bijvoorbeeld {value1,value2}",
             "html-escaping-of-values": "HTML-escaping van waarden",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Voeg waarden samen met een komma",
             "json-stringify-value": "JSON-stringify-waarde",
             "keep-value-as-is": "Huidige waarde behouden",
             "multiple-values-are-formatted-like-variablevalue": "Meerdere waarden zijn opgemaakt als variabele=waarde",

@@ -4,17 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Upravit filtr pomocí klíče {{keyLabel}}",
         "managed-filter": "Spravovaný filtr: {{origin}}",
-        "non-applicable": "",
+        "non-applicable": "Filtr není použitelný",
         "remove-filter-with-key": "Odebrat filtr pomocí klíče {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Odebrat hodnotu filtru – {{itemLabel}}",
         "use-custom-value": "Použít vlastní hodnotu: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": ""
+      },
+      "drilldown-recommendations": {
+        "recent": "Nedávné",
+        "recent-empty": "Žádné nedávné hodnoty",
+        "recommended": "Doporučeno",
+        "recommended-empty": "Žádné doporučené hodnoty",
+        "tooltip": "Zobrazit doporučení"
+      },
       "fallback-page": {
         "content": "Pokud jste se sem dostali pomocí odkazu, může se jednat o chybu v této aplikaci.",
         "subTitle": "Adresa URL neodpovídá žádné stránce",
         "title": "Nenalezeno"
+      },
+      "group-by-pill": {
+        "applied-by-default": "",
+        "group-by-key": "",
+        "remove-group-by-key": ""
       },
       "lazy-loader": {
         "placeholder": ""
@@ -30,13 +45,13 @@
         "title-scene-debugger": "Ladicí program scény"
       },
       "scene-grid-row": {
-        "collapse-row": "Sbalit řádek",
-        "expand-row": "Rozbalit řádek"
+        "collapse-row": "",
+        "expand-row": ""
       },
       "scene-refresh-picker": {
         "text-cancel": "Zrušit",
         "text-refresh": "Obnovit",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Zrušit všechny dotazy"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Srovnání",
@@ -46,8 +61,8 @@
         "aria-label-pane-resize-widget": "Widget pro změnu velikosti panelu"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Přesunout dozadu o {{moveBackwardDuration}}",
+        "move-forward-tooltip": "Přesunout dopředu o {{moveForwardDuration}}"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +108,22 @@
           "placeholder-select-value": "Vybrat hodnotu"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "",
+        "collapse": "Sbalit",
+        "collapse-filters": "Sbalit filtry",
+        "expand-filters": "",
+        "group-by-label": "",
+        "restore-default-group-by": "",
+        "show-more-filters_one": "",
+        "show-more-filters_few": "",
+        "show-more-filters_many": "",
+        "show-more-filters_other": "",
+        "show-more-group-by_one": "",
+        "show-more-group-by_few": "",
+        "show-more-group-by_many": "",
+        "show-more-group-by_other": ""
+      },
       "data-source-variable": {
         "label": {
           "default": "výchozí"
@@ -111,7 +142,7 @@
             "format-date-in-different-ways": "Formátovat datum různými způsoby",
             "format-multivalued-variables-using-syntax-example": "Formátovat vícehodnotové proměnné pomocí globální syntaxe, například {value1,value2}",
             "html-escaping-of-values": "HTML escapování hodnot",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Spojte hodnoty čárkou",
             "json-stringify-value": "Hodnota JSON stringify",
             "keep-value-as-is": "Ponechat hodnotu tak, jak je",
             "multiple-values-are-formatted-like-variablevalue": "Více hodnot je formátováno jako proměnná=hodnota",
