@@ -1,3 +1,16 @@
+# v7.3.13 (Tue Apr 14 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - chore: replace standardTransformers import with registry access [#1425](https://github.com/grafana/scenes/pull/1425) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v7.3.12 (Thu Apr 09 2026)
 
 #### 🐛 Bug Fix
