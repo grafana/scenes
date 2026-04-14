@@ -246,7 +246,7 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
         expect(layer.state.data?.series).toBeDefined();
         expect(layer.state.data?.series?.[0].length).toBe(5);
 
-        expect(runRequestMock).toBeCalledTimes(2);
+        expect(runRequestMock).toHaveBeenCalledTimes(2);
         const { scopedVars } = sentRequest!;
 
         expect(scopedVars['__sceneObject']).toBeDefined();

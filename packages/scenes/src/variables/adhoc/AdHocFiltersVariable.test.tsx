@@ -473,8 +473,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
-      expect(getTagKeysSpy).toBeCalledTimes(1);
-      expect(getTagKeysSpy).toBeCalledWith({
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+      expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
         queries: undefined,
         timeRange: timeRange.state.value,
@@ -491,8 +491,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await waitFor(() => select(selects[0], key, { container: document.body }));
       await userEvent.click(selects[2]);
 
-      expect(getTagValuesSpy).toBeCalledTimes(1);
-      expect(getTagValuesSpy).toBeCalledWith({
+      expect(getTagValuesSpy).toHaveBeenCalledTimes(1);
+      expect(getTagValuesSpy).toHaveBeenCalledWith({
         filters: [],
         key: 'key3',
         queries: undefined,
@@ -507,8 +507,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
-      expect(getTagKeysSpy).toBeCalledTimes(1);
-      expect(getTagKeysSpy).toBeCalledWith({
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+      expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
         queries: [
           {
@@ -549,8 +549,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await waitFor(() => select(selects[0], key, { container: document.body }));
       await userEvent.click(selects[2]);
 
-      expect(getTagValuesSpy).toBeCalledTimes(1);
-      expect(getTagValuesSpy).toBeCalledWith({
+      expect(getTagValuesSpy).toHaveBeenCalledTimes(1);
+      expect(getTagValuesSpy).toHaveBeenCalledWith({
         filters: [],
         key: 'key3',
         queries: [
@@ -2093,8 +2093,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     await filtersVar._getKeys(null);
 
-    expect(getTagKeysSpy).toBeCalledTimes(1);
-    expect(getTagKeysSpy).toBeCalledWith(
+    expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    expect(getTagKeysSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         filters: [expect.objectContaining({ key: 'key2', operator: '=', value: 'val2' })],
         timeRange: timeRange.state.value,
@@ -2110,8 +2110,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     await filtersVar._getKeys(null);
 
-    expect(getTagKeysSpy).toBeCalledTimes(1);
-    expect(getTagKeysSpy).toBeCalledWith(
+    expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    expect(getTagKeysSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         filters: [],
         timeRange: timeRange.state.value,
