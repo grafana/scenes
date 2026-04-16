@@ -513,7 +513,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   describe('When `useQueriesAsFilterForOptions` is set to `true`', () => {
     it('Should collect and pass respective data source queries to getTagKeys call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ layout: 'horizontal', filters: [], useQueriesAsFilterForOptions: true });
+      const { getTagKeysSpy, timeRange } = setup({
+        layout: 'horizontal',
+        filters: [],
+        useQueriesAsFilterForOptions: true,
+      });
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
@@ -533,9 +537,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should apply the filters request enricher to getTagKeys call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ layout: 'horizontal', filters: [], useQueriesAsFilterForOptions: true }, () => ({
-        key: 'overwrittenKey',
-      }));
+      const { getTagKeysSpy, timeRange } = setup(
+        { layout: 'horizontal', filters: [], useQueriesAsFilterForOptions: true },
+        () => ({
+          key: 'overwrittenKey',
+        })
+      );
 
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       const keyCombobox = getKeyComboboxElement();
@@ -554,7 +561,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should collect and pass respective data source queries to getTagValues call', async () => {
-      const { getTagValuesSpy, timeRange } = setup({ layout: 'horizontal', filters: [], useQueriesAsFilterForOptions: true });
+      const { getTagValuesSpy, timeRange } = setup({
+        layout: 'horizontal',
+        filters: [],
+        useQueriesAsFilterForOptions: true,
+      });
 
       // Select key
       const key = 'Key 3';
@@ -578,9 +589,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should apply the filters request enricher to getTagValues call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ layout: 'horizontal', filters: [], useQueriesAsFilterForOptions: true }, () => ({
-        key: 'overwrittenKey',
-      }));
+      const { getTagKeysSpy, timeRange } = setup(
+        { layout: 'horizontal', filters: [], useQueriesAsFilterForOptions: true },
+        () => ({
+          key: 'overwrittenKey',
+        })
+      );
 
       const key = 'Key 3';
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
