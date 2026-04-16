@@ -5,7 +5,6 @@ import {
   allActiveFilterSets,
 } from './patchGetAdhocFilters';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
-import { SceneFlexLayout } from '../../components/layout/SceneFlexLayout';
 import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
