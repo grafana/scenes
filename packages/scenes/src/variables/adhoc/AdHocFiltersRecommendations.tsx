@@ -12,12 +12,8 @@ import { getDataSource } from '../../utils/getDataSource';
 import { DrilldownRecommendations, DrilldownPill } from '../components/DrilldownRecommendations';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../constants';
-import {
-  AdHocFilterWithLabels,
-  AdHocFiltersVariable,
-  GROUP_BY_OPERATOR,
-  isGroupByFilter,
-} from './AdHocFiltersVariable';
+import { reportInteraction } from '@grafana/runtime';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, isGroupByFilter } from './AdHocFiltersVariable';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
@@ -271,15 +267,9 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
   private async _verifyRecentGroupingsApplicability(storedGroupings: Array<SelectableValue<VariableValueSingle>>) {
     const adhoc = this._adHocFilter;
     const queries = adhoc.state.useQueriesAsFilterForOptions ? getQueriesForVariables(adhoc) : undefined;
+    const groupByKeys = storedGroupings.map((g) => String(g.value));
 
-    const groupByFilters: AdHocFilterWithLabels[] = storedGroupings.map((g) => ({
-      key: String(g.value),
-      operator: GROUP_BY_OPERATOR,
-      value: '',
-      condition: '',
-    }));
-
-    const response = await adhoc.getFiltersApplicabilityForQueries(groupByFilters, queries ?? []);
+    const response = await adhoc.getFiltersApplicabilityForQueries([], queries ?? [], groupByKeys);
 
     if (!response) {
       this.setState({ recentGrouping: deduplicateGroupings(storedGroupings).slice(-MAX_RECENT_DRILLDOWNS) });
@@ -372,6 +362,10 @@ function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHo
       const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
       if (!exists) {
         model.addFilterToParent(filter);
+        reportInteraction('grafana_unified_drilldown_recent_filter_applied', {
+          key: filter.key,
+          operator: filter.operator,
+        });
       }
     },
   }));
@@ -382,6 +376,10 @@ function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHo
       const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
       if (!exists) {
         model.addFilterToParent(filter);
+        reportInteraction('grafana_unified_drilldown_recommended_filter_applied', {
+          key: filter.key,
+          operator: filter.operator,
+        });
       }
     },
   }));
@@ -402,6 +400,9 @@ export function AdHocGroupByRecommendationsRenderer({ model }: SceneComponentPro
     label: `${groupBy.value}`,
     onClick: () => {
       model.addGroupByToParent(String(groupBy.value));
+      reportInteraction('grafana_unified_drilldown_recent_groupby_applied', {
+        key: String(groupBy.value),
+      });
     },
   }));
 
@@ -409,6 +410,9 @@ export function AdHocGroupByRecommendationsRenderer({ model }: SceneComponentPro
     label: `${groupBy.value}`,
     onClick: () => {
       model.addGroupByToParent(String(groupBy.value));
+      reportInteraction('grafana_unified_drilldown_recommended_groupby_applied', {
+        key: String(groupBy.value),
+      });
     },
   }));
 

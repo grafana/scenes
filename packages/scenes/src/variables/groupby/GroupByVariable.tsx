@@ -27,7 +27,13 @@ import { getDataSource } from '../../utils/getDataSource';
 import { components, GroupBase, MenuProps } from 'react-select';
 import { InputActionMeta, MultiSelect, Select, useStyles2 } from '@grafana/ui';
 import { isArray, isEqual } from 'lodash';
-import { dataFromResponse, getQueriesForVariables, handleOptionGroups, responseHasError } from '../utils';
+import {
+  dataFromResponse,
+  getQueriesForVariables,
+  getVariableControlId,
+  handleOptionGroups,
+  responseHasError,
+} from '../utils';
 import { OptionWithCheckbox } from '../components/VariableValueSelect';
 import { GroupByVariableUrlSyncHandler } from './GroupByVariableUrlSyncHandler';
 import { getOptionSearcher } from '../components/getOptionSearcher';
@@ -85,12 +91,6 @@ export interface GroupByVariableState extends MultiValueVariableState {
    * state for checking whether drilldown applicability is enabled
    */
   applicabilityEnabled?: boolean;
-  /**
-   * Whether the input should be wide. For example, this is needed when dashboardAdHocAndGroupByWrapper feature toggle is enabled so that
-   * the input fills the remaining space in the row.
-   */
-  wideInput?: boolean;
-
   /**
    * enables drilldown recommendations
    */
@@ -232,8 +232,6 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
       if (this.state.defaultValue) {
         this.restoreDefaultValues();
       }
-
-      this.setState({ applicabilityEnabled: false });
     };
   };
 
@@ -285,6 +283,10 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   }
 
   public async _verifyApplicability() {
+    if (!this.state.applicabilityEnabled) {
+      return;
+    }
+
     const queries = getQueriesForVariables(this);
     const value = this.state.value;
 
@@ -295,11 +297,9 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
     }
 
     if (!isEqual(response, this.state.keysApplicability)) {
-      this.setState({ keysApplicability: response ?? undefined, applicabilityEnabled: true });
+      this.setState({ keysApplicability: response ?? undefined });
 
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
-    } else {
-      this.setState({ applicabilityEnabled: true });
     }
   }
 
@@ -476,151 +476,146 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     [optionSearcher, inputValue]
   );
 
-  const WideInputWrapper = (children: React.ReactNode) => <div className={styles.selectWrapper}>{children}</div>;
-
   const select = isMulti ? (
-    <ConditionalWrapper condition={model.state.wideInput ?? false} wrapper={WideInputWrapper}>
-      <MultiSelect<VariableValueSingle>
-        aria-label={t(
-          'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
-          'Group by selector'
-        )}
-        data-testid={`GroupBySelect-${key}`}
-        id={key}
-        placeholder={t(
-          'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
-          'Group by label'
-        )}
-        width="auto"
-        className={cx(drilldownRecommendationsEnabled && styles.selectStylesInWrapper)}
-        allowCustomValue={allowCustomValue}
-        inputValue={inputValue}
-        value={uncommittedValue}
-        noMultiValueWrap={true}
-        maxVisibleValues={maxVisibleValues ?? 5}
-        tabSelectsValue={false}
-        virtualized
-        options={filteredOptions}
-        filterOption={filterNoOp}
-        closeMenuOnSelect={false}
-        isOpen={isOptionsOpen}
-        isClearable={true}
-        hideSelectedOptions={false}
-        isLoading={isFetchingOptions}
-        components={{
-          Option: OptionWithCheckbox,
-          Menu: WideMenu,
-          ...(hasDefaultValue
-            ? {
-                IndicatorsContainer: () => <DefaultGroupByCustomIndicatorContainer model={model} />,
-              }
-            : {}),
-          MultiValueContainer: ({ innerProps, children }: React.PropsWithChildren<GroupByContainerProps>) => (
-            <GroupByValueContainer innerProps={innerProps} keysApplicability={keysApplicability}>
-              {children}
-            </GroupByValueContainer>
-          ),
-        }}
-        onInputChange={onInputChange}
-        onBlur={() => {
-          model.changeValueTo(
-            uncommittedValue.map((x) => x.value!),
-            uncommittedValue.map((x) => x.label!),
-            true
-          );
-
-          const restorable = model.checkIfRestorable(uncommittedValue.map((v) => v.value!));
-
-          if (restorable !== model.state.restorable) {
-            model.setState({ restorable: restorable });
-          }
-
-          model._verifyApplicabilityAndStoreRecentGrouping();
-        }}
-        onChange={(newValue, action) => {
-          if (action.action === 'clear' && noValueOnClear) {
-            model.changeValueTo([], undefined, true);
-          }
-
-          setUncommittedValue(newValue);
-          setInputValue('');
-        }}
-        onOpenMenu={async () => {
-          const profiler = getInteractionTracker(model);
-          profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
-
-          setIsFetchingOptions(true);
-          await lastValueFrom(model.validateAndUpdate());
-          setIsFetchingOptions(false);
-          setIsOptionsOpen(true);
-
-          profiler?.stopInteraction();
-        }}
-        onCloseMenu={() => {
-          setIsOptionsOpen(false);
-        }}
-      />
-    </ConditionalWrapper>
-  ) : (
-    <ConditionalWrapper condition={model.state.wideInput ?? false} wrapper={WideInputWrapper}>
-      <Select
-        aria-label={t(
-          'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
-          'Group by selector'
-        )}
-        data-testid={`GroupBySelect-${key}`}
-        id={key}
-        placeholder={t(
-          'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
-          'Group by label'
-        )}
-        width="auto"
-        inputValue={inputValue}
-        value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
-        allowCustomValue={allowCustomValue}
-        noMultiValueWrap={true}
-        maxVisibleValues={maxVisibleValues ?? 5}
-        tabSelectsValue={false}
-        virtualized
-        options={filteredOptions}
-        filterOption={filterNoOp}
-        closeMenuOnSelect={true}
-        isOpen={isOptionsOpen}
-        isClearable={true}
-        hideSelectedOptions={false}
-        noValueOnClear={true}
-        isLoading={isFetchingOptions}
-        components={{ Menu: WideMenu }}
-        onInputChange={onInputChange}
-        onChange={(newValue, action) => {
-          if (action.action === 'clear') {
-            setUncommittedValue([]);
-            if (noValueOnClear) {
-              model.changeValueTo([]);
+    <MultiSelect<VariableValueSingle>
+      aria-label={t(
+        'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
+        'Group by selector'
+      )}
+      data-testid={`GroupBySelect-${key}`}
+      id={key}
+      placeholder={t(
+        'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
+        'Group by label'
+      )}
+      width="auto"
+      className={cx(drilldownRecommendationsEnabled && styles.selectStylesInWrapper)}
+      allowCustomValue={allowCustomValue}
+      inputValue={inputValue}
+      value={uncommittedValue}
+      noMultiValueWrap={true}
+      maxVisibleValues={maxVisibleValues ?? 5}
+      tabSelectsValue={false}
+      virtualized
+      options={filteredOptions}
+      filterOption={filterNoOp}
+      closeMenuOnSelect={false}
+      isOpen={isOptionsOpen}
+      isClearable={true}
+      hideSelectedOptions={false}
+      isLoading={isFetchingOptions}
+      components={{
+        Option: OptionWithCheckbox,
+        Menu: WideMenu,
+        ...(hasDefaultValue
+          ? {
+              IndicatorsContainer: () => <DefaultGroupByCustomIndicatorContainer model={model} />,
             }
-            return;
-          }
-          if (newValue?.value) {
-            setUncommittedValue([newValue]);
-            model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : undefined);
-          }
-        }}
-        onOpenMenu={async () => {
-          const profiler = getInteractionTracker(model);
-          profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+          : {}),
+        MultiValueContainer: ({ innerProps, children }: React.PropsWithChildren<GroupByContainerProps>) => (
+          <GroupByValueContainer innerProps={innerProps} keysApplicability={keysApplicability}>
+            {children}
+          </GroupByValueContainer>
+        ),
+      }}
+      onInputChange={onInputChange}
+      onBlur={() => {
+        model.changeValueTo(
+          uncommittedValue.map((x) => x.value!),
+          uncommittedValue.map((x) => x.label!),
+          true
+        );
 
-          setIsFetchingOptions(true);
-          await lastValueFrom(model.validateAndUpdate());
-          setIsFetchingOptions(false);
-          setIsOptionsOpen(true);
+        const restorable = model.checkIfRestorable(uncommittedValue.map((v) => v.value!));
 
-          profiler?.stopInteraction();
-        }}
-        onCloseMenu={() => {
-          setIsOptionsOpen(false);
-        }}
-      />
-    </ConditionalWrapper>
+        if (restorable !== model.state.restorable) {
+          model.setState({ restorable: restorable });
+        }
+
+        model._verifyApplicabilityAndStoreRecentGrouping();
+      }}
+      onChange={(newValue, action) => {
+        if (action.action === 'clear' && noValueOnClear) {
+          model.changeValueTo([], undefined, true);
+        }
+
+        setUncommittedValue(newValue);
+        setInputValue('');
+      }}
+      onOpenMenu={async () => {
+        const profiler = getInteractionTracker(model);
+        profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+
+        setIsFetchingOptions(true);
+        await lastValueFrom(model.validateAndUpdate());
+        setIsFetchingOptions(false);
+        setIsOptionsOpen(true);
+
+        profiler?.stopInteraction();
+      }}
+      onCloseMenu={() => {
+        setIsOptionsOpen(false);
+      }}
+    />
+  ) : (
+    <Select
+      aria-label={t(
+        'grafana-scenes.variables.group-by-variable-renderer.aria-label-group-by-selector',
+        'Group by selector'
+      )}
+      inputId={getVariableControlId(model.state.type, key)}
+      data-testid={`GroupBySelect-${key}`}
+      id={key}
+      placeholder={t(
+        'grafana-scenes.variables.group-by-variable-renderer.placeholder-group-by-label',
+        'Group by label'
+      )}
+      width="auto"
+      inputValue={inputValue}
+      value={uncommittedValue && uncommittedValue.length > 0 ? uncommittedValue : null}
+      allowCustomValue={allowCustomValue}
+      noMultiValueWrap={true}
+      maxVisibleValues={maxVisibleValues ?? 5}
+      tabSelectsValue={false}
+      virtualized
+      options={filteredOptions}
+      filterOption={filterNoOp}
+      closeMenuOnSelect={true}
+      isOpen={isOptionsOpen}
+      isClearable={true}
+      hideSelectedOptions={false}
+      noValueOnClear={true}
+      isLoading={isFetchingOptions}
+      components={{ Menu: WideMenu }}
+      onInputChange={onInputChange}
+      onChange={(newValue, action) => {
+        if (action.action === 'clear') {
+          setUncommittedValue([]);
+          if (noValueOnClear) {
+            model.changeValueTo([]);
+          }
+          return;
+        }
+        if (newValue?.value) {
+          setUncommittedValue([newValue]);
+          model.changeValueTo([newValue.value], newValue.label ? [newValue.label] : undefined);
+        }
+      }}
+      onOpenMenu={async () => {
+        const profiler = getInteractionTracker(model);
+        profiler?.startInteraction(GROUPBY_DIMENSIONS_INTERACTION);
+
+        setIsFetchingOptions(true);
+        await lastValueFrom(model.validateAndUpdate());
+        setIsFetchingOptions(false);
+        setIsOptionsOpen(true);
+
+        profiler?.stopInteraction();
+      }}
+      onCloseMenu={() => {
+        setIsOptionsOpen(false);
+      }}
+    />
   );
 
   if (!recommendations) {
@@ -637,18 +632,6 @@ export function GroupByVariableRenderer({ model }: SceneComponentProps<GroupByVa
     </div>
   );
 }
-
-const ConditionalWrapper = ({
-  condition,
-  wrapper,
-  children,
-}: {
-  condition: boolean;
-  wrapper: (children: React.ReactNode) => React.ReactElement;
-  children: React.ReactNode;
-}) => {
-  return condition ? wrapper(children) : <>{children}</>;
-};
 
 const filterNoOp = () => true;
 
@@ -678,22 +661,6 @@ function toSelectableValue(input: VariableValueOption): SelectableValue<Variable
 }
 
 const getStyles = (theme: GrafanaTheme2) => ({
-  selectWrapper: css({
-    display: 'flex',
-    minWidth: 0,
-    width: '100%',
-  }),
-  // Fix for noMultiValueWrap grid layout - prevent pills from stretching
-  // when the select is full width. The grid layout uses gridAutoFlow: column
-  // which stretches items by default.
-  fullWidthMultiSelect: css({
-    width: '100%',
-    // Target the value container (has data-testid) which uses grid layout
-    '& [data-testid]': {
-      gridAutoColumns: 'max-content',
-      justifyItems: 'start',
-    },
-  }),
   wrapper: css({
     display: 'flex',
   }),

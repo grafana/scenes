@@ -1,3 +1,134 @@
+# v7.3.13 (Tue Apr 14 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - chore: replace standardTransformers import with registry access [#1425](https://github.com/grafana/scenes/pull/1425) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v7.3.12 (Thu Apr 09 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Add interaction reporting [#1422](https://github.com/grafana/scenes/pull/1422) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.11 (Wed Apr 08 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneDataTransformer: Check metadata when choosing to emit transformation data [#1408](https://github.com/grafana/scenes/pull/1408) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 1
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+
+---
+
+# v7.3.10 (Tue Apr 07 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - adHoc: remove wide-input prop [#1421](https://github.com/grafana/scenes/pull/1421) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.3.9 (Tue Apr 07 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Preserve dashboard filters settings in panel edit [#1418](https://github.com/grafana/scenes/pull/1418) ([@mdvictor](https://github.com/mdvictor))
+  - Filters: Fix multi value pills interaction [#1419](https://github.com/grafana/scenes/pull/1419) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.8 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SQR: Fix datasource-template runtime routing for multi-select fan-out [#1416](https://github.com/grafana/scenes/pull/1416) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 1
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+
+---
+
+# v7.3.7 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - adHoc: optional controller method [#1415](https://github.com/grafana/scenes/pull/1415) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.3.6 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Perf: Introduce `clearPreviousFieldValues` for mitigation of React fiber memory issue [#1392](https://github.com/grafana/scenes/pull/1392) ([@leeoniya](https://github.com/leeoniya))
+
+#### Authors: 1
+
+- Leon Sorokin ([@leeoniya](https://github.com/leeoniya))
+
+---
+
+# v7.3.5 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Improve a11y [#1404](https://github.com/grafana/scenes/pull/1404) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 1
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+
+---
+
+# v7.3.4 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: NonApplicability adapt to unified experience [#1407](https://github.com/grafana/scenes/pull/1407) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.3.3 (Wed Apr 01 2026)
 
 #### 🐛 Bug Fix

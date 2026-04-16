@@ -92,6 +92,18 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   extendPanelContext?: (vizPanel: VizPanel, context: PanelContext) => void;
 
   /**
+   * @internal
+   * experimental / temporary
+   *
+   * clears field.values arrays of previous/stale/retained series and annotations frames in PanelData
+   *
+   * see https://github.com/facebook/react/issues/36176
+   * see https://github.com/grafana/grafana/pull/121682
+   * see https://github.com/grafana/grafana/pull/120190
+   **/
+  _UNSAFE_clearPreviousFieldValues?: boolean;
+
+  /**
    * Sets panel chrome collapsed state
    */
   collapsible?: boolean;

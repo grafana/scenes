@@ -51,6 +51,8 @@ import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializab
 import { DrilldownDependenciesManager } from '../variables/DrilldownDependenciesManager';
 
 let counter = 100;
+const MIXED_DATASOURCE_UID = '-- Mixed --';
+const MIXED_DATASOURCE_REF: DataSourceRef = { type: 'mixed', uid: MIXED_DATASOURCE_UID };
 
 export function getNextRequestId(prefix = 'SQR') {
   return prefix + counter++;
@@ -80,6 +82,83 @@ export interface QueryRunnerState extends SceneObjectState {
   requestIdPrefix?: string;
   // Private runtime state
   _hasFetchedData?: boolean;
+}
+
+function isTemplatedDatasourceUid(uid: string | undefined): boolean {
+  if (!uid) {
+    return false;
+  }
+
+  // Detect any variable template usage in a datasource UID so we can evaluate runtime fan-out.
+  return /^(?:\$[A-Za-z0-9_]+|\$\{[^}]+\})/.test(uid);
+}
+
+function isTemplatedDatasourceRef(datasource: DataSourceRef | null | undefined): boolean {
+  return isTemplatedDatasourceUid(datasource?.uid);
+}
+
+function getSimpleVariableNameFromDatasourceUid(uid: string | undefined): string | undefined {
+  if (!uid) {
+    return undefined;
+  }
+  const shortMatch = uid.match(/^\$([A-Za-z0-9_]+)$/);
+  if (shortMatch) {
+    return shortMatch[1];
+  }
+
+  const bracketMatch = uid.match(/^\$\{([A-Za-z0-9_]+)\}$/);
+  if (bracketMatch) {
+    return bracketMatch[1];
+  }
+
+  return undefined;
+}
+
+function getDatasourceVariableSelectionCount(sceneObject: SceneQueryRunner, variableName: string): number | undefined {
+  const variable = sceneGraph.lookupVariable(variableName, sceneObject);
+  if (!variable) {
+    return undefined;
+  }
+
+  const value = variable.getValue();
+  if (Array.isArray(value)) {
+    return value.filter((item) => item !== 'default').length;
+  }
+
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  return value === 'default' ? 0 : 1;
+}
+
+function shouldUseMixedRuntimeDatasource(
+  sceneObject: SceneQueryRunner,
+  datasource: DataSourceRef | null | undefined,
+  queries: SceneDataQuery[]
+) {
+  // Check both panel datasource and per-query datasources.
+  const refs: Array<DataSourceRef | null | undefined> = [datasource, ...queries.map((query) => query.datasource)];
+
+  for (const ref of refs) {
+    const uid = ref?.uid;
+    if (!uid) {
+      continue;
+    }
+
+    const variableName = getSimpleVariableNameFromDatasourceUid(uid);
+    if (variableName) {
+      const selectionCount = getDatasourceVariableSelectionCount(sceneObject, variableName);
+
+      if (selectionCount !== undefined && selectionCount > 1) {
+        return true;
+      }
+
+      continue;
+    }
+  }
+
+  return false;
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -465,7 +544,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     try {
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
-      const ds = await getDataSource(datasource, this._scopedVars);
+      const runtimeDatasource = shouldUseMixedRuntimeDatasource(this, datasource, queries)
+        ? MIXED_DATASOURCE_REF
+        : datasource;
+      const ds = await getDataSource(runtimeDatasource, this._scopedVars);
 
       this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid, this);
 
@@ -577,7 +659,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
           isExpressionReference /* TODO: Remove this check when isExpressionReference is properly exported from grafan runtime */ &&
           !isExpressionReference(query.datasource))
       ) {
-        query.datasource = ds.getRef();
+        if (!query.datasource && ds.meta?.mixed && isTemplatedDatasourceRef(this.state.datasource)) {
+          query.datasource = this.state.datasource;
+        } else {
+          query.datasource = ds.getRef();
+        }
       }
       return query;
     });

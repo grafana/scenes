@@ -714,7 +714,6 @@ describe('SceneDataTransformer', () => {
       clone.activate();
       expect(customTransformerSpy).toHaveBeenCalledTimes(2);
     });
-
     it('When series and annotations are the same but loading state is not', async () => {
       const dataNode = new SceneDataNode({
         data: {
@@ -729,14 +728,113 @@ describe('SceneDataTransformer', () => {
         transformations: [customTransformOperator],
       });
 
+      const results: PanelData[] = [];
+      transformer.getResultsStream().subscribe((result) => {
+        results.push(result.data);
+      });
+
       transformer.activate();
 
       await new Promise((r) => setTimeout(r, 1));
 
+      expect(results).toHaveLength(1);
+      expect(results[0].state).toBe(LoadingState.Done);
+
       dataNode.setState({ data: { ...dataNode.state.data, state: LoadingState.Loading } });
+
+      await new Promise((r) => setTimeout(r, 1));
 
       expect(customTransformerSpy).toHaveBeenCalledTimes(1);
       expect(transformer.state.data?.state).toBe(LoadingState.Loading);
+      expect(results).toHaveLength(2);
+      expect(results[1].state).toBe(LoadingState.Loading);
+      expect(results[1].series).toBe(results[0].series);
+    });
+
+    it('emits updated metadata when transformed frame references are unchanged', async () => {
+      const series = [arrayToDataFrame([1, 2, 3])];
+      const annotations: DataFrame[] = [];
+      const dataNode = new SceneDataNode({
+        data: {
+          state: LoadingState.Done,
+          timeRange: getDefaultTimeRange(),
+          request: { requestId: 'SQR100' } as DataQueryRequest,
+          series,
+          annotations,
+        },
+      });
+
+      const transformer = new SceneDataTransformer({
+        $data: dataNode,
+        transformations: [customTransformOperator],
+      });
+
+      const results: PanelData[] = [];
+      transformer.getResultsStream().subscribe((result) => {
+        results.push(result.data);
+      });
+
+      transformer.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const initialResult = results[0];
+
+      dataNode.setState({
+        data: {
+          ...dataNode.state.data,
+          state: LoadingState.Loading,
+          request: { requestId: 'SQR101' } as DataQueryRequest,
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+      expect(results).toHaveLength(2);
+      expect(results[1].state).toBe(LoadingState.Loading);
+      expect(results[1].request?.requestId).toBe('SQR101');
+      expect(results[1].series).toBe(initialResult.series);
+      expect(results[1].annotations).toBe(initialResult.annotations);
+    });
+
+    it('does not emit when transformed frame references and metadata are unchanged', async () => {
+      const series = [arrayToDataFrame([1, 2, 3])];
+      const annotations: DataFrame[] = [];
+      const dataNode = new SceneDataNode({
+        data: {
+          state: LoadingState.Done,
+          timeRange: getDefaultTimeRange(),
+          request: { requestId: 'SQR100' } as DataQueryRequest,
+          series,
+          annotations,
+        },
+      });
+
+      const transformer = new SceneDataTransformer({
+        $data: dataNode,
+        transformations: [customTransformOperator],
+      });
+
+      const results: PanelData[] = [];
+      transformer.getResultsStream().subscribe((result) => {
+        results.push(result.data);
+      });
+
+      transformer.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      dataNode.setState({
+        data: {
+          ...dataNode.state.data,
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+      expect(results).toHaveLength(1);
     });
   });
 

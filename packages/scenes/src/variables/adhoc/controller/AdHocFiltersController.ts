@@ -68,6 +68,11 @@ export interface AdHocFiltersController {
   updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>): void;
 
   /**
+   * Get id for the form control. Used for accessibility.
+   */
+  getControlId?(): string;
+
+  /**
    * Update filters list
    * @param filters
    * @param options

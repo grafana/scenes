@@ -58,6 +58,9 @@ function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariabl
   return filters;
 }
 
+const getKeyComboboxElement = () => getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox')[0];
+const getAdHocInputElement = () => screen.getByPlaceholderText('+ label = value');
+
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
 describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
@@ -473,6 +476,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const keyCombobox = getKeyComboboxElement();
+      await userEvent.click(keyCombobox);
       expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
       expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
@@ -507,6 +512,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const keyCombobox = getKeyComboboxElement();
+      await userEvent.click(keyCombobox);
       expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
       expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
@@ -526,6 +533,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       }));
 
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const keyCombobox = getKeyComboboxElement();
+      await userEvent.click(keyCombobox);
       expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
         queries: [
@@ -2421,6 +2430,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2467,6 +2477,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy, getTagKeysSpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2529,6 +2540,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2752,6 +2764,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('should set non-applicable filters on activation', async () => {
       setup(
         {
+          applicabilityEnabled: true,
           filters: [
             { key: 'pod', operator: '=', value: 'val1' },
             { key: 'container', operator: '=', value: 'val3' },
@@ -2820,6 +2833,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await userEvent.click(podElement);
 
+      await userEvent.keyboard('{Backspace}');
       await userEvent.keyboard('{Backspace}');
       await userEvent.keyboard('{Backspace}');
 
@@ -2910,6 +2924,16 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
     });
 
+    it('adds a label announcer tab stop before existing filter pills', async () => {
+      await userEvent.click(screen.getByRole('combobox'));
+
+      await userEvent.keyboard('{shift>}{tab}{tab}{tab}{tab}{tab}{/shift}');
+
+      const labelAnnouncer = screen.getByTestId('AdHocFilter-label-announcer');
+      expect(labelAnnouncer).toHaveFocus();
+      expect(labelAnnouncer).toHaveAccessibleName();
+    });
+
     it('does not display hidden filters', async () => {
       const { filtersVar } = setup();
 
@@ -2929,11 +2953,13 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(screen.queryAllByText('visible_key = visible_val')).not.toEqual([]);
     });
 
-    it('focusing the input opens the key dropdown', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
+    it('opens the key dropdown on user action and not automatically', async () => {
+      const combobox = screen.getByRole('combobox');
+      combobox.focus();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
-      // check the key dropdown is open
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'key2' })).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'key3' })).toBeInTheDocument();
@@ -2974,21 +3000,25 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // partial chip values for key and operator are still present
       expect(screen.getByText('key2')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // input has focus
-      expect(screen.getByRole('combobox')).toHaveFocus();
-      // with the correct value
-      expect(screen.getByRole('combobox')).toHaveValue('valLabel2');
+
+      const editedInput = screen.getByDisplayValue('valLabel2');
+      expect(editedInput).toHaveFocus();
+      expect(editedInput).toHaveValue('valLabel2');
+
+      // interact with the value input to open the value dropdown
+      await userEvent.keyboard('{Backspace}');
       // and the value dropdown is open
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'valLabel2' })).toBeInTheDocument();
-
-      await userEvent.type(screen.getByRole('combobox'), '{backspace}');
+      // select another option
       await userEvent.click(screen.getByRole('option', { name: 'valLabel3' }));
 
       // input should be refocused
       expect(screen.getByRole('combobox')).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key2 = valLabel3')).toBeInTheDocument();
+
+      await userEvent.keyboard('{arrowdown}');
       // and key dropdown should be showing
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
@@ -3008,24 +3038,28 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // partial chip values for key and operator are still present
       expect(screen.getByText('key2')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // input has focus
-      expect(screen.getByRole('combobox')).toHaveFocus();
-      // with the correct value
-      expect(screen.getByRole('combobox')).toHaveValue('valLabel2');
-      // and the value dropdown is open
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      const editedInput = screen.getByDisplayValue('valLabel2');
+      expect(editedInput).toHaveFocus();
+      expect(editedInput).toHaveValue('valLabel2');
+      // interact with the value input to open the value dropdown
+      await userEvent.keyboard('{arrowdown}');
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'valLabel2' })).toBeInTheDocument();
 
-      await userEvent.type(screen.getByRole('combobox'), '{backspace}');
+      await userEvent.type(editedInput, '{backspace}');
       await userEvent.keyboard('{arrowdown}{arrowdown}');
       await userEvent.keyboard('{enter}');
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      const wipCombobox = getAdHocInputElement();
+      expect(wipCombobox).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key2 = valLabel3')).toBeInTheDocument();
-      // and key dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      // interact with the value input to open the value dropdown
+
+      await userEvent.keyboard('{arrowdown}');
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
       // other untouched filter should still be there as well
@@ -3033,78 +3067,91 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('can add a new filter by selecting key, operator and value', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
+      const wipCombobox = getAdHocInputElement();
+      await userEvent.click(wipCombobox);
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+
       await userEvent.click(screen.getByRole('option', { name: 'key3' }));
 
       // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
-      // and operator dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: '= Equals' })).toBeInTheDocument();
 
       await userEvent.click(screen.getByRole('option', { name: '= Equals' }));
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // and value dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'valLabel1' })).toBeInTheDocument();
 
       await userEvent.click(screen.getByRole('option', { name: 'valLabel3' }));
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key3 = valLabel3')).toBeInTheDocument();
-      // and key dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      // interact with the value input to open the value dropdown
+
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
     });
 
     it('can add a new filter by selecting key, operator and value with the keyboard', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
-      // TODO for some reason this needs an extra arrowdown
+      const wipCombobox = getAdHocInputElement();
+      await userEvent.click(wipCombobox);
+      // open keys list, move to key3, select
       await userEvent.keyboard('{arrowdown}{arrowdown}');
       await userEvent.keyboard('{enter}');
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
-      // and operator dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
+
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: '= Equals' })).toBeInTheDocument();
 
       await userEvent.keyboard('{enter}');
-
       // input should be refocused, partial chip committed
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // and value dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'valLabel1' })).toBeInTheDocument();
 
-      await userEvent.keyboard('{arrowdown}{arrowdown}');
+      await userEvent.keyboard('{arrowdown}');
       await userEvent.keyboard('{enter}');
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key3 = valLabel3')).toBeInTheDocument();
-      // and key dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
     });
