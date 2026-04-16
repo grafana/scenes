@@ -58,7 +58,11 @@ export function findClosestAdHocFilterInHierarchy(
   while (current) {
     const variables = current.state.$variables?.state.variables ?? [];
     for (const variable of variables) {
-      if (variable instanceof AdHocFiltersVariable && interpolate(variable, variable.state.datasource?.uid) === dsUid) {
+      if (
+        variable instanceof AdHocFiltersVariable &&
+        variable.state.applyMode !== 'manual' &&
+        interpolate(variable, variable.state.datasource?.uid) === dsUid
+      ) {
         return variable;
       }
     }
@@ -74,7 +78,7 @@ export function findClosestAdHocFilterInHierarchy(
  */
 export function findGlobalAdHocFilterVariableByUid(dsUid: string | undefined): AdHocFiltersVariable | undefined {
   for (const filter of allActiveFilterSets.values()) {
-    if (interpolate(filter, filter.state.datasource?.uid) === dsUid) {
+    if (filter.state.applyMode !== 'manual' && interpolate(filter, filter.state.datasource?.uid) === dsUid) {
       return filter;
     }
   }
