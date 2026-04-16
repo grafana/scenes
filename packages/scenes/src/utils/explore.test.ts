@@ -121,13 +121,13 @@ describe('getExploreURL', () => {
 
     expect(mockDataSourceSrv.get).toHaveBeenCalledTimes(2);
     expect(mockDataSource.interpolateVariablesInQueries).toHaveBeenCalledTimes(2);
-    expect(mockDataSource.interpolateVariablesInQueries).toHaveBeentoHaveBeenNthCalledWith(
+    expect(mockDataSource.interpolateVariablesInQueries).toHaveBeenNthCalledWith(
       1,
       [data.request!.targets[0]],
       { __sceneObject: wrapInSafeSerializableSceneObject(model) },
       data.request!.filters
     );
-    expect(mockDataSource.interpolateVariablesInQueries).toHaveBeentoHaveBeenNthCalledWith(
+    expect(mockDataSource.interpolateVariablesInQueries).toHaveBeenNthCalledWith(
       2,
       [data.request!.targets[1]],
       { __sceneObject: wrapInSafeSerializableSceneObject(model) },
