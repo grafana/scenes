@@ -21,7 +21,7 @@
     "@eslint/compat": "1.3.0",
     "@grafana/e2e": "9.2.1",
     "@grafana/e2e-selectors": "^11.5.0",
-    "@grafana/eslint-config": "8.1.0",
+    "@grafana/eslint-config": "8.2.0",
     "@grafana/tsconfig": "1.3.0-rc1",
     "@stylistic/eslint-plugin-ts": "3.1.0",
     "@swc/core": "^1.2.144",
