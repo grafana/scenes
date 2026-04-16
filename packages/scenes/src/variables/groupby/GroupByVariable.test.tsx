@@ -386,7 +386,7 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       expect(variable.state.options).toEqual([{ label: 'key3', value: 'key3' }]);
     });
 
-    expect(getGroupByKeysSpy).toBeCalledWith({
+    expect(getGroupByKeysSpy).toHaveBeenCalledWith({
       filters: [],
       queries: [
         {

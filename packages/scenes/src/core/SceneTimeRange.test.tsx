@@ -8,7 +8,7 @@ import { SceneReactObject } from '../components/SceneReactObject';
 import { defaultTimeZone as browserTimeZone } from '@grafana/schema';
 
 function simulateDelay(newDateString: string, scene: EmbeddedScene) {
-  jest.setSystemTime(new Date(newDateString));
+  jest.setSystemTime(new Date(newDateString).valueOf());
   scene.activate();
 }
 
@@ -111,14 +111,14 @@ describe('SceneTimeRange', () => {
       to: toUtc('2020-01-02'),
       raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },
     });
-    expect(stateSpy).toBeCalledTimes(1);
+    expect(stateSpy).toHaveBeenCalledTimes(1);
 
     timeRange.onTimeRangeChange({
       from: toUtc('2020-01-01'),
       to: toUtc('2020-01-02'),
       raw: { from: toUtc('2020-01-01'), to: toUtc('2020-01-02') },
     });
-    expect(stateSpy).toBeCalledTimes(1);
+    expect(stateSpy).toHaveBeenCalledTimes(1);
   });
 
   it('should not allow invalid date values', () => {
@@ -214,7 +214,7 @@ describe('SceneTimeRange', () => {
     const mockedNow = '2021-01-01T10:00:00.000Z';
     beforeAll(() => {
       jest.useFakeTimers();
-      jest.setSystemTime(new Date(mockedNow));
+      jest.setSystemTime(new Date(mockedNow).valueOf());
     });
 
     it('when created should evaluate time range applying the delay value to now', () => {
@@ -298,7 +298,7 @@ describe('SceneTimeRange', () => {
 
     beforeEach(() => {
       jest.useFakeTimers();
-      jest.setSystemTime(new Date(mockedNow));
+      jest.setSystemTime(new Date(mockedNow).valueOf());
     });
 
     it('should NOT invalidate stale time range that does not meet refresh threshold', () => {
