@@ -30,7 +30,9 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
   public onZoom = () => {
     const timeRange = sceneGraph.getTimeRange(this);
     const zoomedTimeRange = getZoomedTimeRange(timeRange.state.value, 2);
-    timeRange.onTimeRangeChange(zoomedTimeRange);
+    if (isValidTimeRange(zoomedTimeRange)) {
+      timeRange.onTimeRangeChange(zoomedTimeRange);
+    }
   };
 
   public onChangeFiscalYearStartMonth = (month: number) => {
@@ -52,7 +54,11 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
       state: { value: range },
     } = timeRange;
 
-    timeRange.onTimeRangeChange(getShiftedTimeRange(TimeRangeDirection.Backward, range));
+    const newTimeRange = getShiftedTimeRange(TimeRangeDirection.Backward, range);
+
+    if (isValidTimeRange(newTimeRange)) {
+      timeRange.onTimeRangeChange(newTimeRange);
+    }
   };
 
   public onMoveForward = () => {
@@ -61,7 +67,11 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
       state: { value: range },
     } = timeRange;
 
-    timeRange.onTimeRangeChange(getShiftedTimeRange(TimeRangeDirection.Forward, range, Date.now()));
+    const newTimeRange = getShiftedTimeRange(TimeRangeDirection.Forward, range);
+
+    if (isValidTimeRange(newTimeRange)) {
+      timeRange.onTimeRangeChange(newTimeRange);
+    }
   };
 }
 
@@ -209,4 +219,11 @@ function limit(value: TimePickerHistoryItem[]): TimePickerHistoryItem[] {
 
 function isAbsolute(value: TimeRange): boolean {
   return isDateTime(value.raw.from) || isDateTime(value.raw.to);
+}
+
+function isValidTimeRange(timeRange: TimeRange) {
+  if (timeRange.to.isValid() && timeRange.from.isValid()) {
+    return true;
+  }
+  return false;
 }
