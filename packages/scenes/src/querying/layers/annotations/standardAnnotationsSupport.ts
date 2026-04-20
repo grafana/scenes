@@ -15,7 +15,7 @@ import {
   FieldType,
   getFieldDisplayName,
   KeyValue,
-  standardTransformers,
+  standardTransformersRegistry,
 } from '@grafana/data';
 import { config } from '@grafana/runtime';
 
@@ -72,7 +72,7 @@ export function singleFrameFromPanelData(): OperatorFunction<DataFrame[], DataFr
         };
 
         return of(data).pipe(
-          standardTransformers.mergeTransformer.operator({}, ctx),
+          standardTransformersRegistry.get('merge').transformation.operator({}, ctx),
           map((d) => d[0])
         );
       })
@@ -223,7 +223,7 @@ export function getAnnotationsFromData(
           if (f.text) {
             v = f.text; // TODO support templates!
           } else if (f.field) {
-            v = f.field.values.get(i);
+            v = f.field.values[i];
             if (v !== undefined && f.regex) {
               const match = f.regex.exec(v);
               if (match) {

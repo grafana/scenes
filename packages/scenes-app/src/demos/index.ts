@@ -42,6 +42,7 @@ import { getMlDemo } from './ml';
 import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 import { getSeriesLimitTest } from './seriesLimit';
 import { getScopesDemo } from './scopesDemo';
+import { getVariableWithObjectValuesDemo } from './variableWithObjectValuesDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -311,6 +312,12 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Test scopes',
       getPage: getScopesDemo,
       getSourceCodeModule: () => import('!!raw-loader!../demos/scopesDemo'),
+    },
+    {
+      title: 'Variables with object values',
+      description: '',
+      getPage: getVariableWithObjectValuesDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/variableWithObjectValuesDemo.tsx'),
     },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }

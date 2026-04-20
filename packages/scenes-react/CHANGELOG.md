@@ -1,3 +1,88 @@
+# v7.3.10 (Tue Apr 07 2026)
+
+#### 🐛 Bug Fix
+
+- adHoc: remove wide-input prop [#1421](https://github.com/grafana/scenes/pull/1421) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.0.1 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- fix: make rxjs a peer dep due to its brittle types [#1375](https://github.com/grafana/scenes/pull/1375) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v7.0.0 (Thu Feb 26 2026)
+
+### Release Notes
+
+#### fix esm builds ([#1368](https://github.com/grafana/scenes/pull/1368))
+
+`@grafana/scenes` and `@grafana/scenes-react` now ship with exports defined in package.json, allowing only specific files to be exposed while blocking access to the packages internals. We consider this a breaking change.
+
+---
+
+#### 💥 Breaking Change
+
+- fix esm builds [#1368](https://github.com/grafana/scenes/pull/1368) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v6.54.0 (Wed Feb 18 2026)
+
+#### 🚀 Enhancement
+
+- scenes react: ad hoc filters, groupby, localvalue [#1353](https://github.com/grafana/scenes/pull/1353) ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+#### 🐛 Bug Fix
+
+- chore!: update peer dependencies of scenes packages [#1213](https://github.com/grafana/scenes/pull/1213) ([@NWRichmond](https://github.com/NWRichmond))
+
+#### Authors: 2
+
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+- Nick Richmond ([@NWRichmond](https://github.com/NWRichmond))
+
+---
+
+# v6.52.15 (Wed Feb 11 2026)
+
+#### 🐛 Bug Fix
+
+- ScenesReact: Add allValue to variables [#1254](https://github.com/grafana/scenes/pull/1254) ([@slaughtlaught](https://github.com/slaughtlaught))
+
+#### Authors: 1
+
+- Bogdan Tiet ([@slaughtlaught](https://github.com/slaughtlaught))
+
+---
+
+# v6.52.5 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- feat: add requestIdPrefix option to SceneQueryRunner [#1336](https://github.com/grafana/scenes/pull/1336) ([@svennergr](https://github.com/svennergr))
+
+#### Authors: 1
+
+- Sven Grossmann ([@svennergr](https://github.com/svennergr))
+
+---
+
 # v6.42.1 (Thu Oct 30 2025)
 
 #### 🐛 Bug Fix

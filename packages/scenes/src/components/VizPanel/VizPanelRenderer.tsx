@@ -1,9 +1,16 @@
 import { Trans } from '@grafana/i18n';
-import React, { RefCallback, useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
-import { useMeasure } from 'react-use';
+import React, { RefCallback, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useMeasure, usePrevious } from 'react-use';
 
 // @ts-ignore
-import { AlertState, GrafanaTheme2, PanelData, PluginContextProvider, SetPanelAttentionEvent } from '@grafana/data';
+import {
+  AlertState,
+  DataFrame,
+  GrafanaTheme2,
+  PanelData,
+  PluginContextProvider,
+  SetPanelAttentionEvent,
+} from '@grafana/data';
 
 import { getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
@@ -29,6 +36,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     hoverHeaderOffset,
     menu,
     headerActions,
+    subHeader,
     titleItems,
     seriesLimit,
     seriesLimitShowAll,
@@ -36,6 +44,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     collapsible,
     collapsed,
     _renderCounter = 0,
+    _UNSAFE_clearPreviousFieldValues = false,
   } = model.useState();
   const [ref, { width, height }] = useMeasure();
   const appEvents = useMemo(() => getAppEvents(), []);
@@ -84,6 +93,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dataObject = sceneGraph.getData(model);
 
   const rawData = dataObject.useState();
+
+  const { series, annotations } = _UNSAFE_clearPreviousFieldValues ? rawData.data ?? {} : {};
+  useClearPreviousData(series);
+  useClearPreviousData(annotations);
+
   const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
   const dataWithFieldConfig = model.applyFieldConfig(dataWithSeriesLimit);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
@@ -127,6 +141,22 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // If we have a query runner on our level inform it of the container width (used to set auto max data points)
   if (dataObject && dataObject.setContainerWidth) {
     dataObject.setContainerWidth(Math.round(width));
+  }
+
+  let subHeaderElement: React.ReactNode[] = [];
+
+  if (subHeader) {
+    if (Array.isArray(subHeader)) {
+      subHeaderElement = subHeaderElement.concat(
+        subHeader.map((subHeaderItem) => {
+          return <subHeaderItem.Component model={subHeaderItem} key={`${subHeaderItem.state.key}`} />;
+        })
+      );
+    } else if (isSceneObject(subHeader)) {
+      subHeaderElement.push(<subHeader.Component model={subHeader} key={`${subHeader.state.key}`} />);
+    } else {
+      subHeaderElement.push(subHeader);
+    }
   }
 
   let titleItemsElement: React.ReactNode[] = [];
@@ -217,7 +247,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     <div className={relativeWrapper}>
       <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
         {width > 0 && height > 0 && (
-          // @ts-expect-error showMenuAlways remove when updating to @grafana/ui@12 fixed in https://github.com/grafana/grafana/pull/103553
           <PanelChrome
             title={titleInterpolated}
             description={description?.trim() ? model.getDescription : undefined}
@@ -228,7 +257,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             height={height}
             selectionId={model.state.key}
             displayMode={displayMode}
-            titleItems={titleItemsElement}
+            titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
             dragClass={dragClass}
             actions={actionsElement}
             dragClassCancel={dragClassCancel}
@@ -238,6 +267,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             onFocus={setPanelAttention}
             onMouseEnter={setPanelAttention}
             onMouseMove={debouncedMouseMove}
+            // @ts-expect-error remove this on next grafana/ui update
+            subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
             onDragStart={(e: React.PointerEvent) => {
               dragHooks.onDragStart?.(e, model);
             }}
@@ -285,6 +316,41 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       </div>
     </div>
   );
+}
+
+function useClearPreviousData(data?: DataFrame[]) {
+  // this holds all value arrays from all series or anno frames
+  // so we can empty any previous ones that no longer appear in current data
+  // why? because React fiber: https://github.com/facebook/react/issues/36176
+  const prevVals = useRef<Set<any[]>>();
+  const currVals = useRef<Set<any[]>>();
+  prevVals.current ??= new Set();
+  currVals.current ??= new Set();
+
+  const currFrames = data;
+  const prevFrames = usePrevious(currFrames);
+
+  if (currFrames != null && currFrames !== prevFrames) {
+    // populate new
+    currVals.current.clear();
+
+    for (let i = 0; i < currFrames.length; i++) {
+      let fields = currFrames[i].fields;
+
+      for (let j = 0; j < fields.length; j++) {
+        currVals.current.add(fields[j].values);
+      }
+    }
+
+    // empty out all prev not seen in new
+    prevVals.current.forEach((vals) => {
+      if (!currVals.current!.has(vals)) {
+        vals.length = 0;
+      }
+    });
+    prevVals.current.clear();
+    prevVals.current = new Set(currVals.current);
+  }
 }
 
 function useDataWithSeriesLimit(data: PanelData | undefined, seriesLimit?: number, showAllSeries?: boolean) {

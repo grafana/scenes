@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`VizPanelBuilder options and field config standard panels defaults provides barchart defaults 1`] = `
 {
@@ -41,21 +41,6 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 `;
 
 exports[`VizPanelBuilder options and field config standard panels defaults provides bargauge defaults 2`] = `
-{
-  "defaults": {
-    "custom": {},
-  },
-  "overrides": [],
-}
-`;
-
-exports[`VizPanelBuilder options and field config standard panels defaults provides datagrid defaults 1`] = `
-{
-  "selectedSeries": 0,
-}
-`;
-
-exports[`VizPanelBuilder options and field config standard panels defaults provides datagrid defaults 2`] = `
 {
   "defaults": {
     "custom": {},

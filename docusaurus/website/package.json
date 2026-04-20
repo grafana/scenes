@@ -16,8 +16,8 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@docusaurus/core": "^3.0.1",
-    "@docusaurus/preset-classic": "^3.0.1",
+    "@docusaurus/core": "^3.9.2",
+    "@docusaurus/preset-classic": "^3.9.2",
     "@grafana/scenes": "workspace:*",
     "@grafana/scenes-react": "workspace:*",
     "@mdx-js/react": "^3.0.0",
@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "2.4.0",
-    "@docusaurus/tsconfig": "^3.0.1",
+    "@docusaurus/tsconfig": "^3.9.2",
     "typescript": "^5.4.3"
   },
   "browserslist": {

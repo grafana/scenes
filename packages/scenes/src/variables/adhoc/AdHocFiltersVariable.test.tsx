@@ -1,10 +1,25 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
 import { SceneVariable, SceneVariableValueChangedEvent } from '../types';
-import { AdHocFiltersVariable, AdHocFiltersVariableState, AdHocFilterWithLabels } from './AdHocFiltersVariable';
+import {
+  AdHocFiltersVariable,
+  AdHocFiltersVariableState,
+  AdHocFilterWithLabels,
+  GROUP_BY_OPERATOR,
+  VALUE_KEY_DELIMITER,
+  isFilterComplete,
+  isGroupByFilter,
+} from './AdHocFiltersVariable';
+import {
+  MAX_RECENT_DRILLDOWNS,
+  MAX_STORED_RECENT_DRILLDOWNS,
+  getRecentFiltersKey,
+} from './AdHocFiltersRecommendations';
 import {
   DataSourceSrv,
+  TemplateSrv,
   config,
+  getTemplateSrv,
   locationService,
   setDataSourceSrv,
   setRunRequest,
@@ -36,19 +51,15 @@ import { FiltersRequestEnricher } from '../../core/types';
 import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 import { ScopesVariable } from '../variants/ScopesVariable';
 
-const templateSrv = {
-  getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),
-} as any;
+function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariableFilter[] {
+  setTemplateSrv({
+    getAdhocFilters: jest.fn().mockReturnValue(filters),
+  } as any);
+  return filters;
+}
 
-describe('templateSrv.getAdhocFilters patch ', () => {
-  it('calls original when scene object is not active', async () => {
-    const { unmount } = setup();
-    unmount();
-
-    const result = templateSrv.getAdhocFilters('name');
-    expect(result[0].key).toBe('origKey');
-  });
-});
+const getKeyComboboxElement = () => getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox')[0];
+const getAdHocInputElement = () => screen.getByPlaceholderText('+ label = value');
 
 // 11.1.2 - will use SafeSerializableSceneObject
 // 11.1.1 - will NOT use SafeSerializableSceneObject
@@ -56,8 +67,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   beforeEach(() => {
     config.buildInfo.version = v;
   });
+
   it('renders filters', async () => {
-    setup();
+    setup({ layout: 'horizontal' });
     expect(screen.getByText('key1')).toBeInTheDocument();
     expect(screen.getByText('val1')).toBeInTheDocument();
     expect(screen.getByText('key2')).toBeInTheDocument();
@@ -65,7 +77,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('adds filter', async () => {
-    const { filtersVar } = setup();
+    const { filtersVar } = setup({ layout: 'horizontal' });
 
     // Select key
     await userEvent.click(screen.getByTestId('AdHocFilter-add'));
@@ -80,7 +92,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('removes filter', async () => {
-    const { filtersVar } = setup();
+    const { filtersVar } = setup({ layout: 'horizontal' });
 
     await userEvent.click(screen.getByTestId('AdHocFilter-remove-key1'));
 
@@ -88,7 +100,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('changes filter', async () => {
-    const { filtersVar, runRequest } = setup();
+    const { filtersVar, runRequest } = setup({ layout: 'horizontal' });
 
     await new Promise((r) => setTimeout(r, 1));
 
@@ -106,7 +118,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('clears the value of a filter if the key is changed', async () => {
-    const { filtersVar } = setup();
+    const { filtersVar } = setup({ layout: 'horizontal' });
 
     const wrapper = screen.getByTestId('AdHocFilter-key1');
     const selects = getAllByRole(wrapper, 'combobox');
@@ -117,7 +129,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('can set a custom value', async () => {
-    const { filtersVar, runRequest } = setup();
+    const { filtersVar, runRequest } = setup({ layout: 'horizontal' });
 
     await new Promise((r) => setTimeout(r, 1));
 
@@ -136,6 +148,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('shows key groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setup({
+      layout: 'horizontal',
       getTagKeysProvider: async () => ({
         replace: true,
         values: [
@@ -198,6 +211,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('shows value groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setup({
+      layout: 'horizontal',
       getTagValuesProvider: async () => ({
         replace: true,
         values: [
@@ -260,6 +274,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('Exact match operators show custom value last', async () => {
     const { filtersVar, runRequest } = setup({
+      layout: 'horizontal',
       filters: [
         { key: 'key1', operator: '=', value: 'val1' },
         { key: 'key2', operator: '=', value: 'val2' },
@@ -327,6 +342,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('Regex operators show custom value first', async () => {
     const { filtersVar, runRequest } = setup({
+      layout: 'horizontal',
       filters: [
         { key: 'key1', operator: '=~', value: 'val1' },
         { key: 'key2', operator: '=~', value: 'val2' },
@@ -372,7 +388,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     // should run new query when filter changed
     expect(runRequest.mock.calls.length).toBe(2);
-    console.log('filtersVar', filtersVar.state.filters);
     expect(filtersVar.state.filters[0].value).toBe('a');
 
     await userEvent.click(selects[2]);
@@ -394,7 +409,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('can set the same custom value again', async () => {
-    const { filtersVar, runRequest } = setup();
+    const { filtersVar, runRequest } = setup({ layout: 'horizontal' });
 
     await new Promise((r) => setTimeout(r, 1));
 
@@ -428,6 +443,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const delayingPromise = new Promise<string>((resolve) => (resolveCallback = resolve));
 
     const { filtersVar, runRequest } = setup({
+      layout: 'horizontal',
       getTagValuesProvider: async () => {
         await delayingPromise;
         return {
@@ -461,12 +477,14 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   describe('By default, Without altering `useQueriesAsFilterForOptions`', () => {
     it('Should not collect and pass respective data source queries to getTagKeys call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ filters: [] });
+      const { getTagKeysSpy, timeRange } = setup({ layout: 'horizontal', filters: [] });
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
-      expect(getTagKeysSpy).toBeCalledTimes(1);
-      expect(getTagKeysSpy).toBeCalledWith({
+      const keyCombobox = getKeyComboboxElement();
+      await userEvent.click(keyCombobox);
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+      expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
         queries: undefined,
         timeRange: timeRange.state.value,
@@ -474,7 +492,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should not collect and pass respective data source queries to getTagValues call', async () => {
-      const { getTagValuesSpy, timeRange } = setup({ filters: [] });
+      const { getTagValuesSpy, timeRange } = setup({ layout: 'horizontal', filters: [] });
 
       // Select key
       const key = 'Key 3';
@@ -483,8 +501,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await waitFor(() => select(selects[0], key, { container: document.body }));
       await userEvent.click(selects[2]);
 
-      expect(getTagValuesSpy).toBeCalledTimes(1);
-      expect(getTagValuesSpy).toBeCalledWith({
+      expect(getTagValuesSpy).toHaveBeenCalledTimes(1);
+      expect(getTagValuesSpy).toHaveBeenCalledWith({
         filters: [],
         key: 'key3',
         queries: undefined,
@@ -495,12 +513,18 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   describe('When `useQueriesAsFilterForOptions` is set to `true`', () => {
     it('Should collect and pass respective data source queries to getTagKeys call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
+      const { getTagKeysSpy, timeRange } = setup({
+        layout: 'horizontal',
+        filters: [],
+        useQueriesAsFilterForOptions: true,
+      });
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
-      expect(getTagKeysSpy).toBeCalledTimes(1);
-      expect(getTagKeysSpy).toBeCalledWith({
+      const keyCombobox = getKeyComboboxElement();
+      await userEvent.click(keyCombobox);
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+      expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
         queries: [
           {
@@ -513,11 +537,16 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should apply the filters request enricher to getTagKeys call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true }, () => ({
-        key: 'overwrittenKey',
-      }));
+      const { getTagKeysSpy, timeRange } = setup(
+        { layout: 'horizontal', filters: [], useQueriesAsFilterForOptions: true },
+        () => ({
+          key: 'overwrittenKey',
+        })
+      );
 
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
+      const keyCombobox = getKeyComboboxElement();
+      await userEvent.click(keyCombobox);
       expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
         queries: [
@@ -532,7 +561,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should collect and pass respective data source queries to getTagValues call', async () => {
-      const { getTagValuesSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
+      const { getTagValuesSpy, timeRange } = setup({
+        layout: 'horizontal',
+        filters: [],
+        useQueriesAsFilterForOptions: true,
+      });
 
       // Select key
       const key = 'Key 3';
@@ -541,8 +574,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await waitFor(() => select(selects[0], key, { container: document.body }));
       await userEvent.click(selects[2]);
 
-      expect(getTagValuesSpy).toBeCalledTimes(1);
-      expect(getTagValuesSpy).toBeCalledWith({
+      expect(getTagValuesSpy).toHaveBeenCalledTimes(1);
+      expect(getTagValuesSpy).toHaveBeenCalledWith({
         filters: [],
         key: 'key3',
         queries: [
@@ -556,9 +589,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should apply the filters request enricher to getTagValues call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true }, () => ({
-        key: 'overwrittenKey',
-      }));
+      const { getTagKeysSpy, timeRange } = setup(
+        { layout: 'horizontal', filters: [], useQueriesAsFilterForOptions: true },
+        () => ({
+          key: 'overwrittenKey',
+        })
+      );
 
       const key = 'Key 3';
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
@@ -634,7 +670,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('reflects emtpy state in url', async () => {
-    const { filtersVar } = setup();
+    const { filtersVar } = setup({ layout: 'horizontal' });
 
     await userEvent.click(screen.getByTestId('AdHocFilter-remove-key1'));
     await userEvent.click(screen.getByTestId('AdHocFilter-remove-key2'));
@@ -1247,7 +1283,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(locationService.getLocation().search).toBe(
-      '?var-filters=someFilter%7C%3D%7CsomeValue&var-filters=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable'
+      '?var-filters=dbFilter%7C%3D%7CnewDbValue%23dashboard%23restorable&var-filters=someFilter%7C%3D%7CsomeValue'
     );
 
     // restore it, URL should be cleaned
@@ -1286,14 +1322,18 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         originFilters: [
           {
             key: 'dbKey1',
+            keyLabel: 'dbKey1:label',
             operator: '=',
             value: 'dbValue1',
+            valueLabels: ['dbValue1:label'],
             origin: 'dashboard',
           },
           {
             key: 'dbKey2',
+            keyLabel: 'dbKey2:label',
             operator: '=',
             value: 'dbValue2',
+            valueLabels: ['dbValue2:label'],
             origin: 'dashboard',
           },
         ],
@@ -1304,9 +1344,22 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     scopesVariable.update();
 
-    expect(filtersVar['_originalValues'].get('dbKey1-dashboard')).toEqual({ value: ['dbValue1'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('dbKey2-dashboard')).toEqual({ value: ['dbValue2'], operator: '=' });
-    expect(filtersVar['_originalValues'].get('scopeKey-scope')).toEqual({ value: ['scopeValue'], operator: '=' });
+    expect(filtersVar['_originalValues'].get(`dbKey1${VALUE_KEY_DELIMITER}dashboard`)).toEqual({
+      value: ['dbValue1'],
+      operator: '=',
+      valueLabels: ['dbValue1:label'],
+      keyLabel: 'dbKey1:label',
+    });
+    expect(filtersVar['_originalValues'].get(`dbKey2${VALUE_KEY_DELIMITER}dashboard`)).toEqual({
+      value: ['dbValue2'],
+      operator: '=',
+      valueLabels: ['dbValue2:label'],
+      keyLabel: 'dbKey2:label',
+    });
+    expect(filtersVar['_originalValues'].get(`scopeKey${VALUE_KEY_DELIMITER}scope`)).toEqual({
+      value: ['scopeValue'],
+      operator: '=',
+    });
   });
 
   it('should reset dashboard level filters if they are edited on unmount', () => {
@@ -1439,9 +1492,13 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     expect(filtersVar.state.originFilters![0].value).toBe('newValue1');
     expect(filtersVar.state.originFilters![0].values).toEqual(['newValue1']);
-    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    const key = `${filtersVar.state.originFilters![0].key}${VALUE_KEY_DELIMITER}${
+      filtersVar.state.originFilters![0].origin
+    }`;
     expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1', 'originValue2']);
     expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=|');
+    expect(filtersVar['_originalValues'].get(key)!.valueLabels).toBeUndefined();
+    expect(filtersVar['_originalValues'].get(key)!.keyLabel).toBeUndefined();
   });
 
   it('updated filter with no changes does not become restorable', async () => {
@@ -1493,7 +1550,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     expect(filtersVar.state.originFilters![0].restorable).toEqual(true);
-    const key = `${filtersVar.state.originFilters![0].key}-${filtersVar.state.originFilters![0].origin}`;
+    const key = `${filtersVar.state.originFilters![0].key}${VALUE_KEY_DELIMITER}${
+      filtersVar.state.originFilters![0].origin
+    }`;
     expect(filtersVar['_originalValues'].get(key)!.value).toEqual(['originValue1']);
     expect(filtersVar['_originalValues'].get(key)!.operator).toEqual('=');
 
@@ -1794,6 +1853,32 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.originFilters).toEqual([]);
   });
 
+  it('Returns originFilter values through getValue() if fieldPath is passed', () => {
+    const { filtersVar } = setup({
+      originFilters: [
+        {
+          key: 'scopeOriginFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: 'scope',
+        },
+      ],
+    });
+
+    const value = filtersVar.getValue('originFilters');
+    expect(value).toEqual(['scopeOriginFilter|=|val#scope']);
+  });
+
+  it('Returns filters expression through getValue()', () => {
+    const { filtersVar } = setup({
+      filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+    });
+
+    const value = filtersVar.getValue();
+    expect(value).toEqual(filtersVar.state.filterExpression);
+  });
+
   it('Can override and replace getTagKeys and getTagValues', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {
@@ -1880,6 +1965,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('Can encode a custom value', async () => {
     const { filtersVar, runRequest } = setup({
+      layout: 'horizontal',
       allowCustomValue: true,
       filters: [
         {
@@ -1971,6 +2057,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('Selecting a key correctly shows the label', async () => {
     const { filtersVar } = setup({
+      layout: 'horizontal',
       defaultKeys: [
         {
           text: 'some',
@@ -1995,6 +2082,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('Selecting a default key correctly shows the label', async () => {
     const { filtersVar } = setup({
+      layout: 'horizontal',
       defaultKeys: [
         {
           text: 'some',
@@ -2026,15 +2114,51 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(keys).toEqual([]);
   });
 
+  it('Should exclude match-all filters from getTagKeys call', async () => {
+    const { filtersVar, getTagKeysSpy, timeRange } = setup({
+      filters: setTemplateSrvWithFilters([
+        { key: 'key1', operator: '=~', value: '.*' },
+        { key: 'key2', operator: '=', value: 'val2' },
+      ]),
+    });
+
+    await filtersVar._getKeys(null);
+
+    expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    expect(getTagKeysSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: [expect.objectContaining({ key: 'key2', operator: '=', value: 'val2' })],
+        timeRange: timeRange.state.value,
+      })
+    );
+  });
+
+  it('Should exclude match-all origin filters from getTagKeys call', async () => {
+    const { filtersVar, getTagKeysSpy, timeRange } = setup({
+      filters: setTemplateSrvWithFilters([]),
+      originFilters: [{ key: 'origin1', operator: '=~', value: '.*', origin: 'dashboard' }],
+    });
+
+    await filtersVar._getKeys(null);
+
+    expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    expect(getTagKeysSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: [],
+        timeRange: timeRange.state.value,
+      })
+    );
+  });
+
   describe('variable expression / value', () => {
     it('By default renders a prometheus / loki compatible label filter', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [
+        filters: setTemplateSrvWithFilters([
           { key: 'key1', operator: '=', value: 'val1' },
           { key: 'key2', operator: '=~', value: '[val2]' },
-        ],
+        ]),
       });
 
       variable.activate();
@@ -2046,7 +2170,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2065,7 +2189,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       expect(variable.getValue()).toBe(`key1="val1"`);
@@ -2073,7 +2197,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable2 = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key2', operator: '=', value: 'val2' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key2', operator: '=', value: 'val2' }]),
         originFilters: [{ key: 'originKey1', operator: '=', value: 'originVal1', origin: 'scope' }],
       });
 
@@ -2082,6 +2206,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable3 = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([]),
         originFilters: [{ key: 'originKey3', operator: '=', value: 'originVal3', origin: 'scope' }],
       });
 
@@ -2092,7 +2217,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2118,10 +2243,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         datasource: { uid: 'hello' },
         applyMode: 'manual',
         expressionBuilder,
-        filters: [
+        filters: setTemplateSrvWithFilters([
           { key: 'key1', operator: '=', value: 'val1' },
           { key: 'key2', operator: '=~', value: '[val2]' },
-        ],
+        ]),
       });
 
       variable.activate();
@@ -2133,7 +2258,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',
         datasource: { uid: 'hello' },
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       const evtHandler = jest.fn();
@@ -2147,7 +2272,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         applyMode: 'manual',
         datasource: { uid: 'hello' },
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       const evtHandler = jest.fn();
@@ -2161,7 +2286,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2178,7 +2303,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
         filterExpression: '',
       });
 
@@ -2197,7 +2322,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
         filterExpression: 'hello filter expression!',
       });
 
@@ -2216,7 +2341,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2233,7 +2358,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2251,7 +2376,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2269,7 +2394,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
         filterExpression: 'hello filter expression',
       });
 
@@ -2288,7 +2413,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
         applyMode: 'manual',
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
       });
 
       variable.activate();
@@ -2305,12 +2430,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('Should create variable with applyMode as manual by default and it allows to override it', () => {
       const defaultVariable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [],
+        filters: setTemplateSrvWithFilters([]),
       });
 
       const manualDataSource = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [],
+        filters: setTemplateSrvWithFilters([]),
         applyMode: 'manual',
       });
 
@@ -2327,6 +2452,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2358,10 +2484,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
-      // account for applicability check debounce
-      await new Promise((r) => setTimeout(r, 150));
+      await waitFor(() => {
+        expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
+      });
 
-      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[0].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[1].nonApplicable).toBe(false);
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
@@ -2371,8 +2497,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     it('should filter out non-applicable filters during getKeys call', async () => {
       //pod and static are non-applicable
-      const { filtersVar, getTagKeysSpy } = setup(
+      const { filtersVar, getDrilldownsApplicabilitySpy, getTagKeysSpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2404,8 +2531,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
-      // account for applicability check debounce
-      await new Promise((r) => setTimeout(r, 150));
+      await waitFor(() => {
+        expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
+      });
 
       filtersVar._getKeys(null);
 
@@ -2434,6 +2562,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       //pod and static are non-applicable
       const { filtersVar, getDrilldownsApplicabilitySpy } = setup(
         {
+          applicabilityEnabled: true,
           filters: [
             {
               key: 'cluster',
@@ -2465,44 +2594,191 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
-      await new Promise((r) => setTimeout(r, 150));
+      await waitFor(() => {
+        expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
+      });
 
-      expect(getDrilldownsApplicabilitySpy).toHaveBeenCalled();
       expect(filtersVar.state.filters[2].nonApplicable).toBe(true);
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
 
-      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      act(() => {
+        filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      });
 
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(false);
 
-      filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
+      act(() => {
+        filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
+      });
 
       expect(filtersVar.state.originFilters?.[0].nonApplicable).toBe(true);
     });
   });
 
+  describe('recent filters', () => {
+    const RECENT_FILTERS_KEY = getRecentFiltersKey('my-ds-uid');
+
+    beforeEach(() => {
+      localStorage.removeItem(RECENT_FILTERS_KEY);
+    });
+
+    it('should not create drilldown recommendations component if recommendations are disabled', () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: false,
+      });
+
+      expect(filtersVar.getRecommendations()).toBeUndefined();
+    });
+
+    it('should set recentFilters from browser storage on activation', async () => {
+      const recentFilters = [{ key: 'pod', operator: '=|', value: 'test1, test2', values: ['test1', 'test2'] }];
+
+      localStorage.setItem(RECENT_FILTERS_KEY, JSON.stringify(recentFilters));
+
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+      });
+
+      await waitFor(() => {
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toEqual(recentFilters);
+      });
+    });
+
+    it('should add filter to recentFilters and store in localStorage when adding new filter', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [],
+      });
+
+      const filter = {
+        key: 'cluster',
+        value: '1',
+        operator: '=',
+      };
+
+      act(() => {
+        filtersVar.setState({ _wip: filter });
+        filtersVar._updateFilter(filter, { value: 'newValue' });
+      });
+
+      // Wait for async verifyApplicabilityAndStoreRecentFilter to complete
+      await waitFor(() => {
+        const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+        expect(storedFilters).toBeDefined();
+        expect(JSON.parse(storedFilters!)).toHaveLength(1);
+        expect(JSON.parse(storedFilters!)[0]).toEqual({ key: 'cluster', operator: '=', value: 'newValue' });
+      });
+
+      await waitFor(() => {
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toHaveLength(1);
+      });
+    });
+
+    it('should add filter to recentFilters immediately when editing existing filter', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [{ key: 'cluster', value: '1', operator: '=' }],
+      });
+
+      act(() => {
+        // Update an existing filter (not WIP) - this stores immediately
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+      });
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      expect(storedFilters).toBeDefined();
+      expect(JSON.parse(storedFilters!)).toHaveLength(1);
+      expect(JSON.parse(storedFilters!)[0]).toEqual({ key: 'cluster', operator: '=', value: 'newValue' });
+
+      await waitFor(() => {
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toHaveLength(1);
+      });
+    });
+
+    it('should store up to MAX_STORED_RECENT_DRILLDOWNS in localStorage but display MAX_RECENT_DRILLDOWNS', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [],
+      });
+
+      act(() => {
+        // For editing existing filters, storage is synchronous
+        // So we add filters first, then edit them
+        const initialFilters = [];
+        for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
+          initialFilters.push({ key: `key${i}`, value: `value${i}`, operator: '=' as const });
+        }
+        filtersVar.setState({ filters: initialFilters });
+
+        // Now edit each filter to trigger storeRecentFilter
+        for (let i = 0; i < MAX_STORED_RECENT_DRILLDOWNS + 2; i++) {
+          filtersVar._updateFilter(filtersVar.state.filters[i], { value: `newValue${i}` });
+        }
+      });
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      expect(storedFilters).toBeDefined();
+      expect(JSON.parse(storedFilters!)).toHaveLength(MAX_STORED_RECENT_DRILLDOWNS);
+
+      await waitFor(() => {
+        expect(filtersVar.getRecommendations()?.state.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
+      });
+    });
+
+    it('should set in browser storage when editing existing filters', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [
+          { key: 'cluster', value: '1', operator: '=' },
+          { key: 'cluster2', value: '2', operator: '=' },
+        ],
+      });
+
+      act(() => {
+        // Edit existing filters to trigger storeRecentFilter (synchronous for edits)
+        filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+        filtersVar._updateFilter(filtersVar.state.filters[1], { value: 'newValue2' });
+      });
+
+      const storedFilters = localStorage.getItem(RECENT_FILTERS_KEY);
+      expect(storedFilters).toBeDefined();
+      expect(JSON.parse(storedFilters!)).toHaveLength(2);
+
+      await waitFor(() => {
+        expect(filtersVar.getRecommendations()?.state.recentFilters).toHaveLength(2);
+      });
+    });
+  });
+
   describe('Component', () => {
+    const filters = [{ key: 'key1', operator: '=', value: 'val1' }];
+
+    beforeEach(() => {
+      setTemplateSrvWithFilters(filters);
+    });
+
     it('should use the model.state.set.Component to ensure the state filterset is activated', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [{ key: 'key1', operator: '=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters(filters),
       });
 
       render(<variable.Component model={variable} />);
 
       expect(variable.isActive).toBe(true);
     });
+
     it('should render key, value and operator in vertical adhoc layout', () => {
       const variable = new AdHocFiltersVariable({
         datasource: { uid: 'hello' },
-        filters: [{ key: 'key1', operator: '!=', value: 'val1' }],
+        filters: setTemplateSrvWithFilters(filters),
         layout: 'vertical',
       });
 
       render(<variable.Component model={variable} />);
-      expect(screen.getByText('!=')).toBeInTheDocument();
-      expect(screen.getByText('key1')).toBeInTheDocument();
-      expect(screen.getByText('val1')).toBeInTheDocument();
+      expect(screen.getByText(filters[0].key)).toBeInTheDocument();
+      expect(screen.getByText(filters[0].value)).toBeInTheDocument();
+      expect(screen.getByText(filters[0].operator)).toBeInTheDocument();
     });
   });
 
@@ -2510,6 +2786,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     it('should set non-applicable filters on activation', async () => {
       setup(
         {
+          applicabilityEnabled: true,
           filters: [
             { key: 'pod', operator: '=', value: 'val1' },
             { key: 'container', operator: '=', value: 'val3' },
@@ -2522,19 +2799,19 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         true
       );
 
-      const podElement = await screen.findByText('pod = val1');
-      const staticElement = await screen.findByText('static = val2');
-      const containerElement = await screen.findByText('container = val3');
+      await waitFor(async () => {
+        const podElement = await screen.findByText('pod = val1');
+        const staticElement = await screen.findByText('static = val2');
+        const containerElement = await screen.findByText('container = val3');
 
-      await new Promise((r) => setTimeout(r, 150));
+        expect(podElement).toBeInTheDocument();
+        expect(staticElement).toBeInTheDocument();
+        expect(containerElement).toBeInTheDocument();
 
-      expect(podElement).toBeInTheDocument();
-      expect(staticElement).toBeInTheDocument();
-      expect(containerElement).toBeInTheDocument();
-
-      expect(podElement).toHaveStyle('text-decoration: line-through');
-      expect(staticElement).toHaveStyle('text-decoration: line-through');
-      expect(containerElement).not.toHaveStyle('text-decoration: line-through');
+        expect(podElement).toHaveStyle('text-decoration: line-through');
+        expect(staticElement).toHaveStyle('text-decoration: line-through');
+        expect(containerElement).not.toHaveStyle('text-decoration: line-through');
+      });
     });
   });
 
@@ -2578,6 +2855,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await userEvent.click(podElement);
 
+      await userEvent.keyboard('{Backspace}');
       await userEvent.keyboard('{Backspace}');
       await userEvent.keyboard('{Backspace}');
 
@@ -2668,8 +2946,18 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(await screen.findByText('key2 = valLabel2')).toBeInTheDocument();
     });
 
+    it('adds a label announcer tab stop before existing filter pills', async () => {
+      await userEvent.click(screen.getByRole('combobox'));
+
+      await userEvent.keyboard('{shift>}{tab}{tab}{tab}{tab}{tab}{/shift}');
+
+      const labelAnnouncer = screen.getByTestId('AdHocFilter-label-announcer');
+      expect(labelAnnouncer).toHaveFocus();
+      expect(labelAnnouncer).toHaveAccessibleName();
+    });
+
     it('does not display hidden filters', async () => {
-      const { filtersVar } = setup();
+      const { filtersVar } = setup({ layout: 'horizontal' });
 
       act(() => {
         filtersVar.setState({
@@ -2687,11 +2975,13 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(screen.queryAllByText('visible_key = visible_val')).not.toEqual([]);
     });
 
-    it('focusing the input opens the key dropdown', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
+    it('opens the key dropdown on user action and not automatically', async () => {
+      const combobox = screen.getByRole('combobox');
+      combobox.focus();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
 
-      // check the key dropdown is open
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'key2' })).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'key3' })).toBeInTheDocument();
@@ -2732,21 +3022,25 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // partial chip values for key and operator are still present
       expect(screen.getByText('key2')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // input has focus
-      expect(screen.getByRole('combobox')).toHaveFocus();
-      // with the correct value
-      expect(screen.getByRole('combobox')).toHaveValue('valLabel2');
+
+      const editedInput = screen.getByDisplayValue('valLabel2');
+      expect(editedInput).toHaveFocus();
+      expect(editedInput).toHaveValue('valLabel2');
+
+      // interact with the value input to open the value dropdown
+      await userEvent.keyboard('{Backspace}');
       // and the value dropdown is open
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'valLabel2' })).toBeInTheDocument();
-
-      await userEvent.type(screen.getByRole('combobox'), '{backspace}');
+      // select another option
       await userEvent.click(screen.getByRole('option', { name: 'valLabel3' }));
 
       // input should be refocused
       expect(screen.getByRole('combobox')).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key2 = valLabel3')).toBeInTheDocument();
+
+      await userEvent.keyboard('{arrowdown}');
       // and key dropdown should be showing
       expect(screen.getByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
@@ -2766,24 +3060,28 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       // partial chip values for key and operator are still present
       expect(screen.getByText('key2')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // input has focus
-      expect(screen.getByRole('combobox')).toHaveFocus();
-      // with the correct value
-      expect(screen.getByRole('combobox')).toHaveValue('valLabel2');
-      // and the value dropdown is open
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      const editedInput = screen.getByDisplayValue('valLabel2');
+      expect(editedInput).toHaveFocus();
+      expect(editedInput).toHaveValue('valLabel2');
+      // interact with the value input to open the value dropdown
+      await userEvent.keyboard('{arrowdown}');
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       expect(screen.getByRole('option', { name: 'valLabel2' })).toBeInTheDocument();
 
-      await userEvent.type(screen.getByRole('combobox'), '{backspace}');
+      await userEvent.type(editedInput, '{backspace}');
       await userEvent.keyboard('{arrowdown}{arrowdown}');
       await userEvent.keyboard('{enter}');
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      const wipCombobox = getAdHocInputElement();
+      expect(wipCombobox).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key2 = valLabel3')).toBeInTheDocument();
-      // and key dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      // interact with the value input to open the value dropdown
+
+      await userEvent.keyboard('{arrowdown}');
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
       // other untouched filter should still be there as well
@@ -2791,78 +3089,91 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('can add a new filter by selecting key, operator and value', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
+      const wipCombobox = getAdHocInputElement();
+      await userEvent.click(wipCombobox);
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+
       await userEvent.click(screen.getByRole('option', { name: 'key3' }));
 
       // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
-      // and operator dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: '= Equals' })).toBeInTheDocument();
 
       await userEvent.click(screen.getByRole('option', { name: '= Equals' }));
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // and value dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'valLabel1' })).toBeInTheDocument();
 
       await userEvent.click(screen.getByRole('option', { name: 'valLabel3' }));
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key3 = valLabel3')).toBeInTheDocument();
-      // and key dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      // interact with the value input to open the value dropdown
+
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
     });
 
     it('can add a new filter by selecting key, operator and value with the keyboard', async () => {
-      await userEvent.click(screen.getByRole('combobox'));
-      // TODO for some reason this needs an extra arrowdown
+      const wipCombobox = getAdHocInputElement();
+      await userEvent.click(wipCombobox);
+      // open keys list, move to key3, select
       await userEvent.keyboard('{arrowdown}{arrowdown}');
       await userEvent.keyboard('{enter}');
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
-      // and operator dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
+
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: '= Equals' })).toBeInTheDocument();
 
       await userEvent.keyboard('{enter}');
-
       // input should be refocused, partial chip committed
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // partial chip committed
       expect(screen.getByText('key3')).toBeInTheDocument();
       expect(screen.getByText('=')).toBeInTheDocument();
-      // and value dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'valLabel1' })).toBeInTheDocument();
 
-      await userEvent.keyboard('{arrowdown}{arrowdown}');
+      await userEvent.keyboard('{arrowdown}');
       await userEvent.keyboard('{enter}');
 
-      // input should be refocused
-      expect(screen.getByRole('combobox')).toHaveFocus();
+      expect(wipCombobox).toHaveFocus();
       // full chip committed
       expect(screen.getByText('key3 = valLabel3')).toBeInTheDocument();
-      // and key dropdown should be showing
-      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      // interact with the input in order to open the dropdown
+      await userEvent.keyboard('{arrowdown}');
+      expect(await screen.findByRole('listbox')).toBeInTheDocument();
       // check the first option just to be sure
       expect(screen.getByRole('option', { name: 'key1' })).toBeInTheDocument();
     });
@@ -2870,7 +3181,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   describe('operators', () => {
     it('shows the regex operators when allowCustomValue is undefined', async () => {
-      setup();
+      setup({ layout: 'horizontal' });
 
       const middleKeySelect = screen.getAllByRole('combobox')[1];
       await userEvent.click(middleKeySelect);
@@ -2893,6 +3204,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     it('shows the regex operators when allowCustomValue is set true', async () => {
       setup({
+        layout: 'horizontal',
         allowCustomValue: true,
       });
 
@@ -2917,6 +3229,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     it('does not show the regex operators when allowCustomValue is set false', async () => {
       setup({
+        layout: 'horizontal',
         allowCustomValue: false,
       });
 
@@ -2936,6 +3249,180 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         '>=Greater than or equal to',
       ]);
     });
+  });
+
+  describe('templateSrv.getAdhocFilters patch ', () => {
+    it('calls original when scene object is not active', async () => {
+      const { unmount } = setup();
+      unmount();
+
+      type TemplateSrvWithAdhocFilters = TemplateSrv & {
+        getAdhocFilters: (dsName: string) => AdHocVariableFilter[];
+      };
+      const result = (getTemplateSrv() as TemplateSrvWithAdhocFilters).getAdhocFilters('name');
+
+      expect(result[0].key).toBe('key1');
+    });
+  });
+});
+
+describe('validateOriginFilters', () => {
+  function createVariable() {
+    const filtersVar = new AdHocFiltersVariable({
+      datasource: { uid: 'my-ds-uid' },
+      name: 'filters',
+      filters: [],
+    });
+
+    // Seed original values directly
+    filtersVar['_originalValues'].set(`key1${VALUE_KEY_DELIMITER}dashboard`, { value: ['val1'], operator: '=' });
+    filtersVar['_originalValues'].set(`key2${VALUE_KEY_DELIMITER}dashboard`, {
+      value: ['valA', 'valB'],
+      operator: '=|',
+    });
+
+    return filtersVar;
+  }
+
+  it('should return filter unchanged when it has no origin', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'key1', operator: '=', value: 'val1' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0]).toBe(filter);
+  });
+
+  it('should return filter unchanged when no original values are stored for it', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'unknown', operator: '=', value: 'x', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0]).toBe(filter);
+  });
+
+  it('should transform filter to matchAll when it has no value', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'key1', operator: '=', value: '', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0]).toEqual({
+      key: 'key1',
+      operator: '=~',
+      value: '.*',
+      values: ['.*'],
+      origin: 'dashboard',
+      valueLabels: ['All'],
+      matchAllFilter: true,
+      restorable: true,
+      nonApplicable: false,
+    });
+  });
+
+  it('should mark as not restorable when value matches original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'key1', operator: '=', value: 'val1', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(false);
+    expect(result[0].matchAllFilter).toBe(false);
+  });
+
+  it('should mark as restorable when value differs from original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'key1', operator: '=', value: 'changed', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(true);
+    expect(result[0].matchAllFilter).toBe(false);
+  });
+
+  it('should mark as restorable when operator differs from original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = { key: 'key1', operator: '!=', value: 'val1', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(true);
+    expect(result[0].matchAllFilter).toBe(false);
+  });
+
+  it('should not mark as restorable when matchAll filter matches matchAll original', () => {
+    const filtersVar = createVariable();
+    filtersVar['_originalValues'].set(`matchKey${VALUE_KEY_DELIMITER}dashboard`, { value: ['.*'], operator: '=~' });
+    const filter: AdHocFilterWithLabels = { key: 'matchKey', operator: '=~', value: '.*', origin: 'dashboard' };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(false);
+    expect(result[0].matchAllFilter).toBe(true);
+  });
+
+  it('should mark matchAll filter as restorable when it differs from original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = {
+      key: 'key1',
+      operator: '=~',
+      value: '.*',
+      values: ['.*'],
+      origin: 'dashboard',
+    };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(true);
+    expect(result[0].matchAllFilter).toBe(true);
+  });
+
+  it('should mark as not restorable when multi-values match original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = {
+      key: 'key2',
+      operator: '=|',
+      value: 'valA',
+      values: ['valA', 'valB'],
+      origin: 'dashboard',
+    };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(false);
+    expect(result[0].matchAllFilter).toBe(false);
+  });
+
+  it('should mark as restorable when multi-values differ from original', () => {
+    const filtersVar = createVariable();
+    const filter: AdHocFilterWithLabels = {
+      key: 'key2',
+      operator: '=|',
+      value: 'valA',
+      values: ['valA', 'valC'],
+      origin: 'dashboard',
+    };
+
+    const result = filtersVar.validateOriginFilters([filter]);
+
+    expect(result[0].restorable).toBe(true);
+    expect(result[0].matchAllFilter).toBe(false);
+  });
+
+  it('should handle multiple filters independently', () => {
+    const filtersVar = createVariable();
+    const filters: AdHocFilterWithLabels[] = [
+      { key: 'key1', operator: '=', value: 'val1', origin: 'dashboard' },
+      { key: 'key1', operator: '=', value: 'changed', origin: 'dashboard' },
+      { key: 'noOrigin', operator: '=', value: 'x' },
+    ];
+
+    const result = filtersVar.validateOriginFilters(filters);
+
+    expect(result[0].restorable).toBe(false);
+    expect(result[1].restorable).toBe(true);
+    expect(result[2]).toBe(filters[2]);
   });
 });
 
@@ -2997,15 +3484,13 @@ function setup(
     });
   }
 
-  setTemplateSrv(templateSrv);
-
   const filtersVar = new AdHocFiltersVariable({
     datasource: { uid: 'my-ds-uid' },
     name: 'filters',
-    filters: [
+    filters: setTemplateSrvWithFilters([
       { key: 'key1', operator: '=', value: 'val1' },
       { key: 'key2', operator: '=', value: 'val2' },
-    ],
+    ]),
     ...overrides,
   });
 
@@ -3042,7 +3527,9 @@ function setup(
     (scene as EmbeddedScene & FiltersRequestEnricher).enrichFiltersRequest = filtersRequestEnricher;
   }
 
-  locationService.push('/');
+  act(() => {
+    locationService.push('/');
+  });
 
   const { unmount } = render(
     <TestContextProvider scene={scene}>
@@ -3087,3 +3574,538 @@ function newScopesVariableFromScopeFilters(filters: ScopeSpecFilter[]) {
     },
   };
 }
+
+describe('getOriginalFilters', () => {
+  it('should reconstruct filters from stored original values', () => {
+    const filtersVar = new AdHocFiltersVariable({
+      datasource: { uid: 'my-ds-uid' },
+      name: 'filters',
+      filters: [],
+    });
+
+    filtersVar['_originalValues'].set(`key1${VALUE_KEY_DELIMITER}dashboard`, { value: ['val1'], operator: '=' });
+    filtersVar['_originalValues'].set(`key2${VALUE_KEY_DELIMITER}scope`, { value: ['valA', 'valB'], operator: '=|' });
+    filtersVar['_originalValues'].set(`key3${VALUE_KEY_DELIMITER}scope`, { value: ['valC'], operator: '=|' });
+
+    const result = filtersVar.getOriginalFilters();
+
+    expect(result).toHaveLength(3);
+    expect(result[0]).toEqual({
+      key: 'key1',
+      origin: 'dashboard',
+      value: 'val1',
+      valueLabels: ['val1'],
+      keyLabel: 'key1',
+      operator: '=',
+    });
+    expect(result[1]).toEqual({
+      key: 'key2',
+      origin: 'scope',
+      value: 'valA',
+      values: ['valA', 'valB'],
+      valueLabels: ['valA', 'valB'],
+      keyLabel: 'key2',
+      operator: '=|',
+    });
+    expect(result[2]).toEqual({
+      key: 'key3',
+      origin: 'scope',
+      value: 'valC',
+      values: ['valC'],
+      valueLabels: ['valC'],
+      keyLabel: 'key3',
+      operator: '=|',
+    });
+  });
+});
+
+describe('setOriginalFilters', () => {
+  it('should replace all original values from given filters', () => {
+    const filtersVar = new AdHocFiltersVariable({
+      datasource: { uid: 'my-ds-uid' },
+      name: 'filters',
+      filters: [],
+    });
+
+    filtersVar['_originalValues'].set(`old${VALUE_KEY_DELIMITER}dashboard`, { value: ['oldVal'], operator: '=' });
+
+    filtersVar.setOriginalFilters([
+      { key: 'newKey', operator: '!=', value: 'newVal', values: ['newVal'], origin: 'scope' },
+    ]);
+
+    expect(filtersVar['_originalValues'].has(`old${VALUE_KEY_DELIMITER}dashboard`)).toBe(false);
+    expect(filtersVar['_originalValues'].get(`newKey${VALUE_KEY_DELIMITER}scope`)).toEqual({
+      value: ['newVal'],
+      operator: '!=',
+    });
+  });
+});
+
+describe('group-by', () => {
+  describe('isFilterComplete', () => {
+    it('returns true for groupBy filter with key and operator and empty value', () => {
+      expect(
+        isFilterComplete({ key: 'namespace', keyLabel: 'namespace', operator: 'groupBy', value: '', condition: '' })
+      ).toBe(true);
+    });
+
+    it('returns false for regular filter with empty value', () => {
+      expect(isFilterComplete({ key: 'key1', operator: '=', value: '', condition: '' })).toBe(false);
+    });
+
+    it('returns true for regular filter with non-empty value', () => {
+      expect(isFilterComplete({ key: 'key1', operator: '=', value: 'val1', condition: '' })).toBe(true);
+    });
+
+    it('returns false when key or operator is missing even for groupBy', () => {
+      expect(isFilterComplete({ key: '', operator: 'groupBy', value: '', condition: '' })).toBe(false);
+      expect(isFilterComplete({ key: 'k', operator: '', value: '', condition: '' })).toBe(false);
+    });
+  });
+
+  describe('_addGroupByFilter', () => {
+    it('appends a filter with operator groupBy and empty value', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([{ key: 'key1', operator: '=', value: 'val1' }]),
+      });
+      variable.activate();
+
+      variable._addGroupByFilter({ value: 'namespace', label: 'Namespace' });
+
+      expect(variable.state.filters).toHaveLength(2);
+      expect(variable.state.filters[1]).toEqual({
+        key: 'namespace',
+        keyLabel: 'Namespace',
+        operator: 'groupBy',
+        value: '',
+        condition: '',
+      });
+    });
+  });
+
+  describe('_handleComboboxBackspace', () => {
+    it('removes the specific groupBy filter when editing an existing pill', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([]),
+      });
+      variable.activate();
+
+      variable._addGroupByFilter({ value: 'namespace', label: 'Namespace' });
+      variable._addGroupByFilter({ value: 'pod', label: 'Pod' });
+      variable._addGroupByFilter({ value: 'container', label: 'Container' });
+
+      const filterToRemove = variable.state.filters[1]; // Pod (middle one)
+      variable._handleComboboxBackspace(filterToRemove);
+
+      expect(variable.state.filters).toHaveLength(2);
+      expect(variable.state.filters[0].key).toBe('namespace');
+      expect(variable.state.filters[1].key).toBe('container');
+    });
+
+    it('removes the last groupBy filter when triggered from wip input', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([]),
+      });
+      variable.activate();
+
+      variable._addGroupByFilter({ value: 'namespace', label: 'Namespace' });
+      variable._addGroupByFilter({ value: 'pod', label: 'Pod' });
+
+      const wipFilter: AdHocFilterWithLabels = { key: '', value: '', operator: 'groupBy', condition: '' };
+      variable._handleComboboxBackspace(wipFilter);
+
+      expect(variable.state.filters).toHaveLength(1);
+      expect(variable.state.filters[0].key).toBe('namespace');
+    });
+  });
+
+  describe('_getGroupByKeys', () => {
+    it('returns provider values when getGroupByKeysProvider returns replace true', async () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([]),
+        getGroupByKeysProvider: () =>
+          Promise.resolve({
+            replace: true,
+            values: [
+              { text: 'dim1', value: 'dim1' },
+              { text: 'dim2', value: 'dim2' },
+            ],
+          }),
+      });
+      variable.activate();
+
+      const keys = await variable._getGroupByKeys(null);
+
+      expect(keys).toEqual([
+        { label: 'dim1', value: 'dim1' },
+        { label: 'dim2', value: 'dim2' },
+      ]);
+    });
+  });
+
+  describe('isGroupByFilter', () => {
+    it('returns true for groupBy operator', () => {
+      expect(isGroupByFilter({ key: 'ns', operator: GROUP_BY_OPERATOR, value: '', condition: '' })).toBe(true);
+    });
+
+    it('returns false for regular operators', () => {
+      expect(isGroupByFilter({ key: 'k', operator: '=', value: 'v', condition: '' })).toBe(false);
+      expect(isGroupByFilter({ key: 'k', operator: '!=', value: 'v', condition: '' })).toBe(false);
+      expect(isGroupByFilter({ key: 'k', operator: '=~', value: '.*', condition: '' })).toBe(false);
+    });
+  });
+
+  describe('filterExpression excludes groupBy', () => {
+    it('should not include groupBy entries in the filter expression', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([
+          { key: 'host', operator: '=', value: 'web-1' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+      variable.activate();
+
+      expect(variable.state.filterExpression).toBe('host="web-1"');
+    });
+
+    it('should produce an empty expression when only groupBy filters exist', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+          { key: 'zone', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+      variable.activate();
+
+      expect(variable.state.filterExpression).toBe('');
+    });
+
+    it('should update expression correctly when adding a groupBy alongside regular filters', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([{ key: 'host', operator: '=', value: 'web-1' }]),
+      });
+      variable.activate();
+
+      expect(variable.state.filterExpression).toBe('host="web-1"');
+
+      variable._addGroupByFilter({ value: 'region', label: 'Region' });
+
+      expect(variable.state.filterExpression).toBe('host="web-1"');
+      expect(variable.state.filters).toHaveLength(2);
+    });
+  });
+
+  describe('groupBy changes publish variable change events', () => {
+    it('should publish SceneVariableValueChangedEvent when a groupBy filter is added', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([]),
+      });
+      variable.activate();
+
+      const events: SceneVariableValueChangedEvent[] = [];
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (e) => events.push(e));
+
+      variable._addGroupByFilter({ value: 'region', label: 'Region' });
+
+      expect(events).toHaveLength(1);
+    });
+
+    it('should publish SceneVariableValueChangedEvent when groupBy filters are replaced', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([{ key: 'region', operator: GROUP_BY_OPERATOR, value: '' }]),
+      });
+      variable.activate();
+
+      const events: SceneVariableValueChangedEvent[] = [];
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (e) => events.push(e));
+
+      variable.updateFilters([{ key: 'zone', operator: GROUP_BY_OPERATOR, value: '', condition: '' }]);
+
+      expect(events).toHaveLength(1);
+    });
+
+    it('should publish SceneVariableValueChangedEvent when a groupBy filter is removed', () => {
+      const groupByFilter: AdHocFilterWithLabels = {
+        key: 'region',
+        operator: GROUP_BY_OPERATOR,
+        value: '',
+        condition: '',
+      };
+
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([{ key: 'host', operator: '=', value: 'web-1' }]),
+      });
+      variable.activate();
+
+      variable.setState({
+        filters: [...variable.state.filters, groupByFilter],
+      });
+
+      const events: SceneVariableValueChangedEvent[] = [];
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (e) => events.push(e));
+
+      variable._removeFilter(groupByFilter);
+
+      expect(events).toHaveLength(1);
+    });
+
+    it('should not publish event when groupBy filters are identical', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([{ key: 'region', operator: GROUP_BY_OPERATOR, value: '' }]),
+      });
+      variable.activate();
+
+      const events: SceneVariableValueChangedEvent[] = [];
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (e) => events.push(e));
+
+      variable.updateFilters([{ key: 'region', operator: GROUP_BY_OPERATOR, value: '', condition: '' }]);
+
+      expect(events).toHaveLength(0);
+    });
+  });
+
+  describe('mixed filters and groupBy', () => {
+    it('should correctly separate real filters from groupBy in the state', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([
+          { key: 'host', operator: '=', value: 'web-1' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+          { key: 'env', operator: '!=', value: 'staging' },
+          { key: 'zone', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+      variable.activate();
+
+      const realFilters = variable.state.filters.filter((f) => !isGroupByFilter(f));
+      const groupByFilters = variable.state.filters.filter((f) => isGroupByFilter(f));
+
+      expect(realFilters).toHaveLength(2);
+      expect(realFilters.map((f) => f.key)).toEqual(['host', 'env']);
+
+      expect(groupByFilters).toHaveLength(2);
+      expect(groupByFilters.map((f) => f.key)).toEqual(['region', 'zone']);
+
+      expect(variable.state.filterExpression).toBe('host="web-1",env!="staging"');
+    });
+
+    it('should fire event when only groupBy changes in a mixed set', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        filters: setTemplateSrvWithFilters([
+          { key: 'host', operator: '=', value: 'web-1' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+      variable.activate();
+
+      const events: SceneVariableValueChangedEvent[] = [];
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, (e) => events.push(e));
+
+      variable.updateFilters([
+        { key: 'host', operator: '=', value: 'web-1', condition: '' },
+        { key: 'zone', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+      ]);
+
+      expect(events).toHaveLength(1);
+      expect(variable.state.filterExpression).toBe('host="web-1"');
+    });
+  });
+
+  describe('default group by (origin filters with operator groupBy)', () => {
+    it('updateToMatchAll sets dismissedGroupBy on groupBy origin and marks siblings restorable', () => {
+      const { filtersVar } = setup({
+        filters: setTemplateSrvWithFilters([]),
+        originFilters: [
+          { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+        ],
+        enableGroupBy: true,
+      });
+
+      act(() => {
+        filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      });
+
+      expect(filtersVar.state.originFilters).toHaveLength(2);
+      const dismissed = filtersVar.state.originFilters!.find((f) => f.key === 'cluster')!;
+      expect(dismissed.dismissedGroupBy).toBe(true);
+      expect(dismissed.restorable).toBe(true);
+      const sibling = filtersVar.state.originFilters!.find((f) => f.key === 'region')!;
+      expect(sibling.restorable).toBe(true);
+      expect(sibling.dismissedGroupBy).toBeUndefined();
+    });
+
+    it('restoreOriginalGroupBy restores all dismissed defaults and removes user group by', () => {
+      const { filtersVar } = setup({
+        filters: setTemplateSrvWithFilters([]),
+        originFilters: [
+          { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+        ],
+        enableGroupBy: true,
+      });
+
+      act(() => {
+        filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      });
+
+      act(() => {
+        filtersVar._addGroupByFilter({ value: 'service', label: 'service' });
+      });
+
+      expect(filtersVar.state.originFilters!.find((f) => f.key === 'cluster')!.dismissedGroupBy).toBe(true);
+      expect(filtersVar.state.filters).toHaveLength(1);
+      expect(filtersVar.state.filters[0].key).toBe('service');
+
+      act(() => {
+        filtersVar.restoreOriginalGroupBy();
+      });
+
+      const groupByOrigins = filtersVar.state.originFilters!.filter((f) => f.operator === 'groupBy');
+      expect(groupByOrigins).toHaveLength(2);
+      expect(groupByOrigins.map((f) => f.key).sort()).toEqual(['cluster', 'region']);
+      expect(groupByOrigins.every((f) => !f.restorable)).toBe(true);
+      expect(groupByOrigins.every((f) => !f.dismissedGroupBy)).toBe(true);
+      expect(filtersVar.state.filters.filter((f) => f.operator === 'groupBy')).toHaveLength(0);
+    });
+
+    it('editing a groupBy origin key dismisses origin and adds user filter', () => {
+      const { filtersVar } = setup({
+        filters: setTemplateSrvWithFilters([]),
+        originFilters: [
+          { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+        ],
+        enableGroupBy: true,
+      });
+
+      const clusterOrigin = filtersVar.state.originFilters![0];
+
+      act(() => {
+        filtersVar._updateFilter(clusterOrigin, { key: 'service', keyLabel: 'service' });
+      });
+
+      const dismissedCluster = filtersVar.state.originFilters!.find((f) => f.key === 'cluster')!;
+      expect(dismissedCluster.dismissedGroupBy).toBe(true);
+      expect(dismissedCluster.restorable).toBe(true);
+
+      const regionSibling = filtersVar.state.originFilters!.find((f) => f.key === 'region')!;
+      expect(regionSibling.restorable).toBe(true);
+
+      expect(filtersVar.state.filters).toHaveLength(1);
+      expect(filtersVar.state.filters[0].key).toBe('service');
+      expect(filtersVar.state.filters[0].operator).toBe('groupBy');
+      expect(filtersVar.state.filters[0].origin).toBeUndefined();
+    });
+
+    it('clearAll removes user groupBy filters along with adhoc filters', () => {
+      const { filtersVar } = setup({
+        filters: setTemplateSrvWithFilters([]),
+        originFilters: [{ key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' }],
+        enableGroupBy: true,
+      });
+
+      act(() => {
+        filtersVar._addGroupByFilter({ value: 'service', label: 'service' });
+        filtersVar._addGroupByFilter({ value: 'pod', label: 'pod' });
+      });
+
+      expect(filtersVar.state.filters.filter((f) => f.operator === 'groupBy')).toHaveLength(2);
+
+      act(() => {
+        filtersVar.clearAll();
+      });
+
+      expect(filtersVar.state.filters.filter((f) => f.operator === 'groupBy')).toHaveLength(0);
+      expect(filtersVar.state.originFilters![0].dismissedGroupBy).toBe(false);
+      expect(filtersVar.state.originFilters![0].restorable).toBe(false);
+    });
+
+    describe('isGroupByRestorable', () => {
+      it('returns false when there are no origin groupBy filters', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [{ key: 'cpu', operator: '=', value: 'val', origin: 'dashboard', condition: '' }],
+          enableGroupBy: true,
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(false);
+      });
+
+      it('returns false when origin groupBy defaults are untouched and no user groupBys exist', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [
+            { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+            { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          ],
+          enableGroupBy: true,
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(false);
+      });
+
+      it('returns true when a groupBy origin is dismissed', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [
+            { key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+            { key: 'region', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' },
+          ],
+          enableGroupBy: true,
+        });
+
+        act(() => {
+          filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(true);
+      });
+
+      it('returns true when a user-added groupBy exists even if defaults are untouched', () => {
+        const { filtersVar } = setup({
+          filters: setTemplateSrvWithFilters([]),
+          originFilters: [{ key: 'cluster', operator: 'groupBy', value: '', origin: 'dashboard', condition: '' }],
+          enableGroupBy: true,
+        });
+
+        act(() => {
+          filtersVar._addGroupByFilter({ value: 'service', label: 'service' });
+        });
+
+        expect(filtersVar.isGroupByRestorable()).toBe(true);
+      });
+    });
+  });
+});

@@ -246,7 +246,7 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
         expect(layer.state.data?.series).toBeDefined();
         expect(layer.state.data?.series?.[0].length).toBe(5);
 
-        expect(runRequestMock).toBeCalledTimes(2);
+        expect(runRequestMock).toHaveBeenCalledTimes(2);
         const { scopedVars } = sentRequest!;
 
         expect(scopedVars['__sceneObject']).toBeDefined();
@@ -513,7 +513,51 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
   });
 
   describe('drilldown dependencies support', () => {
-    it('should find and subscribe to ad-hoc filters and group-by variables', async () => {
+    it('should find and subscribe to ad-hoc filters and group-by dimensions', async () => {
+      const adHocVar = new AdHocFiltersVariable({
+        name: 'adhoc',
+        datasource: { type: 'prometheus', uid: 'test-uid' },
+        filters: [
+          { key: 'label1', operator: '=', value: 'value1' },
+          { key: 'key1', operator: 'groupBy', value: '', condition: '' },
+        ],
+        enableGroupBy: true,
+      });
+
+      const layer = new AnnotationsDataLayer({
+        name: 'Test layer',
+        query: {
+          name: 'Test',
+          enable: true,
+          iconColor: 'red',
+          datasource: { type: 'prometheus', uid: 'test-uid' },
+        },
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [adHocVar] }),
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({
+          layers: [layer],
+        }),
+      });
+
+      adHocVar.activate();
+      scene.activate();
+
+      // Wait for the layer query to run after variables are active
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock).toHaveBeenCalledTimes(1);
+
+      const { filters, groupByKeys } = sentRequest!;
+      expect(filters).toBeDefined();
+      expect(groupByKeys).toBeDefined();
+      expect(filters).toEqual([{ key: 'label1', operator: '=', value: 'value1' }]);
+      expect(groupByKeys).toEqual(['key1']);
+    });
+
+    it('should find and subscribe to legacy GroupByVariable when enableGroupBy is false', async () => {
       const adHocVar = new AdHocFiltersVariable({
         name: 'adhoc',
         datasource: { type: 'prometheus', uid: 'test-uid' },
@@ -548,12 +592,10 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
         }),
       });
 
-      // Activate the variables first to ensure they are registered before the layer runs
       adHocVar.activate();
       groupByVar.activate();
       scene.activate();
 
-      // Wait longer for the layer query to run after variables are active
       await new Promise((r) => setTimeout(r, 1));
 
       expect(runRequestMock).toHaveBeenCalledTimes(1);

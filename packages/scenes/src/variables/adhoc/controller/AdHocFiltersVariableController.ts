@@ -3,6 +3,7 @@ import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVari
 import { AdHocFiltersController, AdHocFiltersControllerState } from './AdHocFiltersController';
 import { getQueryController } from '../../../core/sceneGraph/getQueryController';
 import { getInteractionTracker } from '../../../core/sceneGraph/getInteractionTracker';
+import { getVariableControlId } from '../../utils';
 
 /**
  * Adapter that wraps AdHocFiltersVariable to implement the AdHocFiltersController interface.
@@ -13,6 +14,7 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public useState(): AdHocFiltersControllerState {
     const state = this.model.useState();
+
     return {
       filters: state.filters,
       originFilters: state.originFilters,
@@ -21,11 +23,22 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
       supportsMultiValueOperators: state.supportsMultiValueOperators,
       onAddCustomValue: state.onAddCustomValue,
       wip: state._wip,
+      inputPlaceholder: state.inputPlaceholder,
+      groupByInputPlaceholder: state.groupByInputPlaceholder,
+      collapsible: state.collapsible,
+      valueRecommendations: this.model.getRecommendations(),
+      drilldownRecommendationsEnabled: state.drilldownRecommendationsEnabled,
+      enableGroupBy: state.enableGroupBy,
+      groupByRestorable: this.model.isGroupByRestorable(),
     };
   }
 
   public async getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
     return this.model._getKeys(currentKey);
+  }
+
+  public async getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    return this.model._getGroupByKeys(currentKey);
   }
 
   public async getValuesFor(filter: AdHocFilterWithLabels): Promise<Array<SelectableValue<string>>> {
@@ -38,6 +51,16 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
 
   public updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>): void {
     this.model._updateFilter(filter, update);
+  }
+
+  public updateFilters(
+    filters: AdHocFilterWithLabels[],
+    options?: {
+      skipPublish?: boolean;
+      forcePublish?: boolean;
+    }
+  ): void {
+    this.model.updateFilters(filters, options);
   }
 
   public updateToMatchAll(filter: AdHocFilterWithLabels): void {
@@ -60,8 +83,20 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
     this.model._addWip();
   }
 
+  public addGroupByFilter(item: SelectableValue<string>): void {
+    this.model._addGroupByFilter(item);
+  }
+
   public restoreOriginalFilter(filter: AdHocFilterWithLabels): void {
     this.model.restoreOriginalFilter(filter);
+  }
+
+  public restoreOriginalGroupBy(): void {
+    this.model.restoreOriginalGroupBy();
+  }
+
+  public clearAll(): void {
+    this.model.clearAll();
   }
 
   public startProfile(name: string): void {
@@ -77,5 +112,9 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
   public stopInteraction(): void {
     const interactionTracker = getInteractionTracker(this.model);
     interactionTracker?.stopInteraction();
+  }
+
+  public getControlId(): string {
+    return getVariableControlId(this.model.state.type, this.model.state.key);
   }
 }

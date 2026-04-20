@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`SceneQueryRunner when running query should build DataQueryRequest object 2`] = `
 {
@@ -57,7 +57,7 @@ exports[`SceneQueryRunner when running query should build DataQueryRequest objec
     "from": "now-6h",
     "to": "now",
   },
-  "requestId": "SQR185",
+  "requestId": "SQR194",
   "scopes": undefined,
   "startTime": 1689063488000,
   "targets": [

@@ -1,5 +1,6 @@
 import { SelectableValue } from '@grafana/data';
 import { AdHocFilterWithLabels, OnAddCustomValueFn } from '../AdHocFiltersVariable';
+import { AdHocFiltersRecommendations } from '../AdHocFiltersRecommendations';
 
 /**
  * Controller state returned by useState hook
@@ -13,6 +14,15 @@ export interface AdHocFiltersControllerState {
   onAddCustomValue?: OnAddCustomValueFn;
   wip?: AdHocFilterWithLabels;
   inputPlaceholder?: string;
+  groupByInputPlaceholder?: string;
+  /**
+   * When true, enables a collapse button that appears when filters wrap to multiple lines.
+   */
+  collapsible?: boolean;
+  valueRecommendations?: AdHocFiltersRecommendations;
+  drilldownRecommendationsEnabled?: boolean;
+  enableGroupBy?: boolean;
+  groupByRestorable?: boolean;
 }
 
 /**
@@ -33,6 +43,13 @@ export interface AdHocFiltersController {
   getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>>;
 
   /**
+   * Get possible keys for the group-by dropdown.
+   * Only relevant when enableGroupBy is true.
+   * @param currentKey - The key being edited (to exclude from filter context), if any
+   */
+  getGroupByKeys?(currentKey: string | null): Promise<Array<SelectableValue<string>>>;
+
+  /**
    * Get possible values for a specific filter key.
    * @param filter - The filter to get values for
    */
@@ -49,6 +66,24 @@ export interface AdHocFiltersController {
    * @param update - Partial filter properties to update
    */
   updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>): void;
+
+  /**
+   * Get id for the form control. Used for accessibility.
+   */
+  getControlId?(): string;
+
+  /**
+   * Update filters list
+   * @param filters
+   * @param options
+   */
+  updateFilters?(
+    filters: AdHocFilterWithLabels[],
+    options?: {
+      skipPublish?: boolean;
+      forcePublish?: boolean;
+    }
+  ): void;
 
   /**
    * Update a filter to match all values (=~ .*)
@@ -79,10 +114,26 @@ export interface AdHocFiltersController {
   addWip(): void;
 
   /**
+   * Add a group-by filter (key only, operator 'groupBy', no value).
+   * Only relevant when enableGroupBy is true.
+   */
+  addGroupByFilter?(item: SelectableValue<string>): void;
+
+  /**
    * Restore an origin filter to its original value.
    * @param filter - The filter to restore
    */
   restoreOriginalFilter(filter: AdHocFilterWithLabels): void;
+
+  /**
+   * Restore all original group by filters and remove user-added group by filters.
+   */
+  restoreOriginalGroupBy?(): void;
+
+  /**
+   * Clear all user-added filters and restore origin filters to original values.
+   */
+  clearAll?(): void;
 
   /**
    * Optional: Start profiling an interaction (for performance tracking).

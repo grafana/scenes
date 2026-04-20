@@ -149,6 +149,51 @@ describe('sceneInterpolator', () => {
     expect(sceneInterpolator(scene, '${test:text}')).toBe('hello + world');
   });
 
+  describe('Text formatting with option properties', () => {
+    it('Can format text with fieldPath', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new TestVariable({
+              name: 'user',
+              isMulti: true,
+              value: ['10'],
+              text: ['Clementina DuBuque'],
+              options: [{ label: 'Clementina DuBuque', value: '10', properties: { username: 'Moriah.Stanton' } }],
+              optionsToReturn: [],
+              delayMs: 0,
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '${user.username:text}')).toBe('Moriah.Stanton');
+    });
+
+    it('Can format multi valued text with fieldPath', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new TestVariable({
+              name: 'user',
+              isMulti: true,
+              value: ['10', '11'],
+              text: ['Clementina DuBuque', 'Leanne Graham'],
+              options: [
+                { label: 'Clementina DuBuque', value: '10', properties: { username: 'Moriah.Stanton' } },
+                { label: 'Leanne Graham', value: '11', properties: { username: 'Bret' } },
+              ],
+              optionsToReturn: [],
+              delayMs: 0,
+            }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '${user.username:text}')).toBe('Moriah.Stanton + Bret');
+    });
+  });
+
   it('Can use formats with arguments', () => {
     const scene = new TestScene({
       $variables: new SceneVariableSet({

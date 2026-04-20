@@ -5,12 +5,13 @@ import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { MultiOrSingleValueSelect } from '../components/VariableValueSelect';
 import { VariableValueOption } from '../types';
 
-import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
-import { sceneGraph } from '../../core/sceneGraph';
 import React from 'react';
+import { sceneGraph } from '../../core/sceneGraph';
+import { MultiValueVariable, MultiValueVariableState, VariableGetOptionsArgs } from './MultiValueVariable';
 
 export interface CustomVariableState extends MultiValueVariableState {
   query: string;
+  valuesFormat?: 'csv' | 'json';
 }
 
 export class CustomVariable extends MultiValueVariable<CustomVariableState> {
@@ -22,6 +23,7 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
     super({
       type: 'custom',
       query: '',
+      valuesFormat: 'csv',
       value: '',
       text: '',
       options: [],
@@ -48,8 +50,32 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
     });
   }
 
+  public transformJsonToOptions(json: string): VariableValueOption[] {
+    if (!json) {
+      return [];
+    }
+
+    const parsedOptions = JSON.parse(json);
+
+    if (!Array.isArray(parsedOptions) || parsedOptions.some((o) => typeof o !== 'object' || o === null)) {
+      throw new Error('Query must be a JSON array of objects');
+    }
+
+    const textProp = 'text';
+    const valueProp = 'value';
+
+    return parsedOptions.map((o) => ({
+      label: String(o[textProp] || o[valueProp])?.trim(),
+      value: String(o[valueProp]).trim(),
+      properties: o,
+    }));
+  }
+
   public getValueOptions(args: VariableGetOptionsArgs): Observable<VariableValueOption[]> {
-    const options = this.transformCsvStringToOptions(this.state.query);
+    const options =
+      this.state.valuesFormat === 'json'
+        ? this.transformJsonToOptions(this.state.query)
+        : this.transformCsvStringToOptions(this.state.query);
 
     if (!options.length) {
       this.skipNextValidation = true;

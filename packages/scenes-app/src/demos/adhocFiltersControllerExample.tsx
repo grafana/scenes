@@ -23,7 +23,8 @@ export class SimpleController implements AdHocFiltersController {
     private filters: AdHocFilterWithLabels[],
     private setFilters: (filters: AdHocFilterWithLabels[]) => void,
     private wip: AdHocFilterWithLabels | undefined,
-    private setWip: (wip: AdHocFilterWithLabels | undefined) => void
+    private setWip: (wip: AdHocFilterWithLabels | undefined) => void,
+    public getControlId: () => string
   ) {}
 
   useState(): AdHocFiltersControllerState {
@@ -133,6 +134,12 @@ export class SimpleController implements AdHocFiltersController {
   restoreOriginalFilter(filter: AdHocFilterWithLabels): void {
     // Not applicable for this simple demo
   }
+
+  clearAll(): void {
+    // Clear all filters
+    this.setFilters([]);
+    this.setWip(undefined);
+  }
 }
 
 /**
@@ -144,7 +151,10 @@ function SimpleControllerDemoRenderer({ model }: SceneComponentProps<SimpleContr
   ]);
   const [wip, setWip] = useState<AdHocFilterWithLabels | undefined>(undefined);
 
-  const controller = useMemo(() => new SimpleController(filters, setFilters, wip, setWip), [filters, wip]);
+  const controller = useMemo(
+    () => new SimpleController(filters, setFilters, wip, setWip, () => 'control-id'),
+    [filters, wip]
+  );
 
   return (
     <>

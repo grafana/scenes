@@ -5,6 +5,7 @@ import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
 import {
   AlertStateInfo,
+  compareArrayValues,
   DataFrame,
   DataFrameView,
   DataQueryRequest,
@@ -40,9 +41,9 @@ import { passthroughProcessor, extraQueryProcessingOperator } from './extraQuery
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { registerQueryWithController, QueryProfilerLike } from './registerQueryWithController';
-import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
+import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
@@ -50,9 +51,11 @@ import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializab
 import { DrilldownDependenciesManager } from '../variables/DrilldownDependenciesManager';
 
 let counter = 100;
+const MIXED_DATASOURCE_UID = '-- Mixed --';
+const MIXED_DATASOURCE_REF: DataSourceRef = { type: 'mixed', uid: MIXED_DATASOURCE_UID };
 
-export function getNextRequestId() {
-  return 'SQR' + counter++;
+export function getNextRequestId(prefix = 'SQR') {
+  return prefix + counter++;
 }
 
 export interface QueryRunnerState extends SceneObjectState {
@@ -72,8 +75,90 @@ export interface QueryRunnerState extends SceneObjectState {
   runQueriesMode?: 'auto' | 'manual';
   // Filters to be applied to data layer results before combining them with SQR results
   dataLayerFilter?: DataLayerFilter;
+  /**
+   * Optional prefix for the requestId. When set, request IDs will be formatted as `{requestIdPrefix}{counter}`.
+   * Useful for identifying requests from specific panels or components.
+   */
+  requestIdPrefix?: string;
   // Private runtime state
   _hasFetchedData?: boolean;
+}
+
+function isTemplatedDatasourceUid(uid: string | undefined): boolean {
+  if (!uid) {
+    return false;
+  }
+
+  // Detect any variable template usage in a datasource UID so we can evaluate runtime fan-out.
+  return /^(?:\$[A-Za-z0-9_]+|\$\{[^}]+\})/.test(uid);
+}
+
+function isTemplatedDatasourceRef(datasource: DataSourceRef | null | undefined): boolean {
+  return isTemplatedDatasourceUid(datasource?.uid);
+}
+
+function getSimpleVariableNameFromDatasourceUid(uid: string | undefined): string | undefined {
+  if (!uid) {
+    return undefined;
+  }
+  const shortMatch = uid.match(/^\$([A-Za-z0-9_]+)$/);
+  if (shortMatch) {
+    return shortMatch[1];
+  }
+
+  const bracketMatch = uid.match(/^\$\{([A-Za-z0-9_]+)\}$/);
+  if (bracketMatch) {
+    return bracketMatch[1];
+  }
+
+  return undefined;
+}
+
+function getDatasourceVariableSelectionCount(sceneObject: SceneQueryRunner, variableName: string): number | undefined {
+  const variable = sceneGraph.lookupVariable(variableName, sceneObject);
+  if (!variable) {
+    return undefined;
+  }
+
+  const value = variable.getValue();
+  if (Array.isArray(value)) {
+    return value.filter((item) => item !== 'default').length;
+  }
+
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  return value === 'default' ? 0 : 1;
+}
+
+function shouldUseMixedRuntimeDatasource(
+  sceneObject: SceneQueryRunner,
+  datasource: DataSourceRef | null | undefined,
+  queries: SceneDataQuery[]
+) {
+  // Check both panel datasource and per-query datasources.
+  const refs: Array<DataSourceRef | null | undefined> = [datasource, ...queries.map((query) => query.datasource)];
+
+  for (const ref of refs) {
+    const uid = ref?.uid;
+    if (!uid) {
+      continue;
+    }
+
+    const variableName = getSimpleVariableNameFromDatasourceUid(uid);
+    if (variableName) {
+      const selectionCount = getDatasourceVariableSelectionCount(sceneObject, variableName);
+
+      if (selectionCount !== undefined && selectionCount > 1) {
+        return true;
+      }
+
+      continue;
+    }
+  }
+
+  return false;
 }
 
 export interface DataQueryExtended extends DataQuery {
@@ -265,10 +350,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   /**
-   * Check if value changed is a adhoc filter o group by variable that did not exist when we issued the last query
+   * Check if value changed is an adhoc filter or group by variable that did not exist when we issued the last query
    */
   private onAnyVariableChanged(variable: SceneVariable) {
-    // If this variable has already been detected this variable as a dependency onVariableUpdatesCompleted above will handle value changes
     if (
       this._drilldownDependenciesManager.adHocFiltersVar === variable ||
       this._drilldownDependenciesManager.groupByVar === variable ||
@@ -416,7 +500,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     this.setState({
-      data: { ...this.state.data!, state: LoadingState.Done },
+      data: { ...(this.state.data ?? emptyPanelData), state: LoadingState.Done },
     });
   }
 
@@ -460,9 +544,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     try {
       const datasource = this.state.datasource ?? findFirstDatasource(queries);
-      const ds = await getDataSource(datasource, this._scopedVars);
+      const runtimeDatasource = shouldUseMixedRuntimeDatasource(this, datasource, queries)
+        ? MIXED_DATASOURCE_REF
+        : datasource;
+      const ds = await getDataSource(runtimeDatasource, this._scopedVars);
 
-      this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid);
+      this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid, this);
 
       const runRequest = getRunRequest();
       const { primary, secondaries, processors } = this.prepareRequests(timeRange, ds);
@@ -528,11 +615,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private prepareRequests(timeRange: SceneTimeRangeLike, ds: DataSourceApi): PreparedRequests {
-    const { minInterval, queries } = this.state;
+    const { minInterval, queries, requestIdPrefix } = this.state;
 
     let request: DataQueryRequest<DataQueryExtended> = {
       app: 'scenes',
-      requestId: getNextRequestId(),
+      requestId: getNextRequestId(requestIdPrefix),
       timezone: timeRange.getTimeZone(),
       range: timeRange.state.value,
       interval: '1s',
@@ -572,7 +659,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
           isExpressionReference /* TODO: Remove this check when isExpressionReference is properly exported from grafan runtime */ &&
           !isExpressionReference(query.datasource))
       ) {
-        query.datasource = ds.getRef();
+        if (!query.datasource && ds.meta?.mixed && isTemplatedDatasourceRef(this.state.datasource)) {
+          query.datasource = this.state.datasource;
+        } else {
+          query.datasource = ds.getRef();
+        }
       }
       return query;
     });
@@ -598,7 +689,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     let secondaryProcessors = new Map();
     for (const provider of this.getClosestExtraQueryProviders() ?? []) {
       for (const { req, processor } of provider.getExtraQueries(request)) {
-        const requestId = getNextRequestId();
+        const requestId = getNextRequestId(requestIdPrefix);
         secondaryRequests.push({ ...req, requestId });
         secondaryProcessors.set(requestId, processor ?? passthroughProcessor);
       }
@@ -608,14 +699,42 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private onDataReceived = (data: PanelData) => {
-    // Will combine annotations from SQR queries (frames with meta.dataTopic === DataTopic.Annotations)
     const preProcessedData = preProcessPanelData(data, this.state.data);
 
-    // Save query annotations
     this._resultAnnotations = data.annotations;
 
-    // Will combine annotations & alert state from data layer providers
     const dataWithLayersApplied = this._combineDataLayers(preProcessedData);
+
+    const last = this.state.data;
+
+    // Restore referential identity of series/annotations when frames haven't changed,
+    // preventing panels from reprocessing unchanged data. Brings back logic that existed in PanelQueryRunner in core.
+    if (last != null && dataWithLayersApplied.state !== LoadingState.Streaming) {
+      const sameSeries = compareArrayValues(last.series ?? [], dataWithLayersApplied.series ?? [], (a, b) => a === b);
+      const sameAnnotations = compareArrayValues(
+        last.annotations ?? [],
+        dataWithLayersApplied.annotations ?? [],
+        (a, b) => a === b
+      );
+      const sameState = last.state === dataWithLayersApplied.state;
+      const sameErrors = compareArrayValues(last.errors ?? [], dataWithLayersApplied.errors ?? [], (a, b) =>
+        isEqual(a, b)
+      );
+
+      if (sameSeries) {
+        dataWithLayersApplied.series = last.series;
+      }
+
+      if (sameAnnotations) {
+        dataWithLayersApplied.annotations = last.annotations;
+      }
+
+      if (sameSeries && sameAnnotations && sameState && sameErrors) {
+        if (last.request?.requestId === dataWithLayersApplied.request?.requestId) {
+          return;
+        }
+      }
+    }
 
     let hasFetchedData = this.state._hasFetchedData;
 

@@ -1,3 +1,944 @@
+# v7.4.0 (Mon Apr 20 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFilterVariable: Default to combobox layout in filters [#1428](https://github.com/grafana/scenes/pull/1428) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimePicker: Add time range validation on zoom, backwards and forwards move [#1427](https://github.com/grafana/scenes/pull/1427) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+  - Jest: Upgrade jest to fix issue with logging scene objects [#1426](https://github.com/grafana/scenes/pull/1426) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v7.3.13 (Tue Apr 14 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - chore: replace standardTransformers import with registry access [#1425](https://github.com/grafana/scenes/pull/1425) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v7.3.12 (Thu Apr 09 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Add interaction reporting [#1422](https://github.com/grafana/scenes/pull/1422) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.11 (Wed Apr 08 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneDataTransformer: Check metadata when choosing to emit transformation data [#1408](https://github.com/grafana/scenes/pull/1408) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 1
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+
+---
+
+# v7.3.10 (Tue Apr 07 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - adHoc: remove wide-input prop [#1421](https://github.com/grafana/scenes/pull/1421) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.3.9 (Tue Apr 07 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Preserve dashboard filters settings in panel edit [#1418](https://github.com/grafana/scenes/pull/1418) ([@mdvictor](https://github.com/mdvictor))
+  - Filters: Fix multi value pills interaction [#1419](https://github.com/grafana/scenes/pull/1419) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.8 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SQR: Fix datasource-template runtime routing for multi-select fan-out [#1416](https://github.com/grafana/scenes/pull/1416) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 1
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+
+---
+
+# v7.3.7 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - adHoc: optional controller method [#1415](https://github.com/grafana/scenes/pull/1415) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.3.6 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Perf: Introduce `clearPreviousFieldValues` for mitigation of React fiber memory issue [#1392](https://github.com/grafana/scenes/pull/1392) ([@leeoniya](https://github.com/leeoniya))
+
+#### Authors: 1
+
+- Leon Sorokin ([@leeoniya](https://github.com/leeoniya))
+
+---
+
+# v7.3.5 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Improve a11y [#1404](https://github.com/grafana/scenes/pull/1404) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 1
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+
+---
+
+# v7.3.4 (Thu Apr 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: NonApplicability adapt to unified experience [#1407](https://github.com/grafana/scenes/pull/1407) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.3 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: GroupBy panel action refactor to not use applicability [#1414](https://github.com/grafana/scenes/pull/1414) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.2 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Do not pass matchall filters to getKey methods [#1413](https://github.com/grafana/scenes/pull/1413) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.1 (Wed Apr 01 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Move recommendations to unified adhoc [#1406](https://github.com/grafana/scenes/pull/1406) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.3.0 (Tue Mar 31 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Adhoc: introduces default groupbys [#1411](https://github.com/grafana/scenes/pull/1411) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.2.1 (Tue Mar 31 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Unified groupbys with filters in SQR [#1405](https://github.com/grafana/scenes/pull/1405) ([@mdvictor](https://github.com/mdvictor) [@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 2
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.2.0 (Mon Mar 30 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHoc: add groupby and adhoc unified UI [#1402](https://github.com/grafana/scenes/pull/1402) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.9 (Mon Mar 30 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHoc: Preserve value labels when storing and restoring origin filters [#1409](https://github.com/grafana/scenes/pull/1409) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - Fix URL sync instability for duplicate variable names [#1395](https://github.com/grafana/scenes/pull/1395) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 2
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.8 (Tue Mar 24 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Adhoc: improved collapsible state [#1403](https://github.com/grafana/scenes/pull/1403) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - feat(adhoc): extend controller and variable for group-by operator (no UI) [#1399](https://github.com/grafana/scenes/pull/1399) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - Rows: Announce row title in the collapse button [#1396](https://github.com/grafana/scenes/pull/1396) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 2
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.7 (Fri Mar 13 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersRecommendations: Dedupe filters [#1379](https://github.com/grafana/scenes/pull/1379) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.1.6 (Thu Mar 12 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: filter values [#1391](https://github.com/grafana/scenes/pull/1391) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.5 (Thu Mar 12 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add SetExactly mode to series visibility config factory [#1385](https://github.com/grafana/scenes/pull/1385) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v7.1.4 (Tue Mar 10 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: add getOriginalFilters / setOriginalFilters public API [#1389](https://github.com/grafana/scenes/pull/1389) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.3 (Tue Mar 10 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Do not show recommendations unless DS supports them [#1382](https://github.com/grafana/scenes/pull/1382) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.1.2 (Fri Mar 06 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VariableDependencyCheck: Make self referencing variable check more general [#1381](https://github.com/grafana/scenes/pull/1381) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v7.1.1 (Wed Mar 04 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - groupBy variable update logic cleaup [#1380](https://github.com/grafana/scenes/pull/1380) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.1.0 (Tue Mar 03 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - QueryController: clear running query count on deactivate [#1349](https://github.com/grafana/scenes/pull/1349) ([@perfilyev](https://github.com/perfilyev))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Datagrid: Drop support ahead of deprecation [#1378](https://github.com/grafana/scenes/pull/1378) ([@fastfrwrd](https://github.com/fastfrwrd))
+  - FieldOverrides: Pass featureToggles into applyFieldOverrides [#1377](https://github.com/grafana/scenes/pull/1377) ([@fastfrwrd](https://github.com/fastfrwrd))
+
+#### Authors: 2
+
+- Igor Perfilyev ([@perfilyev](https://github.com/perfilyev))
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+
+---
+
+# v7.0.3 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Add backwards compatibility for custom variables referencing themselves [#1374](https://github.com/grafana/scenes/pull/1374) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+  - SQR: still emit when requestId changes despite identical data [#1376](https://github.com/grafana/scenes/pull/1376) ([@dprokop](https://github.com/dprokop) [@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v7.0.2 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupByVariable: Subscribe to defaultValue updates and sync to value [#1361](https://github.com/grafana/scenes/pull/1361) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v7.0.1 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - fix: make rxjs a peer dep due to its brittle types [#1375](https://github.com/grafana/scenes/pull/1375) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v7.0.0 (Thu Feb 26 2026)
+
+### Release Notes
+
+#### fix esm builds ([#1368](https://github.com/grafana/scenes/pull/1368))
+
+`@grafana/scenes` and `@grafana/scenes-react` now ship with exports defined in package.json, allowing only specific files to be exposed while blocking access to the packages internals. We consider this a breaking change.
+
+---
+
+#### 💥 Breaking Change
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - fix esm builds [#1368](https://github.com/grafana/scenes/pull/1368) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v6.57.2 (Thu Feb 26 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Expose a way to get original value of a default filter [#1371](https://github.com/grafana/scenes/pull/1371) ([@mdvictor](https://github.com/mdvictor))
+  - GroupByVar: Allow current value to overwrite default value [#1366](https://github.com/grafana/scenes/pull/1366) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.57.1 (Wed Feb 25 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SQR: Try preserving referential equality when data hasn't changed [#1370](https://github.com/grafana/scenes/pull/1370) ([@dprokop](https://github.com/dprokop))
+  - Chore: Avoid array get by index [#1369](https://github.com/grafana/scenes/pull/1369) ([@ryantxu](https://github.com/ryantxu))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Ryan McKinley ([@ryantxu](https://github.com/ryantxu))
+
+---
+
+# v6.57.0 (Mon Feb 23 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Add a `ControlSourceRef` to the variable state [#1315](https://github.com/grafana/scenes/pull/1315) ([@leventebalogh](https://github.com/leventebalogh) [@mckn](https://github.com/mckn))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix context macros [#1365](https://github.com/grafana/scenes/pull/1365) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 3
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Marcus Andersson ([@mckn](https://github.com/mckn))
+
+---
+
+# v6.56.0 (Fri Feb 20 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - FiltersOverview: Add a bulk validation method for origin filters [#1354](https://github.com/grafana/scenes/pull/1354) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.55.1 (Thu Feb 19 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupBy: Default to old key retrieval method [#1364](https://github.com/grafana/scenes/pull/1364) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.55.0 (Thu Feb 19 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - GroupByVariable: Use new DS API method [#1358](https://github.com/grafana/scenes/pull/1358) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.54.1 (Thu Feb 19 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Get datasource from queries if not on panel in `getQueriesForVariables` [#1352](https://github.com/grafana/scenes/pull/1352) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.54.0 (Wed Feb 18 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - scenes react: ad hoc filters, groupby, localvalue [#1353](https://github.com/grafana/scenes/pull/1353) ([@L2D2Grafana](https://github.com/L2D2Grafana))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - chore!: update peer dependencies of scenes packages [#1213](https://github.com/grafana/scenes/pull/1213) ([@NWRichmond](https://github.com/NWRichmond))
+- `@grafana/scenes`
+  - chore: Remove output noise when launching unit tests [#1346](https://github.com/grafana/scenes/pull/1346) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 3
+
+- Liza Detrick ([@L2D2Grafana](https://github.com/L2D2Grafana))
+- Marc M. ([@grafakus](https://github.com/grafakus))
+- Nick Richmond ([@NWRichmond](https://github.com/NWRichmond))
+
+---
+
+# v6.53.0 (Tue Feb 17 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: add custom placeholder support [#1357](https://github.com/grafana/scenes/pull/1357) ([@matyax](https://github.com/matyax))
+
+#### Authors: 1
+
+- Matias Chomicki ([@matyax](https://github.com/matyax))
+
+---
+
+# v6.52.15 (Wed Feb 11 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`
+  - ScenesReact: Add allValue to variables [#1254](https://github.com/grafana/scenes/pull/1254) ([@slaughtlaught](https://github.com/slaughtlaught))
+
+#### Authors: 1
+
+- Bogdan Tiet ([@slaughtlaught](https://github.com/slaughtlaught))
+
+---
+
+# v6.52.14 (Tue Feb 10 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - QueryVariable: Deduplicate properties indices in toMetricFindValues [#1356](https://github.com/grafana/scenes/pull/1356) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
+# v6.52.13 (Thu Feb 05 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Stricter input matching on options search [#1347](https://github.com/grafana/scenes/pull/1347) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.52.12 (Fri Jan 30 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneGridLayout: Remove height when grid is empty [#1344](https://github.com/grafana/scenes/pull/1344) ([@grafakus](https://github.com/grafakus))
+  - Adhoc filters: Don't escape filter values in Preview [#1343](https://github.com/grafana/scenes/pull/1343) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 2
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
+# v6.52.11 (Mon Jan 26 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFilters: Fixes backspace key not removing filters properly [#1339](https://github.com/grafana/scenes/pull/1339) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.52.10 (Wed Jan 21 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: handle undefined state.data in cancelQuery [#1337](https://github.com/grafana/scenes/pull/1337) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v6.52.9 (Wed Jan 21 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - QueryVariable: Ensure numeric value field is always added to MetricFindValue properties when parsing data frames [#1341](https://github.com/grafana/scenes/pull/1341) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
+# v6.52.8 (Tue Jan 20 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - QueryVariable: Allow numeric value fields in MetricFindValue parsing [#1338](https://github.com/grafana/scenes/pull/1338) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
+# v6.52.7 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocVar: Fix setting active index for grouped labels [#1335](https://github.com/grafana/scenes/pull/1335) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.52.6 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filtering recommendations: Add subs to filters and grouping changes [#1334](https://github.com/grafana/scenes/pull/1334) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.52.5 (Mon Jan 19 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - feat: add requestIdPrefix option to SceneQueryRunner [#1336](https://github.com/grafana/scenes/pull/1336) ([@svennergr](https://github.com/svennergr))
+
+#### Authors: 1
+
+- Sven Grossmann ([@svennergr](https://github.com/svennergr))
+
+---
+
+# v6.52.4 (Fri Jan 16 2026)
+
+#### 🐛 Bug Fix
+
+- chore: fix js-yaml vulnerability & upgrade docusaurus [#1333](https://github.com/grafana/scenes/pull/1333) ([@anaivanov](https://github.com/anaivanov))
+
+#### Authors: 1
+
+- Ana Ivanov ([@anaivanov](https://github.com/anaivanov))
+
+---
+
+# v6.52.3 (Thu Jan 15 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - CustomVariable: Preserve all JSON properties in options [#1332](https://github.com/grafana/scenes/pull/1332) ([@grafakus](https://github.com/grafakus))
+
+#### Authors: 1
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
+# v6.52.2 (Tue Jan 13 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanelMenuRenderer: Provide PanelMenuItem.target [#1331](https://github.com/grafana/scenes/pull/1331) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v6.52.1 (Tue Jan 06 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Fix text formatter for variables with multi-props [#1323](https://github.com/grafana/scenes/pull/1323) ([@grafakus](https://github.com/grafakus))
+  - DD: Change Switch variable ID to not overlap with the dashboard control label [#1324](https://github.com/grafana/scenes/pull/1324) ([@idastambuk](https://github.com/idastambuk))
+
+#### Authors: 2
+
+- Ida Štambuk ([@idastambuk](https://github.com/idastambuk))
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
+# v6.52.0 (Thu Dec 18 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocVariable: Add collapse button and clear all option [#1316](https://github.com/grafana/scenes/pull/1316) ([@harisrozajac](https://github.com/harisrozajac) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.51.0 (Thu Dec 18 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: Fix breaking behavior in toMetricFindValues [#1319](https://github.com/grafana/scenes/pull/1319) ([@torkelo](https://github.com/torkelo) [@grafakus](https://github.com/grafakus))
+
+#### Authors: 2
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.50.0 (Wed Dec 17 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFilters/GroupBy: Support datasource drilldown recommendations and recent drilldowns [#1312](https://github.com/grafana/scenes/pull/1312) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - GroupBy: Variable UI optimisations [#1314](https://github.com/grafana/scenes/pull/1314) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.49.0 (Fri Dec 05 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Introduce regexApplyTo variable field [#1306](https://github.com/grafana/scenes/pull/1306) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v6.48.1 (Thu Dec 04 2025)
+
+### Release Notes
+
+#### Dashboard: Round down invalid refresh interval ([#1310](https://github.com/grafana/scenes/pull/1310))
+
+When a dashboard URL carried an invalid refresh value, the system previously defaulted the refresh interval to the minimum allowed value. This behaviour has now changed. Instead of jumping to the minimum interval, the refresh value is now rounded down to the nearest valid refresh interval.
+
+---
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Dashboard: Round down invalid refresh interval [#1310](https://github.com/grafana/scenes/pull/1310) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - fix: remove hardcoded values in sortVariableValues [#1307](https://github.com/grafana/scenes/pull/1307) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+  - I18n: Download translations from Crowdin [#1298](https://github.com/grafana/scenes/pull/1298) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 3
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
+# v6.48.0 (Mon Nov 24 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Variables: support object values with multiple properties [#1236](https://github.com/grafana/scenes/pull/1236) ([@torkelo](https://github.com/torkelo) [@grafakus](https://github.com/grafakus))
+
+#### Authors: 2
+
+- Marc M. ([@grafakus](https://github.com/grafakus))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.47.1 (Wed Nov 19 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Drilldowns: Applicabilty check on drilldown variables [#1303](https://github.com/grafana/scenes/pull/1303) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.47.0 (Fri Nov 14 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Do not pass empty array to titleItems [#1302](https://github.com/grafana/scenes/pull/1302) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v6.46.1 (Thu Nov 13 2025)
+
+#### 🐛 Bug Fix
+
+- Demos: Update panel with header actions demo [#1299](https://github.com/grafana/scenes/pull/1299) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - MultiValueVariable: Fixes urlSync issues that caused wrong interpolation in queries [#1300](https://github.com/grafana/scenes/pull/1300) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 2
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.43.0 (Tue Nov 11 2025)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Filters: Add per-panel non-applicable pills [#1278](https://github.com/grafana/scenes/pull/1278) ([@mdvictor](https://github.com/mdvictor))
+  - AdhocFiltersVariable: Expose `originFilters` in links [#1297](https://github.com/grafana/scenes/pull/1297) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Switch Variable: Add an id for the input [#1295](https://github.com/grafana/scenes/pull/1295) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 2
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v6.42.2 (Fri Oct 31 2025)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - I18n: Download translations from Crowdin [#1293](https://github.com/grafana/scenes/pull/1293) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+
+---
+
 # v6.42.1 (Thu Oct 30 2025)
 
 #### 🐛 Bug Fix

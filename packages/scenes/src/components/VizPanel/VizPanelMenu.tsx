@@ -59,6 +59,8 @@ function VizPanelMenuRenderer({ model }: SceneComponentProps<VizPanelMenu>) {
               url={item.href}
               onClick={item.onClick}
               shortcut={item.shortcut}
+              // @ts-expect-error TODO: remove suppression after updating grafana/data
+              target={item.target || undefined}
               testId={selectors.components.Panels.Panel.menuItems(item.text)}
             />
           );

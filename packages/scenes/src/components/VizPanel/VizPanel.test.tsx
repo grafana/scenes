@@ -278,6 +278,15 @@ describe('VizPanel', () => {
         },
       ];
     });
+
+    global.ResizeObserver = class {
+      // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+      observe() {}
+      // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+      unobserve() {}
+      // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+      disconnect() {}
+    };
   });
 
   describe('when activated', () => {
@@ -858,15 +867,6 @@ describe('VizPanel', () => {
     beforeEach(() => {
       panelRenderCount = 0;
       panelProps = undefined;
-
-      global.ResizeObserver = class {
-        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
-        observe() {}
-        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
-        unobserve() {}
-        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
-        disconnect() {}
-      };
     });
 
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
@@ -1067,7 +1067,8 @@ describe('VizPanel', () => {
         expect(panel.state.showMenuAlways).toBe(false);
         render(<panel.Component model={panel} />);
 
-        const menuButton = screen.queryByRole('button', { name: /menu/i });
+        // For some reason queryByRole('button', { name: /menu/i }) is not finding the element, even it's there in the DOM, with title Menu same as the test on above
+        const menuButton = screen.getByTitle('Menu');
         expect(menuButton).toHaveClass('show-on-hover');
       });
     });
@@ -1175,6 +1176,45 @@ describe('VizPanel', () => {
       expect(panel.state.$data).toBeInstanceOf(SceneDataTransformer);
       expect((panel.state.$data as SceneDataTransformer).state.transformations).toEqual(newTransformations);
       expect((panel.state.$data as SceneDataTransformer).state.$data).toBe(sceneQueryRunner);
+    });
+  });
+
+  describe('applyFieldConfig series identity preservation', () => {
+    let testData: PanelData;
+    let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
+
+    beforeEach(() => {
+      testData = getTestData();
+      panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataNode({ data: testData }),
+      });
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+    });
+
+    it('should reuse cached series, structureRev and state on state-only transitions', () => {
+      const first = panel.applyFieldConfig(testData);
+      const second = panel.applyFieldConfig({ ...testData, state: LoadingState.Done });
+
+      expect(second.series).toBe(first.series);
+      expect(second.structureRev).toBe(first.structureRev);
+      expect(second.state).toBe(LoadingState.Done);
+    });
+
+    it('should return identical result for the exact same PanelData object', () => {
+      const first = panel.applyFieldConfig(testData);
+      expect(panel.applyFieldConfig(testData)).toBe(first);
+    });
+
+    it('should reprocess series when series reference changes', () => {
+      panel.applyFieldConfig(testData);
+
+      const newFrame = toDataFrame({ fields: [{ name: 'X', type: FieldType.number, values: [1, 2] }] });
+      const result = panel.applyFieldConfig({ ...testData, series: [newFrame] });
+
+      expect(result.series[0]).not.toBe(newFrame);
     });
   });
 });

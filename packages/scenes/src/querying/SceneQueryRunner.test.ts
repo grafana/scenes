@@ -1,4 +1,4 @@
-import { map, Observable, of } from 'rxjs';
+import { map, Observable, of, Subject } from 'rxjs';
 
 // Mock crypto.randomUUID for generateOperationId
 Object.defineProperty(global, 'crypto', {
@@ -34,9 +34,9 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
-import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
-import { emptyPanelData } from '../core/SceneDataNode';
+import { AdHocFiltersVariable, GROUP_BY_OPERATOR } from '../variables/adhoc/AdHocFiltersVariable';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
+import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneQueryController } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
@@ -47,62 +47,68 @@ import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObjec
 import { SceneQueryStateControllerState } from '../behaviors/types';
 import { config } from '@grafana/runtime';
 import { ScopesVariable } from '../variables/variants/ScopesVariable';
+import { ConstantVariable } from '../variables/variants/ConstantVariable';
 
-const getDataSourceMock = jest.fn().mockReturnValue({
-  uid: 'test-uid',
-  getRef: () => ({ uid: 'test-uid' }),
-  query: (request: DataQueryRequest) => {
-    if (request.targets.find((t) => t.refId === 'withAnnotations')) {
+const getDataSourceMock = jest.fn().mockImplementation((datasource) => {
+  const isMixed = datasource?.uid === '-- Mixed --';
+
+  return {
+    uid: isMixed ? '-- Mixed --' : 'test-uid',
+    meta: isMixed ? { mixed: true } : undefined,
+    getRef: () => (isMixed ? { type: 'mixed', uid: '-- Mixed --' } : { uid: 'test-uid' }),
+    query: (request: DataQueryRequest) => {
+      if (request.targets.find((t) => t.refId === 'withAnnotations')) {
+        return of({
+          data: [
+            toDataFrame({
+              refId: 'withAnnotations',
+              datapoints: [
+                [100, 1],
+                [400, 2],
+                [500, 3],
+              ],
+            }),
+            toDataFrame({
+              name: 'exemplar',
+              refId: 'withAnnotations',
+              meta: {
+                typeVersion: [0, 0],
+                custom: {
+                  resultType: 'exemplar',
+                },
+                dataTopic: 'annotations',
+              },
+              fields: [
+                {
+                  name: 'foo',
+                  type: 'string',
+                  values: ['foo1', 'foo2', 'foo3'],
+                },
+                {
+                  name: 'bar',
+                  type: 'string',
+                  values: ['bar1', 'bar2', 'bar3'],
+                },
+              ],
+            }),
+          ],
+        });
+      }
+
       return of({
         data: [
           toDataFrame({
-            refId: 'withAnnotations',
+            refId: 'A',
             datapoints: [
               [100, 1],
-              [400, 2],
-              [500, 3],
-            ],
-          }),
-          toDataFrame({
-            name: 'exemplar',
-            refId: 'withAnnotations',
-            meta: {
-              typeVersion: [0, 0],
-              custom: {
-                resultType: 'exemplar',
-              },
-              dataTopic: 'annotations',
-            },
-            fields: [
-              {
-                name: 'foo',
-                type: 'string',
-                values: ['foo1', 'foo2', 'foo3'],
-              },
-              {
-                name: 'bar',
-                type: 'string',
-                values: ['bar1', 'bar2', 'bar3'],
-              },
+              [200, 2],
+              [300, 3],
             ],
           }),
         ],
       });
-    }
-
-    return of({
-      data: [
-        toDataFrame({
-          refId: 'A',
-          datapoints: [
-            [100, 1],
-            [200, 2],
-            [300, 3],
-          ],
-        }),
-      ],
-    });
-  },
+    },
+  };
 });
 
 const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
@@ -192,6 +198,35 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         ]
       `);
       expect(request).toMatchSnapshot();
+    });
+
+    it('should use requestIdPrefix when provided', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        requestIdPrefix: 'my-panel-',
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest).toBeDefined();
+      expect(sentRequest!.requestId).toMatch(/^my-panel-\d+$/);
+    });
+
+    it('should use default SQR prefix when requestIdPrefix is not provided', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(sentRequest).toBeDefined();
+      expect(sentRequest!.requestId).toMatch(/^SQR\d+$/);
     });
   });
 
@@ -705,7 +740,86 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall[1].filters).toEqual([{ key: 'A', operator: '=', value: 'B' }]);
     });
 
-    it('should pass group by dimensions via request object', async () => {
+    it('should pass group by dimensions via request object from AdHocFiltersVariable', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [
+          { key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+          { key: 'B', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        ],
+        enableGroupBy: true,
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      expect(queryRunner.state.data).toBeUndefined();
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].groupByKeys).toEqual(['A', 'B']);
+
+      // Verify updating groupBy filters re-triggers query
+      filtersVar.updateFilters([
+        { key: 'C', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        { key: 'D', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+      ]);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+
+      const runRequestCall2 = runRequestMock.mock.calls[1];
+      expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
+    });
+
+    it('should not pass group by dimensions when enableGroupBy is false', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [
+          { key: 'host', operator: '=', value: 'web-1', condition: '' },
+          { key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+          { key: 'B', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+        ],
+        enableGroupBy: false,
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].groupByKeys).toBeUndefined();
+      expect(runRequestCall[1].filters).toEqual([{ key: 'host', operator: '=', value: 'web-1', condition: '' }]);
+    });
+
+    it('should pass group by dimensions from legacy GroupByVariable when enableGroupBy is not set', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
         queries: [{ refId: 'A' }],
@@ -733,7 +847,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       expect(runRequestCall[1].groupByKeys).toEqual(['A', 'B']);
 
-      // Verify updating filter re-triggers query
       groupByVariable.changeValueTo(['C', 'D']);
 
       await new Promise((r) => setTimeout(r, 1));
@@ -1354,6 +1467,51 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(getDataSourceCall[0]).toEqual({ uid: 'Muuu' });
     });
 
+    it('should keep non-Mixed runtime datasource for templated datasource variable with single selected value', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', datasource: { uid: '${ds}', type: 'prometheus' } }],
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({
+          variables: [new ConstantVariable({ name: 'ds', value: 'uid-1' })],
+        }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(getDataSourceMock.mock.calls[0][0]).toEqual({ uid: '${ds}', type: 'prometheus' });
+      expect(sentRequest?.targets[0].datasource).toEqual({ uid: 'test-uid' });
+      expect(queryRunner.state.datasource).toBeUndefined();
+    });
+
+    it('should resolve runtime datasource to Mixed when a datasource variable has multiple selected values', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: '${ds}', type: 'prometheus' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({
+          variables: [new ConstantVariable({ name: 'ds', value: ['uid-1', 'uid-2'] })],
+        }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(getDataSourceMock.mock.calls[0][0]).toEqual({ type: 'mixed', uid: '-- Mixed --' });
+      expect(sentRequest?.targets[0].datasource).toEqual({ uid: '${ds}', type: 'prometheus' });
+      expect(queryRunner.state.datasource).toEqual({ uid: '${ds}', type: 'prometheus' });
+    });
+
     it('Should interpolate a variable when used in query options', async () => {
       const variable = new TestVariable({ name: 'A', value: '1h' });
       const queryRunner = new SceneQueryRunner({
@@ -1387,7 +1545,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       queryRunner.activate();
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(queryRunner.state.data?.series[0].fields[0].values.get(0)).toBe(123);
+      expect(queryRunner.state.data?.series[0].fields[0].values[0]).toBe(123);
 
       runtimeDataSources.clear();
     });
@@ -2731,6 +2889,46 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
     await new Promise((r) => setTimeout(r, 1));
 
     expect(sentRequest?.scopes).toBeUndefined();
+  });
+
+  describe('onDataReceived series identity preservation', () => {
+    let subject: Subject<DataQueryResponse>;
+    let queryRunner: SceneQueryRunner;
+    const tick = () => new Promise((r) => setTimeout(r, 1));
+
+    beforeEach(async () => {
+      subject = new Subject<DataQueryResponse>();
+      runRequestMock.mockImplementationOnce(() =>
+        subject.pipe(map((packet) => ({ state: LoadingState.Done, series: packet.data, timeRange: {} as any })))
+      );
+      queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }], $timeRange: new SceneTimeRange() });
+      queryRunner.activate();
+      await tick();
+    });
+
+    it('should preserve series reference when same frame objects are emitted again', async () => {
+      const frame = toDataFrame({ refId: 'A', datapoints: [[100, 1]] });
+
+      subject.next({ data: [frame] });
+      await tick();
+      const firstSeries = queryRunner.state.data?.series;
+
+      subject.next({ data: [frame] });
+      await tick();
+
+      expect(queryRunner.state.data?.series).toBe(firstSeries);
+    });
+
+    it('should emit new series reference when frame objects change', async () => {
+      subject.next({ data: [toDataFrame({ refId: 'A', datapoints: [[100, 1]] })] });
+      await tick();
+      const firstSeries = queryRunner.state.data?.series;
+
+      subject.next({ data: [toDataFrame({ refId: 'A', datapoints: [[999, 1]] })] });
+      await tick();
+
+      expect(queryRunner.state.data?.series).not.toBe(firstSeries);
+    });
   });
 });
 

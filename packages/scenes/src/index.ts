@@ -12,6 +12,7 @@ import {
   escapeLabelValueInRegexSelector,
   escapeURLDelimiters,
   renderPrometheusLabelFilters,
+  getVariableControlId,
 } from './variables/utils';
 import {
   isAdHocVariable,
@@ -28,6 +29,7 @@ import {
 export * from './core/types';
 export * from './core/events';
 export { sceneGraph } from './core/sceneGraph';
+export { getClosest } from './core/sceneGraph/utils';
 export * as behaviors from './behaviors';
 export * as performanceUtils from './performance';
 export { writePerformanceLog } from './utils/writePerformanceLog';
@@ -79,7 +81,13 @@ export {
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
 export { ExperimentalIntervalVariable } from './variables/variants/ExperimentalIntervalVariable';
-export { AdHocFiltersVariable } from './variables/adhoc/AdHocFiltersVariable';
+export {
+  AdHocFiltersVariable,
+  OPERATORS,
+  GROUP_BY_OPERATOR,
+  isGroupByFilter,
+  type OperatorDefinition,
+} from './variables/adhoc/AdHocFiltersVariable';
 export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
 export type {
   AdHocFiltersController,
@@ -89,7 +97,7 @@ export { AdHocFiltersVariableController } from './variables/adhoc/controller/AdH
 export { AdHocFiltersComboboxRenderer } from './variables/adhoc/AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
-export { escapeUrlPipeDelimiters } from './variables/utils';
+export { escapeUrlPipeDelimiters, getQueriesForVariables } from './variables/utils';
 
 export { type UrlSyncManagerLike, UrlSyncManager, NewSceneObjectAddedEvent } from './services/UrlSyncManager';
 export { useUrlSync } from './services/useUrlSync';
@@ -113,12 +121,14 @@ export { SceneControlsSpacer } from './components/SceneControlsSpacer';
 export {
   SceneFlexLayout,
   SceneFlexItem,
+  type SceneFlexItemPlacement,
   type SceneFlexItemState,
   type SceneFlexItemLike,
 } from './components/layout/SceneFlexLayout';
 export { SceneCSSGridLayout, SceneCSSGridItem } from './components/layout/CSSGrid/SceneCSSGridLayout';
 export { SceneGridLayout } from './components/layout/grid/SceneGridLayout';
 export { SceneGridLayoutDragStartEvent } from './components/layout/grid/types';
+export { GRID_CELL_HEIGHT, GRID_COLUMN_COUNT } from './components/layout/grid/constants';
 export { SceneGridItem } from './components/layout/grid/SceneGridItem';
 export { SceneGridRow } from './components/layout/grid/SceneGridRow';
 export { type SceneGridItemStateLike, type SceneGridItemLike } from './components/layout/grid/types';
@@ -163,6 +173,7 @@ export const sceneUtils = {
   escapeLabelValueInRegexSelector,
   escapeLabelValueInExactSelector,
   escapeURLDelimiters,
+  getVariableControlId,
 
   // Variable guards
   isAdHocVariable,

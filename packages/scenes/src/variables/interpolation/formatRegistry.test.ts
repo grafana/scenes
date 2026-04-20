@@ -5,6 +5,16 @@ import { TestVariable } from '../variants/TestVariable';
 import { formatRegistry } from './formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 
+jest.mock('@grafana/runtime', () => ({
+  ...jest.requireActual('@grafana/runtime'),
+  getTemplateSrv: () => ({
+    getAdhocFilters: jest.fn().mockReturnValue([]),
+  }),
+  getDataSourceSrv: () => ({
+    getInstanceSettings: jest.fn(),
+  }),
+}));
+
 function formatValue<T extends VariableValue>(
   formatId: VariableFormatID,
   value: T,
@@ -126,10 +136,42 @@ describe('formatRegistry', () => {
     );
   });
 
+  describe('text format', () => {
+    it("should use variable's getValueText with fieldPath", () => {
+      const variable = new TestVariable({
+        name: 'user',
+        value: '10',
+        text: 'Clementina DuBuque',
+        options: [{ label: 'Clementina DuBuque', value: '10', properties: { username: 'alice' } }],
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+
+      const getValueText = jest
+        .spyOn(variable, 'getValueText')
+        .mockImplementation((fieldPath?: string) => (fieldPath === 'username' ? 'alice' : 'Clementina DuBuque'));
+
+      const { formatter } = formatRegistry.get(VariableFormatID.Text);
+
+      const result = formatter('10', [], variable, 'username');
+      expect(getValueText).toHaveBeenCalledWith('username');
+      expect(result).toBe('alice');
+    });
+  });
+
   describe('queryparam', () => {
     it('should url encode value', () => {
       const result = formatValue(VariableFormatID.QueryParam, 'helloAZ%=');
       expect(result).toBe('var-server=helloAZ%25%3D');
+    });
+
+    it('should use fieldPath when provided', () => {
+      const variable = new AdHocFiltersVariable({});
+
+      const result = formatRegistry
+        .get(VariableFormatID.QueryParam)
+        .formatter(['key1=val1', 'key5=val5'], [], variable, 'originFilters');
+      expect(result).toBe('var-Filters=key1%3Dval1&var-Filters=key5%3Dval5');
     });
 
     it('should use variable url sync handler', () => {
