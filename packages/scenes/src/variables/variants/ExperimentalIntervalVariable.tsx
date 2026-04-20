@@ -16,6 +16,7 @@ import {
   ValidateAndUpdateResult,
   VariableValue,
 } from '../types';
+import { getVariableControlId } from '../utils';
 
 export interface IntervalVariableState extends SceneVariableState {
   intervals: string[];
@@ -134,7 +135,7 @@ export class ExperimentalIntervalVariable
 
     return (
       <Combobox
-        id={key}
+        id={getVariableControlId(model.state.type, key)}
         placeholder={t('grafana-scenes.variables.interval-variable.placeholder-select-value', 'Select value')}
         value={value}
         options={model.getOptionsForSelect()}
