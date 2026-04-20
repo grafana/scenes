@@ -90,6 +90,9 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
    * @experimental
    * Controls the layout and design of the label.
+   * @deprecated The `layout` property is deprecated and scheduled for removal before grafana v14.
+   * The `'horizontal'` and `'vertical'` options are no longer supported.
+   * Use `'combobox'` instead or remove this property entirely.
    */
   layout?: AdHocControlsLayout;
   /**
@@ -299,6 +302,7 @@ export class AdHocFiltersVariable
   private _recommendations: AdHocFiltersRecommendations | undefined;
 
   public constructor(state: Partial<AdHocFiltersVariableState>) {
+    const { collapsible, defaultKeys, drilldownRecommendationsEnabled, ...restState } = state;
     const behaviors = state.$behaviors ?? [];
     const recommendations = state.drilldownRecommendationsEnabled ? new AdHocFiltersRecommendations() : undefined;
 
@@ -315,8 +319,12 @@ export class AdHocFiltersVariable
       filterExpression:
         state.filterExpression ??
         renderExpression(state.expressionBuilder, [...(state.originFilters ?? []), ...(state.filters ?? [])]),
-      ...state,
-      $behaviors: behaviors.length > 0 ? behaviors : undefined,
+      ...restState,
+      ...(behaviors.length > 0 && { $behaviors: behaviors }),
+      ...(collapsible !== undefined && { collapsible }),
+      ...(drilldownRecommendationsEnabled !== undefined && { drilldownRecommendationsEnabled }),
+      ...(defaultKeys && { defaultKeys }),
+      layout: state.layout || 'combobox',
     });
 
     this._recommendations = recommendations;
