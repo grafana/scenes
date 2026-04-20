@@ -1,3 +1,23 @@
+# v7.4.0 (Mon Apr 20 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFilterVariable: Default to combobox layout in filters [#1428](https://github.com/grafana/scenes/pull/1428) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneTimePicker: Add time range validation on zoom, backwards and forwards move [#1427](https://github.com/grafana/scenes/pull/1427) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+  - Jest: Upgrade jest to fix issue with logging scene objects [#1426](https://github.com/grafana/scenes/pull/1426) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v7.3.13 (Tue Apr 14 2026)
 
 #### 🐛 Bug Fix
