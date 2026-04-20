@@ -428,6 +428,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._timeSub = undefined;
     this._timeSubRange = undefined;
 
+    // Reset data to its initial state unless it reached a terminal state (Done or Error).
+    // Incomplete data is discarded so reactivation starts with a clean slate.
+    if (this.state.data && ![LoadingState.Done, LoadingState.Error].includes(this.state.data.state)) {
+      this.setState({ data: undefined });
+    }
+
     this._drilldownDependenciesManager.cleanup();
   }
 
