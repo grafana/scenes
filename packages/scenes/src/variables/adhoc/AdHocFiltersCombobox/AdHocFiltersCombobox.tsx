@@ -513,8 +513,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               controller.updateFilter(filter, update);
               if (isAlwaysWip) {
                 handleResetWip();
+                setTimeout(() => refs.domReference.current?.focus());
               } else {
                 handleChangeViewMode?.();
+                focusOnWipInputRef?.();
               }
             } else {
               controller.updateFilter(filter, { key, keyLabel, operator: parsed.operator });
