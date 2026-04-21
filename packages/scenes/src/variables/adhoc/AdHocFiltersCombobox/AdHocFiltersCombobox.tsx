@@ -511,12 +511,25 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                   .split(',')
                   .map((v) => v.trim())
                   .filter(Boolean);
-                update.value = values[0] ?? '';
+
+                if (!values.length) {
+                  controller.updateFilter(filter, { key, keyLabel, operator: parsed.operator });
+                  switchInputType('value', setInputType, undefined, refs.domReference.current);
+                  setInputValue('');
+                  setActiveIndex(null);
+                  return;
+                }
+
+                update.value = values[0];
                 update.values = values;
                 update.valueLabels = values;
               } else {
-                update.value = parsed.value;
-                update.valueLabels = [parsed.value];
+                const customValue = onAddCustomValue?.(
+                  { label: parsed.value, value: parsed.value } as SelectableValue<string>,
+                  filter
+                );
+                update.value = customValue?.value ?? parsed.value;
+                update.valueLabels = customValue?.valueLabels ?? [parsed.value];
                 update.values = undefined;
               }
 
