@@ -479,7 +479,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
-      if (event.key === 'Enter' && allowCustomValue && !isGroupBy && inputValue && filter && ['key', 'operator'].includes(filterInputType)) {
+      if (
+        event.key === 'Enter' &&
+        allowCustomValue &&
+        !isGroupBy &&
+        inputValue &&
+        filter &&
+        (filterInputType === 'key' || filterInputType === 'operator')
+      ) {
         const operators = controller.getOperators().map((o) => o.value!);
         const parsed = parseFilterExpression(inputValue, operators);
 
@@ -500,7 +507,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               };
 
               if (isMultiValueOperator(parsed.operator)) {
-                const values = parsed.value.split(',').map((v) => v.trim()).filter(Boolean);
+                const values = parsed.value
+                  .split(',')
+                  .map((v) => v.trim())
+                  .filter(Boolean);
                 update.value = values[0] ?? '';
                 update.values = values;
                 update.valueLabels = values;
