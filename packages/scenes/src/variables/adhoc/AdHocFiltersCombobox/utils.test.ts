@@ -1,4 +1,9 @@
-import { generatePlaceholder, INPUT_PLACEHOLDER_DEFAULT, GROUP_BY_PLACEHOLDER_DEFAULT } from './utils';
+import {
+  generatePlaceholder,
+  INPUT_PLACEHOLDER_DEFAULT,
+  GROUP_BY_PLACEHOLDER_DEFAULT,
+  parseFilterExpression,
+} from './utils';
 import { AdHocFilterWithLabels } from '../AdHocFiltersVariable';
 
 describe('generatePlaceholder', () => {
@@ -153,5 +158,44 @@ describe('generatePlaceholder', () => {
         expect(result).toBe(GROUP_BY_PLACEHOLDER_DEFAULT);
       });
     });
+  });
+});
+
+describe('parseFilterExpression', () => {
+  const operators = ['=', '!=', '=|', '!=|', '=~', '!~', '<', '<=', '>', '>='];
+
+  it.each<[string, { key: string | undefined; operator: string; value: string }]>([
+    ['instance = tempo', { key: 'instance', operator: '=', value: 'tempo' }],
+    ['instance!=tempo-distributor', { key: 'instance', operator: '!=', value: 'tempo-distributor' }],
+    ['error_rate >= 0.5', { key: 'error_rate', operator: '>=', value: '0.5' }],
+    ['method =~ GET|POST', { key: 'method', operator: '=~', value: 'GET|POST' }],
+    ['region =| us-east', { key: 'region', operator: '=|', value: 'us-east' }],
+    ['region !=| us-east', { key: 'region', operator: '!=|', value: 'us-east' }],
+    ['method !~ DELETE', { key: 'method', operator: '!~', value: 'DELETE' }],
+    ['latency < 100', { key: 'latency', operator: '<', value: '100' }],
+    ['latency <= 100', { key: 'latency', operator: '<=', value: '100' }],
+    ['latency > 100', { key: 'latency', operator: '>', value: '100' }],
+    ['latency >= 100', { key: 'latency', operator: '>=', value: '100' }],
+    ['instance=', { key: 'instance', operator: '=', value: '' }],
+    ['instance = ', { key: 'instance', operator: '=', value: '' }],
+    ['my.label-name = foo', { key: 'my.label-name', operator: '=', value: 'foo' }],
+    ['key!=|val', { key: 'key', operator: '!=|', value: 'val' }],
+    ['  instance = tempo  ', { key: 'instance', operator: '=', value: 'tempo' }],
+    ['= tempo', { key: undefined, operator: '=', value: 'tempo' }],
+    ['!=tempo', { key: undefined, operator: '!=', value: 'tempo' }],
+    ['=~ GET|POST', { key: undefined, operator: '=~', value: 'GET|POST' }],
+    ['!=| us-east', { key: undefined, operator: '!=|', value: 'us-east' }],
+    ['>= 0.5', { key: undefined, operator: '>=', value: '0.5' }],
+    ['=', { key: undefined, operator: '=', value: '' }],
+    ['!= ', { key: undefined, operator: '!=', value: '' }],
+    ['key = value=with=equals', { key: 'key', operator: '=', value: 'value=with=equals' }],
+    ['region =| us-east, us-west, eu-north', { key: 'region', operator: '=|', value: 'us-east, us-west, eu-north' }],
+    ['region !=| us-east,us-west', { key: 'region', operator: '!=|', value: 'us-east,us-west' }],
+  ])('should parse "%s"', (input, expected) => {
+    expect(parseFilterExpression(input, operators)).toEqual(expected);
+  });
+
+  it.each<string>(['just-a-key', 'plain text', '', '   '])('should return null for "%s"', (input) => {
+    expect(parseFilterExpression(input, operators)).toBeNull();
   });
 });

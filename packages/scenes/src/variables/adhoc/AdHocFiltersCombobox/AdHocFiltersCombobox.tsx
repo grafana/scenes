@@ -29,6 +29,7 @@ import {
   flattenOptionGroups,
   generateFilterUpdatePayload,
   generatePlaceholder,
+  parseFilterExpression,
   populateInputValueOnInputTypeSwitch,
   setupDropdownAccessibility,
   switchInputType,
@@ -478,6 +479,55 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
+      if (event.key === 'Enter' && allowCustomValue && !isGroupBy && inputValue && filter && ['key', 'operator'].includes(filterInputType)) {
+        const operators = controller.getOperators().map((o) => o.value!);
+        const parsed = parseFilterExpression(inputValue, operators);
+
+        if (parsed) {
+          const key = filterInputType === 'operator' ? filter.key : parsed.key;
+          const keyLabel = filterInputType === 'operator' ? filter.keyLabel ?? filter.key : parsed.key;
+
+          if (key) {
+            event.preventDefault();
+
+            if (parsed.value) {
+              controller.startProfile?.(FILTER_CHANGED_INTERACTION);
+
+              const update: Partial<AdHocFilterWithLabels> = {
+                key,
+                keyLabel,
+                operator: parsed.operator,
+              };
+
+              if (isMultiValueOperator(parsed.operator)) {
+                const values = parsed.value.split(',').map((v) => v.trim()).filter(Boolean);
+                update.value = values[0] ?? '';
+                update.values = values;
+                update.valueLabels = values;
+              } else {
+                update.value = parsed.value;
+                update.valueLabels = [parsed.value];
+                update.values = undefined;
+              }
+
+              controller.updateFilter(filter, update);
+              if (isAlwaysWip) {
+                handleResetWip();
+              } else {
+                handleChangeViewMode?.();
+              }
+            } else {
+              controller.updateFilter(filter, { key, keyLabel, operator: parsed.operator });
+              switchInputType('value', setInputType, undefined, refs.domReference.current);
+              setInputValue('');
+            }
+
+            setActiveIndex(null);
+            return;
+          }
+        }
+      }
+
       if (event.key === 'Enter' && activeIndex != null) {
         // safeguard for non existing items
         // note: custom item is added to filteredDropDownItems if allowed
@@ -545,11 +595,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     },
     [
       activeIndex,
+      allowCustomValue,
       filteredDropDownItems,
       handleLocalMultiValueChange,
       controller,
       filter,
       filterInputType,
+      inputValue,
       populateInputOnEdit,
       handleChangeViewMode,
       refs.domReference,
@@ -559,6 +611,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       isGroupBy,
       isAlwaysWip,
       handleResetWip,
+      setInputType,
     ]
   );
 
