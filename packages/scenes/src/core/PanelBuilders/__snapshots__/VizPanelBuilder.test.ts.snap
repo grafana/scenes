@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`VizPanelBuilder options and field config standard panels defaults provides barchart defaults 1`] = `
 {

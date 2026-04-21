@@ -69,7 +69,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('renders filters', async () => {
-    setup();
+    setup({ layout: 'horizontal' });
     expect(screen.getByText('key1')).toBeInTheDocument();
     expect(screen.getByText('val1')).toBeInTheDocument();
     expect(screen.getByText('key2')).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('adds filter', async () => {
-    const { filtersVar } = setup();
+    const { filtersVar } = setup({ layout: 'horizontal' });
 
     // Select key
     await userEvent.click(screen.getByTestId('AdHocFilter-add'));
@@ -92,7 +92,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('removes filter', async () => {
-    const { filtersVar } = setup();
+    const { filtersVar } = setup({ layout: 'horizontal' });
 
     await userEvent.click(screen.getByTestId('AdHocFilter-remove-key1'));
 
@@ -100,7 +100,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('changes filter', async () => {
-    const { filtersVar, runRequest } = setup();
+    const { filtersVar, runRequest } = setup({ layout: 'horizontal' });
 
     await new Promise((r) => setTimeout(r, 1));
 
@@ -118,7 +118,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('clears the value of a filter if the key is changed', async () => {
-    const { filtersVar } = setup();
+    const { filtersVar } = setup({ layout: 'horizontal' });
 
     const wrapper = screen.getByTestId('AdHocFilter-key1');
     const selects = getAllByRole(wrapper, 'combobox');
@@ -129,7 +129,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('can set a custom value', async () => {
-    const { filtersVar, runRequest } = setup();
+    const { filtersVar, runRequest } = setup({ layout: 'horizontal' });
 
     await new Promise((r) => setTimeout(r, 1));
 
@@ -148,6 +148,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('shows key groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setup({
+      layout: 'horizontal',
       getTagKeysProvider: async () => ({
         replace: true,
         values: [
@@ -210,6 +211,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('shows value groups and orders according to first occurrence of a group item', async () => {
     const { runRequest } = setup({
+      layout: 'horizontal',
       getTagValuesProvider: async () => ({
         replace: true,
         values: [
@@ -272,6 +274,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('Exact match operators show custom value last', async () => {
     const { filtersVar, runRequest } = setup({
+      layout: 'horizontal',
       filters: [
         { key: 'key1', operator: '=', value: 'val1' },
         { key: 'key2', operator: '=', value: 'val2' },
@@ -339,6 +342,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('Regex operators show custom value first', async () => {
     const { filtersVar, runRequest } = setup({
+      layout: 'horizontal',
       filters: [
         { key: 'key1', operator: '=~', value: 'val1' },
         { key: 'key2', operator: '=~', value: 'val2' },
@@ -405,7 +409,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('can set the same custom value again', async () => {
-    const { filtersVar, runRequest } = setup();
+    const { filtersVar, runRequest } = setup({ layout: 'horizontal' });
 
     await new Promise((r) => setTimeout(r, 1));
 
@@ -439,6 +443,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     const delayingPromise = new Promise<string>((resolve) => (resolveCallback = resolve));
 
     const { filtersVar, runRequest } = setup({
+      layout: 'horizontal',
       getTagValuesProvider: async () => {
         await delayingPromise;
         return {
@@ -472,7 +477,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   describe('By default, Without altering `useQueriesAsFilterForOptions`', () => {
     it('Should not collect and pass respective data source queries to getTagKeys call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ filters: [] });
+      const { getTagKeysSpy, timeRange } = setup({ layout: 'horizontal', filters: [] });
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
@@ -487,7 +492,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should not collect and pass respective data source queries to getTagValues call', async () => {
-      const { getTagValuesSpy, timeRange } = setup({ filters: [] });
+      const { getTagValuesSpy, timeRange } = setup({ layout: 'horizontal', filters: [] });
 
       // Select key
       const key = 'Key 3';
@@ -496,8 +501,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await waitFor(() => select(selects[0], key, { container: document.body }));
       await userEvent.click(selects[2]);
 
-      expect(getTagValuesSpy).toBeCalledTimes(1);
-      expect(getTagValuesSpy).toBeCalledWith({
+      expect(getTagValuesSpy).toHaveBeenCalledTimes(1);
+      expect(getTagValuesSpy).toHaveBeenCalledWith({
         filters: [],
         key: 'key3',
         queries: undefined,
@@ -508,14 +513,18 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   describe('When `useQueriesAsFilterForOptions` is set to `true`', () => {
     it('Should collect and pass respective data source queries to getTagKeys call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
+      const { getTagKeysSpy, timeRange } = setup({
+        layout: 'horizontal',
+        filters: [],
+        useQueriesAsFilterForOptions: true,
+      });
 
       // Select key
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       const keyCombobox = getKeyComboboxElement();
       await userEvent.click(keyCombobox);
-      expect(getTagKeysSpy).toBeCalledTimes(1);
-      expect(getTagKeysSpy).toBeCalledWith({
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+      expect(getTagKeysSpy).toHaveBeenCalledWith({
         filters: [],
         queries: [
           {
@@ -528,9 +537,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should apply the filters request enricher to getTagKeys call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true }, () => ({
-        key: 'overwrittenKey',
-      }));
+      const { getTagKeysSpy, timeRange } = setup(
+        { layout: 'horizontal', filters: [], useQueriesAsFilterForOptions: true },
+        () => ({
+          key: 'overwrittenKey',
+        })
+      );
 
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
       const keyCombobox = getKeyComboboxElement();
@@ -549,7 +561,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should collect and pass respective data source queries to getTagValues call', async () => {
-      const { getTagValuesSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true });
+      const { getTagValuesSpy, timeRange } = setup({
+        layout: 'horizontal',
+        filters: [],
+        useQueriesAsFilterForOptions: true,
+      });
 
       // Select key
       const key = 'Key 3';
@@ -558,8 +574,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await waitFor(() => select(selects[0], key, { container: document.body }));
       await userEvent.click(selects[2]);
 
-      expect(getTagValuesSpy).toBeCalledTimes(1);
-      expect(getTagValuesSpy).toBeCalledWith({
+      expect(getTagValuesSpy).toHaveBeenCalledTimes(1);
+      expect(getTagValuesSpy).toHaveBeenCalledWith({
         filters: [],
         key: 'key3',
         queries: [
@@ -573,9 +589,12 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('Should apply the filters request enricher to getTagValues call', async () => {
-      const { getTagKeysSpy, timeRange } = setup({ filters: [], useQueriesAsFilterForOptions: true }, () => ({
-        key: 'overwrittenKey',
-      }));
+      const { getTagKeysSpy, timeRange } = setup(
+        { layout: 'horizontal', filters: [], useQueriesAsFilterForOptions: true },
+        () => ({
+          key: 'overwrittenKey',
+        })
+      );
 
       const key = 'Key 3';
       await userEvent.click(screen.getByTestId('AdHocFilter-add'));
@@ -651,7 +670,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('reflects emtpy state in url', async () => {
-    const { filtersVar } = setup();
+    const { filtersVar } = setup({ layout: 'horizontal' });
 
     await userEvent.click(screen.getByTestId('AdHocFilter-remove-key1'));
     await userEvent.click(screen.getByTestId('AdHocFilter-remove-key2'));
@@ -1946,6 +1965,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('Can encode a custom value', async () => {
     const { filtersVar, runRequest } = setup({
+      layout: 'horizontal',
       allowCustomValue: true,
       filters: [
         {
@@ -2037,6 +2057,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('Selecting a key correctly shows the label', async () => {
     const { filtersVar } = setup({
+      layout: 'horizontal',
       defaultKeys: [
         {
           text: 'some',
@@ -2061,6 +2082,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   it('Selecting a default key correctly shows the label', async () => {
     const { filtersVar } = setup({
+      layout: 'horizontal',
       defaultKeys: [
         {
           text: 'some',
@@ -2102,8 +2124,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     await filtersVar._getKeys(null);
 
-    expect(getTagKeysSpy).toBeCalledTimes(1);
-    expect(getTagKeysSpy).toBeCalledWith(
+    expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    expect(getTagKeysSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         filters: [expect.objectContaining({ key: 'key2', operator: '=', value: 'val2' })],
         timeRange: timeRange.state.value,
@@ -2119,8 +2141,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     await filtersVar._getKeys(null);
 
-    expect(getTagKeysSpy).toBeCalledTimes(1);
-    expect(getTagKeysSpy).toBeCalledWith(
+    expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    expect(getTagKeysSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         filters: [],
         timeRange: timeRange.state.value,
@@ -2935,7 +2957,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
 
     it('does not display hidden filters', async () => {
-      const { filtersVar } = setup();
+      const { filtersVar } = setup({ layout: 'horizontal' });
 
       act(() => {
         filtersVar.setState({
@@ -3159,7 +3181,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
   describe('operators', () => {
     it('shows the regex operators when allowCustomValue is undefined', async () => {
-      setup();
+      setup({ layout: 'horizontal' });
 
       const middleKeySelect = screen.getAllByRole('combobox')[1];
       await userEvent.click(middleKeySelect);
@@ -3182,6 +3204,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     it('shows the regex operators when allowCustomValue is set true', async () => {
       setup({
+        layout: 'horizontal',
         allowCustomValue: true,
       });
 
@@ -3206,6 +3229,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     it('does not show the regex operators when allowCustomValue is set false', async () => {
       setup({
+        layout: 'horizontal',
         allowCustomValue: false,
       });
 

@@ -301,7 +301,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
 
           await lastValueFrom(variable.validateAndUpdate());
 
-          expect(runRequestMock).toBeCalledTimes(1);
+          expect(runRequestMock).toHaveBeenCalledTimes(1);
           const call1 = runRequestMock.mock.calls[0];
 
           // Uses default time range
@@ -318,7 +318,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
 
           await Promise.resolve();
 
-          expect(runRequestMock).toBeCalledTimes(1);
+          expect(runRequestMock).toHaveBeenCalledTimes(1);
         });
       });
     });
@@ -338,7 +338,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
 
         await lastValueFrom(variable.validateAndUpdate());
 
-        expect(runRequestMock).toBeCalledTimes(1);
+        expect(runRequestMock).toHaveBeenCalledTimes(1);
       });
     });
 
