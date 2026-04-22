@@ -1,3 +1,15 @@
+# v7.4.1 (Wed Apr 22 2026)
+
+#### 🐛 Bug Fix
+
+- SceneQueryRunner: Clear incomplete data on deactivation to prevent stuck panels [#1430](https://github.com/grafana/scenes/pull/1430) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.4.0 (Mon Apr 20 2026)
 
 #### 🚀 Enhancement
