@@ -108,6 +108,16 @@ export const NoOptionsPlaceholder = () => {
   );
 };
 
+export const ExpressionHintPlaceholder = () => {
+  return (
+    <DropdownItem onClick={(e) => e.stopPropagation()}>
+      <Trans i18nKey="grafana-scenes.variables.expression-hint-placeholder.press-enter-to-apply">
+        Press Enter to apply
+      </Trans>
+    </DropdownItem>
+  );
+};
+
 export const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: () => void }) => {
   return (
     <DropdownItem onClick={handleFetchOptions}>

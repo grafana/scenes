@@ -19,6 +19,7 @@ import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DropdownItem,
+  ExpressionHintPlaceholder,
   LoadingOptionsPlaceholder,
   MultiValueApplyButton,
   NoOptionsPlaceholder,
@@ -110,6 +111,20 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const filterInputTypeRef = useRef<AdHocInputType>(initialInputType);
 
   const optionsSearcher = useMemo(() => getAdhocOptionSearcher(options), [options]);
+
+  const expressionInputEnabled = allowCustomValue && !isGroupBy && filterInputType !== 'value';
+
+  const parsedExpression = useMemo(() => {
+    if (!inputValue || !expressionInputEnabled) {
+      return null;
+    }
+    return parseFilterExpression(
+      inputValue,
+      controller.getOperators().map((o) => o.value!)
+    );
+  }, [inputValue, expressionInputEnabled, controller]);
+
+  const isExpressionInput = parsedExpression !== null;
 
   const isLastFilter = useMemo(() => {
     if (isAlwaysWip) {
@@ -250,8 +265,16 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setInputValue(value);
+
+    const nextIsExpressionInput =
+      !!value &&
+      expressionInputEnabled &&
+      parseFilterExpression(value, controller.getOperators().map((o) => o.value!)) !== null;
     const nextFilteredItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(value)));
-    if (!nextFilteredItems.length && allowCustomValue) {
+
+    if (nextIsExpressionInput) {
+      setActiveIndex(null);
+    } else if (!nextFilteredItems.length && allowCustomValue) {
       setActiveIndex(0);
     } else {
       setActiveIndex(getFirstSelectableIndex(nextFilteredItems));
@@ -281,7 +304,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }, []);
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
-  if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
+  if (allowCustomValue && filterInputType !== 'operator' && inputValue && !isExpressionInput) {
     const operatorDefinition = OPERATORS.find((op) => filter?.operator === op.value);
     const customOptionValue: SelectableValue<string> = {
       value: inputValue.trim(),
@@ -479,77 +502,65 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
-      if (
-        event.key === 'Enter' &&
-        allowCustomValue &&
-        !isGroupBy &&
-        inputValue &&
-        filter &&
-        (filterInputType === 'key' || filterInputType === 'operator')
-      ) {
-        const operators = controller.getOperators().map((o) => o.value!);
-        const parsed = parseFilterExpression(inputValue, operators);
+      if (event.key === 'Enter' && isExpressionInput && parsedExpression && filter) {
+        const key = filterInputType === 'operator' ? filter.key : parsedExpression.key;
+        const keyLabel = filterInputType === 'operator' ? filter.keyLabel ?? filter.key : parsedExpression.key;
 
-        if (parsed) {
-          const key = filterInputType === 'operator' ? filter.key : parsed.key;
-          const keyLabel = filterInputType === 'operator' ? filter.keyLabel ?? filter.key : parsed.key;
+        if (key) {
+          event.preventDefault();
 
-          if (key) {
-            event.preventDefault();
+          if (parsedExpression.value) {
+            controller.startProfile?.(FILTER_CHANGED_INTERACTION);
 
-            if (parsed.value) {
-              controller.startProfile?.(FILTER_CHANGED_INTERACTION);
+            const update: Partial<AdHocFilterWithLabels> = {
+              key,
+              keyLabel,
+              operator: parsedExpression.operator,
+            };
 
-              const update: Partial<AdHocFilterWithLabels> = {
-                key,
-                keyLabel,
-                operator: parsed.operator,
-              };
+            if (isMultiValueOperator(parsedExpression.operator)) {
+              const values = parsedExpression.value
+                .split(',')
+                .map((v) => v.trim())
+                .filter(Boolean);
 
-              if (isMultiValueOperator(parsed.operator)) {
-                const values = parsed.value
-                  .split(',')
-                  .map((v) => v.trim())
-                  .filter(Boolean);
-
-                if (!values.length) {
-                  controller.updateFilter(filter, { key, keyLabel, operator: parsed.operator });
-                  switchInputType('value', setInputType, undefined, refs.domReference.current);
-                  setInputValue('');
-                  setActiveIndex(null);
-                  return;
-                }
-
-                update.value = values[0];
-                update.values = values;
-                update.valueLabels = values;
-              } else {
-                const customValue = onAddCustomValue?.(
-                  { label: parsed.value, value: parsed.value } as SelectableValue<string>,
-                  filter
-                );
-                update.value = customValue?.value ?? parsed.value;
-                update.valueLabels = customValue?.valueLabels ?? [parsed.value];
-                update.values = undefined;
+              if (!values.length) {
+                controller.updateFilter(filter, { key, keyLabel, operator: parsedExpression.operator });
+                switchInputType('value', setInputType, undefined, refs.domReference.current);
+                setInputValue('');
+                setActiveIndex(null);
+                return;
               }
 
-              controller.updateFilter(filter, update);
-              if (isAlwaysWip) {
-                handleResetWip();
-                setTimeout(() => refs.domReference.current?.focus());
-              } else {
-                handleChangeViewMode?.();
-                focusOnWipInputRef?.();
-              }
+              update.value = values[0];
+              update.values = values;
+              update.valueLabels = values;
             } else {
-              controller.updateFilter(filter, { key, keyLabel, operator: parsed.operator });
-              switchInputType('value', setInputType, undefined, refs.domReference.current);
-              setInputValue('');
+              const customValue = onAddCustomValue?.(
+                { label: parsedExpression.value, value: parsedExpression.value } as SelectableValue<string>,
+                filter
+              );
+              update.value = customValue?.value ?? parsedExpression.value;
+              update.valueLabels = customValue?.valueLabels ?? [parsedExpression.value];
+              update.values = undefined;
             }
 
-            setActiveIndex(null);
-            return;
+            controller.updateFilter(filter, update);
+            if (isAlwaysWip) {
+              handleResetWip();
+              setTimeout(() => refs.domReference.current?.focus());
+            } else {
+              handleChangeViewMode?.();
+              focusOnWipInputRef?.();
+            }
+          } else {
+            controller.updateFilter(filter, { key, keyLabel, operator: parsedExpression.operator });
+            switchInputType('value', setInputType, undefined, refs.domReference.current);
+            setInputValue('');
           }
+
+          setActiveIndex(null);
+          return;
         }
       }
 
@@ -620,13 +631,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     },
     [
       activeIndex,
-      allowCustomValue,
       filteredDropDownItems,
       handleLocalMultiValueChange,
       controller,
       filter,
       filterInputType,
-      inputValue,
+      parsedExpression,
+      isExpressionInput,
       populateInputOnEdit,
       handleChangeViewMode,
       refs.domReference,
@@ -859,6 +870,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                     <LoadingOptionsPlaceholder />
                   ) : optionsError ? (
                     <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(filterInputType)} />
+                  ) : !filteredDropDownItems.length && isExpressionInput ? (
+                    <ExpressionHintPlaceholder />
                   ) : !filteredDropDownItems.length &&
                     (!allowCustomValue || filterInputType === 'operator' || !inputValue) ? (
                     <NoOptionsPlaceholder />
