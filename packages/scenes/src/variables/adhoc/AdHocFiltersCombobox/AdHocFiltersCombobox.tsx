@@ -112,17 +112,16 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const optionsSearcher = useMemo(() => getAdhocOptionSearcher(options), [options]);
 
+  const operatorValues = useMemo(() => controller.getOperators().map((o) => o.value!), [controller]);
+
   const expressionInputEnabled = allowCustomValue && !isGroupBy && filterInputType !== 'value';
 
   const parsedExpression = useMemo(() => {
     if (!inputValue || !expressionInputEnabled) {
       return null;
     }
-    return parseFilterExpression(
-      inputValue,
-      controller.getOperators().map((o) => o.value!)
-    );
-  }, [inputValue, expressionInputEnabled, controller]);
+    return parseFilterExpression(inputValue, operatorValues);
+  }, [inputValue, expressionInputEnabled, operatorValues]);
 
   const isExpressionInput = parsedExpression !== null;
 
@@ -267,9 +266,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     setInputValue(value);
 
     const nextIsExpressionInput =
-      !!value &&
-      expressionInputEnabled &&
-      parseFilterExpression(value, controller.getOperators().map((o) => o.value!)) !== null;
+      !!value && expressionInputEnabled && parseFilterExpression(value, operatorValues) !== null;
     const nextFilteredItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(value)));
 
     if (nextIsExpressionInput) {

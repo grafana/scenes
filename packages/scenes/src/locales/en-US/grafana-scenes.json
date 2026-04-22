@@ -130,6 +130,9 @@
         "tooltip": "Applied by default in this dashboard. If edited, it carries over to other dashboards.",
         "tooltip-restore-groupby-set-by-this-dashboard": "Restore groupby set by this dashboard."
       },
+      "expression-hint-placeholder": {
+        "press-enter-to-apply": "Press Enter to apply"
+      },
       "format-registry": {
         "formats": {
           "description": {
