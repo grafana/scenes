@@ -2930,6 +2930,33 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(queryRunner.state.data?.series).not.toBe(firstSeries);
     });
   });
+
+  describe('when deactivated with incomplete data', () => {
+    it('should clear incomplete data and re-run queries on reactivation', async () => {
+      const tick = () => new Promise((r) => setTimeout(r, 1));
+      const subject = new Subject<DataQueryResponse>();
+      runRequestMock.mockImplementationOnce(() =>
+        subject.pipe(map(() => ({ state: LoadingState.Loading, series: [], timeRange: {} as any })))
+      );
+
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }], $timeRange: new SceneTimeRange() });
+      const deactivate = queryRunner.activate();
+      await tick();
+
+      subject.next({ data: [] });
+      await tick();
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Loading);
+
+      deactivate();
+      expect(queryRunner.state.data).toBeUndefined();
+
+      runRequestMock.mockClear();
+      queryRunner.activate();
+      await tick();
+
+      expect(runRequestMock).toHaveBeenCalledTimes(1);
+    });
+  });
 });
 
 class CustomDataSource extends RuntimeDataSource {
