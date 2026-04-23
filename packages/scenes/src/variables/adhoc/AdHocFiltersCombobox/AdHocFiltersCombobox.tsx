@@ -112,7 +112,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const optionsSearcher = useMemo(() => getAdhocOptionSearcher(options), [options]);
 
-  const { isExpressionInput, parseExpression, buildExpressionUpdate } = useFreeFormExpression({
+  const { canCommitExpression, parsedExpression, parseExpression, commitExpressionUpdate } = useFreeFormExpression({
     controller,
     filter,
     inputValue,
@@ -296,7 +296,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }, []);
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
-  if (allowCustomValue && filterInputType !== 'operator' && inputValue && !isExpressionInput) {
+  if (allowCustomValue && filterInputType !== 'operator' && inputValue && !parsedExpression) {
     const operatorDefinition = OPERATORS.find((op) => filter?.operator === op.value);
     const customOptionValue: SelectableValue<string> = {
       value: inputValue.trim(),
@@ -494,8 +494,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
-      if (event.key === 'Enter' && isExpressionInput && filter) {
-        const parsed = buildExpressionUpdate();
+      if (event.key === 'Enter' && canCommitExpression && filter) {
+        const parsed = commitExpressionUpdate();
 
         if (parsed) {
           event.preventDefault();
@@ -605,8 +605,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       controller,
       filter,
       filterInputType,
-      isExpressionInput,
-      buildExpressionUpdate,
+      canCommitExpression,
+      commitExpressionUpdate,
       populateInputOnEdit,
       handleChangeViewMode,
       refs.domReference,
@@ -839,7 +839,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                     <LoadingOptionsPlaceholder />
                   ) : optionsError ? (
                     <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(filterInputType)} />
-                  ) : !filteredDropDownItems.length && isExpressionInput ? (
+                  ) : !filteredDropDownItems.length && canCommitExpression ? (
                     <ExpressionHintPlaceholder />
                   ) : !filteredDropDownItems.length &&
                     (!allowCustomValue || filterInputType === 'operator' || !inputValue) ? (

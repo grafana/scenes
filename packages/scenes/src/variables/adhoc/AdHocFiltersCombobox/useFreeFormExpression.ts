@@ -22,7 +22,9 @@ export function useFreeFormExpression({
   allowCustomValue,
   isGroupBy,
 }: UseFreeFormExpressionProps) {
-  const operatorValues = useMemo(() => controller.getOperators().map((o) => o.value!), [controller]);
+  const operatorValues = controller.getOperators()
+    .map((o) => o.value)
+    .filter((value): value is string => Boolean(value))
 
   const expressionInputEnabled = allowCustomValue && !isGroupBy && filterInputType !== 'value';
 
@@ -37,9 +39,10 @@ export function useFreeFormExpression({
   );
 
   const parsedExpression = useMemo(() => parseExpression(inputValue), [parseExpression, inputValue]);
-  const isExpressionInput = parsedExpression !== null;
+  const canCommitExpression =
+    parsedExpression !== null && (filterInputType === 'operator' || Boolean(parsedExpression.key));
 
-  const buildExpressionUpdate = useCallback((): Partial<AdHocFilterWithLabels> | null => {
+  const commitExpressionUpdate = useCallback((): Partial<AdHocFilterWithLabels> | null => {
     if (!parsedExpression || !filter) {
       return null;
     }
@@ -79,8 +82,8 @@ export function useFreeFormExpression({
 
   return {
     parsedExpression,
-    isExpressionInput,
     parseExpression,
-    buildExpressionUpdate,
+    canCommitExpression,
+    commitExpressionUpdate,
   };
 }
