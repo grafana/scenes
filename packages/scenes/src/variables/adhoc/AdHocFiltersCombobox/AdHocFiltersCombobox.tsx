@@ -30,7 +30,6 @@ import {
   flattenOptionGroups,
   generateFilterUpdatePayload,
   generatePlaceholder,
-  parseFilterExpression,
   populateInputValueOnInputTypeSwitch,
   setupDropdownAccessibility,
   switchInputType,
@@ -41,6 +40,7 @@ import {
 } from './utils';
 import { handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
+import { useFreeFormExpression } from './useFreeFormExpression';
 import { MultiValuePill } from './MultiValuePill';
 import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
 import {
@@ -112,18 +112,14 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const optionsSearcher = useMemo(() => getAdhocOptionSearcher(options), [options]);
 
-  const operatorValues = useMemo(() => controller.getOperators().map((o) => o.value!), [controller]);
-
-  const expressionInputEnabled = allowCustomValue && !isGroupBy && filterInputType !== 'value';
-
-  const parsedExpression = useMemo(() => {
-    if (!inputValue || !expressionInputEnabled) {
-      return null;
-    }
-    return parseFilterExpression(inputValue, operatorValues);
-  }, [inputValue, expressionInputEnabled, operatorValues]);
-
-  const isExpressionInput = parsedExpression !== null;
+  const { isExpressionInput, parseExpression, buildExpressionUpdate } = useFreeFormExpression({
+    controller,
+    filter,
+    inputValue,
+    filterInputType,
+    allowCustomValue,
+    isGroupBy,
+  });
 
   const isLastFilter = useMemo(() => {
     if (isAlwaysWip) {
@@ -265,8 +261,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     const value = event.target.value;
     setInputValue(value);
 
-    const nextIsExpressionInput =
-      !!value && expressionInputEnabled && parseFilterExpression(value, operatorValues) !== null;
+    const nextIsExpressionInput = parseExpression(value) !== null;
     const nextFilteredItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(value)));
 
     if (nextIsExpressionInput) {
@@ -499,50 +494,28 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
-      if (event.key === 'Enter' && isExpressionInput && parsedExpression && filter) {
-        const key = filterInputType === 'operator' ? filter.key : parsedExpression.key;
-        const keyLabel = filterInputType === 'operator' ? filter.keyLabel ?? filter.key : parsedExpression.key;
+      if (event.key === 'Enter' && isExpressionInput && filter) {
+        const parsed = buildExpressionUpdate();
 
-        if (key) {
+        if (parsed) {
           event.preventDefault();
 
-          if (parsedExpression.value) {
+          if (parsed.value) {
             controller.startProfile?.(FILTER_CHANGED_INTERACTION);
 
-            const update: Partial<AdHocFilterWithLabels> = {
-              key,
-              keyLabel,
-              operator: parsedExpression.operator,
-            };
-
-            if (isMultiValueOperator(parsedExpression.operator)) {
-              const values = parsedExpression.value
-                .split(',')
-                .map((v) => v.trim())
-                .filter(Boolean);
-
-              if (!values.length) {
-                controller.updateFilter(filter, { key, keyLabel, operator: parsedExpression.operator });
-                switchInputType('value', setInputType, undefined, refs.domReference.current);
-                setInputValue('');
-                setActiveIndex(null);
-                return;
-              }
-
-              update.value = values[0];
-              update.values = values;
-              update.valueLabels = values;
-            } else {
-              const customValue = onAddCustomValue?.(
-                { label: parsedExpression.value, value: parsedExpression.value } as SelectableValue<string>,
+            if (parsed.operator && !isMultiValueOperator(parsed.operator)) {
+              const custom = onAddCustomValue?.(
+                { label: parsed.value, value: parsed.value } as SelectableValue<string>,
                 filter
               );
-              update.value = customValue?.value ?? parsedExpression.value;
-              update.valueLabels = customValue?.valueLabels ?? [parsedExpression.value];
-              update.values = undefined;
+              parsed.value = custom?.value ?? parsed.value;
+              parsed.valueLabels = custom?.valueLabels ?? parsed.valueLabels;
             }
+          }
 
-            controller.updateFilter(filter, update);
+          controller.updateFilter(filter, parsed);
+
+          if (parsed.value) {
             if (isAlwaysWip) {
               handleResetWip();
               setTimeout(() => refs.domReference.current?.focus());
@@ -551,7 +524,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               focusOnWipInputRef?.();
             }
           } else {
-            controller.updateFilter(filter, { key, keyLabel, operator: parsedExpression.operator });
             switchInputType('value', setInputType, undefined, refs.domReference.current);
             setInputValue('');
           }
@@ -633,8 +605,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       controller,
       filter,
       filterInputType,
-      parsedExpression,
       isExpressionInput,
+      buildExpressionUpdate,
       populateInputOnEdit,
       handleChangeViewMode,
       refs.domReference,
