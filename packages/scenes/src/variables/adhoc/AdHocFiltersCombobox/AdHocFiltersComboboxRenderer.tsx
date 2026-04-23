@@ -20,8 +20,17 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, collapsible, valueRecommendations, enableGroupBy, groupByRestorable } =
-    controller.useState();
+  const {
+    originFilters,
+    filters,
+    readOnly,
+    collapsible,
+    valueRecommendations,
+    enableGroupBy,
+    hideLabel,
+    variableLabel,
+    groupByRestorable,
+  } = controller.useState();
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
@@ -93,12 +102,20 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
     >
       {!readOnly && valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
 
+      {enableGroupBy && hideLabel && (
+        <span id={`${variableControlId}-label`} className={styles.filtersLabel}>
+          {variableLabel
+            ? `${variableLabel}:`
+            : t('grafana-scenes.variables.adhoc-filters-combobox-renderer.filters-label', 'Filters:')}
+        </span>
+      )}
+
       {adhocFiltersToRender.length > 0 && (
         // if there are filters already selected, this makes sure
         // that the input is announced before focussing on the pills
         <span
           tabIndex={0}
-          aria-labelledby={variableControlId}
+          aria-labelledby={hideLabel ? `${variableControlId}-label` : variableControlId}
           className={styles.screenReaderOnlyLabel}
           data-testid="AdHocFilter-label-announcer"
         />
@@ -317,6 +334,12 @@ const getStyles = (theme: GrafanaTheme2) => ({
     alignSelf: 'stretch',
     backgroundColor: theme.colors.border.weak,
     flexShrink: 0,
+  }),
+  filtersLabel: css({
+    ...theme.typography.bodySmall,
+    fontWeight: theme.typography.fontWeightBold,
+    color: theme.colors.text.primary,
+    whiteSpace: 'nowrap',
   }),
   groupByLabel: css({
     ...theme.typography.bodySmall,
