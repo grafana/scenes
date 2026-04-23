@@ -527,7 +527,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             handleResetWip();
             setTimeout(() => refs.domReference.current?.focus());
           } else {
-            handleChangeViewMode?.();
+            handleChangeViewMode?.(undefined, false);
             focusOnWipInputRef?.();
           }
 
