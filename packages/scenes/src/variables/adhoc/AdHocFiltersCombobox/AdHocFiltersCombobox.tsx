@@ -19,6 +19,7 @@ import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DropdownItem,
+  ExpressionHintPlaceholder,
   LoadingOptionsPlaceholder,
   MultiValueApplyButton,
   NoOptionsPlaceholder,
@@ -39,6 +40,7 @@ import {
 } from './utils';
 import { handleOptionGroups } from '../../utils';
 import { useFloatingInteractions, MAX_MENU_HEIGHT } from './useFloatingInteractions';
+import { useFreeFormExpression } from './useFreeFormExpression';
 import { MultiValuePill } from './MultiValuePill';
 import { getAdhocOptionSearcher } from '../getAdhocOptionSearcher';
 import {
@@ -109,6 +111,16 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const filterInputTypeRef = useRef<AdHocInputType>(initialInputType);
 
   const optionsSearcher = useMemo(() => getAdhocOptionSearcher(options), [options]);
+
+  const { canCommitExpressionUpdate, parseExpression, commitExpressionUpdate } = useFreeFormExpression({
+    controller,
+    filter,
+    inputValue,
+    filterInputType,
+    allowCustomValue,
+    isGroupBy,
+    populateInputOnEdit,
+  });
 
   const isLastFilter = useMemo(() => {
     if (isAlwaysWip) {
@@ -249,8 +261,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value;
     setInputValue(value);
+
+    const nextIsExpressionInput = parseExpression(value) !== null;
     const nextFilteredItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(value)));
-    if (!nextFilteredItems.length && allowCustomValue) {
+
+    if (nextIsExpressionInput) {
+      setActiveIndex(null);
+    } else if (!nextFilteredItems.length && allowCustomValue) {
       setActiveIndex(0);
     } else {
       setActiveIndex(getFirstSelectableIndex(nextFilteredItems));
@@ -280,7 +297,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }, []);
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
-  if (allowCustomValue && filterInputType !== 'operator' && inputValue) {
+  if (allowCustomValue && filterInputType !== 'operator' && inputValue && !canCommitExpressionUpdate) {
     const operatorDefinition = OPERATORS.find((op) => filter?.operator === op.value);
     const customOptionValue: SelectableValue<string> = {
       value: inputValue.trim(),
@@ -478,6 +495,48 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
+      if (event.key === 'Enter' && canCommitExpressionUpdate && filter) {
+        const parsed = commitExpressionUpdate();
+
+        if (parsed) {
+          event.preventDefault();
+
+          if (!parsed.value) {
+            controller.updateFilter(filter, parsed);
+            switchInputType('value', setInputType, undefined, refs.domReference.current);
+            setInputValue('');
+            setActiveIndex(null);
+            return;
+          }
+
+          controller.startProfile?.(FILTER_CHANGED_INTERACTION);
+
+          const isMultiValueCommit = Boolean(parsed.operator && isMultiValueOperator(parsed.operator));
+          if (!isMultiValueCommit && onAddCustomValue) {
+            const custom = onAddCustomValue({ label: parsed.value, value: parsed.value, isCustom: true }, filter);
+            parsed.value = custom.value;
+            parsed.valueLabels = custom.valueLabels;
+          }
+
+          controller.updateFilter(filter, parsed);
+
+          if (isAlwaysWip) {
+            handleResetWip();
+            setTimeout(() => refs.domReference.current?.focus());
+          } else {
+            handleChangeViewMode?.(undefined, false);
+            focusOnWipInputRef?.();
+          }
+
+          if (isMultiValueCommit) {
+            setOpen(false);
+          }
+
+          setActiveIndex(null);
+          return;
+        }
+      }
+
       if (event.key === 'Enter' && activeIndex != null) {
         // safeguard for non existing items
         // note: custom item is added to filteredDropDownItems if allowed
@@ -550,6 +609,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       controller,
       filter,
       filterInputType,
+      canCommitExpressionUpdate,
+      commitExpressionUpdate,
       populateInputOnEdit,
       handleChangeViewMode,
       refs.domReference,
@@ -559,6 +620,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       isGroupBy,
       isAlwaysWip,
       handleResetWip,
+      setInputType,
     ]
   );
 
@@ -781,6 +843,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                     <LoadingOptionsPlaceholder />
                   ) : optionsError ? (
                     <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(filterInputType)} />
+                  ) : !filteredDropDownItems.length && canCommitExpressionUpdate ? (
+                    <ExpressionHintPlaceholder />
                   ) : !filteredDropDownItems.length &&
                     (!allowCustomValue || filterInputType === 'operator' || !inputValue) ? (
                     <NoOptionsPlaceholder />
