@@ -1,3 +1,16 @@
+# v7.4.2 (Thu Apr 23 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Fix options search to be case-insensitive [#1433](https://github.com/grafana/scenes/pull/1433) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v7.4.1 (Wed Apr 22 2026)
 
 #### 🐛 Bug Fix
