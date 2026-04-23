@@ -112,7 +112,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const optionsSearcher = useMemo(() => getAdhocOptionSearcher(options), [options]);
 
-  const { canCommitExpression, parsedExpression, parseExpression, commitExpressionUpdate } = useFreeFormExpression({
+  const { canCommitExpressionUpdate, parseExpression, commitExpressionUpdate } = useFreeFormExpression({
     controller,
     filter,
     inputValue,
@@ -296,7 +296,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }, []);
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
-  if (allowCustomValue && filterInputType !== 'operator' && inputValue && !parsedExpression) {
+  if (allowCustomValue && filterInputType !== 'operator' && inputValue && !canCommitExpressionUpdate) {
     const operatorDefinition = OPERATORS.find((op) => filter?.operator === op.value);
     const customOptionValue: SelectableValue<string> = {
       value: inputValue.trim(),
@@ -494,7 +494,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
-      if (event.key === 'Enter' && canCommitExpression && filter) {
+      if (event.key === 'Enter' && canCommitExpressionUpdate && filter) {
         const parsed = commitExpressionUpdate();
 
         if (parsed) {
@@ -605,7 +605,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       controller,
       filter,
       filterInputType,
-      canCommitExpression,
+      canCommitExpressionUpdate,
       commitExpressionUpdate,
       populateInputOnEdit,
       handleChangeViewMode,
@@ -839,7 +839,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                     <LoadingOptionsPlaceholder />
                   ) : optionsError ? (
                     <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(filterInputType)} />
-                  ) : !filteredDropDownItems.length && canCommitExpression ? (
+                  ) : !filteredDropDownItems.length && canCommitExpressionUpdate ? (
                     <ExpressionHintPlaceholder />
                   ) : !filteredDropDownItems.length &&
                     (!allowCustomValue || filterInputType === 'operator' || !inputValue) ? (

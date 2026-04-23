@@ -34,14 +34,20 @@ export function useFreeFormExpression({
       if (!input || !expressionInputEnabled) {
         return null;
       }
-      return parseFilterExpression(input, operatorValues);
+      const parsed = parseFilterExpression(input, operatorValues);
+      if (!parsed) {
+        return null;
+      }
+      if (filterInputType !== 'operator' && !parsed.key) {
+        return null;
+      }
+      return parsed;
     },
-    [expressionInputEnabled, operatorValues]
+    [expressionInputEnabled, operatorValues, filterInputType]
   );
 
   const parsedExpression = useMemo(() => parseExpression(inputValue), [parseExpression, inputValue]);
-  const canCommitExpression =
-    parsedExpression !== null && (filterInputType === 'operator' || Boolean(parsedExpression.key));
+  const canCommitExpressionUpdate = parsedExpression !== null;
 
   const commitExpressionUpdate = useCallback((): Partial<AdHocFilterWithLabels> | null => {
     if (!parsedExpression || !filter) {
@@ -82,9 +88,8 @@ export function useFreeFormExpression({
   }, [filter, filterInputType, parsedExpression]);
 
   return {
-    parsedExpression,
     parseExpression,
-    canCommitExpression,
+    canCommitExpressionUpdate,
     commitExpressionUpdate,
   };
 }

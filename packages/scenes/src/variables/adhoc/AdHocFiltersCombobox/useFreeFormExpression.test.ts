@@ -38,71 +38,88 @@ function renderFreeForm(props: Partial<UseFreeFormExpressionProps> = {}) {
 }
 
 describe('useFreeFormExpression', () => {
-  describe('parseExpression / parsedExpression gating', () => {
-    it.each<[string, Partial<UseFreeFormExpressionProps>]>([
-      ['allowCustomValue is false', { inputValue: 'instance = tempo', allowCustomValue: false }],
-      ['isGroupBy is true', { inputValue: 'instance = tempo', isGroupBy: true }],
-      ['filterInputType is "value"', { inputValue: 'instance = tempo', filterInputType: 'value' }],
-      ['input is empty', { inputValue: '' }],
-      ['input is whitespace only', { inputValue: '   ' }],
-      ['input has no recognised operator', { inputValue: 'just a key' }],
-    ])('returns null when %s', (_label, props) => {
-      const { result } = renderFreeForm(props);
-      expect(result.current.parsedExpression).toBeNull();
-      expect(result.current.canCommitExpression).toBe(false);
+  describe('canCommitExpressionUpdate — hook-level gates', () => {
+    it('is false when allowCustomValue is disabled', () => {
+      const { result } = renderFreeForm({ inputValue: 'instance = tempo', allowCustomValue: false });
+      expect(result.current.canCommitExpressionUpdate).toBe(false);
+    });
+
+    it('is false in groupBy mode', () => {
+      const { result } = renderFreeForm({ inputValue: 'instance = tempo', isGroupBy: true });
+      expect(result.current.canCommitExpressionUpdate).toBe(false);
+    });
+
+    it('is false when the input type is "value" (user is picking a value, not typing an expression)', () => {
+      const { result } = renderFreeForm({ inputValue: 'instance = tempo', filterInputType: 'value' });
+      expect(result.current.canCommitExpressionUpdate).toBe(false);
+    });
+
+    it('is false when input is empty', () => {
+      const { result } = renderFreeForm({ inputValue: '' });
+      expect(result.current.canCommitExpressionUpdate).toBe(false);
+    });
+
+    it('is false when input is whitespace only', () => {
+      const { result } = renderFreeForm({ inputValue: '   ' });
+      expect(result.current.canCommitExpressionUpdate).toBe(false);
+    });
+
+    it('is false when the input contains no recognised operator', () => {
+      const { result } = renderFreeForm({ inputValue: 'just a key' });
+      expect(result.current.canCommitExpressionUpdate).toBe(false);
     });
   });
 
-  describe('parseExpression / parsedExpression success', () => {
-    it.each<[string, string, { key: string | undefined; operator: string; value: string }]>([
-      [
-        'full expression (key + operator + value)',
-        'instance = tempo',
-        { key: 'instance', operator: '=', value: 'tempo' },
-      ],
-      ['partial expression (operator + value, no key)', '= tempo', { key: undefined, operator: '=', value: 'tempo' }],
-      ['operator-only input (operator, no value)', 'instance =', { key: 'instance', operator: '=', value: '' }],
-    ])('parses %s', (_label, inputValue, expected) => {
-      const { result } = renderFreeForm({ inputValue });
-      expect(result.current.parsedExpression).toEqual(expected);
+  describe('canCommitExpressionUpdate — mode-aware committability', () => {
+    it('is false in key mode when the expression has no key (e.g. "= tempo")', () => {
+      const { result } = renderFreeForm({ filterInputType: 'key', inputValue: '= tempo' });
+      expect(result.current.canCommitExpressionUpdate).toBe(false);
     });
 
-    it('parseExpression(inputValue) matches the memoised parsedExpression', () => {
+    it('is true in key mode for a full expression', () => {
+      const { result } = renderFreeForm({ filterInputType: 'key', inputValue: 'instance = tempo' });
+      expect(result.current.canCommitExpressionUpdate).toBe(true);
+    });
+
+    it('is true in key mode for operator-only input with a key (e.g. "instance =")', () => {
+      const { result } = renderFreeForm({ filterInputType: 'key', inputValue: 'instance =' });
+      expect(result.current.canCommitExpressionUpdate).toBe(true);
+    });
+
+    it('is true in operator mode for a partial expression (filter.key fills in the missing key)', () => {
+      const { result } = renderFreeForm({
+        filterInputType: 'operator',
+        filter: { key: 'instance', keyLabel: 'Instance', operator: '', value: '' },
+        inputValue: '= tempo',
+      });
+      expect(result.current.canCommitExpressionUpdate).toBe(true);
+    });
+
+    it('parseExpression(input) agrees with canCommitExpressionUpdate for the same input', () => {
       const { result } = renderFreeForm({ inputValue: 'region =| us-east, us-west' });
-      expect(result.current.parseExpression('region =| us-east, us-west')).toEqual(result.current.parsedExpression);
-    });
-  });
-
-  describe('canCommitExpression — mode-aware commitability', () => {
-    it.each<[string, Partial<UseFreeFormExpressionProps>, boolean]>([
-      ['key mode + full expression', { filterInputType: 'key', inputValue: 'instance = tempo' }, true],
-      ['key mode + operator-only input with key', { filterInputType: 'key', inputValue: 'instance =' }, true],
-      ['key mode + partial expression (no key)', { filterInputType: 'key', inputValue: '= tempo' }, false],
-      [
-        'operator mode + partial expression (filter.key fills in)',
-        {
-          filterInputType: 'operator',
-          filter: { key: 'instance', keyLabel: 'Instance', operator: '', value: '' },
-          inputValue: '= tempo',
-        },
-        true,
-      ],
-    ])('%s → canCommitExpression=%s', (_label, props, expected) => {
-      const { result } = renderFreeForm(props);
-      expect(result.current.canCommitExpression).toBe(expected);
+      expect(result.current.parseExpression('region =| us-east, us-west') !== null).toBe(
+        result.current.canCommitExpressionUpdate
+      );
     });
   });
 
   describe('commitExpressionUpdate — guards', () => {
-    it.each<[string, Partial<UseFreeFormExpressionProps>]>([
-      ['filter is undefined', { filter: undefined, inputValue: 'instance = tempo' }],
-      ['there is no parseable expression', { inputValue: 'just a key' }],
-      [
-        'parsing yields no key and we are not in operator input mode',
-        { filterInputType: 'key', filter: { key: '', operator: '', value: '' }, inputValue: '= tempo' },
-      ],
-    ])('returns null when %s', (_label, props) => {
-      const { result } = renderFreeForm(props);
+    it('returns null when filter is undefined', () => {
+      const { result } = renderFreeForm({ filter: undefined, inputValue: 'instance = tempo' });
+      expect(result.current.commitExpressionUpdate()).toBeNull();
+    });
+
+    it('returns null when there is no parseable expression', () => {
+      const { result } = renderFreeForm({ inputValue: 'just a key' });
+      expect(result.current.commitExpressionUpdate()).toBeNull();
+    });
+
+    it('returns null when parsing yields no key and we are not in operator input mode', () => {
+      const { result } = renderFreeForm({
+        filterInputType: 'key',
+        filter: { key: '', operator: '', value: '' },
+        inputValue: '= tempo',
+      });
       expect(result.current.commitExpressionUpdate()).toBeNull();
     });
   });
