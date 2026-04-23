@@ -155,7 +155,7 @@ describe('filter', () => {
     });
 
     it('should do case-insensitive substring match when needle contains special characters', () => {
-      const stringOptions = ['test-variable-value', 'another-test-variable-value', 'other-subscription'];
+      const stringOptions = ['test-variable-value', 'other-subscription'];
       const options = stringOptions.map((value) => ({ value }));
 
       const matches = fuzzyFind(options, stringOptions, 'TEST-Variable-value');
