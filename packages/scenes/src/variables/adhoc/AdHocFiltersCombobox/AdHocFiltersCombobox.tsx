@@ -508,15 +508,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             setActiveIndex(null);
             return;
           }
-          
+
           controller.startProfile?.(FILTER_CHANGED_INTERACTION);
-          
+
           const isMultiValueCommit = Boolean(parsed.operator && isMultiValueOperator(parsed.operator));
           if (!isMultiValueCommit) {
-            const custom = onAddCustomValue?.(
-              { label: parsed.value, value: parsed.value, isCustom: true },
-              filter
-            );
+            const custom = onAddCustomValue?.({ label: parsed.value, value: parsed.value, isCustom: true }, filter);
             parsed.value = custom?.value ?? parsed.value;
             parsed.valueLabels = custom?.valueLabels ?? parsed.valueLabels;
           }

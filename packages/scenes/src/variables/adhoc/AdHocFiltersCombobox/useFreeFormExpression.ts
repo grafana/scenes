@@ -29,8 +29,7 @@ export function useFreeFormExpression({
     .map((o) => o.value)
     .filter((value): value is string => Boolean(value));
 
-  const expressionInputEnabled =
-    allowCustomValue && !isGroupBy && filterInputType !== 'value' && !populateInputOnEdit;
+  const expressionInputEnabled = allowCustomValue && !isGroupBy && filterInputType !== 'value' && !populateInputOnEdit;
 
   const parseExpression = useCallback(
     (input: string) => {
