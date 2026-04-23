@@ -55,7 +55,11 @@ describe('useFreeFormExpression', () => {
 
   describe('parseExpression / parsedExpression success', () => {
     it.each<[string, string, { key: string | undefined; operator: string; value: string }]>([
-      ['full expression (key + operator + value)', 'instance = tempo', { key: 'instance', operator: '=', value: 'tempo' }],
+      [
+        'full expression (key + operator + value)',
+        'instance = tempo',
+        { key: 'instance', operator: '=', value: 'tempo' },
+      ],
       ['partial expression (operator + value, no key)', '= tempo', { key: undefined, operator: '=', value: 'tempo' }],
       ['operator-only input (operator, no value)', 'instance =', { key: 'instance', operator: '=', value: '' }],
     ])('parses %s', (_label, inputValue, expected) => {

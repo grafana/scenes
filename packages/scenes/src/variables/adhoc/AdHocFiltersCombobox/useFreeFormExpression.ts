@@ -22,9 +22,10 @@ export function useFreeFormExpression({
   allowCustomValue,
   isGroupBy,
 }: UseFreeFormExpressionProps) {
-  const operatorValues = controller.getOperators()
+  const operatorValues = controller
+    .getOperators()
     .map((o) => o.value)
-    .filter((value): value is string => Boolean(value))
+    .filter((value): value is string => Boolean(value));
 
   const expressionInputEnabled = allowCustomValue && !isGroupBy && filterInputType !== 'value';
 
