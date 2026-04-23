@@ -119,6 +119,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     filterInputType,
     allowCustomValue,
     isGroupBy,
+    populateInputOnEdit,
   });
 
   const isLastFilter = useMemo(() => {
@@ -500,32 +501,38 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         if (parsed) {
           event.preventDefault();
 
-          if (parsed.value) {
-            controller.startProfile?.(FILTER_CHANGED_INTERACTION);
-
-            if (parsed.operator && !isMultiValueOperator(parsed.operator)) {
-              const custom = onAddCustomValue?.(
-                { label: parsed.value, value: parsed.value } as SelectableValue<string>,
-                filter
-              );
-              parsed.value = custom?.value ?? parsed.value;
-              parsed.valueLabels = custom?.valueLabels ?? parsed.valueLabels;
-            }
+          if (!parsed.value) {
+            controller.updateFilter(filter, parsed);
+            switchInputType('value', setInputType, undefined, refs.domReference.current);
+            setInputValue('');
+            setActiveIndex(null);
+            return;
+          }
+          
+          controller.startProfile?.(FILTER_CHANGED_INTERACTION);
+          
+          const isMultiValueCommit = Boolean(parsed.operator && isMultiValueOperator(parsed.operator));
+          if (!isMultiValueCommit) {
+            const custom = onAddCustomValue?.(
+              { label: parsed.value, value: parsed.value, isCustom: true },
+              filter
+            );
+            parsed.value = custom?.value ?? parsed.value;
+            parsed.valueLabels = custom?.valueLabels ?? parsed.valueLabels;
           }
 
           controller.updateFilter(filter, parsed);
 
-          if (parsed.value) {
-            if (isAlwaysWip) {
-              handleResetWip();
-              setTimeout(() => refs.domReference.current?.focus());
-            } else {
-              handleChangeViewMode?.();
-              focusOnWipInputRef?.();
-            }
+          if (isAlwaysWip) {
+            handleResetWip();
+            setTimeout(() => refs.domReference.current?.focus());
           } else {
-            switchInputType('value', setInputType, undefined, refs.domReference.current);
-            setInputValue('');
+            handleChangeViewMode?.();
+            focusOnWipInputRef?.();
+          }
+
+          if (isMultiValueCommit) {
+            setOpen(false);
           }
 
           setActiveIndex(null);

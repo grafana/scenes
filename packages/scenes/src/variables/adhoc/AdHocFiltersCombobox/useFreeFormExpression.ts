@@ -12,6 +12,7 @@ export interface UseFreeFormExpressionProps {
   filterInputType: AdHocInputType;
   allowCustomValue: boolean;
   isGroupBy: boolean | undefined;
+  populateInputOnEdit: boolean | undefined;
 }
 
 export function useFreeFormExpression({
@@ -21,13 +22,15 @@ export function useFreeFormExpression({
   filterInputType,
   allowCustomValue,
   isGroupBy,
+  populateInputOnEdit,
 }: UseFreeFormExpressionProps) {
   const operatorValues = controller
     .getOperators()
     .map((o) => o.value)
     .filter((value): value is string => Boolean(value));
 
-  const expressionInputEnabled = allowCustomValue && !isGroupBy && filterInputType !== 'value';
+  const expressionInputEnabled =
+    allowCustomValue && !isGroupBy && filterInputType !== 'value' && !populateInputOnEdit;
 
   const parseExpression = useCallback(
     (input: string) => {

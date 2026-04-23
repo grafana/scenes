@@ -31,6 +31,7 @@ function renderFreeForm(props: Partial<UseFreeFormExpressionProps> = {}) {
     filterInputType: 'key',
     allowCustomValue: true,
     isGroupBy: false,
+    populateInputOnEdit: false,
   };
   return renderHook((p: UseFreeFormExpressionProps) => useFreeFormExpression(p), {
     initialProps: { ...defaults, ...props },
@@ -51,6 +52,15 @@ describe('useFreeFormExpression', () => {
 
     it('is false when the input type is "value" (user is picking a value, not typing an expression)', () => {
       const { result } = renderFreeForm({ inputValue: 'instance = tempo', filterInputType: 'value' });
+      expect(result.current.canCommitExpressionUpdate).toBe(false);
+    });
+
+    it('is false when editing a specific pill (populateInputOnEdit = true), so pill edits stay scoped to the clicked token', () => {
+      const { result } = renderFreeForm({
+        inputValue: 'instance = tempo',
+        filterInputType: 'operator',
+        populateInputOnEdit: true,
+      });
       expect(result.current.canCommitExpressionUpdate).toBe(false);
     });
 
