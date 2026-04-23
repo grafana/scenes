@@ -57,6 +57,15 @@ describe('filter', () => {
 
       expect(matches.map((m) => m.value)).toEqual(['台南市', '南投縣']);
     });
+
+    it('should do case-insensitive substring match when needle contains non-ascii characters', () => {
+      const stringOptions = ['Über'];
+      const options = stringOptions.map((value) => ({ value }));
+
+      const matches = fuzzyFind(options, stringOptions, 'ü');
+
+      expect(matches.map((m) => m.value)).toEqual(['Über']);
+    });
   });
 
   describe('operators', () => {
@@ -143,6 +152,15 @@ describe('filter', () => {
 
       // Should only match exact substring
       expect(matches.map((m) => m.value)).toEqual(['user@example.com']);
+    });
+
+    it('should do case-insensitive substring match when needle contains special characters', () => {
+      const stringOptions = ['test-variable-value', 'other-subscription'];
+      const options = stringOptions.map((value) => ({ value }));
+
+      const matches = fuzzyFind(options, stringOptions, 'TEST-Variable-value');
+
+      expect(matches.map((m) => m.value)).toEqual(['test-variable-value']);
     });
 
     it('should fall back to substring match when needle contains backslash', () => {
