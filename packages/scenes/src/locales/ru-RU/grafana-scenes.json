@@ -4,17 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Редактировать фильтр с ключом {{keyLabel}}",
         "managed-filter": "фильтр, управляемый {{origin}}",
-        "non-applicable": "",
+        "non-applicable": "Фильтр не применим",
         "remove-filter-with-key": "Удалить фильтр с ключом {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Удалить значение фильтра ({{itemLabel}})",
         "use-custom-value": "Использовать пользовательское значение: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": "Удалить {{label}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Последние",
+        "recent-empty": "Нет последних значений",
+        "recommended": "Рекомендуемые",
+        "recommended-empty": "Нет рекомендуемых значений",
+        "tooltip": "Показать рекомендации"
+      },
       "fallback-page": {
         "content": "Если вы попали сюда по ссылке, возможна ошибка в приложении.",
         "subTitle": "URL-адрес не соответствует ни одной странице",
         "title": "Не найдена"
+      },
+      "group-by-pill": {
+        "applied-by-default": "Применяется по умолчанию на этом дашборде. При редактировании переносится на другие дашборды.",
+        "group-by-key": "Группировать по {{keyLabel}}",
+        "remove-group-by-key": "Удалить группу по {{keyLabel}}"
       },
       "lazy-loader": {
         "placeholder": ""
@@ -30,24 +45,24 @@
         "title-scene-debugger": "Отладчик сцен"
       },
       "scene-grid-row": {
-        "collapse-row": "Свернуть строку",
-        "expand-row": "Развернуть строку"
+        "collapse-row": "Свернуть строку с заголовком {{title}}",
+        "expand-row": "Развернуть строку с заголовком {{title}}"
       },
       "scene-refresh-picker": {
         "text-cancel": "Отмена",
         "text-refresh": "Обновить",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Отменить все запросы"
       },
       "scene-time-range-compare-renderer": {
-        "button-label": "Сравнение",
+        "button-label": "Для сравнения",
         "button-tooltip": "Включить сравнение временных рамок"
       },
       "splitter": {
         "aria-label-pane-resize-widget": "Виджет изменения размера панелей"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Перейти на {{moveBackwardDuration}} назад",
+        "move-forward-tooltip": "Перейти на {{moveForwardDuration}} вперед"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +108,22 @@
           "placeholder-select-value": "Выбрать значение"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "Очистить всё",
+        "collapse": "Свернуть",
+        "collapse-filters": "Свернуть фильтры",
+        "expand-filters": "Развернуть фильтры",
+        "group-by-label": "Группировать по:",
+        "restore-default-group-by": "Восстановить критерий группирования, заданный этим дашбордом.",
+        "show-more-filters_one": "Показать еще {{count}} фильтр",
+        "show-more-filters_few": "Показать еще {{count}} фильтра",
+        "show-more-filters_many": "Показать еще {{count}} фильтров",
+        "show-more-filters_other": "Показать еще {{count}} фильтра",
+        "show-more-group-by_one": "Показать еще {{count}} группу по ключам",
+        "show-more-group-by_few": "Показать еще {{count}} группы по ключам",
+        "show-more-group-by_many": "Показать еще {{count}} групп по ключам",
+        "show-more-group-by_other": "Показать еще {{count}} группы по ключам"
+      },
       "data-source-variable": {
         "label": {
           "default": "по умолчанию"
@@ -111,7 +142,7 @@
             "format-date-in-different-ways": "Форматируйте дату разными способами",
             "format-multivalued-variables-using-syntax-example": "Форматируйте многозначные переменные с использованием синтаксиса glob, например {value1,value2}",
             "html-escaping-of-values": "HTML-экранирование значений",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Объединяйте значения через запятую",
             "json-stringify-value": "Значение преобразования JSON в строку",
             "keep-value-as-is": "Сохраните значение как есть",
             "multiple-values-are-formatted-like-variablevalue": "Несколько значений форматируются как «переменная=значение»",
