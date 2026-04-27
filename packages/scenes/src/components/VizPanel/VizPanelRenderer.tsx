@@ -1,10 +1,11 @@
 import { Trans } from '@grafana/i18n';
-import React, { memo, RefCallback, useCallback, useEffect, useLayoutEffect, useMemo } from 'react';
-import { useMeasure } from 'react-use';
+import React, { memo, RefCallback, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import { useMeasure, usePrevious } from 'react-use';
 
 // @ts-ignore
 import {
   AlertState,
+  DataFrame,
   GrafanaTheme2,
   PanelData,
   PanelPlugin,
@@ -46,6 +47,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     collapsible,
     collapsed,
     _renderCounter = 0,
+    _UNSAFE_clearPreviousFieldValues = false,
   } = model.useState();
   let [ref, { width, height }] = useMeasure();
   const appEvents = useMemo(() => getAppEvents(), []);
@@ -94,6 +96,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const dataObject = sceneGraph.getData(model);
 
   const rawData = dataObject.useState();
+
+  const { series, annotations } = _UNSAFE_clearPreviousFieldValues ? rawData.data ?? {} : {};
+  useClearPreviousData(series);
+  useClearPreviousData(annotations);
+
   const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
   const dataWithFieldConfig = model.applyFieldConfig(dataWithSeriesLimit);
   const sceneTimeRange = sceneGraph.getTimeRange(model);
@@ -304,6 +311,41 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       </div>
     </div>
   );
+}
+
+function useClearPreviousData(data?: DataFrame[]) {
+  // this holds all value arrays from all series or anno frames
+  // so we can empty any previous ones that no longer appear in current data
+  // why? because React fiber: https://github.com/facebook/react/issues/36176
+  const prevVals = useRef<Set<any[]>>();
+  const currVals = useRef<Set<any[]>>();
+  prevVals.current ??= new Set();
+  currVals.current ??= new Set();
+
+  const currFrames = data;
+  const prevFrames = usePrevious(currFrames);
+
+  if (currFrames != null && currFrames !== prevFrames) {
+    // populate new
+    currVals.current.clear();
+
+    for (let i = 0; i < currFrames.length; i++) {
+      let fields = currFrames[i].fields;
+
+      for (let j = 0; j < fields.length; j++) {
+        currVals.current.add(fields[j].values);
+      }
+    }
+
+    // empty out all prev not seen in new
+    prevVals.current.forEach((vals) => {
+      if (!currVals.current!.has(vals)) {
+        vals.length = 0;
+      }
+    });
+    prevVals.current.clear();
+    prevVals.current = new Set(currVals.current);
+  }
 }
 
 function useDataWithSeriesLimit(data: PanelData | undefined, seriesLimit?: number, showAllSeries?: boolean) {

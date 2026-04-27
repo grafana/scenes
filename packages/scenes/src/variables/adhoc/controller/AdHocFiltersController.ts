@@ -22,6 +22,7 @@ export interface AdHocFiltersControllerState {
   valueRecommendations?: AdHocFiltersRecommendations;
   drilldownRecommendationsEnabled?: boolean;
   enableGroupBy?: boolean;
+  groupByRestorable?: boolean;
 }
 
 /**
@@ -65,6 +66,11 @@ export interface AdHocFiltersController {
    * @param update - Partial filter properties to update
    */
   updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>): void;
+
+  /**
+   * Get id for the form control. Used for accessibility.
+   */
+  getControlId?(): string;
 
   /**
    * Update filters list
@@ -118,6 +124,11 @@ export interface AdHocFiltersController {
    * @param filter - The filter to restore
    */
   restoreOriginalFilter(filter: AdHocFilterWithLabels): void;
+
+  /**
+   * Restore all original group by filters and remove user-added group by filters.
+   */
+  restoreOriginalGroupBy?(): void;
 
   /**
    * Clear all user-added filters and restore origin filters to original values.

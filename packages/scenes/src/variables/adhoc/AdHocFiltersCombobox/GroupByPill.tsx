@@ -1,4 +1,7 @@
 import React from 'react';
+import { css } from '@emotion/css';
+import { GrafanaTheme2 } from '@grafana/data';
+import { Icon, Tooltip, useStyles2 } from '@grafana/ui';
 import { AdHocFilterWithLabels } from '../AdHocFiltersVariable';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
@@ -16,15 +19,22 @@ interface Props {
 const isGroupByFilterEmpty = (f: AdHocFilterWithLabels) => !f.key;
 
 export function GroupByPill({ filter, controller, readOnly, focusOnWipInputRef }: Props) {
+  const styles = useStyles2(getStyles);
   const { viewMode, pillWrapperRef, populateInputOnEdit, handleChangeViewMode, handlePillClick, handlePillKeyDown } =
     useEditablePill({ filter, controller, readOnly, focusOnWipInputRef, isFilterEmpty: isGroupByFilterEmpty });
 
   const keyLabel = filter.keyLabel ?? filter.key;
 
   const handleRemove = () => {
-    controller.removeFilter(filter);
+    if (filter.origin && filter.origin === 'dashboard') {
+      controller.updateToMatchAll(filter);
+    } else {
+      controller.removeFilter(filter);
+    }
     setTimeout(() => focusOnWipInputRef?.());
   };
+
+  const isCleanDefault = filter.origin && !filter.restorable && !filter.readOnly;
 
   if (viewMode) {
     return (
@@ -42,6 +52,21 @@ export function GroupByPill({ filter, controller, readOnly, focusOnWipInputRef }
           'Remove group by {{keyLabel}}',
           { keyLabel }
         )}
+        additionalIcons={
+          <>
+            {isCleanDefault && (
+              <Tooltip
+                content={t(
+                  'grafana-scenes.components.group-by-pill.applied-by-default',
+                  'Applied by default in this dashboard. If edited, it carries over to other dashboards.'
+                )}
+                placement="bottom"
+              >
+                <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
+              </Tooltip>
+            )}
+          </>
+        }
       />
     );
   }
@@ -57,3 +82,10 @@ export function GroupByPill({ filter, controller, readOnly, focusOnWipInputRef }
     />
   );
 }
+
+const getStyles = (theme: GrafanaTheme2) => ({
+  infoPillIcon: css({
+    marginInline: theme.spacing(0.5),
+    cursor: 'pointer',
+  }),
+});

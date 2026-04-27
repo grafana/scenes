@@ -265,6 +265,7 @@ describe('GroupByRecommendations', () => {
 
       const { variable } = setupTest(
         {
+          applicabilityEnabled: true,
           drilldownRecommendationsEnabled: true,
           value: ['value1'],
         },
@@ -297,6 +298,7 @@ describe('GroupByRecommendations', () => {
 
       const { variable } = setupTest(
         {
+          applicabilityEnabled: true,
           drilldownRecommendationsEnabled: true,
           value: ['value1'],
         },

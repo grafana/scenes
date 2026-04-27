@@ -25,7 +25,7 @@ import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
-import { getDataSourceSrv } from '@grafana/runtime';
+import { getDataSourceSrv, reportInteraction } from '@grafana/runtime';
 import { AdHocFiltersVariableUrlSyncHandler, toArray } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
@@ -56,6 +56,8 @@ export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> exten
   readOnly?: boolean;
   // whether this specific filter is restorable to some value from _originalValues
   restorable?: boolean;
+  // whether this groupBy origin filter was dismissed by the user (hidden from UI but kept for restore tracking)
+  dismissedGroupBy?: boolean;
   // sets this filter as non-applicable
   nonApplicable?: boolean;
   // reason with reason for nonApplicable filters
@@ -88,6 +90,9 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
    * @experimental
    * Controls the layout and design of the label.
+   * @deprecated The `layout` property is deprecated and scheduled for removal before grafana v14.
+   * The `'horizontal'` and `'vertical'` options are no longer supported.
+   * Use `'combobox'` instead or remove this property entirely.
    */
   layout?: AdHocControlsLayout;
   /**
@@ -297,6 +302,7 @@ export class AdHocFiltersVariable
   private _recommendations: AdHocFiltersRecommendations | undefined;
 
   public constructor(state: Partial<AdHocFiltersVariableState>) {
+    const { collapsible, defaultKeys, drilldownRecommendationsEnabled, ...restState } = state;
     const behaviors = state.$behaviors ?? [];
     const recommendations = state.drilldownRecommendationsEnabled ? new AdHocFiltersRecommendations() : undefined;
 
@@ -313,8 +319,12 @@ export class AdHocFiltersVariable
       filterExpression:
         state.filterExpression ??
         renderExpression(state.expressionBuilder, [...(state.originFilters ?? []), ...(state.filters ?? [])]),
-      ...state,
-      $behaviors: behaviors.length > 0 ? behaviors : undefined,
+      ...restState,
+      ...(behaviors.length > 0 && { $behaviors: behaviors }),
+      ...(collapsible !== undefined && { collapsible }),
+      ...(drilldownRecommendationsEnabled !== undefined && { drilldownRecommendationsEnabled }),
+      ...(defaultKeys && { defaultKeys }),
+      layout: state.layout || 'combobox',
     });
 
     this._recommendations = recommendations;
@@ -334,13 +344,20 @@ export class AdHocFiltersVariable
     this._debouncedVerifyApplicability();
 
     return () => {
+      // When the variable's component is temporarily unmounted (e.g. during panel edit)
+      // but the variable set is still active, skip restoring defaults — the variable
+      // is still logically part of the scene and its state should be preserved.
+      if (this.parent?.isActive) {
+        return;
+      }
+
       this.state.originFilters?.forEach((filter) => {
-        if (filter.restorable) {
+        if (filter.restorable && !isGroupByFilter(filter)) {
           this.restoreOriginalFilter(filter);
         }
       });
 
-      this.setState({ applicabilityEnabled: false });
+      this.restoreOriginalGroupBy();
     };
   };
 
@@ -447,7 +464,7 @@ export class AdHocFiltersVariable
     operator: string,
     singleValue: string
   ): { restorable: boolean; matchAllFilter: boolean } {
-    const original = this._originalValues.get(`${key}-${origin}`);
+    const original = this._originalValues.get(originalValueKey({ key, origin, operator }));
     const isMatchAll = operator === '=~' && singleValue === '.*';
     const isRestorable = !isEqual(values, original?.value) || operator !== original?.operator;
 
@@ -463,7 +480,7 @@ export class AdHocFiltersVariable
         return filter;
       }
 
-      if (!this._originalValues.has(`${filter.key}-${filter.origin}`)) {
+      if (!this._originalValues.has(originalValueKey(filter))) {
         return filter;
       }
 
@@ -539,7 +556,9 @@ export class AdHocFiltersVariable
       value: '',
       condition: '',
     };
+    this._recommendations?.storeRecentGrouping(key);
     this.updateFilters([...this.state.filters, newFilter]);
+    reportInteraction('grafana_unified_drilldown_groupby_added', { key });
   }
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
@@ -547,7 +566,7 @@ export class AdHocFiltersVariable
       return;
     }
 
-    const originalFilter = this._originalValues.get(`${filter.key}-${filter.origin}`);
+    const originalFilter = this._originalValues.get(originalValueKey(filter));
     if (!originalFilter) {
       return;
     }
@@ -561,6 +580,10 @@ export class AdHocFiltersVariable
       operator: originalFilter.operator,
       nonApplicable: originalFilter.nonApplicable,
     });
+    reportInteraction('grafana_unified_drilldown_filter_restored', {
+      key: filter.key,
+      origin: filter.origin,
+    });
   }
 
   /**
@@ -570,14 +593,14 @@ export class AdHocFiltersVariable
   public getOriginalValue(
     filter: AdHocFilterWithLabels
   ): { value: string[]; operator: string; valueLabels?: string[]; keyLabel?: string } | undefined {
-    return this._originalValues.get(`${filter.key}-${filter.origin}`);
+    return this._originalValues.get(originalValueKey(filter));
   }
 
   /**
    * Store a snapshot of the filter's current value and operator so it can be restored later.
    */
   private _setOriginalValue(filter: AdHocFilterWithLabels): void {
-    this._originalValues.set(`${filter.key}-${filter.origin}`, {
+    this._originalValues.set(originalValueKey(filter), {
       value: filter.values ?? [filter.value],
       operator: filter.operator,
       ...(filter.valueLabels && { valueLabels: filter.valueLabels }),
@@ -591,9 +614,14 @@ export class AdHocFiltersVariable
    */
   public getOriginalFilters(): AdHocFilterWithLabels[] {
     return [...this._originalValues.entries()].map(([mapKey, original]) => {
-      const delimiter = mapKey.lastIndexOf('-');
-      const key = mapKey.substring(0, delimiter);
-      const origin = mapKey.substring(delimiter + 1);
+      const suffix = `${VALUE_KEY_DELIMITER}${GROUP_BY_OPERATOR}`;
+      const isGroupBy = mapKey.endsWith(suffix);
+      const baseKey = isGroupBy ? mapKey.slice(0, -suffix.length) : mapKey;
+
+      const delimiter = baseKey.lastIndexOf(VALUE_KEY_DELIMITER);
+      const key = baseKey.substring(0, delimiter);
+      const origin = baseKey.substring(delimiter + VALUE_KEY_DELIMITER.length);
+
       return {
         key,
         origin,
@@ -618,18 +646,66 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Whether the groupBy state has diverged from defaults (any dismissed or user-added groupBys).
+   */
+  public isGroupByRestorable(): boolean {
+    const originFilters = this.state.originFilters ?? [];
+    const hasOriginGroupBy = originFilters.some((f) => isGroupByFilter(f) && f.origin);
+
+    if (!hasOriginGroupBy) {
+      return false;
+    }
+
+    const hasDismissedOrRestorable = originFilters.some((f) => isGroupByFilter(f) && f.origin && f.restorable);
+    const hasUserGroupBy = this.state.filters.some(isGroupByFilter);
+
+    return hasDismissedOrRestorable || hasUserGroupBy;
+  }
+
+  /**
+   * Restore all original group by filters.
+   */
+  public restoreOriginalGroupBy(): void {
+    const restoredOrigins = (this.state.originFilters ?? []).map((f) => {
+      if (!isGroupByFilter(f) || !f.origin) {
+        return f;
+      }
+      return { ...f, dismissedGroupBy: false, restorable: false };
+    });
+
+    const nonGroupByFilters = this.state.filters.filter((f) => !isGroupByFilter(f));
+
+    this.setState({
+      originFilters: restoredOrigins,
+      filters: nonGroupByFilters,
+    });
+    reportInteraction('grafana_unified_drilldown_groupby_restored');
+  }
+
+  /**
    * Clear all user-added filters and restore origin filters to their original values.
    */
   public clearAll(): void {
+    const filtersCount = this.state.filters.length;
+    const restorableCount = this.state.originFilters?.filter((f) => f.restorable && !isGroupByFilter(f)).length ?? 0;
+
     // Restore all restorable origin filters to their original values
     this.state.originFilters?.forEach((filter) => {
-      if (filter.restorable) {
+      if (filter.restorable && !isGroupByFilter(filter)) {
         this.restoreOriginalFilter(filter);
       }
     });
 
+    // Restore groupBy defaults
+    this.restoreOriginalGroupBy();
+
     // Clear all user-added filters
     this.setState({ filters: [] });
+
+    reportInteraction('grafana_unified_drilldown_clear_all', {
+      filtersCleared: filtersCount,
+      originsRestored: restorableCount,
+    });
   }
 
   public getValue(fieldPath?: string): VariableValue | undefined {
@@ -658,6 +734,34 @@ export class AdHocFiltersVariable
     }
 
     if (filter.origin) {
+      if (isGroupByFilter(filter) && 'key' in update && update.key !== filter.key) {
+        const updatedOrigins = (originFilters ?? []).map((f) => {
+          if (f === filter) {
+            return { ...f, dismissedGroupBy: true, restorable: true };
+          }
+          if (isGroupByFilter(f) && f.origin && !f.dismissedGroupBy) {
+            return { ...f, restorable: true };
+          }
+          return f;
+        });
+
+        // The original default is dismissed (preserved for restore); the user's
+        // new key becomes a separate user filter so it doesn't overwrite the default.
+        const newFilter: AdHocFilterWithLabels = {
+          key: update.key as string,
+          keyLabel: (update.keyLabel as string) ?? (update.key as string),
+          operator: 'groupBy',
+          value: '',
+          condition: '',
+        };
+
+        this.setState({
+          originFilters: updatedOrigins,
+          filters: [...filters, newFilter],
+        });
+        return;
+      }
+
       const updateValues = update.values || (update.value ? [update.value] : undefined);
 
       if (updateValues) {
@@ -675,7 +779,13 @@ export class AdHocFiltersVariable
 
       const updatedFilters =
         originFilters?.map((f) => {
-          return f === filter ? { ...f, ...update } : f;
+          if (f === filter) {
+            return { ...f, ...update };
+          }
+          if (isGroupByFilter(filter) && update.restorable && isGroupByFilter(f) && f.origin && !f.restorable) {
+            return { ...f, restorable: true };
+          }
+          return f;
         }) ?? [];
       this.setState({ originFilters: updatedFilters });
 
@@ -685,11 +795,16 @@ export class AdHocFiltersVariable
     if (filter === _wip) {
       // If we set value we are done with this "work in progress" filter and we can add it
       if ('value' in update && update['value'] !== '') {
+        const newFilter = { ..._wip, ...update };
         this.setState({
-          filters: [...filters, { ..._wip, ...update }],
+          filters: [...filters, newFilter],
           _wip: undefined,
         });
-        this.verifyApplicabilityAndStoreRecentFilter({ ..._wip, ...update });
+        this.verifyApplicabilityAndStoreRecentFilter(newFilter);
+        reportInteraction('grafana_unified_drilldown_filter_added', {
+          key: newFilter.key,
+          operator: newFilter.operator,
+        });
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -702,22 +817,46 @@ export class AdHocFiltersVariable
 
     this.setState({ filters: updatedFilters });
 
-    this._recommendations?.storeRecentFilter({
-      ...filter,
-      ...update,
-    });
+    const merged = { ...filter, ...update };
+    if (isGroupByFilter(merged)) {
+      this._recommendations?.storeRecentGrouping(merged.key);
+    } else {
+      this._recommendations?.storeRecentFilter(merged);
+    }
   }
 
   public updateToMatchAll(filter: AdHocFilterWithLabels) {
-    this._updateFilter(filter, {
-      operator: '=~',
-      value: '.*',
-      values: ['.*'],
-      valueLabels: ['All'],
-      matchAllFilter: true,
-      nonApplicable: false,
-      restorable: true,
-    });
+    if (isGroupByFilter(filter) && filter.origin) {
+      const updatedOrigins = (this.state.originFilters ?? []).map((f) => {
+        if (f === filter) {
+          return { ...f, dismissedGroupBy: true, restorable: true };
+        }
+        if (isGroupByFilter(f) && f.origin && !f.dismissedGroupBy) {
+          return { ...f, restorable: true };
+        }
+        return f;
+      });
+
+      this.setState({ originFilters: updatedOrigins });
+      reportInteraction('grafana_unified_drilldown_groupby_removed', {
+        key: filter.key,
+        origin: filter.origin,
+      });
+    } else {
+      this._updateFilter(filter, {
+        operator: '=~',
+        value: '.*',
+        values: ['.*'],
+        valueLabels: ['All'],
+        matchAllFilter: true,
+        nonApplicable: false,
+        restorable: true,
+      });
+      reportInteraction('grafana_unified_drilldown_filter_match_all', {
+        key: filter.key,
+        origin: filter.origin,
+      });
+    }
   }
 
   public _removeFilter(filter: AdHocFilterWithLabels) {
@@ -729,8 +868,14 @@ export class AdHocFiltersVariable
     const queryController = getQueryController(this);
     queryController?.startProfile(FILTER_REMOVED_INTERACTION);
 
+    const isGroupBy = isGroupByFilter(filter);
     this.setState({ filters: this.state.filters.filter((f) => f !== filter) });
     this._debouncedVerifyApplicability();
+
+    reportInteraction(
+      isGroupBy ? 'grafana_unified_drilldown_groupby_removed' : 'grafana_unified_drilldown_filter_removed',
+      { key: filter.key }
+    );
   }
 
   public _removeLastFilter() {
@@ -749,6 +894,13 @@ export class AdHocFiltersVariable
         for (let i = this.state.filters.length - 1; i >= 0; i--) {
           if (isGroupByFilter(this.state.filters[i]) && !this.state.filters[i].readOnly) {
             this._removeFilter(this.state.filters[i]);
+            return;
+          }
+        }
+        const origins = this.state.originFilters ?? [];
+        for (let i = origins.length - 1; i >= 0; i--) {
+          if (isGroupByFilter(origins[i]) && origins[i].origin && !origins[i].dismissedGroupBy) {
+            this.updateToMatchAll(origins[i]);
             return;
           }
         }
@@ -802,7 +954,8 @@ export class AdHocFiltersVariable
 
   public async getFiltersApplicabilityForQueries(
     filters: AdHocFilterWithLabels[],
-    queries: SceneDataQuery[]
+    queries: SceneDataQuery[],
+    groupByKeys?: string[]
   ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
     // @ts-expect-error (temporary till we update grafana/data)
@@ -818,15 +971,24 @@ export class AdHocFiltersVariable
       queries,
       timeRange,
       scopes: sceneGraph.getScopes(this),
+      ...(groupByKeys && groupByKeys.length > 0 ? { groupByKeys } : {}),
       ...getEnrichedFiltersRequest(this),
     });
   }
 
   public async _verifyApplicability() {
-    const filters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+    if (!this.state.applicabilityEnabled) {
+      return;
+    }
+
+    const allFilters = [...this.state.filters, ...(this.state.originFilters ?? [])];
+    const filters = allFilters.filter((f) => !isGroupByFilter(f));
+    const groupByKeys = this.state.enableGroupBy
+      ? allFilters.filter((f) => isGroupByFilter(f)).map((f) => f.key)
+      : undefined;
     const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
 
-    const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? []);
+    const response = await this.getFiltersApplicabilityForQueries(filters, queries ?? [], groupByKeys);
 
     if (!response) {
       return;
@@ -838,7 +1000,6 @@ export class AdHocFiltersVariable
     });
 
     const update = {
-      applicabilityEnabled: true,
       filters: [...this.state.filters],
       originFilters: [...(this.state.originFilters ?? [])],
     };
@@ -861,7 +1022,7 @@ export class AdHocFiltersVariable
           f.nonApplicableReason = filter.reason;
         }
 
-        const originalValue = this._originalValues.get(`${f.key}-${f.origin}`);
+        const originalValue = this._originalValues.get(originalValueKey(f));
         if (originalValue) {
           originalValue.nonApplicable = !filter.applicable;
           originalValue.nonApplicableReason = filter?.reason;
@@ -892,9 +1053,9 @@ export class AdHocFiltersVariable
     }
 
     const applicableOriginFilters =
-      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f)) ?? [];
+      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f))
+      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f))
       .concat(this.state.baseFilters ?? [])
       .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
@@ -926,8 +1087,14 @@ export class AdHocFiltersVariable
 
   /**
    * Get possible group-by keys.
+   * @param currentKey - The current key being edited (excluded from filters)
+   * @param queries - Optional queries to scope the key lookup. When provided, these are used
+   *   instead of discovering all queries in the scene via getQueriesForVariables.
    */
-  public async _getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+  public async _getGroupByKeys(
+    currentKey: string | null,
+    queries?: SceneDataQuery[]
+  ): Promise<Array<SelectableValue<string>>> {
     if (!this.state.enableGroupBy) {
       return [];
     }
@@ -945,18 +1112,19 @@ export class AdHocFiltersVariable
     }
 
     const applicableOriginFilters =
-      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f)) ?? [];
+      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f))
+      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f))
       .concat(this.state.baseFilters ?? [])
       .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
-    const queries = this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined;
+    const queriesForKeys =
+      queries ?? (this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined);
 
     // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     const response = await ds.getGroupByKeys({
       filters: otherFilters,
-      queries,
+      queries: queriesForKeys,
       timeRange,
       scopes: sceneGraph.getScopes(this),
       ...getEnrichedFiltersRequest(this),
@@ -995,9 +1163,11 @@ export class AdHocFiltersVariable
       return [];
     }
 
-    const originFilters = this.state.originFilters?.filter((f) => f.key !== filter.key && !isGroupByFilter(f)) ?? [];
+    const originFilters =
+      this.state.originFilters?.filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f)) ??
+      [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== filter.key && !isGroupByFilter(f))
+      .filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f))
       .concat(originFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
@@ -1076,7 +1246,7 @@ function renderExpression(
 
 function getGroupByKeys(filters: AdHocFilterWithLabels[]): string[] {
   return filters
-    .filter((f) => isGroupByFilter(f) && isFilterComplete(f))
+    .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && !f.dismissedGroupBy)
     .map((f) => f.key)
     .sort();
 }
@@ -1156,6 +1326,7 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
 }
 
 export const GROUP_BY_OPERATOR = 'groupBy';
+export const VALUE_KEY_DELIMITER = '::';
 
 export function isGroupByFilter(filter: AdHocFilterWithLabels): boolean {
   return filter.operator === GROUP_BY_OPERATOR;
@@ -1176,6 +1347,12 @@ function findLastAdhocFilterIndex(filters: AdHocFilterWithLabels[]): number {
     }
   }
   return -1;
+}
+
+function originalValueKey({ key, origin, operator }: { key: string; origin?: string; operator: string }): string {
+  return operator === GROUP_BY_OPERATOR
+    ? `${key}${VALUE_KEY_DELIMITER}${origin}${VALUE_KEY_DELIMITER}${GROUP_BY_OPERATOR}`
+    : `${key}${VALUE_KEY_DELIMITER}${origin}`;
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {

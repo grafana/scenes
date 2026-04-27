@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import {
   CustomTransformOperator,
   DataFrame,
@@ -177,9 +178,27 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     const { series, annotations } = this._prevDataFromSource;
 
     if (data.series === series && data.annotations === annotations) {
-      if (this.state.data && data.state !== this.state.data.state) {
-        this.setState({ data: { ...this.state.data, state: data.state } });
+      if (this.state.data) {
+        const currentData = this.state.data;
+        const nextData: PanelData = {
+          ...data,
+          series: currentData.series,
+          annotations: currentData.annotations,
+        };
+
+        const metadataChanged =
+          currentData.state !== nextData.state ||
+          currentData.request?.requestId !== nextData.request?.requestId ||
+          currentData.error !== nextData.error ||
+          !isEqual(currentData.errors, nextData.errors) ||
+          !isEqual(currentData.timeRange, nextData.timeRange);
+
+        if (metadataChanged) {
+          this.setState({ data: nextData });
+          this._results.next({ origin: this, data: nextData });
+        }
       }
+
       return true;
     }
 

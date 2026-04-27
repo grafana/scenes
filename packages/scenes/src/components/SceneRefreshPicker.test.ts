@@ -58,7 +58,7 @@ describe('SceneRefreshPicker', () => {
       .useFakeTimers({
         doNotFake: ['setTimeout'],
       })
-      .setSystemTime(new Date('2023-01-01'));
+      .setSystemTime(new Date('2023-01-01').valueOf());
   });
 
   it('updates time range on provided interval', async () => {

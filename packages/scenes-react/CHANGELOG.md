@@ -1,3 +1,15 @@
+# v7.3.10 (Tue Apr 07 2026)
+
+#### 🐛 Bug Fix
+
+- adHoc: remove wide-input prop [#1421](https://github.com/grafana/scenes/pull/1421) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.0.1 (Thu Feb 26 2026)
 
 #### 🐛 Bug Fix

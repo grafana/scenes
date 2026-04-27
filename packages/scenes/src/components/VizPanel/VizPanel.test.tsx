@@ -278,6 +278,15 @@ describe('VizPanel', () => {
         },
       ];
     });
+
+    global.ResizeObserver = class {
+      // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+      observe() {}
+      // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+      unobserve() {}
+      // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
+      disconnect() {}
+    };
   });
 
   describe('when activated', () => {
@@ -858,15 +867,6 @@ describe('VizPanel', () => {
     beforeEach(() => {
       panelRenderCount = 0;
       panelProps = undefined;
-
-      global.ResizeObserver = class {
-        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
-        observe() {}
-        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
-        unobserve() {}
-        // eslint-disable-next-line @typescript-eslint/explicit-member-accessibility
-        disconnect() {}
-      };
     });
 
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
@@ -1067,7 +1067,8 @@ describe('VizPanel', () => {
         expect(panel.state.showMenuAlways).toBe(false);
         render(<panel.Component model={panel} />);
 
-        const menuButton = screen.queryByRole('button', { name: /menu/i });
+        // For some reason queryByRole('button', { name: /menu/i }) is not finding the element, even it's there in the DOM, with title Menu same as the test on above
+        const menuButton = screen.getByTitle('Menu');
         expect(menuButton).toHaveClass('show-on-hover');
       });
     });

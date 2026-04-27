@@ -47,62 +47,68 @@ import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObjec
 import { SceneQueryStateControllerState } from '../behaviors/types';
 import { config } from '@grafana/runtime';
 import { ScopesVariable } from '../variables/variants/ScopesVariable';
+import { ConstantVariable } from '../variables/variants/ConstantVariable';
 
-const getDataSourceMock = jest.fn().mockReturnValue({
-  uid: 'test-uid',
-  getRef: () => ({ uid: 'test-uid' }),
-  query: (request: DataQueryRequest) => {
-    if (request.targets.find((t) => t.refId === 'withAnnotations')) {
+const getDataSourceMock = jest.fn().mockImplementation((datasource) => {
+  const isMixed = datasource?.uid === '-- Mixed --';
+
+  return {
+    uid: isMixed ? '-- Mixed --' : 'test-uid',
+    meta: isMixed ? { mixed: true } : undefined,
+    getRef: () => (isMixed ? { type: 'mixed', uid: '-- Mixed --' } : { uid: 'test-uid' }),
+    query: (request: DataQueryRequest) => {
+      if (request.targets.find((t) => t.refId === 'withAnnotations')) {
+        return of({
+          data: [
+            toDataFrame({
+              refId: 'withAnnotations',
+              datapoints: [
+                [100, 1],
+                [400, 2],
+                [500, 3],
+              ],
+            }),
+            toDataFrame({
+              name: 'exemplar',
+              refId: 'withAnnotations',
+              meta: {
+                typeVersion: [0, 0],
+                custom: {
+                  resultType: 'exemplar',
+                },
+                dataTopic: 'annotations',
+              },
+              fields: [
+                {
+                  name: 'foo',
+                  type: 'string',
+                  values: ['foo1', 'foo2', 'foo3'],
+                },
+                {
+                  name: 'bar',
+                  type: 'string',
+                  values: ['bar1', 'bar2', 'bar3'],
+                },
+              ],
+            }),
+          ],
+        });
+      }
+
       return of({
         data: [
           toDataFrame({
-            refId: 'withAnnotations',
+            refId: 'A',
             datapoints: [
               [100, 1],
-              [400, 2],
-              [500, 3],
-            ],
-          }),
-          toDataFrame({
-            name: 'exemplar',
-            refId: 'withAnnotations',
-            meta: {
-              typeVersion: [0, 0],
-              custom: {
-                resultType: 'exemplar',
-              },
-              dataTopic: 'annotations',
-            },
-            fields: [
-              {
-                name: 'foo',
-                type: 'string',
-                values: ['foo1', 'foo2', 'foo3'],
-              },
-              {
-                name: 'bar',
-                type: 'string',
-                values: ['bar1', 'bar2', 'bar3'],
-              },
+              [200, 2],
+              [300, 3],
             ],
           }),
         ],
       });
-    }
-
-    return of({
-      data: [
-        toDataFrame({
-          refId: 'A',
-          datapoints: [
-            [100, 1],
-            [200, 2],
-            [300, 3],
-          ],
-        }),
-      ],
-    });
-  },
+    },
+  };
 });
 
 const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request: DataQueryRequest) => {
@@ -1462,6 +1468,51 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       const getDataSourceCall = getDataSourceMock.mock.calls[0];
       expect(getDataSourceCall[0]).toEqual({ uid: 'Muuu' });
+    });
+
+    it('should keep non-Mixed runtime datasource for templated datasource variable with single selected value', async () => {
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', datasource: { uid: '${ds}', type: 'prometheus' } }],
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({
+          variables: [new ConstantVariable({ name: 'ds', value: 'uid-1' })],
+        }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(getDataSourceMock.mock.calls[0][0]).toEqual({ uid: '${ds}', type: 'prometheus' });
+      expect(sentRequest?.targets[0].datasource).toEqual({ uid: 'test-uid' });
+      expect(queryRunner.state.datasource).toBeUndefined();
+    });
+
+    it('should resolve runtime datasource to Mixed when a datasource variable has multiple selected values', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: '${ds}', type: 'prometheus' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({
+          variables: [new ConstantVariable({ name: 'ds', value: ['uid-1', 'uid-2'] })],
+        }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(getDataSourceMock.mock.calls[0][0]).toEqual({ type: 'mixed', uid: '-- Mixed --' });
+      expect(sentRequest?.targets[0].datasource).toEqual({ uid: '${ds}', type: 'prometheus' });
+      expect(queryRunner.state.datasource).toEqual({ uid: '${ds}', type: 'prometheus' });
     });
 
     it('Should interpolate a variable when used in query options', async () => {
@@ -2880,6 +2931,33 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       await tick();
 
       expect(queryRunner.state.data?.series).not.toBe(firstSeries);
+    });
+  });
+
+  describe('when deactivated with incomplete data', () => {
+    it('should clear incomplete data and re-run queries on reactivation', async () => {
+      const tick = () => new Promise((r) => setTimeout(r, 1));
+      const subject = new Subject<DataQueryResponse>();
+      runRequestMock.mockImplementationOnce(() =>
+        subject.pipe(map(() => ({ state: LoadingState.Loading, series: [], timeRange: {} as any })))
+      );
+
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }], $timeRange: new SceneTimeRange() });
+      const deactivate = queryRunner.activate();
+      await tick();
+
+      subject.next({ data: [] });
+      await tick();
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Loading);
+
+      deactivate();
+      expect(queryRunner.state.data).toBeUndefined();
+
+      runRequestMock.mockClear();
+      queryRunner.activate();
+      await tick();
+
+      expect(runRequestMock).toHaveBeenCalledTimes(1);
     });
   });
 });

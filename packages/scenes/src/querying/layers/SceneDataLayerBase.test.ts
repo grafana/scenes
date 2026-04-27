@@ -24,7 +24,7 @@ describe('SceneDataLayerBase', () => {
 
       layer.activate();
 
-      expect(runLayerSpy).toBeCalledTimes(0);
+      expect(runLayerSpy).toHaveBeenCalledTimes(0);
     });
 
     it('should run query when there is no data', () => {
@@ -35,7 +35,7 @@ describe('SceneDataLayerBase', () => {
       });
       layer.activate();
 
-      expect(runLayerSpy).toBeCalledTimes(1);
+      expect(runLayerSpy).toHaveBeenCalledTimes(1);
     });
 
     it('should not run query there is data', () => {
@@ -53,7 +53,7 @@ describe('SceneDataLayerBase', () => {
 
       layer.activate();
 
-      expect(runLayerSpy).toBeCalledTimes(0);
+      expect(runLayerSpy).toHaveBeenCalledTimes(0);
     });
   });
 
@@ -67,8 +67,8 @@ describe('SceneDataLayerBase', () => {
       });
       layer.activate();
 
-      expect(enableSpy).toBeCalledTimes(1);
-      expect(disableSpy).not.toBeCalled();
+      expect(enableSpy).toHaveBeenCalledTimes(1);
+      expect(disableSpy).not.toHaveBeenCalled();
     });
 
     it('should call onDisable handler when activated', () => {
@@ -82,8 +82,8 @@ describe('SceneDataLayerBase', () => {
 
       deactivate();
 
-      expect(enableSpy).toBeCalledTimes(1);
-      expect(disableSpy).toBeCalledTimes(1);
+      expect(enableSpy).toHaveBeenCalledTimes(1);
+      expect(disableSpy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -97,8 +97,8 @@ describe('SceneDataLayerBase', () => {
       });
       layer.activate();
 
-      expect(enableSpy).not.toBeCalled();
-      expect(disableSpy).not.toBeCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
+      expect(disableSpy).not.toHaveBeenCalled();
     });
 
     it('should call onDisable handler when activated', () => {
@@ -112,8 +112,8 @@ describe('SceneDataLayerBase', () => {
 
       deactivate();
 
-      expect(enableSpy).not.toBeCalled();
-      expect(disableSpy).toBeCalledTimes(1);
+      expect(enableSpy).not.toHaveBeenCalled();
+      expect(disableSpy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -140,7 +140,7 @@ describe('SceneDataLayerBase', () => {
       expect(result).toBeDefined();
       expect(result!.data.series).toEqual([]);
       expect(result!.data.state).toEqual(LoadingState.Done);
-      expect(disableSpy).toBeCalledTimes(1);
+      expect(disableSpy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -157,7 +157,7 @@ describe('SceneDataLayerBase', () => {
 
       layer.activate();
 
-      expect(enableSpy).not.toBeCalled();
+      expect(enableSpy).not.toHaveBeenCalled();
 
       layer.getResultsStream().subscribe((r) => {
         result = r;
@@ -166,7 +166,7 @@ describe('SceneDataLayerBase', () => {
 
       layer.setState({ isEnabled: true });
 
-      expect(enableSpy).toBeCalledTimes(1);
+      expect(enableSpy).toHaveBeenCalledTimes(1);
 
       layer.completeRun();
 

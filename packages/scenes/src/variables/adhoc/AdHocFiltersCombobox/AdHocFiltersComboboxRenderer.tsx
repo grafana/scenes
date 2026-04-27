@@ -9,6 +9,7 @@ import { AdHocFilterPill } from './AdHocFilterPill';
 import { AdHocFiltersAlwaysWipCombobox } from './AdHocFiltersAlwaysWipCombobox';
 import { GroupByPill } from './GroupByPill';
 import { isGroupByFilter } from '../AdHocFiltersVariable';
+import { AdHocGroupByRecommendationsRenderer } from '../AdHocFiltersRecommendations';
 
 const MAX_VISIBLE_FILTERS_DEFAULT = 4;
 const MAX_VISIBLE_FILTERS_WITH_GROUP_BY = 2;
@@ -19,7 +20,8 @@ interface Props {
 }
 
 export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRenderer({ controller }: Props) {
-  const { originFilters, filters, readOnly, collapsible, valueRecommendations, enableGroupBy } = controller.useState();
+  const { originFilters, filters, readOnly, collapsible, valueRecommendations, enableGroupBy, groupByRestorable } =
+    controller.useState();
   const styles = useStyles2(getStyles);
   const theme = useTheme2();
   const [collapsed, setCollapsed] = useState(true);
@@ -52,7 +54,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
   };
 
   // Combine all visible filters into one array
-  const visibleOriginFilters = originFilters?.filter((f) => f.origin) ?? [];
+  const visibleOriginFilters = originFilters?.filter((f) => f.origin && !f.hidden && !f.dismissedGroupBy) ?? [];
   const visibleFilters = filters.filter((f) => !f.hidden);
   const allFilters = [...visibleOriginFilters, ...visibleFilters];
   const totalFiltersCount = allFilters.length;
@@ -68,6 +70,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   const groupByFiltersToRender = shouldCollapse ? groupByFilters.slice(0, MAX_VISIBLE_GROUP_BY) : groupByFilters;
   const groupByHiddenCount = shouldCollapse ? Math.max(0, groupByFilters.length - MAX_VISIBLE_GROUP_BY) : 0;
+  const variableControlId = controller.getControlId?.();
 
   // Reset collapsed state when there are no filters (only when collapsible)
   useEffect(() => {
@@ -89,6 +92,17 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
       })}
     >
       {!readOnly && valueRecommendations && <valueRecommendations.Component model={valueRecommendations} />}
+
+      {adhocFiltersToRender.length > 0 && (
+        // if there are filters already selected, this makes sure
+        // that the input is announced before focussing on the pills
+        <span
+          tabIndex={0}
+          aria-labelledby={variableControlId}
+          className={styles.screenReaderOnlyLabel}
+          data-testid="AdHocFilter-label-announcer"
+        />
+      )}
 
       {adhocFiltersToRender.map((filter, index) => (
         <AdHocFilterPill
@@ -130,6 +144,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           <span className={styles.groupByLabel}>
             {t('grafana-scenes.variables.adhoc-filters-combobox-renderer.group-by-label', 'Group by:')}
           </span>
+          {!readOnly && valueRecommendations && <AdHocGroupByRecommendationsRenderer model={valueRecommendations} />}
 
           {groupByFiltersToRender.map((filter, index) => (
             <GroupByPill
@@ -167,6 +182,19 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
               controller={controller}
               onInputClick={handleExpand}
               isGroupBy
+            />
+          )}
+
+          {groupByRestorable && (
+            <IconButton
+              name="history"
+              size="md"
+              className={styles.controlButton}
+              tooltip={t(
+                'grafana-scenes.variables.adhoc-filters-combobox-renderer.restore-default-group-by',
+                'Restore groupby set by this dashboard.'
+              )}
+              onClick={() => controller.restoreOriginalGroupBy?.()}
             />
           )}
         </>
@@ -211,7 +239,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
             <IconButton
               name="times"
               size="md"
-              className={styles.clearAllButton}
+              className={styles.controlButton}
               tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.clear-all', 'Clear all')}
               onClick={clearAll}
             />
@@ -296,10 +324,21 @@ const getStyles = (theme: GrafanaTheme2) => ({
     color: theme.colors.text.primary,
     whiteSpace: 'nowrap',
   }),
-  clearAllButton: css({
+  controlButton: css({
     color: theme.colors.text.secondary,
     '&:hover': {
       color: theme.colors.text.primary,
     },
+  }),
+  screenReaderOnlyLabel: css({
+    position: 'absolute',
+    width: '1px',
+    height: '1px',
+    padding: 0,
+    margin: '-1px',
+    overflow: 'hidden',
+    clip: 'rect(0, 0, 0, 0)',
+    whiteSpace: 'nowrap',
+    border: 0,
   }),
 });
