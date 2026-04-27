@@ -1,3 +1,15 @@
+# v8.0.0 (Mon Apr 27 2026)
+
+#### 💥 Breaking Change
+
+- Fundamentals: No more flickering with render before activation global default option [#1345](https://github.com/grafana/scenes/pull/1345) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v7.4.2 (Thu Apr 23 2026)
 
 #### 🐛 Bug Fix
