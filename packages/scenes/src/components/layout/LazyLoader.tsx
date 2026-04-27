@@ -4,7 +4,6 @@ import { useEffectOnce } from 'react-use';
 import { uniqueId } from 'lodash';
 import { css } from '@emotion/css';
 import { useStyles2 } from '@grafana/ui';
-import { t } from '@grafana/i18n';
 
 export function useUniqueId(): string {
   const idRefLazy = useRef<string | undefined>(undefined);
@@ -17,7 +16,18 @@ export interface Props extends Omit<React.HTMLProps<HTMLDivElement>, 'onChange' 
   key: string;
   onLoad?: () => void;
   onChange?: (isInView: boolean) => void;
+  /**
+   * mount (default) = mounts/renders children when they are first in view.
+   * query = children is always rendered. Only sets the LazyLoaderInViewContext which is used to block query execution for panels out of view
+   */
+  mode?: LazyLoaderMode;
 }
+
+/**
+ * mount (default) = mounts children when they are first in view.
+ * query = children is always rendered. Only sets the LazyLoaderInViewContext which is used to block query execution for panels out of view
+ */
+export type LazyLoaderMode = 'mount' | 'query';
 
 export interface LazyLoaderType extends ForwardRefExoticComponent<Props> {
   addCallback: (id: string, c: (e: IntersectionObserverEntry) => void) => void;
@@ -26,7 +36,7 @@ export interface LazyLoaderType extends ForwardRefExoticComponent<Props> {
 }
 
 export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props>(
-  ({ children, onLoad, onChange, className, ...rest }, ref) => {
+  ({ children, onLoad, onChange, className, mode = 'mount', ...rest }, ref) => {
     const id = useUniqueId();
     const { hideEmpty } = useStyles2(getStyles);
     const [loaded, setLoaded] = useState(false);
@@ -67,8 +77,9 @@ export const LazyLoader: LazyLoaderType = React.forwardRef<HTMLDivElement, Props
     // If the children render empty, the whole loader will be hidden by css.
     return (
       <div id={id} ref={innerRef} className={`${hideEmpty} ${className}`} {...rest}>
-        {!loaded ? (
-          t('grafana-scenes.components.lazy-loader.placeholder', '\u00A0')
+        {!loaded && mode === 'mount' ? (
+          // eslint-disable-next-line @grafana/i18n/no-untranslated-strings
+          '\u00A0'
         ) : (
           <LazyLoaderInViewContext.Provider value={isInView}>{children}</LazyLoaderInViewContext.Provider>
         )}
