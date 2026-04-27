@@ -25,7 +25,11 @@ export function useFreeFormExpression({
   populateInputOnEdit,
 }: UseFreeFormExpressionProps) {
   const operatorValues = useMemo(
-    () => controller.getOperators().map((o) => o.value).filter((v): v is string => Boolean(v)),
+    () =>
+      controller
+        .getOperators()
+        .map((o) => o.value)
+        .filter((v): v is string => Boolean(v)),
     [controller]
   );
 
