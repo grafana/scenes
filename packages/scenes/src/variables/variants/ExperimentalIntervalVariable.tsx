@@ -141,7 +141,7 @@ export class ExperimentalIntervalVariable
         options={model.getOptionsForSelect()}
         onChange={model._onChange}
         width="auto"
-        minWidth={32}
+        minWidth={5}
       />
     );
   };

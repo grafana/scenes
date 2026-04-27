@@ -12,6 +12,7 @@ import { getPanelRepeaterTest } from './panelRepeater';
 import { getQueryEditorDemo } from './queryEditor';
 import { getResponsiveLayoutDemo } from './responsiveLayout';
 import { getVariablesDemo } from './variables';
+import { getVariablesComboboxDemo } from './variablesCombobox';
 import { getDrilldownsAppPageScene } from './withDrilldown/WithDrilldown';
 import { getTimeZoneTest } from './timeZones';
 import { getSplitTest } from './split';
@@ -112,6 +113,12 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Test of variable cascading updates and refresh on time range change',
       getPage: getVariablesDemo,
       getSourceCodeModule: () => import('!!raw-loader!../demos/variables'),
+    },
+    {
+      title: 'Variables (Combobox)',
+      description: 'Variables demo using the experimental Combobox-based value selectors',
+      getPage: getVariablesComboboxDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/variablesCombobox'),
     },
     {
       title: 'Adhoc filters',
