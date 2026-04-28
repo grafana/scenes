@@ -362,7 +362,10 @@ function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHo
       const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
       if (!exists) {
         model.addFilterToParent(filter);
-        getAdHocFilterInteractionHandler(model)?.onRecentFilterApplied({ key: filter.key, operator: filter.operator });
+        getAdHocFilterInteractionHandler(model)?.onRecentFilterApplied?.({
+          key: filter.key,
+          operator: filter.operator,
+        });
       }
     },
   }));
@@ -373,7 +376,7 @@ function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHo
       const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
       if (!exists) {
         model.addFilterToParent(filter);
-        getAdHocFilterInteractionHandler(model)?.onRecommendedFilterApplied({
+        getAdHocFilterInteractionHandler(model)?.onRecommendedFilterApplied?.({
           key: filter.key,
           operator: filter.operator,
         });
@@ -397,7 +400,7 @@ export function AdHocGroupByRecommendationsRenderer({ model }: SceneComponentPro
     label: `${groupBy.value}`,
     onClick: () => {
       model.addGroupByToParent(String(groupBy.value));
-      getAdHocFilterInteractionHandler(model)?.onRecentGroupByApplied({ key: String(groupBy.value) });
+      getAdHocFilterInteractionHandler(model)?.onRecentGroupByApplied?.({ key: String(groupBy.value) });
     },
   }));
 
@@ -405,7 +408,7 @@ export function AdHocGroupByRecommendationsRenderer({ model }: SceneComponentPro
     label: `${groupBy.value}`,
     onClick: () => {
       model.addGroupByToParent(String(groupBy.value));
-      getAdHocFilterInteractionHandler(model)?.onRecommendedGroupByApplied({ key: String(groupBy.value) });
+      getAdHocFilterInteractionHandler(model)?.onRecommendedGroupByApplied?.({ key: String(groupBy.value) });
     },
   }));
 
