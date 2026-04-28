@@ -559,7 +559,7 @@ export class AdHocFiltersVariable
     };
     this._recommendations?.storeRecentGrouping(key);
     this.updateFilters([...this.state.filters, newFilter]);
-    getAdHocFilterInteractionHandler(this)?.onGroupByAdded({ key });
+    getAdHocFilterInteractionHandler(this)?.onGroupByAdded?.({ key });
   }
 
   public restoreOriginalFilter(filter: AdHocFilterWithLabels) {
@@ -581,7 +581,7 @@ export class AdHocFiltersVariable
       operator: originalFilter.operator,
       nonApplicable: originalFilter.nonApplicable,
     });
-    getAdHocFilterInteractionHandler(this)?.onFilterRestored({ key: filter.key, origin: filter.origin });
+    getAdHocFilterInteractionHandler(this)?.onFilterRestored?.({ key: filter.key, origin: filter.origin });
   }
 
   /**
@@ -677,7 +677,7 @@ export class AdHocFiltersVariable
       originFilters: restoredOrigins,
       filters: nonGroupByFilters,
     });
-    getAdHocFilterInteractionHandler(this)?.onGroupByRestored();
+    getAdHocFilterInteractionHandler(this)?.onGroupByRestored?.();
   }
 
   /**
@@ -700,7 +700,7 @@ export class AdHocFiltersVariable
     // Clear all user-added filters
     this.setState({ filters: [] });
 
-    getAdHocFilterInteractionHandler(this)?.onClearAll({
+    getAdHocFilterInteractionHandler(this)?.onClearAll?.({
       filtersCleared: filtersCount,
       originsRestored: restorableCount,
     });
@@ -799,7 +799,7 @@ export class AdHocFiltersVariable
           _wip: undefined,
         });
         this.verifyApplicabilityAndStoreRecentFilter(newFilter);
-        getAdHocFilterInteractionHandler(this)?.onFilterAdded({ key: newFilter.key, operator: newFilter.operator });
+        getAdHocFilterInteractionHandler(this)?.onFilterAdded?.({ key: newFilter.key, operator: newFilter.operator });
       } else {
         this.setState({ _wip: { ...filter, ...update } });
       }
@@ -833,7 +833,7 @@ export class AdHocFiltersVariable
       });
 
       this.setState({ originFilters: updatedOrigins });
-      getAdHocFilterInteractionHandler(this)?.onGroupByRemoved({ key: filter.key, origin: filter.origin });
+      getAdHocFilterInteractionHandler(this)?.onGroupByRemoved?.({ key: filter.key, origin: filter.origin });
     } else {
       this._updateFilter(filter, {
         operator: '=~',
@@ -844,7 +844,7 @@ export class AdHocFiltersVariable
         nonApplicable: false,
         restorable: true,
       });
-      getAdHocFilterInteractionHandler(this)?.onFilterMatchAll({ key: filter.key, origin: filter.origin });
+      getAdHocFilterInteractionHandler(this)?.onFilterMatchAll?.({ key: filter.key, origin: filter.origin });
     }
   }
 
@@ -863,9 +863,9 @@ export class AdHocFiltersVariable
 
     const handler = getAdHocFilterInteractionHandler(this);
     if (isGroupBy) {
-      handler?.onGroupByRemoved({ key: filter.key });
+      handler?.onGroupByRemoved?.({ key: filter.key });
     } else {
-      handler?.onFilterRemoved({ key: filter.key });
+      handler?.onFilterRemoved?.({ key: filter.key });
     }
   }
 
