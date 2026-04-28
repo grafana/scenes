@@ -1,7 +1,8 @@
-import { useEffect, useId } from 'react';
+import { useId } from 'react';
 import { SceneObject, sceneGraph } from '@grafana/scenes';
 import { useSceneContext } from './hooks';
 import { CacheKey, SceneObjectConstructor, getSceneObjectCache } from '../caching/SceneObjectCache';
+import { useAddToScene } from '../contexts/SceneContextObject';
 
 export interface UseSceneObjectProps<T extends SceneObject> {
   factory: (key: string) => T;
@@ -44,7 +45,7 @@ export function useSceneObject<T extends SceneObject>(options: UseSceneObjectPro
     }
   }
 
-  useEffect(() => scene.addToScene(obj), [obj, scene]);
+  useAddToScene(obj, scene);
 
   return obj;
 }

@@ -1,4 +1,4 @@
-import { SelectableValue } from '@grafana/data';
+import { escapeRegex, SelectableValue } from '@grafana/data';
 import uFuzzy from '@leeoniya/ufuzzy';
 import { VariableValueOption } from './types';
 
@@ -48,10 +48,12 @@ export function fuzzyFind<T extends SelectableValue | VariableValueOption>(
     // if these differ then special chars exist in the input
     keptChars !== inputChars
   ) {
+    const needleRegex = new RegExp(escapeRegex(needle), 'i');
+
     for (let i = 0; i < haystack.length; i++) {
       let item = haystack[i];
 
-      if (item.includes(needle)) {
+      if (needleRegex.test(item)) {
         matches.push(options[i]);
       }
     }

@@ -294,9 +294,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
           if (otherVariable.validateAndUpdate) {
             this._variablesToUpdate.add(otherVariable);
           }
-
-          // Because _traverseSceneAndNotify skips itself (and this sets variables) we call this here to notify the variable of the change
-          otherVariable.variableDependency.variableUpdateCompleted(variableThatChanged, true);
         }
       }
     }
@@ -317,8 +314,17 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * Recursivly walk the full scene object graph and notify all objects with dependencies that include any of changed variables
    */
   private _traverseSceneAndNotify(sceneObject: SceneObject, variable: SceneVariable, hasChanged: boolean) {
-    // No need to notify variables under this SceneVariableSet
+    // Special handling for this SceneVariableSet
     if (this === sceneObject) {
+      for (const childVariable of this.state.variables) {
+        if (childVariable === variable) {
+          continue;
+        }
+
+        if (childVariable.variableDependency) {
+          childVariable.variableDependency.variableUpdateCompleted(variable, hasChanged);
+        }
+      }
       return;
     }
 
@@ -352,6 +358,12 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
    * For example if C depends on variable B which depends on variable A and A is loading this returns true for variable C and B.
    */
   public isVariableLoadingOrWaitingToUpdate(variable: SceneVariable) {
+    // When SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true then panel and query runners can activate before parents (and variable sets)
+    // So in order to block query execution before set has activated we check if the variable needs update/validation and if so return true here
+    if (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT && !this.isActive && this._variableNeedsUpdate(variable)) {
+      return true;
+    }
+
     if (variable.state.loading) {
       return true;
     }

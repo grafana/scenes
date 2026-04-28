@@ -1,3 +1,42 @@
+# v8.0.0 (Mon Apr 27 2026)
+
+#### 💥 Breaking Change
+
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Fundamentals: No more flickering with render before activation global default option [#1345](https://github.com/grafana/scenes/pull/1345) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v7.4.2 (Thu Apr 23 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Variables: Fix options search to be case-insensitive [#1433](https://github.com/grafana/scenes/pull/1433) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v7.4.1 (Wed Apr 22 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Clear incomplete data on deactivation to prevent stuck panels [#1430](https://github.com/grafana/scenes/pull/1430) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v7.4.0 (Mon Apr 20 2026)
 
 #### 🚀 Enhancement

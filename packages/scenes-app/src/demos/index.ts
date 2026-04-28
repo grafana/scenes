@@ -44,6 +44,7 @@ import { getSceneGraphEventsDemo } from './sceneGraphEvents';
 import { getSeriesLimitTest } from './seriesLimit';
 import { getScopesDemo } from './scopesDemo';
 import { getVariableWithObjectValuesDemo } from './variableWithObjectValuesDemo';
+import { getFlickeringDemo } from './flickeringDemo';
 
 export interface DemoDescriptor {
   title: string;
@@ -325,6 +326,12 @@ export function getDemos(): DemoDescriptor[] {
       description: '',
       getPage: getVariableWithObjectValuesDemo,
       getSourceCodeModule: () => import('!!raw-loader!../demos/variableWithObjectValuesDemo.tsx'),
+    },
+    {
+      title: 'Flickering demo',
+      description: 'Demo showing flickering panels',
+      getPage: getFlickeringDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/flickeringDemo.tsx'),
     },
   ].sort((a, b) => a.title.localeCompare(b.title));
 }
