@@ -1,3 +1,15 @@
+# v8.1.0 (Wed Apr 29 2026)
+
+#### 🚀 Enhancement
+
+- AdHocFilters: Support free-form filter expression input in combobox [#1431](https://github.com/grafana/scenes/pull/1431) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v8.0.0 (Mon Apr 27 2026)
 
 #### 💥 Breaking Change
