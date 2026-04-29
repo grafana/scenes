@@ -113,6 +113,45 @@ describe('useFreeFormExpression', () => {
     });
   });
 
+  describe('canCommitFullExpression — Tab-commit gate (requires a parsed value)', () => {
+    it.each<{ name: string; props: Partial<UseFreeFormExpressionProps>; expected: boolean }>([
+      { name: 'empty input', props: { inputValue: '' }, expected: false },
+      { name: 'key only (no operator)', props: { inputValue: 'instance' }, expected: false },
+      { name: 'key + operator with no value', props: { inputValue: 'instance =' }, expected: false },
+      { name: 'unparseable input', props: { inputValue: 'just a key' }, expected: false },
+      { name: 'complete single-value', props: { inputValue: 'instance = tempo' }, expected: true },
+      { name: 'complete negated', props: { inputValue: 'instance != tempo' }, expected: true },
+      { name: 'complete multi-value', props: { inputValue: 'region =| us-east, us-west' }, expected: true },
+      {
+        name: 'operator mode without value',
+        props: {
+          filter: { key: 'instance', keyLabel: 'Instance', operator: '', value: '' },
+          filterInputType: 'operator',
+          inputValue: '=',
+        },
+        expected: false,
+      },
+      {
+        name: 'operator mode with value',
+        props: {
+          filter: { key: 'instance', keyLabel: 'Instance', operator: '', value: '' },
+          filterInputType: 'operator',
+          inputValue: '= tempo',
+        },
+        expected: true,
+      },
+    ])('is $expected for $name', ({ props, expected }) => {
+      const { result } = renderFreeForm(props);
+      expect(result.current.canCommitFullExpression).toBe(expected);
+    });
+
+    it('is false even when canCommitExpressionUpdate is true (operator-only stage like "instance =")', () => {
+      const { result } = renderFreeForm({ inputValue: 'instance =' });
+      expect(result.current.canCommitExpressionUpdate).toBe(true);
+      expect(result.current.canCommitFullExpression).toBe(false);
+    });
+  });
+
   describe('commitExpressionUpdate — guards', () => {
     it('returns null when filter is undefined', () => {
       const { result } = renderFreeForm({ filter: undefined, inputValue: 'instance = tempo' });
