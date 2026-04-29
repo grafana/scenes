@@ -474,18 +474,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     [controller, filter, onAddCustomValue]
   );
 
-  const handleTabCommitFreeForm = useCallback((): boolean => {
-    if (!canCommitFullExpression || !filter) {
-      return false;
-    }
-    const parsed = commitExpressionUpdate();
-    if (!parsed?.value) {
-      return false;
-    }
-    commitFullParsedExpression(parsed);
-    return true;
-  }, [canCommitFullExpression, commitExpressionUpdate, commitFullParsedExpression, filter]);
-
   const handleTabInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
       // change filter to view mode when navigating away with Tab key
@@ -496,8 +484,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           event.preventDefault();
           handleMultiValueFilterCommit(controller, filter!, filterMultiValues);
           refs.domReference.current?.focus();
-        } else {
-          handleTabCommitFreeForm();
+        } else if (canCommitFullExpression && filter) {
+          // Free-form commit on tab away.
+          // Tab accepts the current value and moves focus to the next focusable element.
+          const parsed = commitExpressionUpdate();
+          if (parsed?.value) {
+            commitFullParsedExpression(parsed);
+          }
         }
 
         handleChangeViewMode?.();
@@ -510,7 +503,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       handleChangeViewMode,
       handleMultiValueFilterCommit,
       handleResetWip,
-      handleTabCommitFreeForm,
+      canCommitFullExpression,
+      commitExpressionUpdate,
+      commitFullParsedExpression,
       controller,
       refs.domReference,
     ]
