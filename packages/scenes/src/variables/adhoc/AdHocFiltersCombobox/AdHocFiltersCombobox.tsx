@@ -523,22 +523,12 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           // commit multi value filter values on shift tab away
           event.preventDefault();
           handleMultiValueFilterCommit(controller, filter!, filterMultiValues, true);
-        } else {
-          handleTabCommitFreeForm();
         }
         handleChangeViewMode?.();
         handleResetWip();
       }
     },
-    [
-      filter,
-      filterMultiValues,
-      handleChangeViewMode,
-      handleMultiValueFilterCommit,
-      handleResetWip,
-      handleTabCommitFreeForm,
-      controller,
-    ]
+    [filter, filterMultiValues, handleChangeViewMode, handleMultiValueFilterCommit, handleResetWip, controller]
   );
 
   const handleEnterInput = useCallback(
