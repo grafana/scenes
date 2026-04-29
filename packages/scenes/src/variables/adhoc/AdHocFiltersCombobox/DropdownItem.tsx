@@ -10,19 +10,30 @@ interface DropdownItemProps {
   addGroupBottomBorder?: boolean;
   isMultiValueEdit?: boolean;
   checked?: boolean;
+  nonInteractive?: boolean;
 }
 
 export const DropdownItem = forwardRef<HTMLDivElement, DropdownItemProps & React.HTMLProps<HTMLDivElement>>(
-  function DropdownItem({ children, active, addGroupBottomBorder, isMultiValueEdit, checked, ...rest }, ref) {
+  function DropdownItem(
+    { children, active, addGroupBottomBorder, isMultiValueEdit, checked, nonInteractive, ...rest },
+    ref
+  ) {
     const styles = useStyles2(getStyles);
     const id = useId();
+
+    const ariaProps = nonInteractive ? {} : { role: 'option', 'aria-selected': active };
+
     return (
       <div
         ref={ref}
-        role="option"
         id={id}
-        aria-selected={active}
-        className={cx(styles.option, active && styles.optionFocused, addGroupBottomBorder && styles.groupBottomBorder)}
+        {...ariaProps}
+        className={cx(
+          styles.option,
+          active && styles.optionFocused,
+          addGroupBottomBorder && styles.groupBottomBorder,
+          nonInteractive && styles.optionNonInteractive
+        )}
         {...rest}
       >
         <div className={styles.optionBody} data-testid={`data-testid ad hoc filter option value ${children}`}>
@@ -64,6 +75,16 @@ const getStyles = (theme: GrafanaTheme2) => ({
       border: `1px solid ${theme.colors.primary.border}`,
     },
   }),
+  optionNonInteractive: css({
+    label: 'grafana-select-option-non-interactive',
+    cursor: 'default',
+    '&:hover': {
+      background: 'transparent',
+      '@media (forced-colors: active), (prefers-contrast: more)': {
+        border: 'none',
+      },
+    },
+  }),
   optionBody: css({
     label: 'grafana-select-option-body',
     display: 'flex',
@@ -94,7 +115,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
 
 export const LoadingOptionsPlaceholder = () => {
   return (
-    <DropdownItem onClick={(e) => e.stopPropagation()}>
+    <DropdownItem nonInteractive onClick={(e) => e.stopPropagation()}>
       <Trans i18nKey="grafana-scenes.variables.loading-options-placeholder.loading-options">Loading options...</Trans>
     </DropdownItem>
   );
@@ -102,8 +123,18 @@ export const LoadingOptionsPlaceholder = () => {
 
 export const NoOptionsPlaceholder = () => {
   return (
-    <DropdownItem onClick={(e) => e.stopPropagation()}>
+    <DropdownItem nonInteractive onClick={(e) => e.stopPropagation()}>
       <Trans i18nKey="grafana-scenes.variables.no-options-placeholder.no-options-found">No options found</Trans>
+    </DropdownItem>
+  );
+};
+
+export const ExpressionHintPlaceholder = () => {
+  return (
+    <DropdownItem nonInteractive onClick={(e) => e.stopPropagation()}>
+      <Trans i18nKey="grafana-scenes.variables.expression-hint-placeholder.press-enter-to-apply">
+        Press Enter to apply
+      </Trans>
     </DropdownItem>
   );
 };

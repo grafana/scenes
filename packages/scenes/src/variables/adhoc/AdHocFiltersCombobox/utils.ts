@@ -220,3 +220,50 @@ export const populateInputValueOnInputTypeSwitch = ({
     setInputValue('');
   }
 };
+
+/**
+ * Parse a free-form filter string into its parts.
+ * Handles both full expressions ("instance = tempo") and partial ones ("= tempo", "!=").
+ * Returns null if no recognised operator is found.
+ *
+ * Finds the earliest operator occurrence in the string. When multiple operators
+ * match at the same position, the longest one wins (e.g. "!=" over "=").
+ *
+ * @param operatorValues - The operator strings to recognise, sourced from controller.getOperators().
+ */
+export function parseFilterExpression(
+  input: string,
+  operatorValues: string[]
+): { key: string | undefined; operator: string; value: string } | null {
+  const trimmed = input.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  let matchIndex = -1;
+  let matchedOperator = '';
+
+  for (const op of operatorValues) {
+    const idx = trimmed.indexOf(op);
+    if (idx === -1) {
+      continue;
+    }
+
+    if (matchIndex === -1 || idx < matchIndex || (idx === matchIndex && op.length > matchedOperator.length)) {
+      matchIndex = idx;
+      matchedOperator = op;
+    }
+  }
+
+  if (matchIndex === -1) {
+    return null;
+  }
+
+  const key = matchIndex > 0 ? trimmed.slice(0, matchIndex).trim() : undefined;
+  if (matchIndex > 0 && !key) {
+    return null;
+  }
+
+  const value = trimmed.slice(matchIndex + matchedOperator.length).trim();
+  return { key, operator: matchedOperator, value };
+}
