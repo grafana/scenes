@@ -1,3 +1,15 @@
+# v8.1.2 (Thu Apr 30 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Don't store incomplete filters in recents [#1437](https://github.com/grafana/scenes/pull/1437) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v8.1.1 (Thu Apr 30 2026)
 
 #### 🐛 Bug Fix
