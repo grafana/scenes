@@ -73,12 +73,7 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
-    "@grafana/data": "link:/Users/serge/dev/grafana/packages/grafana-data",
-    "@grafana/e2e-selectors": "link:/Users/serge/dev/grafana/packages/grafana-e2e-selectors",
-    "@grafana/i18n": "link:/Users/serge/dev/grafana/packages/grafana-i18n",
-    "@grafana/runtime": "link:/Users/serge/dev/grafana/packages/grafana-runtime",
-    "@grafana/schema": "link:/Users/serge/dev/grafana/packages/grafana-schema",
-    "@grafana/ui": "link:/Users/serge/dev/grafana/packages/grafana-ui",
+    "@grafana/i18n": "12.1.0",
     "@rollup/plugin-dynamic-import-vars": "2.1.5",
     "@rollup/plugin-json": "^6.1.0",
     "@types/history": "4.7.11",
