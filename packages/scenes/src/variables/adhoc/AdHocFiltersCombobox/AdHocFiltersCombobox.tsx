@@ -112,15 +112,16 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const optionsSearcher = useMemo(() => getAdhocOptionSearcher(options), [options]);
 
-  const { canCommitExpressionUpdate, parseExpression, commitExpressionUpdate } = useFreeFormExpression({
-    controller,
-    filter,
-    inputValue,
-    filterInputType,
-    allowCustomValue,
-    isGroupBy,
-    populateInputOnEdit,
-  });
+  const { canCommitExpressionUpdate, canCommitFullExpression, parseExpression, commitExpressionUpdate } =
+    useFreeFormExpression({
+      controller,
+      filter,
+      inputValue,
+      filterInputType,
+      allowCustomValue,
+      isGroupBy,
+      populateInputOnEdit,
+    });
 
   const isLastFilter = useMemo(() => {
     if (isAlwaysWip) {
@@ -451,6 +452,28 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     ]
   );
 
+  const commitFullParsedExpression = useCallback(
+    (parsed: Partial<AdHocFilterWithLabels>): boolean => {
+      if (!filter || !parsed.value) {
+        return false;
+      }
+
+      controller.startProfile?.(FILTER_CHANGED_INTERACTION);
+
+      const isMultiValueCommit = Boolean(parsed.operator && isMultiValueOperator(parsed.operator));
+      if (!isMultiValueCommit && onAddCustomValue) {
+        const custom = onAddCustomValue({ label: parsed.value, value: parsed.value, isCustom: true }, filter);
+        parsed.value = custom.value;
+        parsed.valueLabels = custom.valueLabels;
+      }
+
+      controller.updateFilter(filter, parsed);
+      setActiveIndex(null);
+      return isMultiValueCommit;
+    },
+    [controller, filter, onAddCustomValue]
+  );
+
   const handleTabInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
       // change filter to view mode when navigating away with Tab key
@@ -461,6 +484,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           event.preventDefault();
           handleMultiValueFilterCommit(controller, filter!, filterMultiValues);
           refs.domReference.current?.focus();
+        } else if (canCommitFullExpression && filter) {
+          // Free-form commit on tab away.
+          // Tab accepts the current value and moves focus to the next focusable element.
+          const parsed = commitExpressionUpdate();
+          if (parsed?.value) {
+            commitFullParsedExpression(parsed);
+          }
         }
 
         handleChangeViewMode?.();
@@ -473,6 +503,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       handleChangeViewMode,
       handleMultiValueFilterCommit,
       handleResetWip,
+      canCommitFullExpression,
+      commitExpressionUpdate,
+      commitFullParsedExpression,
       controller,
       refs.domReference,
     ]
@@ -509,16 +542,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             return;
           }
 
-          controller.startProfile?.(FILTER_CHANGED_INTERACTION);
-
-          const isMultiValueCommit = Boolean(parsed.operator && isMultiValueOperator(parsed.operator));
-          if (!isMultiValueCommit && onAddCustomValue) {
-            const custom = onAddCustomValue({ label: parsed.value, value: parsed.value, isCustom: true }, filter);
-            parsed.value = custom.value;
-            parsed.valueLabels = custom.valueLabels;
-          }
-
-          controller.updateFilter(filter, parsed);
+          const isMultiValueCommit = commitFullParsedExpression(parsed);
 
           if (isAlwaysWip) {
             handleResetWip();
@@ -532,7 +556,6 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
             setOpen(false);
           }
 
-          setActiveIndex(null);
           return;
         }
       }
@@ -611,6 +634,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       filterInputType,
       canCommitExpressionUpdate,
       commitExpressionUpdate,
+      commitFullParsedExpression,
       populateInputOnEdit,
       handleChangeViewMode,
       refs.domReference,

@@ -54,6 +54,7 @@ export function useFreeFormExpression({
 
   const parsedExpression = useMemo(() => parseExpression(inputValue), [parseExpression, inputValue]);
   const canCommitExpressionUpdate = parsedExpression !== null;
+  const canCommitFullExpression = Boolean(parsedExpression?.value);
 
   const commitExpressionUpdate = useCallback((): Partial<AdHocFilterWithLabels> | null => {
     if (!parsedExpression || !filter) {
@@ -96,6 +97,7 @@ export function useFreeFormExpression({
   return {
     parseExpression,
     canCommitExpressionUpdate,
+    canCommitFullExpression,
     commitExpressionUpdate,
   };
 }
