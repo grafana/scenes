@@ -10,6 +10,8 @@ import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../performance/interactio
 import { getVariableControlId } from '../utils';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
+const SELECT_ALL_VARIABLE_VALUE = '$__select__all';
+
 /**
  * @internal Temporary experimental alternative to VariableValueSelect
  * that renders <Combobox /> instead of <Select />. Enable from the variable
@@ -22,26 +24,19 @@ export function ExperimentalVariableValueSelect({
   model: MultiValueVariable;
   state: MultiValueVariableState;
 }) {
-  const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = state;
+  const { value, key, options, includeAll, isReadOnly, allowCustomValue = true } = state;
   const queryController = sceneGraph.getQueryController(model);
 
   const comboboxOptions = useMemo<Array<ComboboxOption<string>>>(() => {
-    const mapped = [
-      ...(includeAll ? [{ value: ALL_VARIABLE_VALUE, label: `${ALL_VARIABLE_TEXT} (variable)` }] : []),
-      ...options,
-    ].map((o) => ({
-      value: String(o.value),
-      label: o.label,
-      group: o.group,
-    }));
-
-    // If current value is not in the options list, surface it so it stays visible.
-    if (!isArray(value) && !mapped.some((o) => o.value === String(value))) {
-      mapped.unshift({ value: String(value), label: String(text), group: undefined });
-    }
-
+    const mapped = [...(includeAll ? [{ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT }] : []), ...options].map(
+      (o) => ({
+        value: String(o.value),
+        label: o.label,
+        group: o.group,
+      })
+    );
     return mapped;
-  }, [options, includeAll, value, text]);
+  }, [options, includeAll]);
 
   return (
     <Combobox<string>
@@ -58,7 +53,7 @@ export function ExperimentalVariableValueSelect({
         if (!option) {
           return;
         }
-        // console.log(option);
+
         model.changeValueTo(option.value, option.label ?? option.value, true);
         queryController?.startProfile(VARIABLE_VALUE_CHANGED_INTERACTION);
       }}
@@ -77,15 +72,12 @@ export function ExperimentalVariableValueSelectMulti({
   model: MultiValueVariable;
   state: MultiValueVariableState;
 }) {
-  const { value: rawValue, options, key, includeAll, isReadOnly, allowCustomValue = true } = state;
-  const value = isArray(rawValue) ? rawValue : [rawValue];
+  const { value: rawValue, options, key, includeAll, isReadOnly, allowCustomValue = true, loading } = state;
+  const value = (isArray(rawValue) ? rawValue : [rawValue]) as string[];
 
-  const comboboxOptions = useMemo<Array<ComboboxOption<string>>>(
+  const baseOptions = useMemo<Array<ComboboxOption<string>>>(
     () =>
-      [
-        ...(includeAll ? [{ value: ALL_VARIABLE_VALUE, label: `${ALL_VARIABLE_TEXT} (variable)` }] : []),
-        ...options,
-      ].map((o) => ({
+      [...(includeAll ? [{ value: ALL_VARIABLE_VALUE, label: ALL_VARIABLE_TEXT }] : []), ...options].map((o) => ({
         value: String(o.value),
         label: o.label,
         group: o.group,
@@ -93,45 +85,67 @@ export function ExperimentalVariableValueSelectMulti({
     [includeAll, options]
   );
 
-  // console.log(value);
+  const comboboxOptions = useMemo<Array<ComboboxOption<string>>>(
+    () => [
+      {
+        value: SELECT_ALL_VARIABLE_VALUE,
+        label: `${t('grafana-scenes.variables.variable-value-select.selected-options', 'Selected')} (${value.length})`,
+      },
+      ...baseOptions,
+    ],
+    [baseOptions, value.length]
+  );
 
   return (
     <MultiCombobox<string>
       id={getVariableControlId(model.state.type, key)}
-      placeholder={
-        options.length > 0
-          ? t('grafana-scenes.variables.variable-value-select.placeholder-select-value', 'Select value')
-          : ''
-      }
+      placeholder={t('grafana-scenes.variables.variable-value-select.placeholder-select-value', 'Select value')}
       width="auto"
       minWidth={7}
       disabled={isReadOnly}
+      loading={loading}
       value={value}
-      enableAllOption={true}
+      enableAllOption={false}
       createCustomValue={allowCustomValue}
       isClearable
       options={comboboxOptions}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${value}`)}
       onChange={(selected: Array<ComboboxOption<string>>) => {
-        if (includeAll) {
-          console.log('selected', selected);
-          console.log('value', value);
-
-          const prevHasAll = [value.at(0), selected.at(-1)].includes(ALL_VARIABLE_VALUE);
-          const newHasAll = [selected.at(0).value, selected.at(-1).value].includes(ALL_VARIABLE_VALUE);
-
-          if (prevHasAll && newHasAll) {
+        if (selected.at(-1)?.value === SELECT_ALL_VARIABLE_VALUE) {
+          // Select all logic
+          if (value.length < options.length) {
+            model.changeValueTo(
+              options.map((option) => option.value),
+              undefined,
+              true
+            );
+            return;
           }
 
+          // Deselect all path
+          model.changeValueTo([], undefined, true);
+          return;
+        }
+
+        if (includeAll) {
+          const prevHasAll = value.at(0) === ALL_VARIABLE_VALUE;
+          const newHasAll = selected.at(-1)?.value === ALL_VARIABLE_VALUE;
+
+          // When selecting $__all second time act as Select All
+          if (prevHasAll && value.length === 1 && !selected.length) {
+            model.changeValueTo(
+              options.map((opt) => opt.value),
+              undefined,
+              true
+            );
+            return;
+          }
+
+          // Handle selecting All ($__all) option
           if (newHasAll) {
             model.changeValueTo([ALL_VARIABLE_VALUE], undefined, true);
+            return;
           }
-          // if (selected.length === comboboxOptions.length) {
-          //   const optionsWithoutAll = comboboxOptions.slice(1);
-
-          //   model.changeValueTo(optionsWithoutAll, undefined, true);
-          //   return;
-          // }
         }
 
         const normalised = selected.map((option) => option.value);

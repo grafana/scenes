@@ -114,8 +114,8 @@
         "restore-default-group-by": "Restore groupby set by this dashboard.",
         "show-more-filters_one": "Show {{count}} more filters",
         "show-more-filters_other": "Show {{count}} more filters",
-        "show-more-group-by_one": "Show {{count}} more group by keys",
-        "show-more-group-by_other": "Show {{count}} more group by keys"
+        "show-more-group-by_one": "Show {{count}} more group by",
+        "show-more-group-by_other": "Show {{count}} more group by"
       },
       "data-source-variable": {
         "label": {
@@ -179,7 +179,8 @@
         "placeholder-enter-value": "Enter value"
       },
       "variable-value-select": {
-        "placeholder-select-value": "Select value"
+        "placeholder-select-value": "Select value",
+        "selected-options": "Selected"
       }
     }
   }
