@@ -12,8 +12,8 @@ import { getDataSource } from '../../utils/getDataSource';
 import { DrilldownRecommendations, DrilldownPill } from '../components/DrilldownRecommendations';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../constants';
-import { reportInteraction } from '@grafana/runtime';
 import { AdHocFilterWithLabels, AdHocFiltersVariable, isGroupByFilter } from './AdHocFiltersVariable';
+import { getAdHocFilterInteractionHandler } from '../../core/sceneGraph/getReportInteractionHandler';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
@@ -362,7 +362,7 @@ function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHo
       const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
       if (!exists) {
         model.addFilterToParent(filter);
-        reportInteraction('grafana_unified_drilldown_recent_filter_applied', {
+        getAdHocFilterInteractionHandler(model)?.onRecentFilterApplied?.({
           key: filter.key,
           operator: filter.operator,
         });
@@ -376,7 +376,7 @@ function AdHocFiltersRecommendationsRenderer({ model }: SceneComponentProps<AdHo
       const exists = filters.some((f) => f.key === filter.key && f.value === filter.value);
       if (!exists) {
         model.addFilterToParent(filter);
-        reportInteraction('grafana_unified_drilldown_recommended_filter_applied', {
+        getAdHocFilterInteractionHandler(model)?.onRecommendedFilterApplied?.({
           key: filter.key,
           operator: filter.operator,
         });
@@ -400,9 +400,7 @@ export function AdHocGroupByRecommendationsRenderer({ model }: SceneComponentPro
     label: `${groupBy.value}`,
     onClick: () => {
       model.addGroupByToParent(String(groupBy.value));
-      reportInteraction('grafana_unified_drilldown_recent_groupby_applied', {
-        key: String(groupBy.value),
-      });
+      getAdHocFilterInteractionHandler(model)?.onRecentGroupByApplied?.({ key: String(groupBy.value) });
     },
   }));
 
@@ -410,9 +408,7 @@ export function AdHocGroupByRecommendationsRenderer({ model }: SceneComponentPro
     label: `${groupBy.value}`,
     onClick: () => {
       model.addGroupByToParent(String(groupBy.value));
-      reportInteraction('grafana_unified_drilldown_recommended_groupby_applied', {
-        key: String(groupBy.value),
-      });
+      getAdHocFilterInteractionHandler(model)?.onRecommendedGroupByApplied?.({ key: String(groupBy.value) });
     },
   }));
 
