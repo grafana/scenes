@@ -12,8 +12,8 @@ import { getDataSource } from '../../utils/getDataSource';
 import { DrilldownRecommendations, DrilldownPill } from '../components/DrilldownRecommendations';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { SCOPES_VARIABLE_NAME } from '../constants';
-import { AdHocFilterWithLabels, AdHocFiltersVariable, isGroupByFilter } from './AdHocFiltersVariable';
 import { getAdHocFilterInteractionHandler } from '../../core/sceneGraph/getReportInteractionHandler';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, isFilterComplete, isGroupByFilter } from './AdHocFiltersVariable';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../core/types';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
@@ -293,8 +293,13 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
 
   /**
    * Stores a recent filter in localStorage and updates state.
+   * No-op for filters that are not yet complete (key/operator/value all set)
    */
   public storeRecentFilter(filter: AdHocFilterWithLabels) {
+    if (!isFilterComplete(filter)) {
+      return;
+    }
+
     const key = this._getFiltersStorageKey();
     const storedFilters = store.get(key);
     const allRecentFilters = storedFilters ? JSON.parse(storedFilters) : [];
@@ -311,10 +316,10 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
 
   /**
    * Stores a recent grouping key in localStorage and updates state.
-   * No-op when enableGroupBy is false.
+   * No-op when enableGroupBy is false or when the key is empty.
    */
   public storeRecentGrouping(groupByKey: string) {
-    if (!this._isGroupByEnabled) {
+    if (!this._isGroupByEnabled || !groupByKey) {
       return;
     }
 

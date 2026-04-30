@@ -223,6 +223,28 @@ describe('AdHocFiltersRecommendations', () => {
         expect(recommendations!.state.recentFilters!.length).toBeLessThanOrEqual(MAX_RECENT_DRILLDOWNS);
       });
     });
+
+    it('should not store incomplete filters', async () => {
+      const { filtersVar } = setup({
+        drilldownRecommendationsEnabled: true,
+        filters: [{ key: 'cluster', value: '1', operator: '=' }],
+      });
+
+      let recommendations: AdHocFiltersRecommendations | undefined;
+      await waitFor(() => {
+        recommendations = filtersVar.getRecommendations();
+        expect(recommendations).toBeDefined();
+      });
+
+      act(() => {
+        recommendations!.storeRecentFilter({ key: '', operator: '', value: '' });
+        recommendations!.storeRecentFilter({ key: 'cluster', operator: '', value: '' });
+        recommendations!.storeRecentFilter({ key: 'cluster', operator: '=', value: '' });
+        recommendations!.storeRecentFilter({ key: '', operator: '=', value: 'us-east' });
+      });
+
+      expect(localStorage.getItem(RECENT_FILTERS_KEY)).toBeNull();
+    });
   });
 
   describe('addFilterToParent', () => {
