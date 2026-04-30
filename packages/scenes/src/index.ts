@@ -82,6 +82,7 @@ export {
 } from './variables/variants/MultiValueVariable';
 export { LocalValueVariable } from './variables/variants/LocalValueVariable';
 export { IntervalVariable } from './variables/variants/IntervalVariable';
+export { ExperimentalIntervalVariable } from './variables/variants/ExperimentalIntervalVariable';
 export {
   AdHocFiltersVariable,
   OPERATORS,
