@@ -1,3 +1,29 @@
+# v8.1.1 (Thu Apr 30 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Report interactions through behaviour [#1424](https://github.com/grafana/scenes/pull/1424) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.1.0 (Wed Apr 29 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFilters: Support free-form filter expression input in combobox [#1431](https://github.com/grafana/scenes/pull/1431) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+#### Authors: 1
+
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v8.0.0 (Mon Apr 27 2026)
 
 #### 💥 Breaking Change
