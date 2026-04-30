@@ -31,6 +31,21 @@
 - `@grafana/scenes-react`, `@grafana/scenes`
   - Fundamentals: No more flickering with render before activation global default option [#1345](https://github.com/grafana/scenes/pull/1345) ([@torkelo](https://github.com/torkelo))
 
+#### Changes to LazyLoader
+
+- We have to render children even on first mount, query execution is still blocked due to LazyLoaderInViewContext state, which defaults to false
+- If your using LazyLoader directly you need to set mode="query" to opt-in to new behavior. SceneCSSGridLayout and SceneGridLayout both set mode="query" which means that all VizPanels will activate and render (even off-screen) but they will not cause queries to be issued.
+
+#### Changes to VizPanelRendering
+
+- Render PanelChrome even when we have no div measurement (PanelChrome will be rendered with undefined width/height, which will switch it to auto size mode).
+- Visualization (panel plugin) is still not rendered until we have a measurement
+
+#### SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true
+
+You can now enable a new activation mode for all scene objects. This should fix flickering issues due to staggered rendering/activation. When `SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true` leaf scene objects will render & activate before parents (like normal useEffect hooks). This could cause
+breaking bugs in scene applications if there is code that depends on parent scene objects being activated before their children.
+
 #### Authors: 1
 
 - Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
