@@ -1,3 +1,15 @@
+# v8.1.1 (Thu Apr 30 2026)
+
+#### 🐛 Bug Fix
+
+- Filters: Report interactions through behaviour [#1424](https://github.com/grafana/scenes/pull/1424) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.1.0 (Wed Apr 29 2026)
 
 #### 🚀 Enhancement
