@@ -127,7 +127,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   /**
    * Optionally provide an array of static keys that override getTagKeys
    */
-  defaultKeys?: MetricFindValue[];
+  defaultKeys?: MetricFindValue[] | CustomFindValue[];
 
   /**
    * This is the expression that the filters resulted in. Defaults to
@@ -195,16 +195,20 @@ export type OnAddCustomValueFn = (
   filter: AdHocFilterWithLabels
 ) => { value: string | undefined; valueLabels: string[] };
 
+export interface CustomFindValue extends MetricFindValue {
+  description?: string;
+}
+
 export type getTagKeysProvider = (
   variable: AdHocFiltersVariable,
   currentKey: string | null,
   operators?: OperatorDefinition[]
-) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] | CustomFindValue[] }>;
 
 export type getTagValuesProvider = (
   variable: AdHocFiltersVariable,
   filter: AdHocFilterWithLabels
-) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] }>;
+) => Promise<{ replace?: boolean; values: GetTagResponse | MetricFindValue[] | CustomFindValue[] }>;
 
 export type getGroupByKeysProvider = (
   variable: AdHocFiltersVariable,
@@ -1292,7 +1296,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
 });
 
-export function toSelectableValue(input: MetricFindValue): SelectableValue<string> {
+export function toSelectableValue(input: MetricFindValue | CustomFindValue): SelectableValue<string> {
   const { text, value } = input;
   const result: SelectableValue<string> = {
     // converting text to string due to some edge cases where it can be a number
@@ -1307,6 +1311,10 @@ export function toSelectableValue(input: MetricFindValue): SelectableValue<strin
 
   if ('meta' in input) {
     result.meta = input.meta;
+  }
+
+  if ('description' in input) {
+    result.description = input.description;
   }
 
   return result;
