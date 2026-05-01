@@ -219,18 +219,13 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
       : undefined;
   let tooltip: string | undefined;
-  let width: string | undefined;
+  let loadingText: string | undefined;
+  if (withText) {
+    loadingText = t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel');
+  }
 
   if (isRunning) {
     tooltip = t('grafana-scenes.components.scene-refresh-picker.tooltip-cancel', 'Cancel all queries');
-
-    if (withText) {
-      text = t('grafana-scenes.components.scene-refresh-picker.text-cancel', 'Cancel');
-    }
-  }
-
-  if (withText) {
-    width = '96px';
   }
 
   return (
@@ -239,8 +234,9 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
       value={refresh}
       intervals={intervals}
       tooltip={tooltip}
-      width={width}
       text={text}
+      // @ts-expect-error - this prop is only available in grafana>13.1.0-25211456722
+      loadingText={loadingText}
       onRefresh={() => {
         model.onRefresh();
       }}
