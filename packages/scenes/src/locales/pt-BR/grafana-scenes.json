@@ -4,20 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Editar filtro com chave {{keyLabel}}",
         "managed-filter": "Filtro gerenciado de {{origin}}",
-        "non-applicable": "",
+        "non-applicable": "O filtro não é aplicável",
         "remove-filter-with-key": "Remover filtro com chave {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Remover valor do filtro: {{itemLabel}}",
         "use-custom-value": "Usar valor personalizado: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": "Remover {{label}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Recente",
+        "recent-empty": "Sem valores recentes",
+        "recommended": "Recomendado",
+        "recommended-empty": "Sem valores recomendados",
+        "tooltip": "Mostrar recomendações"
+      },
       "fallback-page": {
         "content": "Se você chegou aqui usando um link, pode haver um bug neste aplicativo.",
         "subTitle": "O URL não corresponde a nenhuma página",
         "title": "Não encontrado"
       },
-      "lazy-loader": {
-        "placeholder": ""
+      "group-by-pill": {
+        "applied-by-default": "Aplicado por padrão neste painel. Se editado, ele é transferido para outros painéis.",
+        "group-by-key": "Agrupar por {{keyLabel}}",
+        "remove-group-by-key": "Remover \"agrupar por {{keyLabel}}\""
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Recolher cena",
@@ -30,13 +42,13 @@
         "title-scene-debugger": "Depurador de cena"
       },
       "scene-grid-row": {
-        "collapse-row": "Recolher linha",
-        "expand-row": "Expandir linha"
+        "collapse-row": "Recolher linha com o título {{title}}",
+        "expand-row": "Expandir linha com o título {{title}}"
       },
       "scene-refresh-picker": {
         "text-cancel": "Cancelar",
         "text-refresh": "Atualizar",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Cancelar todas as consultas"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparação",
@@ -46,8 +58,8 @@
         "aria-label-pane-resize-widget": "Widget de redimensionamento do painel"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Mover {{moveBackwardDuration}} para trás",
+        "move-forward-tooltip": "Mover {{moveForwardDuration}} para frente"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +105,18 @@
           "placeholder-select-value": "Selecionar valor"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "Limpar tudo",
+        "collapse": "Recolher",
+        "collapse-filters": "Recolher filtros",
+        "expand-filters": "Expandir filtros",
+        "group-by-label": "Agrupar por:",
+        "restore-default-group-by": "Restaura a função groupby definida por este painel.",
+        "show-more-filters_one": "Exibir mais {{count}} filtro",
+        "show-more-filters_other": "Exibir mais {{count}} filtros",
+        "show-more-group-by_one": "Exibir mais {{count}} chave de \"agrupar por\"",
+        "show-more-group-by_other": "Exibir mais {{count}} chaves de \"agrupar por\""
+      },
       "data-source-variable": {
         "label": {
           "default": "padrão"
@@ -103,6 +127,9 @@
         "tooltip": "Aplicado por padrão neste painel. Se editado, ele é transferido para outros painéis.",
         "tooltip-restore-groupby-set-by-this-dashboard": "Restaura a função groupby definida por este painel."
       },
+      "expression-hint-placeholder": {
+        "press-enter-to-apply": ""
+      },
       "format-registry": {
         "formats": {
           "description": {
@@ -111,7 +138,7 @@
             "format-date-in-different-ways": "Formatar data de diferentes maneiras",
             "format-multivalued-variables-using-syntax-example": "Formatar variáveis de múltiplos valores usando a sintaxe glob. Por exemplo: {value1,value2}",
             "html-escaping-of-values": "Escape HTML de valores",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Unir valores com uma vírgula",
             "json-stringify-value": "Valor convertido em string JSON",
             "keep-value-as-is": "Manter o valor como está",
             "multiple-values-are-formatted-like-variablevalue": "Vários valores são formatados como variável=valor",
