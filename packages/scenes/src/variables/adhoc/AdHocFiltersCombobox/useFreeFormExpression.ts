@@ -24,9 +24,10 @@ export function useFreeFormExpression({
   isGroupBy,
   populateInputOnEdit,
 }: UseFreeFormExpressionProps) {
-  const operatorValues = controller.getOperators()
+  const operatorValues = controller
+    .getOperators()
     .map((o) => o.value)
-    .filter((v): v is string => Boolean(v))
+    .filter((v): v is string => Boolean(v));
 
   const expressionInputEnabled = allowCustomValue && !isGroupBy && filterInputType !== 'value' && !populateInputOnEdit;
 
