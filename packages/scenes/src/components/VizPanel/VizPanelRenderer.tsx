@@ -238,7 +238,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   return (
     <div className={relativeWrapper}>
-      <div ref={ref as RefCallback<HTMLDivElement>} className={absoluteWrapper} data-viz-panel-key={model.state.key}>
+      <div
+        ref={ref as RefCallback<HTMLDivElement>}
+        className={absoluteWrapper}
+        data-viz-panel-key={model.state.key}
+        data-viz-panel-id={model.getPathId()}
+      >
         <PanelChrome
           title={titleInterpolated}
           description={description?.trim() ? model.getDescription : undefined}
