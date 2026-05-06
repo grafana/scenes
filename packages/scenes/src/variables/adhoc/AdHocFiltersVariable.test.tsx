@@ -3179,6 +3179,121 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
+  describe('free-form expression input', () => {
+    function setupFreeFormScene(overrides?: Partial<AdHocFiltersVariableState>) {
+      return setup({
+        getTagKeysProvider: async () => ({
+          replace: true,
+          values: [
+            { text: 'key1', value: 'key1' },
+            { text: 'key2', value: 'key2' },
+          ],
+        }),
+        getTagValuesProvider: async () => ({
+          replace: true,
+          values: [
+            { text: 'val1', value: 'val1' },
+            { text: 'val2', value: 'val2' },
+          ],
+        }),
+        layout: 'combobox',
+        filters: [],
+        ...overrides,
+      });
+    }
+
+    it('shows the "Press Enter to apply" hint when the typed expression has no matching options', async () => {
+      setupFreeFormScene();
+      const wipCombobox = getAdHocInputElement();
+
+      await userEvent.click(wipCombobox);
+      await userEvent.type(wipCombobox, 'newkey =');
+
+      expect(await screen.findByText('Press Enter to apply')).toBeInTheDocument();
+    });
+
+    it('does not show the hint or commit a free-form expression when allowCustomValue is false', async () => {
+      const { filtersVar } = setupFreeFormScene({ allowCustomValue: false });
+      const wipCombobox = getAdHocInputElement();
+
+      await userEvent.click(wipCombobox);
+      await userEvent.type(wipCombobox, 'newkey = newval{Enter}');
+
+      expect(screen.queryByText('Press Enter to apply')).not.toBeInTheDocument();
+      expect(filtersVar.state.filters).toHaveLength(0);
+    });
+
+    it('Enter on a partial expression (key + operator) stages the wip filter and switches to value input', async () => {
+      const { filtersVar } = setupFreeFormScene();
+      const wipCombobox = getAdHocInputElement();
+
+      await userEvent.click(wipCombobox);
+      await userEvent.type(wipCombobox, 'newkey ={Enter}');
+
+      // Partial commit: wip is staged with key + operator, no filter is added yet.
+      expect(filtersVar.state.filters).toHaveLength(0);
+      expect(filtersVar.state._wip).toMatchObject({
+        key: 'newkey',
+        keyLabel: 'newkey',
+        operator: '=',
+        value: '',
+      });
+
+      expect(screen.getByText('newkey')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Edit filter operator', hidden: true })).toHaveTextContent('=');
+    });
+
+    it('Enter on a full expression commits a complete filter', async () => {
+      const { filtersVar } = setupFreeFormScene();
+      const wipCombobox = getAdHocInputElement();
+
+      await userEvent.click(wipCombobox);
+      await userEvent.type(wipCombobox, 'newkey = newval{Enter}');
+
+      await waitFor(() => expect(filtersVar.state.filters).toHaveLength(1));
+      expect(filtersVar.state.filters[0]).toMatchObject({
+        key: 'newkey',
+        keyLabel: 'newkey',
+        operator: '=',
+        value: 'newval',
+        valueLabels: ['newval'],
+      });
+    });
+
+    it('Tab on a full expression commits a complete filter', async () => {
+      const { filtersVar } = setupFreeFormScene();
+      const wipCombobox = getAdHocInputElement();
+
+      await userEvent.click(wipCombobox);
+      await userEvent.type(wipCombobox, 'newkey = newval');
+      await userEvent.tab();
+
+      await waitFor(() => expect(filtersVar.state.filters).toHaveLength(1));
+      expect(filtersVar.state.filters[0]).toMatchObject({
+        key: 'newkey',
+        operator: '=',
+        value: 'newval',
+      });
+    });
+
+    it('Enter on a multi-value expression commits a multi-value filter', async () => {
+      const { filtersVar } = setupFreeFormScene({ supportsMultiValueOperators: true });
+      const wipCombobox = getAdHocInputElement();
+
+      await userEvent.click(wipCombobox);
+      await userEvent.type(wipCombobox, 'region =| us-east, us-west, eu-north{Enter}');
+
+      await waitFor(() => expect(filtersVar.state.filters).toHaveLength(1));
+      expect(filtersVar.state.filters[0]).toMatchObject({
+        key: 'region',
+        operator: '=|',
+        value: 'us-east',
+        values: ['us-east', 'us-west', 'eu-north'],
+        valueLabels: ['us-east', 'us-west', 'eu-north'],
+      });
+    });
+  });
+
   describe('operators', () => {
     it('shows the regex operators when allowCustomValue is undefined', async () => {
       setup({ layout: 'horizontal' });
