@@ -1,3 +1,21 @@
+# v8.1.3 (Wed May 06 2026)
+
+#### 🐛 Bug Fix
+
+- VIzPanel: add data-viz-panel-id attribute [#1439](https://github.com/grafana/scenes/pull/1439) ([@dprokop](https://github.com/dprokop))
+- Adhoc: free form mode tests coverage [#1441](https://github.com/grafana/scenes/pull/1441) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- AdhocCombobox: apply filter and move focus to the next focusable element on tab [#1435](https://github.com/grafana/scenes/pull/1435) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- AdHocFilters: Fix stale operator list in free-form expression input [#1440](https://github.com/grafana/scenes/pull/1440) ([@kristinademeshchik](https://github.com/kristinademeshchik))
+- SceneRefreshPicker: use new loadingText prop on RefreshPicker [#1438](https://github.com/grafana/scenes/pull/1438) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 3
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Kristina Demeshchik ([@kristinademeshchik](https://github.com/kristinademeshchik))
+
+---
+
 # v8.1.2 (Thu Apr 30 2026)
 
 #### 🐛 Bug Fix
