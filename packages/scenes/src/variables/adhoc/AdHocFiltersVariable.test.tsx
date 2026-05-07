@@ -1434,9 +1434,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('still stores groupBy origin filters in _originalValues even without a value field', () => {
-    // groupBy origin filters carry their meaning in the key, not the value. They must
-    // round-trip through _originalValues so getOriginalFilters() reflects them when the
-    // dashboard is saved. Don't drop them via the no-value guard meant for regular filters.
     const { filtersVar } = setup({
       originFilters: [{ key: 'cluster', operator: 'groupBy', origin: 'dashboard' } as AdHocFilterWithLabels],
     });
@@ -1448,12 +1445,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('does not crash when restoring an origin filter whose stored original lacks a value', () => {
-    // Repro: at some point an origin filter without a usable value is fed to the variable
-    // (e.g. dashboard JSON whose origin filter lost its value through a previous round-trip,
-    // or an external setOriginalFilters call). Before the fix, _setOriginalValue stored
-    // [undefined] for it, and a later restoreOriginalFilter (e.g. on dashboard navigation
-    // deactivation) propagated value: undefined into renderFilter, which crashed on
-    // undefined.replace(...).
     const { filtersVar } = setup({
       originFilters: [{ key: 'dbFilter1', operator: '=~', value: 'currentVal', origin: 'dashboard' }],
     });
