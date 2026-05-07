@@ -599,10 +599,14 @@ export class AdHocFiltersVariable
    */
   private _setOriginalValue(filter: AdHocFilterWithLabels): void {
     const rawValues = filter.values ?? [filter.value];
-    // Filter out undefined entries and ensure at least an empty-string seed so
-    // a later restoreOriginalFilter cannot resurrect `value: undefined` and crash renderFilter.
-    const sanitized = rawValues.filter((v): v is string => v !== undefined && v !== null);
-    const value = sanitized.length > 0 ? sanitized : [''];
+    const value = rawValues.filter((v): v is string => v !== undefined && v !== null);
+
+    // A filter with no usable value isn't actually restorable to anything. Storing [undefined]
+    // here would later flow back through restoreOriginalFilter -> renderFilter and crash on
+    // String.prototype.replace, so skip rather than seed a fake original.
+    if (value.length === 0) {
+      return;
+    }
 
     this._originalValues.set(originalValueKey(filter), {
       value,

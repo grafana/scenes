@@ -1434,10 +1434,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('does not crash when restoring an origin filter that was seeded without a value', () => {
-    // Repro: an origin filter is supplied with neither `value` nor `values`. Before the fix,
+    // Repro: an origin filter is supplied with neither `value` nor `values` (e.g. dashboard
+    // JSON whose origin filter lost its value through a previous round-trip). Before the fix,
     // _setOriginalValue stored [undefined], and a later restoreOriginalFilter (e.g. on
-    // dashboard navigation) propagated value: undefined into renderFilter, which then crashed
-    // on undefined.replace(...).
+    // dashboard navigation deactivation) propagated value: undefined into renderFilter, which
+    // then crashed on undefined.replace(...).
     const { filtersVar } = setup({
       originFilters: [
         {
@@ -1448,6 +1449,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         } as AdHocFilterWithLabels,
       ],
     });
+
+    // Nothing legitimate to restore to, so no original should be stored.
+    expect(filtersVar['_originalValues'].has(`dbFilter1${VALUE_KEY_DELIMITER}dashboard`)).toBe(false);
 
     act(() => {
       filtersVar._updateFilter(filtersVar.state.originFilters![0], {
@@ -1463,7 +1467,35 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
     }).not.toThrow();
 
-    expect(filtersVar.state.originFilters![0].value).toBe('');
+    // With no original to restore to, restore is a no-op and the user's edit is preserved
+    // rather than being silently rewritten to an empty string.
+    expect(filtersVar.state.originFilters![0].value).toBe('edited');
+  });
+
+  it('does not include filters without a renderable value in the rendered expression', () => {
+    // Safety net: even if a filter sneaks through with value === undefined (e.g. external
+    // mutation), renderExpression must skip it instead of crashing on .replace().
+    const { filtersVar } = setup({
+      originFilters: [
+        {
+          key: 'dbFilter1',
+          operator: '=',
+          value: 'dbValue1',
+          origin: 'dashboard',
+        },
+      ],
+    });
+
+    act(() => {
+      filtersVar.setState({
+        originFilters: [
+          ...(filtersVar.state.originFilters ?? []),
+          { key: 'broken', operator: '=~', origin: 'dashboard' } as AdHocFilterWithLabels,
+        ],
+      });
+    });
+
+    expect(filtersVar.state.filterExpression).toBe('dbFilter1="dbValue1",key1="val1",key2="val2"');
   });
 
   it('will save the original value and set filter as restorable if it has an origin', () => {
