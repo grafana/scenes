@@ -598,6 +598,10 @@ export class AdHocFiltersVariable
    * Store a snapshot of the filter's current value and operator so it can be restored later.
    */
   private _setOriginalValue(filter: AdHocFilterWithLabels): void {
+    if (!isFilterComplete(filter)) {
+      return;
+    }
+
     const rawValues = filter.values ?? [filter.value];
     const value = rawValues.filter((v): v is string => v !== undefined && v !== null);
 
