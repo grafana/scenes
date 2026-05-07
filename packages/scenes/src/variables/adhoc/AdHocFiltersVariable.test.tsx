@@ -1433,32 +1433,39 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.originFilters![0].restorable).toBe(false);
   });
 
-  it('does not crash when restoring an origin filter that was seeded without a value', () => {
-    // Repro: an origin filter is supplied with neither `value` nor `values` (e.g. dashboard
-    // JSON whose origin filter lost its value through a previous round-trip). Before the fix,
-    // _setOriginalValue stored [undefined], and a later restoreOriginalFilter (e.g. on
-    // dashboard navigation deactivation) propagated value: undefined into renderFilter, which
-    // then crashed on undefined.replace(...).
+  it('still stores groupBy origin filters in _originalValues even without a value field', () => {
+    // groupBy origin filters carry their meaning in the key, not the value. They must
+    // round-trip through _originalValues so getOriginalFilters() reflects them when the
+    // dashboard is saved. Don't drop them via the no-value guard meant for regular filters.
     const { filtersVar } = setup({
-      originFilters: [
-        {
-          key: 'dbFilter1',
-          operator: '=~',
-          // value and values intentionally omitted
-          origin: 'dashboard',
-        } as AdHocFilterWithLabels,
-      ],
+      originFilters: [{ key: 'cluster', operator: 'groupBy', origin: 'dashboard' } as AdHocFilterWithLabels],
     });
 
-    // Nothing legitimate to restore to, so no original should be stored.
+    expect(
+      filtersVar['_originalValues'].has(`cluster${VALUE_KEY_DELIMITER}dashboard${VALUE_KEY_DELIMITER}groupBy`)
+    ).toBe(true);
+    expect(filtersVar.getOriginalFilters().some((f) => f.key === 'cluster' && f.operator === 'groupBy')).toBe(true);
+  });
+
+  it('does not crash when restoring an origin filter whose stored original lacks a value', () => {
+    // Repro: at some point an origin filter without a usable value is fed to the variable
+    // (e.g. dashboard JSON whose origin filter lost its value through a previous round-trip,
+    // or an external setOriginalFilters call). Before the fix, _setOriginalValue stored
+    // [undefined] for it, and a later restoreOriginalFilter (e.g. on dashboard navigation
+    // deactivation) propagated value: undefined into renderFilter, which crashed on
+    // undefined.replace(...).
+    const { filtersVar } = setup({
+      originFilters: [{ key: 'dbFilter1', operator: '=~', value: 'currentVal', origin: 'dashboard' }],
+    });
+
+    // Pollute _originalValues with the buggy shape via the public API. The fix is to drop
+    // such filters at the seam instead of storing [undefined].
+    filtersVar.setOriginalFilters([{ key: 'dbFilter1', operator: '=~', origin: 'dashboard' } as AdHocFilterWithLabels]);
     expect(filtersVar['_originalValues'].has(`dbFilter1${VALUE_KEY_DELIMITER}dashboard`)).toBe(false);
 
     act(() => {
-      filtersVar._updateFilter(filtersVar.state.originFilters![0], {
-        value: 'edited',
-      });
+      filtersVar._updateFilter(filtersVar.state.originFilters![0], { value: 'edited' });
     });
-
     expect(filtersVar.state.originFilters![0].restorable).toBe(true);
 
     expect(() => {
@@ -1468,34 +1475,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     }).not.toThrow();
 
     // With no original to restore to, restore is a no-op and the user's edit is preserved
-    // rather than being silently rewritten to an empty string.
+    // rather than being silently rewritten to an empty string or undefined.
     expect(filtersVar.state.originFilters![0].value).toBe('edited');
-  });
-
-  it('does not include filters without a renderable value in the rendered expression', () => {
-    // Safety net: even if a filter sneaks through with value === undefined (e.g. external
-    // mutation), renderExpression must skip it instead of crashing on .replace().
-    const { filtersVar } = setup({
-      originFilters: [
-        {
-          key: 'dbFilter1',
-          operator: '=',
-          value: 'dbValue1',
-          origin: 'dashboard',
-        },
-      ],
-    });
-
-    act(() => {
-      filtersVar.setState({
-        originFilters: [
-          ...(filtersVar.state.originFilters ?? []),
-          { key: 'broken', operator: '=~', origin: 'dashboard' } as AdHocFilterWithLabels,
-        ],
-      });
-    });
-
-    expect(filtersVar.state.filterExpression).toBe('dbFilter1="dbValue1",key1="val1",key2="val2"');
   });
 
   it('will save the original value and set filter as restorable if it has an origin', () => {

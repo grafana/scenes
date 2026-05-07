@@ -601,10 +601,7 @@ export class AdHocFiltersVariable
     const rawValues = filter.values ?? [filter.value];
     const value = rawValues.filter((v): v is string => v !== undefined && v !== null);
 
-    // A filter with no usable value isn't actually restorable to anything. Storing [undefined]
-    // here would later flow back through restoreOriginalFilter -> renderFilter and crash on
-    // String.prototype.replace, so skip rather than seed a fake original.
-    if (value.length === 0) {
+    if (!isGroupByFilter(filter) && value.length === 0) {
       return;
     }
 
@@ -1241,15 +1238,8 @@ function renderExpression(
   filters: AdHocFilterWithLabels[] | undefined
 ) {
   return (builder ?? renderPrometheusLabelFilters)(
-    filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f) && hasRenderableValue(f)) ?? []
+    filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f)) ?? []
   );
-}
-
-function hasRenderableValue(filter: AdHocFilterWithLabels): boolean {
-  if (isMultiValueOperator(filter.operator)) {
-    return Array.isArray(filter.values) && filter.values.length > 0 && filter.values.every((v) => v != null);
-  }
-  return filter.value != null;
 }
 
 function getGroupByKeys(filters: AdHocFilterWithLabels[]): string[] {
