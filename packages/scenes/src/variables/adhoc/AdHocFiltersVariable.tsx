@@ -598,8 +598,14 @@ export class AdHocFiltersVariable
    * Store a snapshot of the filter's current value and operator so it can be restored later.
    */
   private _setOriginalValue(filter: AdHocFilterWithLabels): void {
+    const rawValues = filter.values ?? [filter.value];
+    // Filter out undefined entries and ensure at least an empty-string seed so
+    // a later restoreOriginalFilter cannot resurrect `value: undefined` and crash renderFilter.
+    const sanitized = rawValues.filter((v): v is string => v !== undefined && v !== null);
+    const value = sanitized.length > 0 ? sanitized : [''];
+
     this._originalValues.set(originalValueKey(filter), {
-      value: filter.values ?? [filter.value],
+      value,
       operator: filter.operator,
       ...(filter.valueLabels && { valueLabels: filter.valueLabels }),
       ...(filter.keyLabel && { keyLabel: filter.keyLabel }),
@@ -1231,8 +1237,15 @@ function renderExpression(
   filters: AdHocFilterWithLabels[] | undefined
 ) {
   return (builder ?? renderPrometheusLabelFilters)(
-    filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f)) ?? []
+    filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f) && hasRenderableValue(f)) ?? []
   );
+}
+
+function hasRenderableValue(filter: AdHocFilterWithLabels): boolean {
+  if (isMultiValueOperator(filter.operator)) {
+    return Array.isArray(filter.values) && filter.values.length > 0 && filter.values.every((v) => v != null);
+  }
+  return filter.value != null;
 }
 
 function getGroupByKeys(filters: AdHocFilterWithLabels[]): string[] {

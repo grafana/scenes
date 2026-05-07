@@ -1433,6 +1433,39 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.originFilters![0].restorable).toBe(false);
   });
 
+  it('does not crash when restoring an origin filter that was seeded without a value', () => {
+    // Repro: an origin filter is supplied with neither `value` nor `values`. Before the fix,
+    // _setOriginalValue stored [undefined], and a later restoreOriginalFilter (e.g. on
+    // dashboard navigation) propagated value: undefined into renderFilter, which then crashed
+    // on undefined.replace(...).
+    const { filtersVar } = setup({
+      originFilters: [
+        {
+          key: 'dbFilter1',
+          operator: '=~',
+          // value and values intentionally omitted
+          origin: 'dashboard',
+        } as AdHocFilterWithLabels,
+      ],
+    });
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.originFilters![0], {
+        value: 'edited',
+      });
+    });
+
+    expect(filtersVar.state.originFilters![0].restorable).toBe(true);
+
+    expect(() => {
+      act(() => {
+        filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
+      });
+    }).not.toThrow();
+
+    expect(filtersVar.state.originFilters![0].value).toBe('');
+  });
+
   it('will save the original value and set filter as restorable if it has an origin', () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
       {
