@@ -335,6 +335,11 @@ function useClearPreviousData(data?: DataFrame[]) {
     currVals.current.clear();
 
     for (let i = 0; i < currFrames.length; i++) {
+      // skip legacy CircularDataFrame streaming frames
+      if ('appendRow' in currFrames[i]) {
+        continue;
+      }
+
       let fields = currFrames[i].fields;
 
       for (let j = 0; j < fields.length; j++) {
