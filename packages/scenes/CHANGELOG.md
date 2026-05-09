@@ -1,3 +1,15 @@
+# v8.2.4 (Sat May 09 2026)
+
+#### 🐛 Bug Fix
+
+- Fix: Skip legacy `CircularDataFrame` frames in `useClearPreviousData()` [#1443](https://github.com/grafana/scenes/pull/1443) ([@leeoniya](https://github.com/leeoniya))
+
+#### Authors: 1
+
+- Leon Sorokin ([@leeoniya](https://github.com/leeoniya))
+
+---
+
 # v8.1.3 (Wed May 06 2026)
 
 #### 🐛 Bug Fix
