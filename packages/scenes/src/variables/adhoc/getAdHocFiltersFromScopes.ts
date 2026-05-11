@@ -45,7 +45,7 @@ function processFilter(
   duplicatedFilters: AdHocFilterWithLabels[],
   filter: ScopeSpecFilter
 ) {
-  if (!filter) {
+  if (!filter || !filter.key || !filter.operator || !filter.value) {
     return;
   }
 
