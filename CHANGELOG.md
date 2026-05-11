@@ -1,3 +1,16 @@
+# v8.2.5 (Mon May 11 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Fix setting wrong original filter value [#1446](https://github.com/grafana/scenes/pull/1446) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.2.4 (Sat May 09 2026)
 
 #### 🐛 Bug Fix
