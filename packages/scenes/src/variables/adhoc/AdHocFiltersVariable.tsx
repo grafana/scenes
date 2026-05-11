@@ -599,7 +599,7 @@ export class AdHocFiltersVariable
    */
   private _setOriginalValue(filter: AdHocFilterWithLabels): void {
     this._originalValues.set(originalValueKey(filter), {
-      value: filter.values ?? [filter.value],
+      value: filter.values && filter.values.length ? filter.values : [filter.value],
       operator: filter.operator,
       ...(filter.valueLabels && { valueLabels: filter.valueLabels }),
       ...(filter.keyLabel && { keyLabel: filter.keyLabel }),
