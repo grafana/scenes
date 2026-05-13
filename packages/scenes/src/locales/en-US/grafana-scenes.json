@@ -71,6 +71,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Loading plugin panel...",
+        "outdated-plugin-error": "An unexpected error happened. Updating this plugin to the latest version may fix the problem.",
         "panel-plugin-has-no-panel-component": "Panel plugin has no panel component"
       },
       "viz-panel-series-limit": {
