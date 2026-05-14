@@ -13,20 +13,8 @@ export class ScopedVarsVariable implements FormatVariable {
   }
 
   public getValue(fieldPath: string): VariableValue {
-    let { value } = this.state;
-    let realValue = value.value;
-
-    if (fieldPath) {
-      realValue = getFieldAccessor(fieldPath)(value.value);
-    } else {
-      realValue = value.value;
-    }
-
-    if (realValue === 'string' || realValue === 'number' || realValue === 'boolean') {
-      return realValue;
-    }
-
-    return String(realValue);
+    const { value } = this.state;
+    return fieldPath ? getFieldAccessor(fieldPath)(value.value) : value.value;
   }
 
   public getValueText(): string {
