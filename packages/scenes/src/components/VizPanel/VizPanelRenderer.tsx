@@ -1,4 +1,4 @@
-import { Trans } from '@grafana/i18n';
+import { Trans, t } from '@grafana/i18n';
 import React, { memo, RefCallback, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useMeasure, usePrevious } from 'react-use';
 
@@ -235,6 +235,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   const context = model.getPanelContext();
   const panelId = model.getLegacyPanelId();
+  const outdatedPluginError = t('grafana-scenes.components.viz-panel-renderer.outdated-plugin-error', 'An unexpected error occurred. Updating the "{{pluginName}}" plugin to the latest version may fix the problem.', { pluginName: plugin.meta.name });
 
   return (
     <div className={relativeWrapper}>
@@ -284,7 +285,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             }
 
             return (
-              <ErrorBoundaryAlert dependencies={[plugin, data]}>
+              <ErrorBoundaryAlert title={plugin.meta.hasUpdate ? outdatedPluginError : undefined} dependencies={[plugin, data]}>
                 <PluginContextProvider meta={plugin.meta}>
                   <PanelContextProvider value={context}>
                     {isReadyToRender && (
