@@ -5,14 +5,15 @@ import { SceneObjectState } from '../core/types';
 
 interface LiveNowTimerState extends SceneObjectState {
   enabled: boolean;
+  refreshRate?: number;
 }
 
 export class LiveNowTimer extends SceneObjectBase<LiveNowTimerState> {
   private timerId: number | undefined = undefined;
-  private static REFRESH_RATE = 100; // ms
+  public static DEFAULT_REFRESH_RATE = 100; // ms
 
-  public constructor({ enabled = false }) {
-    super({ enabled });
+  public constructor({ enabled = false, refreshRate }: { enabled?: boolean; refreshRate?: number } = {}) {
+    super({ enabled, refreshRate });
     this.addActivationHandler(this._activationHandler);
   }
 
@@ -35,7 +36,7 @@ export class LiveNowTimer extends SceneObjectBase<LiveNowTimerState> {
       for (const panel of panels) {
         panel.forceRender();
       }
-    }, LiveNowTimer.REFRESH_RATE);
+    }, this.state.refreshRate ?? LiveNowTimer.DEFAULT_REFRESH_RATE);
     this.setState({ enabled: true });
   }
 
