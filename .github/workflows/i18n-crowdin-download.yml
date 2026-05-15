@@ -7,7 +7,7 @@ on:
 
 jobs:
   download-sources-from-crowdin:
-    uses: grafana/grafana-github-actions/.github/workflows/crowdin-download.yml@main
+    uses: grafana/grafana-github-actions/.github/workflows/crowdin-download.yml@19d18645acffb1974ff27db6d40333aa01a0d490 # main
     with:
       crowdin_project_id: 34
       pr_labels: 'i18n'
