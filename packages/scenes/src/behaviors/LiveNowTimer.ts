@@ -46,6 +46,13 @@ export class LiveNowTimer extends SceneObjectBase<LiveNowTimerState> {
     this.setState({ enabled: false });
   }
 
+  public setRefreshRate(refreshRate: number) {
+    this.setState({ refreshRate });
+    if (this.state.enabled) {
+      this.enable();
+    }
+  }
+
   public get isEnabled() {
     return this.state.enabled;
   }
