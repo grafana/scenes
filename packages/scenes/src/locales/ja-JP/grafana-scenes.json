@@ -4,20 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "{{keyLabel}}キーでフィルターを編集 ",
         "managed-filter": "{{origin}}管理フィルター",
-        "non-applicable": "",
+        "non-applicable": "フィルターは適用されません",
         "remove-filter-with-key": "{{keyLabel}}キーでフィルターを削除 "
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "フィルター値を削除 - {{itemLabel}}",
         "use-custom-value": "カスタム値を使用：{{itemLabel}} "
       },
+      "base-pill": {
+        "remove": "{{label}}を削除"
+      },
+      "drilldown-recommendations": {
+        "recent": "最近",
+        "recent-empty": "最近の値がありません",
+        "recommended": "推奨",
+        "recommended-empty": "推奨値がありません",
+        "tooltip": "推奨事項を表示する"
+      },
       "fallback-page": {
         "content": "リンクからこのページにアクセスした場合、アプリケーションにバグがある可能性があります。",
         "subTitle": "URLがどのページにも一致しません",
         "title": "見つかりません"
       },
-      "lazy-loader": {
-        "placeholder": ""
+      "group-by-pill": {
+        "applied-by-default": "このダッシュボードでデフォルトで適用されます。編集した場合、他のダッシュボードに引き継がれます。",
+        "group-by-key": "{{keyLabel}}によりグループ化",
+        "remove-group-by-key": "{{keyLabel}}によるグループ化を削除"
       },
       "nested-scene-renderer": {
         "collapse-button-label": "シーンを折りたたむ",
@@ -30,13 +42,13 @@
         "title-scene-debugger": "シーンデバッガー"
       },
       "scene-grid-row": {
-        "collapse-row": "行を折りたたむ",
-        "expand-row": "行を展開"
+        "collapse-row": "タイトル{{title}}付きの行を折りたたむ",
+        "expand-row": "タイトル{{title}}付きの行を展開"
       },
       "scene-refresh-picker": {
         "text-cancel": "キャンセル",
         "text-refresh": "更新",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "すべてのクエリを取り消し"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "比較",
@@ -46,8 +58,8 @@
         "aria-label-pane-resize-widget": "ペインリサイズウィジェット"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "{{moveBackwardDuration}}前に戻る",
+        "move-forward-tooltip": "{{moveForwardDuration}}先に進む"
       },
       "viz-panel": {
         "title": {
@@ -55,7 +67,7 @@
         }
       },
       "viz-panel-explore-button": {
-        "explore": "探検"
+        "explore": "探索"
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "プラグインパネルを読み込み中...",
@@ -93,6 +105,16 @@
           "placeholder-select-value": "値を選択"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "すべてをクリア",
+        "collapse": "折りたたみ表示",
+        "collapse-filters": "フィルターを折りたたむ",
+        "expand-filters": "フィルターを展開",
+        "group-by-label": "グループ化：",
+        "restore-default-group-by": "このダッシュボードで設定されたグループ化を復元します。",
+        "show-more-filters_other": "さらに{{count}}件のフィルターを表示",
+        "show-more-group-by_other": "キーによるグループ化をさらに{{count}}件表示"
+      },
       "data-source-variable": {
         "label": {
           "default": "デフォルト"
@@ -101,7 +123,10 @@
       "default-group-by-custom-indicator-container": {
         "aria-label-clear": "クリア",
         "tooltip": "このダッシュボードでデフォルトで適用されます。編集した場合、他のダッシュボードに引き継がれます。",
-        "tooltip-restore-groupby-set-by-this-dashboard": "このダッシュボードで設定されたgroupbyを復元します。"
+        "tooltip-restore-groupby-set-by-this-dashboard": "このダッシュボードで設定されたグループ化を復元します。"
+      },
+      "expression-hint-placeholder": {
+        "press-enter-to-apply": ""
       },
       "format-registry": {
         "formats": {
@@ -109,9 +134,9 @@
             "commaseparated-values": "カンマ区切り値",
             "double-quoted-values": "二重引用符で囲まれた値",
             "format-date-in-different-ways": "日付を様々な形式でフォーマット",
-            "format-multivalued-variables-using-syntax-example": "glob構文を使用して複数値変数をフォーマット（例: {value1,value2}）",
+            "format-multivalued-variables-using-syntax-example": "glob構文を使用して複数値変数をフォーマット（例：{value1,value2}）",
             "html-escaping-of-values": "値のHTMLエスケープ",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "値をコンマで結合します",
             "json-stringify-value": "JSON文字列化値",
             "keep-value-as-is": "値をそのまま保持",
             "multiple-values-are-formatted-like-variablevalue": "複数の値は変数=値の形式でフォーマットされます",

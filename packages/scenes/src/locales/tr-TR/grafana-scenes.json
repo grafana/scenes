@@ -4,20 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla düzenle",
         "managed-filter": "{{origin}} yönetimli filtre",
-        "non-applicable": "",
+        "non-applicable": "Filtre uygulanamaz",
         "remove-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla kaldır"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Filtre değerini kaldır - {{itemLabel}}",
         "use-custom-value": "Özel değer kullan: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": "{{label}} ögesini kaldır"
+      },
+      "drilldown-recommendations": {
+        "recent": "Son",
+        "recent-empty": "Son değer yok",
+        "recommended": "Önerilen",
+        "recommended-empty": "Önerilen değer yok",
+        "tooltip": "Önerileri göster"
+      },
       "fallback-page": {
         "content": "Buraya bir bağlantı aracılığıyla ulaştıysanız uygulamada bir hata olabilir.",
         "subTitle": "URL hiçbir sayfayla eşleşmedi.",
         "title": "Bulunamadı"
       },
-      "lazy-loader": {
-        "placeholder": ""
+      "group-by-pill": {
+        "applied-by-default": "Bu panoda varsayılan olarak uygulanır. Düzenlenirse diğer panolara taşınır.",
+        "group-by-key": "Gruplandırma ölçütü: {{keyLabel}}",
+        "remove-group-by-key": "Grubu kaldırma ölçütü: {{keyLabel}}"
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Sahneyi daralt",
@@ -30,13 +42,13 @@
         "title-scene-debugger": "Sahne hata ayıklayıcı"
       },
       "scene-grid-row": {
-        "collapse-row": "Satırı daralt",
-        "expand-row": "Satırı genişlet"
+        "collapse-row": "{{title}} başlıklı satırı daralt",
+        "expand-row": "{{title}} başlıklı satırı genişlet"
       },
       "scene-refresh-picker": {
         "text-cancel": "İptal",
         "text-refresh": "Yenile",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Tüm sorguları iptal et"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Karşılaştırma",
@@ -46,8 +58,8 @@
         "aria-label-pane-resize-widget": "Bölme yeniden boyutlandırma widget'ı"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "{{moveBackwardDuration}} geri taşı",
+        "move-forward-tooltip": "{{moveForwardDuration}} ileri taşı"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +105,18 @@
           "placeholder-select-value": "Değer seçin"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "Tümünü temizle",
+        "collapse": "Daralt",
+        "collapse-filters": "Filtreleri daralt",
+        "expand-filters": "Filtreleri genişlet",
+        "group-by-label": "Gruplandırma ölçütü:",
+        "restore-default-group-by": "Bu pano tarafından ayarlanmış groupby kümesini geri yükleyin.",
+        "show-more-filters_one": "{{count}} filtre daha göster",
+        "show-more-filters_other": "{{count}} filtre daha göster",
+        "show-more-group-by_one": "{{count}} tane daha gruplandırma anahtarı göster",
+        "show-more-group-by_other": "{{count}} tane daha gruplandırma anahtarı göster"
+      },
       "data-source-variable": {
         "label": {
           "default": "varsayılan"
@@ -103,6 +127,9 @@
         "tooltip": "Bu panoda varsayılan olarak uygulanır. Düzenlenirse diğer panolara taşınır.",
         "tooltip-restore-groupby-set-by-this-dashboard": "Bu pano tarafından ayarlanmış groupby kümesini geri yükleyin."
       },
+      "expression-hint-placeholder": {
+        "press-enter-to-apply": ""
+      },
       "format-registry": {
         "formats": {
           "description": {
@@ -111,7 +138,7 @@
             "format-date-in-different-ways": "Tarihi farklı şekillerde biçimlendirin",
             "format-multivalued-variables-using-syntax-example": "Çok değerli değişkenleri glob söz dizimi kullanarak biçimlendirin (örneğin {value1,value2}).",
             "html-escaping-of-values": "Değerlerin HTML kaçış karakteriyle yazılması gerekir",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Değerleri virgülle ayırın",
             "json-stringify-value": "JSON stringify değeri",
             "keep-value-as-is": "Değeri olduğu gibi tut",
             "multiple-values-are-formatted-like-variablevalue": "Birden fazla değer, değişken=değer biçiminde biçimlendirilir",
