@@ -4,20 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "使用鍵 {{keyLabel}} 編輯篩選條件",
         "managed-filter": "{{origin}} 受管理的篩選條件",
-        "non-applicable": "",
+        "non-applicable": "篩選條件不適用",
         "remove-filter-with-key": "使用鍵 {{keyLabel}} 移除篩選條件"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "移除篩選條件值 - {{itemLabel}}",
         "use-custom-value": "使用自訂值：{{itemLabel}}"
       },
+      "base-pill": {
+        "remove": "移除{{label}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "最近",
+        "recent-empty": "沒有最近的值",
+        "recommended": "建議",
+        "recommended-empty": "沒有建議值",
+        "tooltip": "顯示建議"
+      },
       "fallback-page": {
         "content": "如果您使用連結找到此處，則此應用程式中可能存在錯誤。",
         "subTitle": "URL 與任何頁面都不相符",
         "title": "無結果"
       },
-      "lazy-loader": {
-        "placeholder": ""
+      "group-by-pill": {
+        "applied-by-default": "在此儀表板中預設套用。如果編輯，它會轉移到其他儀表板。",
+        "group-by-key": "分組依據：{{keyLabel}}",
+        "remove-group-by-key": "移除分組依據「{{keyLabel}}」"
       },
       "nested-scene-renderer": {
         "collapse-button-label": "收闔場景",
@@ -30,13 +42,13 @@
         "title-scene-debugger": "場景除錯器"
       },
       "scene-grid-row": {
-        "collapse-row": "收闔列",
-        "expand-row": "展開列"
+        "collapse-row": "收合包含標題「{{title}}」的列",
+        "expand-row": "展開包含標題「{{title}}」的列"
       },
       "scene-refresh-picker": {
         "text-cancel": "取消",
         "text-refresh": "更新",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "取消所有查詢"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "比較",
@@ -46,8 +58,8 @@
         "aria-label-pane-resize-widget": "窗格調整大小小工具"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "將「{{moveBackwardDuration}}」往後移動",
+        "move-forward-tooltip": "將「{{moveForwardDuration}}」向前移動"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +105,16 @@
           "placeholder-select-value": "選擇值"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "全部清除",
+        "collapse": "收起",
+        "collapse-filters": "收起篩選條件",
+        "expand-filters": "展開篩選條件",
+        "group-by-label": "分組依據：",
+        "restore-default-group-by": "還原此儀表板設定的分組依據。",
+        "show-more-filters_other": "顯示另外 {{count}} 個篩選條件",
+        "show-more-group-by_other": "顯示另外 {{count}} 個分組依據鍵"
+      },
       "data-source-variable": {
         "label": {
           "default": "預設值"
@@ -103,6 +125,9 @@
         "tooltip": "在此儀表板中預設套用。如果編輯，它會轉移到其他儀表板。",
         "tooltip-restore-groupby-set-by-this-dashboard": "還原此儀表板設定的分組依據。"
       },
+      "expression-hint-placeholder": {
+        "press-enter-to-apply": ""
+      },
       "format-registry": {
         "formats": {
           "description": {
@@ -111,7 +136,7 @@
             "format-date-in-different-ways": "以不同方式格式化日期",
             "format-multivalued-variables-using-syntax-example": "使用 glob 語法格式化多值變數，例如 {value1,value2}",
             "html-escaping-of-values": "值的 HTML 轉義",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "請使用逗號連接多個值",
             "json-stringify-value": "JSON 字串化值",
             "keep-value-as-is": "按原樣保留值",
             "multiple-values-are-formatted-like-variablevalue": "多個值按「變數=值」的方式格式化",

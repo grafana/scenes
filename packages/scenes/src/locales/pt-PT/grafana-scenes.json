@@ -4,20 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Editar filtro com a chave {{keyLabel}}",
         "managed-filter": "Filtro gerido de {{origin}}",
-        "non-applicable": "",
+        "non-applicable": "O filtro não é aplicável",
         "remove-filter-with-key": "Remover filtro com a chave {{keyLabel}} "
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Remover o valor do filtro - {{itemLabel}} ",
         "use-custom-value": "Utilizar valor personalizado: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": "Remover {{label}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Recentes",
+        "recent-empty": "Sem valores recentes",
+        "recommended": "Recomendados",
+        "recommended-empty": "Sem valores recomendados",
+        "tooltip": "Mostrar recomendações"
+      },
       "fallback-page": {
         "content": "Se chegou aqui através de um link, pode existir um erro nesta aplicação.",
         "subTitle": "O URL não corresponde a nenhuma página",
         "title": "Não encontrado"
       },
-      "lazy-loader": {
-        "placeholder": ""
+      "group-by-pill": {
+        "applied-by-default": "Aplicado por predefinição neste painel de controlo. Em caso de edição, é transferido para outros painéis de controlo.",
+        "group-by-key": "Agrupar por {{keyLabel}}",
+        "remove-group-by-key": "Remover Agrupar por {{keyLabel}}"
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Recolher cena",
@@ -30,13 +42,13 @@
         "title-scene-debugger": "Depurador de cena"
       },
       "scene-grid-row": {
-        "collapse-row": "Recolher linha",
-        "expand-row": "Expandir linha"
+        "collapse-row": "Recolher linha com título {{title}}",
+        "expand-row": "Expandir linha com título {{title}}"
       },
       "scene-refresh-picker": {
         "text-cancel": "Cancelar",
         "text-refresh": "Atualizar",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Cancelar todas as consultas"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparação",
@@ -46,8 +58,8 @@
         "aria-label-pane-resize-widget": "Widget de redimensionamento de painel"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Mover {{moveBackwardDuration}} para trás",
+        "move-forward-tooltip": "Mover {{moveForwardDuration}} para a frente"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +105,18 @@
           "placeholder-select-value": "Selecionar valor"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "Limpar tudo",
+        "collapse": "Recolher",
+        "collapse-filters": "Recolher filtros",
+        "expand-filters": "Expandir filtros",
+        "group-by-label": "Agrupar por:",
+        "restore-default-group-by": "Restaurar grupo definido por este painel de controlo.",
+        "show-more-filters_one": "Mostrar mais {{count}} filtros",
+        "show-more-filters_other": "Mostrar mais {{count}} filtros",
+        "show-more-group-by_one": "Mostrar mais {{count}} chaves de Agrupar por",
+        "show-more-group-by_other": "Mostrar mais {{count}} chaves de Agrupar por"
+      },
       "data-source-variable": {
         "label": {
           "default": "padrão"
@@ -103,6 +127,9 @@
         "tooltip": "Aplicado por predefinição neste painel de controlo. Em caso de edição, é transferido para outros painéis de controlo.",
         "tooltip-restore-groupby-set-by-this-dashboard": "Restaurar grupo definido por este painel de controlo."
       },
+      "expression-hint-placeholder": {
+        "press-enter-to-apply": ""
+      },
       "format-registry": {
         "formats": {
           "description": {
@@ -111,7 +138,7 @@
             "format-date-in-different-ways": "Formatar a data de diferentes formas",
             "format-multivalued-variables-using-syntax-example": "Formatar variáveis de valores múltiplos com a sintaxe glob, exemplo {value1,value2}",
             "html-escaping-of-values": "Escape de valores HTML",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Junte os valores com uma vírgula",
             "json-stringify-value": "Valor no formato JSON (stringify)",
             "keep-value-as-is": "Manter o valor como está",
             "multiple-values-are-formatted-like-variablevalue": "Os valores múltiplos são formatados como variável=valor",

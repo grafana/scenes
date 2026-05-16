@@ -4,20 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Filter bewerken met sleutel {{keyLabel}}",
         "managed-filter": "{{origin}} beheerde filter",
-        "non-applicable": "",
+        "non-applicable": "Filter is niet van toepassing",
         "remove-filter-with-key": "Filter verwijderen met sleutel {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Filterwaarde verwijderen - {{itemLabel}}",
         "use-custom-value": "Aangepaste waarde gebruiken: {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": "Verwijder {{label}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Recent",
+        "recent-empty": "Geen recente waarden",
+        "recommended": "Aanbevolen",
+        "recommended-empty": "Geen aanbevolen waarden",
+        "tooltip": "Aanbevelingen tonen"
+      },
       "fallback-page": {
         "content": "Als je hier bent gekomen via een link, dan kan er een bug in deze applicatie zijn.",
         "subTitle": "De URL kwam met geen enkele pagina overeen",
         "title": "Niet gevonden"
       },
-      "lazy-loader": {
-        "placeholder": ""
+      "group-by-pill": {
+        "applied-by-default": "Standaard toegepast in dit dashboard. Als het wordt bewerkt, wordt het overgenomen naar andere dashboards.",
+        "group-by-key": "Groeperen op {{keyLabel}}",
+        "remove-group-by-key": "Groep per {{keyLabel}} verwijderen"
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Scène samenvouwen",
@@ -30,13 +42,13 @@
         "title-scene-debugger": "Scène-debugger"
       },
       "scene-grid-row": {
-        "collapse-row": "Rij samenvouwen",
-        "expand-row": "Rij uitvouwen"
+        "collapse-row": "Rij met titel {{title}} inklappen",
+        "expand-row": "Rij met titel {{title}} uitklappen"
       },
       "scene-refresh-picker": {
         "text-cancel": "Annuleren",
         "text-refresh": "Vernieuwen",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Alle zoekopdrachten annuleren"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Vergelijking",
@@ -46,8 +58,8 @@
         "aria-label-pane-resize-widget": "Grootte widget wijzigen"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Ga {{moveBackwardDuration}} terug",
+        "move-forward-tooltip": "Ga {{moveForwardDuration}} naar voren"
       },
       "viz-panel": {
         "title": {
@@ -63,7 +75,7 @@
       },
       "viz-panel-series-limit": {
         "content-rendering-series-single-panel-impact-performance": "Het renderen van te veel reeksen in één paneel kan de prestaties beïnvloeden en de leesbaarheid van de gegevens verminderen. ",
-        "warning-message": "Alleen {{seriesLimit}}-series weergeven"
+        "warning-message": "Alleen {{seriesLimit}}-reeksen weergeven"
       }
     },
     "utils": {
@@ -93,6 +105,18 @@
           "placeholder-select-value": "Waarde selecteren"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "Alles wissen",
+        "collapse": "Inklappen",
+        "collapse-filters": "Filters inklappen",
+        "expand-filters": "Filters uitklappen",
+        "group-by-label": "Groeperen op:",
+        "restore-default-group-by": "Herstel groupby ingesteld door dit dashboard.",
+        "show-more-filters_one": " Nog {{count}} filters weergeven",
+        "show-more-filters_other": " Nog {{count}} filters weergeven",
+        "show-more-group-by_one": " Nog {{count}} groeperen-op-sleutels weergeven",
+        "show-more-group-by_other": " Nog {{count}} groeperen-op-sleutels weergeven"
+      },
       "data-source-variable": {
         "label": {
           "default": "standaard"
@@ -103,6 +127,9 @@
         "tooltip": "Standaard toegepast in dit dashboard. Als het wordt bewerkt, wordt het overgenomen naar andere dashboards.",
         "tooltip-restore-groupby-set-by-this-dashboard": "Herstel groupby ingesteld door dit dashboard."
       },
+      "expression-hint-placeholder": {
+        "press-enter-to-apply": ""
+      },
       "format-registry": {
         "formats": {
           "description": {
@@ -111,7 +138,7 @@
             "format-date-in-different-ways": "Datum op verschillende manieren opmaken",
             "format-multivalued-variables-using-syntax-example": "Formatteer variabelen met meerdere waarden met behulp van glob-syntaxis, bijvoorbeeld {value1,value2}",
             "html-escaping-of-values": "HTML-escaping van waarden",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Voeg waarden samen met een komma",
             "json-stringify-value": "JSON-stringify-waarde",
             "keep-value-as-is": "Huidige waarde behouden",
             "multiple-values-are-formatted-like-variablevalue": "Meerdere waarden zijn opgemaakt als variabele=waarde",
