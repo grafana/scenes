@@ -23,6 +23,7 @@ import {
   defaultOptions as defaultHistogramOptions,
 } from '@grafana/schema/dist/esm/raw/composable/histogram/panelcfg/x/HistogramPanelCfg_types.gen';
 import { Options as LogsOptions } from '@grafana/schema/dist/esm/raw/composable/logs/panelcfg/x/LogsPanelCfg_types.gen';
+import { LogstableOptions, defaultLogstableOptions } from './logstablePanelOptions';
 import {
   Options as NewsOptions,
   defaultOptions as defaultNewsOptions,
@@ -85,6 +86,9 @@ export const PanelOptionsBuilders = {
   },
   logs() {
     return new PanelOptionsBuilder<LogsOptions>();
+  },
+  logstable() {
+    return new PanelOptionsBuilder<LogstableOptions>(() => defaultLogstableOptions);
   },
   news() {
     return new PanelOptionsBuilder<NewsOptions>(() => defaultNewsOptions);
