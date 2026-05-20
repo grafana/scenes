@@ -50,25 +50,15 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: Get secrets from vault
-        id: get-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+      - name: Get GitHub App Token
+        id: get-github-app-token
+        uses: grafana/shared-workflows/actions/create-github-app-token@259ba21cb3ff07724f331e26d926d655d24b317b # create-github-app-token/v0.2.3
         with:
-          # Secrets placed in the ci/repo/grafana/scenes/ path in Vault
-          repo_secrets: |
-            GITHUB_APP_ID=github-app:app-id
-            GITHUB_APP_PRIVATE_KEY=github-app:private-key
-
-      - name: Generate a token
-        id: generate-token
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ env.GITHUB_APP_ID }}
-          private-key: ${{ env.GITHUB_APP_PRIVATE_KEY }}
+          github_app: scenes-repo-bot-access-token
 
       - uses: actions/checkout@v4
         with:
-          token: ${{ steps.generate-token.outputs.token }}
+          token: ${{ steps.get-github-app-token.outputs.token }}
           persist-credentials: false
 
       - name: Prepare repository
@@ -88,4 +78,4 @@ jobs:
       - name: Run auto shipit
         run: yarn auto shipit
         env:
-          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
