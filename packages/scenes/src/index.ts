@@ -107,6 +107,12 @@ export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
 export { VizPanel, type VizPanelState } from './components/VizPanel/VizPanel';
+export { type PanelNaturalHeightConstraints } from './components/VizPanel/panelNaturalHeight';
+export { getVizPanelChromeOverhead, VIZ_PANEL_DEFAULT_CHROME_OVERHEAD_PX } from './components/VizPanel/panelChromeSize';
+export {
+  useVizPanelNaturalHeight,
+  type UseVizPanelNaturalHeightOptions,
+} from './components/VizPanel/useVizPanelNaturalHeight';
 export { VizPanelMenu } from './components/VizPanel/VizPanelMenu';
 export { VizPanelExploreButton } from './components/VizPanel/VizPanelExploreButton';
 export { NestedScene } from './components/NestedScene';

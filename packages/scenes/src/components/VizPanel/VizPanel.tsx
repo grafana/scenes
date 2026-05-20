@@ -24,6 +24,8 @@ import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
 import { DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
 
+import { type PanelNaturalHeightConstraints, resolvePanelNaturalHeight } from './panelNaturalHeight';
+import { getVizPanelChromeOverhead } from './panelChromeSize';
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VizPanelMenu } from './VizPanelMenu';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
@@ -342,6 +344,22 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public getPlugin(): PanelPlugin | undefined {
     return this._plugin;
+  }
+
+  /**
+   * Natural panel height in pixels (including chrome), or `undefined` when the
+   * plugin opts out or data is not ready. Layouts should use this instead of
+   * calling {@link PanelPlugin.getNaturalHeight} directly.
+   */
+  public getNaturalHeight(constraints: PanelNaturalHeightConstraints): number | undefined {
+    return resolvePanelNaturalHeight(this, constraints);
+  }
+
+  /**
+   * Estimated vertical PanelChrome overhead for this panel (header, padding, border).
+   */
+  public getChromeOverhead(): number {
+    return getVizPanelChromeOverhead(this);
   }
 
   public getPanelContext(): PanelContext {
