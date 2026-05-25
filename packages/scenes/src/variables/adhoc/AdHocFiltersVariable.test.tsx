@@ -3776,6 +3776,43 @@ describe('group-by', () => {
       expect(isFilterComplete({ key: '', operator: 'groupBy', value: '', condition: '' })).toBe(false);
       expect(isFilterComplete({ key: 'k', operator: '', value: '', condition: '' })).toBe(false);
     });
+
+    it('returns false for regular filter with undefined or null value', () => {
+      expect(
+        isFilterComplete({ key: 'key1', operator: '=', value: undefined as unknown as string, condition: '' })
+      ).toBe(false);
+      expect(isFilterComplete({ key: 'key1', operator: '=', value: null as unknown as string, condition: '' })).toBe(
+        false
+      );
+    });
+  });
+
+  describe('constructor', () => {
+    it('drops origin filters that are missing a value', () => {
+      const variable = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test' },
+        originFilters: [
+          { key: 'complete', operator: '=', value: 'foo', origin: 'dashboard' },
+          { key: 'incomplete', operator: '=', origin: 'dashboard' } as AdHocFilterWithLabels,
+          { key: 'empty', operator: '=', value: '', origin: 'dashboard' },
+          { key: 'groupBy', operator: 'groupBy', value: '', origin: 'dashboard' },
+        ],
+      });
+
+      expect(variable.state.originFilters?.map((f) => f.key)).toEqual(['complete', 'groupBy']);
+    });
+
+    it('does not crash building the expression when saved origin filters are missing a value', () => {
+      expect(
+        () =>
+          new AdHocFiltersVariable({
+            name: 'filters',
+            datasource: { uid: 'test' },
+            originFilters: [{ key: 'broken', operator: '=', origin: 'dashboard' } as AdHocFilterWithLabels],
+          })
+      ).not.toThrow();
+    });
   });
 
   describe('_addGroupByFilter', () => {
