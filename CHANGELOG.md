@@ -1,3 +1,23 @@
+# v8.2.6 (Mon May 25 2026)
+
+#### 🐛 Bug Fix
+
+- Chore: Update i18n workflows to work with new composite actions [#1459](https://github.com/grafana/scenes/pull/1459) ([@ashharrison90](https://github.com/ashharrison90))
+- Update CHANGELOG with v8 details [#1434](https://github.com/grafana/scenes/pull/1434) ([@torkelo](https://github.com/torkelo))
+- `@grafana/scenes`
+  - Prevent panel dragging in view mode [#1458](https://github.com/grafana/scenes/pull/1458) ([@bfmatei](https://github.com/bfmatei))
+  - fix(ScopedVars): Fix getValue [#1447](https://github.com/grafana/scenes/pull/1447) ([@grafakus](https://github.com/grafakus))
+  - Panel: improve error message if panel plugin is out of date [#1449](https://github.com/grafana/scenes/pull/1449) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 4
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Marc M. ([@grafakus](https://github.com/grafakus))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v8.2.5 (Mon May 11 2026)
 
 #### 🐛 Bug Fix

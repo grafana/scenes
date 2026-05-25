@@ -1,3 +1,19 @@
+# v8.2.6 (Mon May 25 2026)
+
+#### 🐛 Bug Fix
+
+- Prevent panel dragging in view mode [#1458](https://github.com/grafana/scenes/pull/1458) ([@bfmatei](https://github.com/bfmatei))
+- fix(ScopedVars): Fix getValue [#1447](https://github.com/grafana/scenes/pull/1447) ([@grafakus](https://github.com/grafakus))
+- Panel: improve error message if panel plugin is out of date [#1449](https://github.com/grafana/scenes/pull/1449) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 3
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Marc M. ([@grafakus](https://github.com/grafakus))
+
+---
+
 # v8.2.5 (Mon May 11 2026)
 
 #### 🐛 Bug Fix
