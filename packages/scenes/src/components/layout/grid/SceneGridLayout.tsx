@@ -60,6 +60,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
   }
 
   public getDragHooks() {
+    if (!this.isDraggable()) {
+      return {};
+    }
+
     return {
       onDragStart: (evt: PointerEvent, panel: VizPanel) => {
         this.publishEvent(new SceneGridLayoutDragStartEvent({ evt, panel }), true);

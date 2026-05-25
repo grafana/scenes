@@ -392,10 +392,7 @@ function getDragClasses(panel: VizPanel) {
 
 function getDragHooks(panel: VizPanel) {
   const parentLayout = sceneGraph.getLayout(panel);
-  if (!parentLayout || !parentLayout.isDraggable() || !parentLayout.getDragHooks) {
-    return {};
-  }
-  return parentLayout.getDragHooks() ?? {};
+  return parentLayout?.getDragHooks?.() ?? {};
 }
 
 /**
