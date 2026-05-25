@@ -294,7 +294,11 @@ export class AdHocFiltersVariable
   protected _variableDependency = new VariableDependencyConfig(this, {
     dependsOnScopes: true,
     onReferencedVariableValueChanged: () => this._updateScopesFilters(),
+    onAnyVariableChanged: () => this._drainPendingVariableWaits(),
   });
+
+  /** Resolvers waiting for in-scope variables to finish loading before a data source call. */
+  private _pendingVariableWaits: Array<() => void> = [];
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
@@ -1025,6 +1029,35 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Wait until template variables in scope have finished loading.
+   *  Prevents data source calls like getTagKeys
+   * from running with unresolved `$var` references in the panel queries we forward.
+   */
+  private _waitForVariables(): Promise<void> {
+    if (!this._isAnyInScopeVariableLoading()) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => {
+      this._pendingVariableWaits.push(resolve);
+    });
+  }
+
+  private _isAnyInScopeVariableLoading(): boolean {
+    const variableSet = sceneGraph.getVariables(this);
+    return variableSet.state.variables.some((v) => variableSet.isVariableLoadingOrWaitingToUpdate(v));
+  }
+
+  private _drainPendingVariableWaits() {
+    if (this._pendingVariableWaits.length === 0 || this._isAnyInScopeVariableLoading()) {
+      return;
+    }
+    const waiters = this._pendingVariableWaits;
+    this._pendingVariableWaits = [];
+    waiters.forEach((resolve) => resolve());
+  }
+
+  /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public async _getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
@@ -1042,6 +1075,8 @@ export class AdHocFiltersVariable
     if (!ds || !ds.getTagKeys) {
       return [];
     }
+
+    await this._waitForVariables();
 
     const applicableOriginFilters =
       this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
@@ -1102,6 +1137,8 @@ export class AdHocFiltersVariable
       return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
     }
 
+    await this._waitForVariables();
+
     const applicableOriginFilters =
       this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
     const otherFilters = this.state.filters
@@ -1153,6 +1190,8 @@ export class AdHocFiltersVariable
     if (!ds || !ds.getTagValues) {
       return [];
     }
+
+    await this._waitForVariables();
 
     const originFilters =
       this.state.originFilters?.filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f)) ??
