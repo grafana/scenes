@@ -303,13 +303,22 @@ export class AdHocFiltersVariable
   private _recommendations: AdHocFiltersRecommendations | undefined;
 
   public constructor(state: Partial<AdHocFiltersVariableState>) {
-    const { collapsible, defaultKeys, drilldownRecommendationsEnabled, ...restState } = state;
+    const {
+      collapsible,
+      defaultKeys,
+      drilldownRecommendationsEnabled,
+      originFilters: rawOriginFilters,
+      ...restState
+    } = state;
     const behaviors = state.$behaviors ?? [];
     const recommendations = state.drilldownRecommendationsEnabled ? new AdHocFiltersRecommendations() : undefined;
 
     if (recommendations) {
       behaviors.push(recommendations);
     }
+
+    // validate origin filter completion
+    const originFilters = rawOriginFilters?.filter(isFilterComplete);
 
     super({
       type: 'adhoc',
@@ -319,8 +328,9 @@ export class AdHocFiltersVariable
       applyMode: 'auto',
       filterExpression:
         state.filterExpression ??
-        renderExpression(state.expressionBuilder, [...(state.originFilters ?? []), ...(state.filters ?? [])]),
+        renderExpression(state.expressionBuilder, [...(originFilters ?? []), ...(state.filters ?? [])]),
       ...restState,
+      originFilters,
       ...(behaviors.length > 0 && { $behaviors: behaviors }),
       ...(collapsible !== undefined && { collapsible }),
       ...(drilldownRecommendationsEnabled !== undefined && { drilldownRecommendationsEnabled }),
@@ -1324,7 +1334,11 @@ export function isGroupByFilter(filter: AdHocFilterWithLabels): boolean {
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
-  return filter.key !== '' && filter.operator !== '' && (isGroupByFilter(filter) || filter.value !== '');
+  return (
+    filter.key !== '' &&
+    filter.operator !== '' &&
+    (isGroupByFilter(filter) || (filter.value != null && filter.value !== ''))
+  );
 }
 
 export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
