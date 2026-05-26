@@ -982,6 +982,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                           aria-posinset={virtualItem.index + 1}
                           isMultiValueEdit={isMultiValueEdit}
                           checked={filterMultiValues.some((val) => val.value === item.value)}
+                          testIdValue={String(itemLabel)}
                         >
                           <span>
                             {item.isCustom

@@ -11,17 +11,20 @@ interface DropdownItemProps {
   isMultiValueEdit?: boolean;
   checked?: boolean;
   nonInteractive?: boolean;
+  testIdValue?: string;
 }
 
 export const DropdownItem = forwardRef<HTMLDivElement, DropdownItemProps & React.HTMLProps<HTMLDivElement>>(
   function DropdownItem(
-    { children, active, addGroupBottomBorder, isMultiValueEdit, checked, nonInteractive, ...rest },
+    { children, active, addGroupBottomBorder, isMultiValueEdit, checked, nonInteractive, testIdValue, ...rest },
     ref
   ) {
     const styles = useStyles2(getStyles);
     const id = useId();
 
     const ariaProps = nonInteractive ? {} : { role: 'option', 'aria-selected': active };
+
+    const testIdLabel = testIdValue ?? 'item';
 
     return (
       <div
@@ -36,7 +39,7 @@ export const DropdownItem = forwardRef<HTMLDivElement, DropdownItemProps & React
         )}
         {...rest}
       >
-        <div className={styles.optionBody} data-testid={`data-testid ad hoc filter option value ${children}`}>
+        <div className={styles.optionBody} data-testid={`data-testid ad hoc filter option value ${testIdLabel}`}>
           <span>
             {isMultiValueEdit ? <Checkbox tabIndex={-1} checked={checked} className={styles.checkbox} /> : null}
             {children}
