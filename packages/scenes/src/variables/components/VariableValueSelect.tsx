@@ -21,6 +21,10 @@ import { getOptionSearcher } from './getOptionSearcher';
 import { sceneGraph } from '../../core/sceneGraph';
 import { VARIABLE_VALUE_CHANGED_INTERACTION } from '../../performance/interactionConstants';
 import { getVariableControlId } from '../utils';
+import {
+  ExperimentalVariableValueSelect,
+  ExperimentalVariableValueSelectMulti,
+} from './ExperimentalVariableValueSelect';
 
 const filterNoOp = () => true;
 
@@ -266,6 +270,13 @@ const getOptionStyles = (theme: GrafanaTheme2) => ({
 
 export function MultiOrSingleValueSelect({ model }: { model: MultiValueVariable }) {
   const state = model.useState();
+
+  if (state.UNSAFE_useCombobox) {
+    if (state.isMulti) {
+      return <ExperimentalVariableValueSelectMulti model={model} state={state} />;
+    }
+    return <ExperimentalVariableValueSelect model={model} state={state} />;
+  }
 
   if (state.isMulti) {
     return <VariableValueSelectMulti model={model} state={state} />;

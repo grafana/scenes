@@ -40,6 +40,14 @@ export interface MultiValueVariableState extends SceneVariableState {
   maxVisibleValues?: number;
   noValueOnClear?: boolean;
   isReadOnly?: boolean;
+  /**
+   * @internal
+   * ⚠️ DO NOT USE. Internal migration flag only.
+   * When true, the variable renders the Combobox-based VariableValueSelect
+   * instead of the legacy Select-based one.
+   * This property will be removed once the migration to Combobox is complete.
+   */
+  UNSAFE_useCombobox?: boolean;
 }
 
 export interface VariableGetOptionsArgs {
