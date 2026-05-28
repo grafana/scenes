@@ -79,7 +79,7 @@ const config = (env): Configuration => ({
           loader: 'swc-loader',
           options: {
             jsc: {
-              baseUrl: './src',
+              baseUrl: path.resolve(process.cwd(), 'src'),
               target: 'es2015',
               loose: false,
               parser: {
