@@ -4446,7 +4446,7 @@ __metadata:
     "@types/node": "npm:20.11.30"
     "@types/react": "npm:18.2.74"
     "@types/react-dom": "npm:18.2.24"
-    "@types/react-grid-layout": "npm:1.3.2"
+    "@types/react-grid-layout": "npm:1.3.6"
     "@types/react-virtualized-auto-sizer": "npm:1.0.8"
     eslint: "npm:^9.28.0"
     jest: "npm:29.7.0"
@@ -4487,7 +4487,7 @@ __metadata:
     "@types/node": "npm:20.11.30"
     "@types/react": "npm:18.2.74"
     "@types/react-dom": "npm:18.2.24"
-    "@types/react-grid-layout": "npm:1.3.2"
+    "@types/react-grid-layout": "npm:1.3.6"
     "@types/react-virtualized-auto-sizer": "npm:1.0.8"
     "@types/systemjs": "npm:^6.15.1"
     eslint: "npm:^9.28.0"
@@ -8938,12 +8938,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-grid-layout@npm:1.3.2":
-  version: 1.3.2
-  resolution: "@types/react-grid-layout@npm:1.3.2"
+"@types/react-grid-layout@npm:1.3.6":
+  version: 1.3.6
+  resolution: "@types/react-grid-layout@npm:1.3.6"
   dependencies:
     "@types/react": "npm:*"
-  checksum: 10/a21fe7f790d8bd2ae385829e5d5c369788c2facfc0a9f888dc1f07b4982398e02d1ffc8fca902cd77495094a598e0951e5c907edeb773abd1bf8a6db293d54a1
+  checksum: 10/80b9cd6ab14f5cd32a62451544cbbeff32d6c8c3fefd6e04f974429a0b1b0d2aded1f4767ae4ce9cd4caa395e514531f5e5d6a3c3e93dba4906a907f8d77ee21
   languageName: node
   linkType: hard
 
