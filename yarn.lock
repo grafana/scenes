@@ -5956,7 +5956,6 @@ __metadata:
     "@types/react-dom": "npm:18.2.24"
     "@types/react-grid-layout": "npm:1.3.2"
     "@types/react-virtualized-auto-sizer": "npm:1.0.1"
-    "@types/uuid": "npm:8.3.4"
     eslint: "npm:^9.28.0"
     jest: "npm:29.7.0"
     lodash: "npm:^4.17.21"
@@ -5999,7 +5998,6 @@ __metadata:
     "@types/react-grid-layout": "npm:1.3.2"
     "@types/react-virtualized-auto-sizer": "npm:1.0.1"
     "@types/systemjs": "npm:^6.15.1"
-    "@types/uuid": "npm:8.3.4"
     eslint: "npm:^9.28.0"
     history: "npm:^4.9.0"
     i18next-parser: "npm:9.3.0"
@@ -6015,7 +6013,7 @@ __metadata:
     rollup: "npm:^4.36.0"
     rxjs: "npm:7.8.1"
     typescript: "npm:^5.4.3"
-    uuid: "npm:^9.0.0"
+    uuid: "npm:^11.0.0"
   peerDependencies:
     "@grafana/data": ">=11.6"
     "@grafana/e2e-selectors": ">=11.6"
@@ -11044,13 +11042,6 @@ __metadata:
   version: 0.0.6
   resolution: "@types/use-sync-external-store@npm:0.0.6"
   checksum: 10/a95ce330668501ad9b1c5b7f2b14872ad201e552a0e567787b8f1588b22c7040c7c3d80f142cbb9f92d13c4ea41c46af57a20f2af4edf27f224d352abcfe4049
-  languageName: node
-  linkType: hard
-
-"@types/uuid@npm:8.3.4":
-  version: 8.3.4
-  resolution: "@types/uuid@npm:8.3.4"
-  checksum: 10/6f11f3ff70f30210edaa8071422d405e9c1d4e53abbe50fdce365150d3c698fe7bbff65c1e71ae080cbfb8fded860dbb5e174da96fdbbdfcaa3fb3daa474d20f
   languageName: node
   linkType: hard
 
@@ -33608,6 +33599,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uuid@npm:^11.0.0":
+  version: 11.1.1
+  resolution: "uuid@npm:11.1.1"
+  bin:
+    uuid: dist/esm/bin/uuid
+  checksum: 10/16411d3dc12a08d6691616c09a75e66a7f900ba1beef6628a76fe0602f82fae2ee537b564d0b7bc95c24f58d059ca9b58c75a1e806118efb50e17822ff00ddd2
+  languageName: node
+  linkType: hard
+
 "uuid@npm:^11.1.0":
   version: 11.1.0
   resolution: "uuid@npm:11.1.0"
@@ -33623,15 +33623,6 @@ __metadata:
   bin:
     uuid: ./bin/uuid
   checksum: 10/4f2b86432b04cc7c73a0dd1bcf11f1fc18349d65d2e4e32dd0fc658909329a1e0cc9244aa93f34c0cccfdd5ae1af60a149251a5f420ec3ac4223a3dab198fb2e
-  languageName: node
-  linkType: hard
-
-"uuid@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "uuid@npm:9.0.0"
-  bin:
-    uuid: dist/bin/uuid
-  checksum: 10/23857699a616d1b48224bc2b8440eae6e57d25463c3a0200e514ba8279dfa3bde7e92ea056122237839cfa32045e57d8f8f4a30e581d720fd72935572853ae2e
   languageName: node
   linkType: hard
 
