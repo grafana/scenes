@@ -10450,7 +10450,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"autocomplete.js@npm:^0.37.0":
+"autocomplete.js@npm:^0.37.1":
   version: 0.37.1
   resolution: "autocomplete.js@npm:0.37.1"
   dependencies:
@@ -13801,28 +13801,28 @@ __metadata:
   linkType: hard
 
 "docusaurus-lunr-search@npm:^3.3.1":
-  version: 3.5.0
-  resolution: "docusaurus-lunr-search@npm:3.5.0"
+  version: 3.6.1
+  resolution: "docusaurus-lunr-search@npm:3.6.1"
   dependencies:
-    autocomplete.js: "npm:^0.37.0"
-    clsx: "npm:^1.2.1"
-    gauge: "npm:^3.0.0"
-    hast-util-select: "npm:^4.0.0"
-    hast-util-to-text: "npm:^2.0.0"
+    autocomplete.js: "npm:^0.37.1"
+    clsx: "npm:^2.1.1"
+    gauge: "npm:^3.0.2"
+    hast-util-select: "npm:^4.0.2"
+    hast-util-to-text: "npm:^2.0.1"
     hogan.js: "npm:^3.0.2"
-    lunr: "npm:^2.3.8"
+    lunr: "npm:^2.3.9"
     lunr-languages: "npm:^1.4.0"
     mark.js: "npm:^8.11.1"
-    minimatch: "npm:^3.0.4"
+    minimatch: "npm:^3.1.2"
     rehype-parse: "npm:^7.0.1"
     to-vfile: "npm:^6.1.0"
-    unified: "npm:^9.0.0"
-    unist-util-is: "npm:^4.0.2"
+    unified: "npm:^9.2.2"
+    unist-util-is: "npm:^4.1.0"
   peerDependencies:
     "@docusaurus/core": ^2.0.0-alpha.60 || ^2.0.0 || ^3.0.0
-    react: ^16.8.4 || ^17 || ^18
-    react-dom: ^16.8.4 || ^17 || ^18
-  checksum: 10/cd57cdf44ecda7a433809f592a2f91cf3d8306a09843de0216e9497842efe980cbb358c1561e2b1d16ac8935403b8712d4717f83b155012a148001a044a90de5
+    react: ^16.8.4 || ^17 || ^18 || ^19
+    react-dom: ^16.8.4 || ^17 || ^18 || ^19
+  checksum: 10/d3055928808212fc4dfa0265e8a559377620af4988aea01145b00ef088358af05ff82f9c01fb9938bf164bec67bb598ad29a0edc32963f2af715bc8ae8a71c6e
   languageName: node
   linkType: hard
 
@@ -15937,7 +15937,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gauge@npm:^3.0.0":
+"gauge@npm:^3.0.2":
   version: 3.0.2
   resolution: "gauge@npm:3.0.2"
   dependencies:
@@ -16777,7 +16777,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hast-util-select@npm:^4.0.0":
+"hast-util-select@npm:^4.0.2":
   version: 4.0.2
   resolution: "hast-util-select@npm:4.0.2"
   dependencies:
@@ -16868,7 +16868,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hast-util-to-text@npm:^2.0.0":
+"hast-util-to-text@npm:^2.0.1":
   version: 2.0.1
   resolution: "hast-util-to-text@npm:2.0.1"
   dependencies:
@@ -20409,7 +20409,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lunr@npm:^2.3.8":
+"lunr@npm:^2.3.9":
   version: 2.3.9
   resolution: "lunr@npm:2.3.9"
   checksum: 10/f2f6db34c046f5a767782fe2454e6dd69c75ba3c5cf5c1cb9cacca2313a99c2ba78ff8fa67dac866fb7c4ffd5f22e06684793f5f15ba14bddb598b94513d54bf
@@ -29529,7 +29529,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unified@npm:^9.0.0":
+"unified@npm:^9.2.2":
   version: 9.2.2
   resolution: "unified@npm:9.2.2"
   dependencies:
@@ -29597,7 +29597,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unist-util-is@npm:^4.0.0, unist-util-is@npm:^4.0.2":
+"unist-util-is@npm:^4.0.0, unist-util-is@npm:^4.1.0":
   version: 4.1.0
   resolution: "unist-util-is@npm:4.1.0"
   checksum: 10/c046cc87c0a4f797b2afce76d917218e6a9af946a56cb5a88cb7f82be34f16c11050a10ddc4c66a3297dbb2782ca7d72a358cd77900b439ea9c683ba003ffe90
