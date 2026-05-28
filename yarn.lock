@@ -3999,15 +3999,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/compat@npm:1.3.0":
-  version: 1.3.0
-  resolution: "@eslint/compat@npm:1.3.0"
+"@eslint/compat@npm:1.4.1":
+  version: 1.4.1
+  resolution: "@eslint/compat@npm:1.4.1"
+  dependencies:
+    "@eslint/core": "npm:^0.17.0"
   peerDependencies:
-    eslint: ^9.10.0
+    eslint: ^8.40 || 9
   peerDependenciesMeta:
     eslint:
       optional: true
-  checksum: 10/f9f0697880468f2130eb5a96a232c32dca4abb08194ed4080f9947d7cdeff9e4b4f6f0e13402bdbf5708392de967ea867f459782d6a008c6aa3668a283e62b67
+  checksum: 10/2345ba0991aaf57f79feed0417eac61fd0e09fb1d2f5bc3f723d5790a4f0881cca16b7a48c82555ab907a3469dce7d3cb43cc5e5100c22e2a369a561f4b421cd
   languageName: node
   linkType: hard
 
@@ -4044,6 +4046,15 @@ __metadata:
   dependencies:
     "@types/json-schema": "npm:^7.0.15"
   checksum: 10/27c9cb5bdc5c9dead5b06f2b2a6a66d8bbe5e2e19397e2c5ff9ea582c9d4e4478bf1bc1bdd4eaec7bb3a0d6fa53f152e595acf637354776c14bb58c321ea5aa3
+  languageName: node
+  linkType: hard
+
+"@eslint/core@npm:^0.17.0":
+  version: 0.17.0
+  resolution: "@eslint/core@npm:0.17.0"
+  dependencies:
+    "@types/json-schema": "npm:^7.0.15"
+  checksum: 10/f9a428cc651ec15fb60d7d60c2a7bacad4666e12508320eafa98258e976fafaa77d7be7be91519e75f801f15f830105420b14a458d4aab121a2b0a59bc43517b
   languageName: node
   linkType: hard
 
@@ -16478,7 +16489,7 @@ __metadata:
   dependencies:
     "@auto-it/omit-commits": "npm:^11.3.6"
     "@auto-it/released": "npm:^11.3.6"
-    "@eslint/compat": "npm:1.3.0"
+    "@eslint/compat": "npm:1.4.1"
     "@eslint/js": "npm:^9.28.0"
     "@grafana/eslint-config": "npm:^8.1.0"
     "@grafana/tsconfig": "npm:^1.3.0-rc1"
@@ -26852,7 +26863,7 @@ __metadata:
   dependencies:
     "@babel/core": "npm:^7.29.0"
     "@emotion/css": "npm:^11.1.3"
-    "@eslint/compat": "npm:1.3.0"
+    "@eslint/compat": "npm:1.4.1"
     "@grafana/data": "npm:^11.6.0"
     "@grafana/e2e": "npm:9.2.1"
     "@grafana/e2e-selectors": "npm:^11.5.0"
