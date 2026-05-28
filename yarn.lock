@@ -4439,7 +4439,7 @@ __metadata:
     "@emotion/css": "npm:11.10.5"
     "@emotion/react": "npm:11.10.5"
     "@grafana/scenes": "workspace:*"
-    "@rollup/plugin-eslint": "npm:^9.0.5"
+    "@rollup/plugin-eslint": "npm:^9.2.0"
     "@rollup/plugin-node-resolve": "npm:^16.0.1"
     "@types/history": "npm:4.7.11"
     "@types/lodash": "npm:4.14.187"
@@ -7343,18 +7343,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-eslint@npm:^9.0.5":
-  version: 9.0.5
-  resolution: "@rollup/plugin-eslint@npm:9.0.5"
+"@rollup/plugin-eslint@npm:^9.2.0":
+  version: 9.2.0
+  resolution: "@rollup/plugin-eslint@npm:9.2.0"
   dependencies:
     "@rollup/pluginutils": "npm:^5.0.1"
-    eslint: "npm:^8.24.0"
   peerDependencies:
+    eslint: ^8.57.1||^9.0.0
     rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
   peerDependenciesMeta:
     rollup:
       optional: true
-  checksum: 10/fe0b39c2bea412e1743d5d7ddd69c8fcd12bbcd5af6f65cf66394de6bfa78553ca288cdd3a1dc2dee6a4369bd68a8ea3758bb02514f4be37561563e9ec66a79e
+  checksum: 10/0e58d16a8df33f94d82a7b3b2eb2663343402df83bdb114654334b5af9126cb620d194f39d68ff3ed6841fe0bfdc986e75cdeb2f1651d6c8a207a8e6d16c522b
   languageName: node
   linkType: hard
 
