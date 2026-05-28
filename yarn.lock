@@ -4447,7 +4447,7 @@ __metadata:
     "@types/react": "npm:18.2.74"
     "@types/react-dom": "npm:18.2.24"
     "@types/react-grid-layout": "npm:1.3.2"
-    "@types/react-virtualized-auto-sizer": "npm:1.0.1"
+    "@types/react-virtualized-auto-sizer": "npm:1.0.8"
     eslint: "npm:^9.28.0"
     jest: "npm:29.7.0"
     lodash: "npm:^4.17.21"
@@ -4488,7 +4488,7 @@ __metadata:
     "@types/react": "npm:18.2.74"
     "@types/react-dom": "npm:18.2.24"
     "@types/react-grid-layout": "npm:1.3.2"
-    "@types/react-virtualized-auto-sizer": "npm:1.0.1"
+    "@types/react-virtualized-auto-sizer": "npm:1.0.8"
     "@types/systemjs": "npm:^6.15.1"
     eslint: "npm:^9.28.0"
     history: "npm:^4.9.0"
@@ -8999,12 +8999,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-virtualized-auto-sizer@npm:1.0.1":
-  version: 1.0.1
-  resolution: "@types/react-virtualized-auto-sizer@npm:1.0.1"
+"@types/react-virtualized-auto-sizer@npm:1.0.8":
+  version: 1.0.8
+  resolution: "@types/react-virtualized-auto-sizer@npm:1.0.8"
   dependencies:
-    "@types/react": "npm:*"
-  checksum: 10/67eff0670a1991c2b16992274ada5f0b3f9d5c2d6209ef38e8f8ae2c0218211a3292882f5b7dd6f09519000dc20847629f049c9acc267e000626b7141e5927a6
+    react-virtualized-auto-sizer: "npm:*"
+  checksum: 10/faddd1ee92e87e0b621a5be4eb510b010437375b6c85cf72d764f52506c59fad93d79c159aad251677e4e2fb548ad4a7e76c59f5a701a517bcf5552a9929c4af
   languageName: node
   linkType: hard
 
@@ -25736,6 +25736,16 @@ __metadata:
     react: "*"
     react-dom: "*"
   checksum: 10/a817b74e82b481a39d3539bfe8d3b535c08d59d44a75ea91f65e56a7ccaedb0de185159e50b44ea4a635dda0c1c7159f07530e81a1d64b57130e0a715a107795
+  languageName: node
+  linkType: hard
+
+"react-virtualized-auto-sizer@npm:*":
+  version: 2.0.3
+  resolution: "react-virtualized-auto-sizer@npm:2.0.3"
+  peerDependencies:
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  checksum: 10/85054963d8b418915ffbd73c528ca580f63e3a73e8a2946ad761a94b86986ba9fd1b89e84a99f9b08b04d6d24fabba318a42d3622d1228092c0da8647fba81ea
   languageName: node
   linkType: hard
 
