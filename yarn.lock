@@ -12327,9 +12327,9 @@ __metadata:
   linkType: hard
 
 "cookiejs@npm:^2.1.2":
-  version: 2.1.3
-  resolution: "cookiejs@npm:2.1.3"
-  checksum: 10/8e9de3dc0231b768d2aa158dcf5ef45cbf4b6ec42458d09bdc32ddf7b773098c8530a6260b22964a569529187db81498a0e9a6f735cd5898548b767a2d0d0e9c
+  version: 2.1.4
+  resolution: "cookiejs@npm:2.1.4"
+  checksum: 10/93c97b7b7d1ebfd3cdeeafdaefab183060e71c2b8a172bbea2b4754885974c17c944cdce06d23226a18fafbf2ff41e55a1b9f03c8dd9e32c35aad1f7dbb09041
   languageName: node
   linkType: hard
 
