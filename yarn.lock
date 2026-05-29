@@ -4618,7 +4618,7 @@ __metadata:
     react-use: "npm:^17.4.0"
     rimraf: "npm:^3.0.2"
     rollup: "npm:^4.36.0"
-    rxjs: "npm:7.8.1"
+    rxjs: "npm:7.8.2"
     typescript: "npm:^5.4.3"
   peerDependencies:
     "@grafana/data": ">=11.6"
@@ -4666,7 +4666,7 @@ __metadata:
     react-virtualized-auto-sizer: "npm:^1.0.24"
     rimraf: "npm:^3.0.2"
     rollup: "npm:^4.36.0"
-    rxjs: "npm:7.8.1"
+    rxjs: "npm:7.8.2"
     typescript: "npm:^5.4.3"
     uuid: "npm:^11.0.0"
   peerDependencies:
@@ -27017,16 +27017,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:7.8.1":
-  version: 7.8.1
-  resolution: "rxjs@npm:7.8.1"
-  dependencies:
-    tslib: "npm:^2.1.0"
-  checksum: 10/b10cac1a5258f885e9dd1b70d23c34daeb21b61222ee735d2ec40a8685bdca40429000703a44f0e638c27a684ac139e1c37e835d2a0dc16f6fc061a138ae3abb
-  languageName: node
-  linkType: hard
-
-"rxjs@npm:^7.5.1, rxjs@npm:^7.8.2":
+"rxjs@npm:7.8.2":
   version: 7.8.2
   resolution: "rxjs@npm:7.8.2"
   dependencies:
