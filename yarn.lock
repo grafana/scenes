@@ -2170,10 +2170,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@bsull/augurs@npm:0.2.0":
+"@bsull/augurs-prophet-wasmstan@npm:0.2.0":
   version: 0.2.0
-  resolution: "@bsull/augurs@npm:0.2.0"
-  checksum: 10/ed0dfd0d9feeeac4b252d0dc25b87471998b8fb6b657aca1d11f771872e26b33b0ba8b61e2f78c5a049a6f6c701f043ace050fcdea866e8299b011826396dc29
+  resolution: "@bsull/augurs-prophet-wasmstan@npm:0.2.0"
+  dependencies:
+    "@bytecodealliance/preview2-shim": "npm:^0.17.0"
+  checksum: 10/bc133a3776ad1c36be39e79e23c63cc43645602df33e030cbfcbf5161a64b110b1c527a9cf5bf4b31d8a878c25a7baddc5f2bedaeb83ecb3a50744ca52c42e11
+  languageName: node
+  linkType: hard
+
+"@bsull/augurs@npm:0.6.0":
+  version: 0.6.0
+  resolution: "@bsull/augurs@npm:0.6.0"
+  checksum: 10/0ba2ea0432f7d4c44ccec4d112e672f8d5d977407be42ff5995e1d6641b4b0238f97b9cdf13bc1fc066559bbd54e6fb00ad1f418014823a6c22af619e7a29c6a
+  languageName: node
+  linkType: hard
+
+"@bytecodealliance/preview2-shim@npm:^0.17.0":
+  version: 0.17.9
+  resolution: "@bytecodealliance/preview2-shim@npm:0.17.9"
+  checksum: 10/6502cfea74d9c10ce18a44897e39e0e55bfd49b57be089b4b99bc7acb4404dea3b290c2a3a5039858d55902976b4d87829f43b86639a956130da7aa72be6e7ba
   languageName: node
   linkType: hard
 
@@ -4577,21 +4593,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/scenes-ml@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@grafana/scenes-ml@npm:0.2.0"
+"@grafana/scenes-ml@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@grafana/scenes-ml@npm:0.5.0"
   dependencies:
-    "@bsull/augurs": "npm:0.2.0"
+    "@bsull/augurs": "npm:0.6.0"
+    "@bsull/augurs-prophet-wasmstan": "npm:0.2.0"
     date-fns: "npm:^3.6.0"
   peerDependencies:
-    "@grafana/data": ^10.0.3
-    "@grafana/runtime": ^10.0.3
+    "@grafana/data": ">=10.4"
+    "@grafana/runtime": ">=10.4"
     "@grafana/scenes": ">=4.26.1"
-    "@grafana/schema": ^10.0.3
-    "@grafana/ui": ^10.0.3
+    "@grafana/schema": ">=10.4"
+    "@grafana/ui": ">=10.4"
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 10/44c667f8eed7777af0851f6ea3ef1d34c0c1fb8e98311cdcebdc232e8aae17085c922988928a3bfb533e10f2df590411b6126afee97eee42cd906ab46d94c400
+  checksum: 10/4cc1c6d0c4272066a48d5887bde4850e78fe5909aec45792a48cd2993ecb08e86de7421f694757348fab7dcc926dbb916fd455caef7610091d4212eed63f000e
   languageName: node
   linkType: hard
 
@@ -27100,7 +27117,7 @@ __metadata:
     "@grafana/eslint-config": "npm:8.2.0"
     "@grafana/runtime": "npm:^11.6.0"
     "@grafana/scenes": "workspace:*"
-    "@grafana/scenes-ml": "npm:^0.2.0"
+    "@grafana/scenes-ml": "npm:^0.5.0"
     "@grafana/scenes-react": "workspace:*"
     "@grafana/schema": "npm:^11.6.0"
     "@grafana/tsconfig": "npm:1.3.0-rc1"
