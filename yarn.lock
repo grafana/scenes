@@ -4636,7 +4636,7 @@ __metadata:
     "@rollup/plugin-node-resolve": "npm:^16.0.1"
     "@types/history": "npm:4.7.11"
     "@types/lodash": "npm:4.17.24"
-    "@types/node": "npm:20.11.30"
+    "@types/node": "npm:20.19.41"
     "@types/react": "npm:18.2.74"
     "@types/react-dom": "npm:18.2.24"
     "@types/react-grid-layout": "npm:1.3.6"
@@ -4677,7 +4677,7 @@ __metadata:
     "@tanstack/react-virtual": "npm:^3.9.0"
     "@types/history": "npm:4.7.11"
     "@types/lodash": "npm:4.17.24"
-    "@types/node": "npm:20.11.30"
+    "@types/node": "npm:20.19.41"
     "@types/react": "npm:18.2.74"
     "@types/react-dom": "npm:18.2.24"
     "@types/react-grid-layout": "npm:1.3.6"
@@ -9041,12 +9041,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.11.30, @types/node@npm:^20.11.30":
-  version: 20.11.30
-  resolution: "@types/node@npm:20.11.30"
+"@types/node@npm:20.19.41, @types/node@npm:^20.11.30":
+  version: 20.19.41
+  resolution: "@types/node@npm:20.19.41"
   dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10/78515bc768d2b878e2e06a1c20eb4f5840072b79b8d28ff3dd0a7feaaf48fd3a2ac03cfa5bc7564da82db5906b43e9ba0e5df9f43d870b7aae2942306e208815
+    undici-types: "npm:~6.21.0"
+  checksum: 10/5eb38cabe687130093681fe35e2ee2230c0717ee44a784881229c8ea9ecfb3626be87edb3940c9b60886dc93b5cb5c66a58a4ff44f1de3936e6af92b65a029b2
   languageName: node
   linkType: hard
 
@@ -29723,13 +29723,6 @@ __metadata:
   version: 1.7.0
   resolution: "underscore@npm:1.7.0"
   checksum: 10/4b0bb1a30631a4edd64ab1349d3e676ce54cb6dfae50d865a80696418d4e77b689b58dbf5f67e2d336030c4f191e014a1cc8c98d069aee8330358898ce19ab7e
-  languageName: node
-  linkType: hard
-
-"undici-types@npm:~5.26.4":
-  version: 5.26.5
-  resolution: "undici-types@npm:5.26.5"
-  checksum: 10/0097779d94bc0fd26f0418b3a05472410408877279141ded2bd449167be1aed7ea5b76f756562cb3586a07f251b90799bab22d9019ceba49c037c76445f7cddd
   languageName: node
   linkType: hard
 
