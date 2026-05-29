@@ -182,7 +182,7 @@ In addition to all the transformations available in Grafana, scenes allow you to
 `SceneDataTransformer` accepts `CustomTransformOperator` as an item of the `transformations` array:
 
 ```ts
-  transformations: Array<DataTransformerConfig | CustomTransformOperator>;
+transformations: Array<DataTransformerConfig | CustomTransformOperator>;
 ```
 
 `CustomTransformOperator` is a function that returns the RxJS Operator, which transforms data:
