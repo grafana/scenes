@@ -2899,20 +2899,29 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   describe('using new combobox layout - valueLabels', () => {
-    // needed for floating-ui to correctly calculate the position of the dropdown
+    // jsdom layout mocks for floating-ui positioning and @tanstack/react-virtual measurement
     beforeAll(() => {
-      const mockGetBoundingClientRect = jest.fn(() => ({
-        width: 120,
-        height: 120,
-        top: 0,
-        left: 0,
-        bottom: 0,
-        right: 0,
-      }));
-
       Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
-        value: mockGetBoundingClientRect,
+        configurable: true,
+        value: () => ({
+          width: 200,
+          height: 32,
+          top: 0,
+          left: 0,
+          bottom: 32,
+          right: 200,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        }),
       });
+      Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get: () => 480 });
+      Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, get: () => 200 });
+      globalThis.ResizeObserver ??= class {
+        public observe() {}
+        public unobserve() {}
+        public disconnect() {}
+      } as unknown as typeof ResizeObserver;
     });
 
     beforeEach(() => {
