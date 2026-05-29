@@ -85,7 +85,7 @@
     "@types/react-virtualized-auto-sizer": "1.0.8",
     "@types/systemjs": "^6.15.1",
     "eslint": "^9.28.0",
-    "i18next-parser": "9.3.0",
+    "i18next-parser": "9.4.0",
     "jest": "30.3.0",
     "jest-canvas-mock": "^2.5.2",
     "react-router-dom": "^6.28.0",
