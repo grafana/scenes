@@ -16739,7 +16739,7 @@ __metadata:
     jest-matcher-utils: "npm:30.3.0"
     lerna: "npm:^9.0.0"
     lint-staged: "npm:^13.3.0"
-    prettier: "npm:2.5.1"
+    prettier: "npm:2.8.8"
     react-select-event: "npm:^5.5.1"
     rollup: "npm:^4.36.0"
     rollup-plugin-dts: "npm:^6.2.0"
@@ -24726,16 +24726,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:2.5.1":
-  version: 2.5.1
-  resolution: "prettier@npm:2.5.1"
-  bin:
-    prettier: bin-prettier.js
-  checksum: 10/c8f95df9ebe7241c557ab74237395adfed603719099aaf7cdb9b711c1a7fb7ac809c03fe68c22d0a6c0dbf1c4ab3c6eb90a6cc7bb31e4ea07a4a84fdbbb5c58f
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^2.5.0":
+"prettier@npm:2.8.8, prettier@npm:^2.5.0":
   version: 2.8.8
   resolution: "prettier@npm:2.8.8"
   bin:
