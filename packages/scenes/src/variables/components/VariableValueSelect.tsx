@@ -186,6 +186,7 @@ export function VariableValueSelectMulti({
       components={{ Option: OptionWithCheckbox }}
       isClearable={true}
       hideSelectedOptions={false}
+      blurInputOnSelect={false}
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(uncommittedValue, undefined, true);
@@ -196,6 +197,7 @@ export function VariableValueSelectMulti({
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([], undefined, true);
         }
+
         setUncommittedValue(newValue.map((x) => x.value!));
       }}
     />
@@ -236,10 +238,12 @@ export const OptionWithCheckbox = ({
       ref={innerRef}
       className={cx(selectStyles.option, isFocused && selectStyles.optionFocused)}
       {...rest}
-      // TODO: use below selector once we update grafana dependencies to ^11.1.0
-      // data-testid={selectors.components.Select.option}
-      data-testid="data-testid Select option"
+      data-testid={selectors.components.Select.option}
       title={data.title}
+      // rest.onClick cannot be set here as it causes double onClick
+      onClick={undefined}
+      // Using onPointerDown here as onClick is not fired first time for mobile/touch devices
+      onPointerDown={rest.onClick}
     >
       <div className={optionStyles.checkbox}>
         <Checkbox indeterminate={indeterminate} value={isSelected} />
