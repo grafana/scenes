@@ -180,6 +180,12 @@ const config = (env): Configuration => ({
 
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    fallback: {
+      // @bsull/augurs-prophet-wasmstan does `if (isNode) await import('fs/promises')`;
+      // webpack can't see through the runtime guard, so stub the Node-only path.
+      fs: false,
+      'fs/promises': false,
+    },
     unsafeCache: true,
   },
 });
