@@ -1,4 +1,5 @@
-import { css, CSSObject } from '@emotion/css';
+import { css } from '@emotion/css';
+import type { CSSObject } from '@emotion/react';
 import { config } from '@grafana/runtime';
 import React, { ComponentType, CSSProperties, useMemo } from 'react';
 
