@@ -45,7 +45,7 @@
   },
   "resolutions": {
     "@types/react": "18.3.29",
-    "@rollup/plugin-eslint/eslint": "^9.28.0",
+    "@rollup/plugin-eslint/eslint": "^10.0.0",
     "rxjs": "7.8.2"
   },
   "packageManager": "yarn@4.15.0",
@@ -57,7 +57,7 @@
     "@auto-it/omit-commits": "^11.3.6",
     "@auto-it/released": "^11.3.6",
     "@eslint/compat": "2.1.0",
-    "@eslint/js": "^9.28.0",
+    "@eslint/js": "^10.0.0",
     "@grafana/eslint-config": "^8.1.0",
     "@grafana/tsconfig": "^2.0.0",
     "@stylistic/eslint-plugin-ts": "4.4.1",
@@ -73,7 +73,7 @@
     "@typescript-eslint/parser": "^8.34.0",
     "auto": "^11.3.6",
     "esbuild": "^0.28.0",
-    "eslint": "^9.28.0",
+    "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "63.0.0",
