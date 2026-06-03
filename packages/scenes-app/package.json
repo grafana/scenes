@@ -42,7 +42,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-webpack-plugin": "6.0.0",
-    "fork-ts-checker-webpack-plugin": "^7.2.0",
+    "fork-ts-checker-webpack-plugin": "^9.0.0",
     "jest": "30.4.2",
     "prettier": "^2.5.0",
     "raw-loader": "^4.0.2",
