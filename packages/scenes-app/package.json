@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
-    "@eslint/compat": "1.4.1",
+    "@eslint/compat": "2.1.0",
     "@grafana/e2e": "9.5.21",
     "@grafana/e2e-selectors": "^11.6.1",
     "@grafana/eslint-config": "8.2.0",
