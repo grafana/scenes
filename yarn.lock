@@ -16438,7 +16438,7 @@ __metadata:
     rollup: "npm:^4.36.0"
     rollup-plugin-dts: "npm:^6.2.0"
     rollup-plugin-esbuild: "npm:^6.2.1"
-    rollup-plugin-node-externals: "npm:^8.0.0"
+    rollup-plugin-node-externals: "npm:^9.0.0"
     ts-jest: "npm:29.4.11"
     ts-node: "npm:10.9.2"
     turbo: "npm:^2.9.15"
@@ -26084,12 +26084,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-node-externals@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "rollup-plugin-node-externals@npm:8.0.0"
+"rollup-plugin-node-externals@npm:^9.0.0":
+  version: 9.0.1
+  resolution: "rollup-plugin-node-externals@npm:9.0.1"
   peerDependencies:
     rollup: ^4.0.0
-  checksum: 10/ef5565e8fdba4acbba81c4b214f789e03d3a3d049cbbe372679151c4f749a21a7f51d8448eff82b0b1bbbe5d2d64862cd292795e0f92e1fcad2afc9954a6fbdd
+    vite: ">=5.0.0"
+  peerDependenciesMeta:
+    rollup:
+      optional: true
+    vite:
+      optional: true
+  checksum: 10/22874ed2ab11d218da3e583c2f5d115672062ed5f28418c071ced2d039e2c448bc68103a4a13ff02c73dc3aaecbc935fa782a46a0b0fa15264deb53aadc805e8
   languageName: node
   linkType: hard
 
