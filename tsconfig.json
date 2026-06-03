@@ -5,6 +5,7 @@
     "declarationDir": "./compiled",
     "emitDeclarationOnly": true,
     "isolatedModules": true,
+    "moduleResolution": "node",
     "rootDirs": ["."]
   },
   "exclude": ["dist/**/*"],
