@@ -94,7 +94,7 @@
     "rollup-plugin-node-externals": "^8.0.0",
     "ts-jest": "29.4.11",
     "ts-node": "10.9.2",
-    "turbo": "^2.5.8",
+    "turbo": "^2.9.15",
     "typescript": "^5.4.3"
   }
 }
