@@ -4,20 +4,32 @@
       "adhoc-filter-pill": {
         "edit-filter-with-key": "Modifier le filtre ayant pour clé {{keyLabel}}",
         "managed-filter": "Filtre géré {{origin}}",
-        "non-applicable": "",
+        "non-applicable": "Filtre non applicable",
         "remove-filter-with-key": "Supprimer le filtre ayant pour clé {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "Supprimer la valeur du filtre – {{itemLabel}}",
         "use-custom-value": "Utiliser une valeur personnalisée : {{itemLabel}}"
       },
+      "base-pill": {
+        "remove": "Supprimer {{label}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "Récent",
+        "recent-empty": "Aucune valeur récente",
+        "recommended": "Recommandé",
+        "recommended-empty": "Aucune valeur recommandée",
+        "tooltip": "Afficher les recommandations"
+      },
       "fallback-page": {
         "content": "Si vous êtes arrivé ici via un lien, il se peut qu’il y ait un bug dans l’application.",
         "subTitle": "L’URL ne correspond à aucune page",
         "title": "Page introuvable"
       },
-      "lazy-loader": {
-        "placeholder": ""
+      "group-by-pill": {
+        "applied-by-default": "Appliqué par défaut dans ce tableau de bord. En cas de modification, s’applique aussi aux autres tableaux de bord.",
+        "group-by-key": "Regrouper par {{keyLabel}}",
+        "remove-group-by-key": "Supprimer le regroupement par {{keyLabel}}"
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Réduire la scène",
@@ -30,13 +42,13 @@
         "title-scene-debugger": "Débogueur de scène"
       },
       "scene-grid-row": {
-        "collapse-row": "Réduire la ligne",
-        "expand-row": "Développer la ligne"
+        "collapse-row": "Réduire la ligne avec le titre {{title}}",
+        "expand-row": "Développer la ligne avec le titre {{title}}"
       },
       "scene-refresh-picker": {
         "text-cancel": "Annuler",
         "text-refresh": "Actualiser",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "Annuler toutes les requêtes"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "Comparaison",
@@ -46,8 +58,8 @@
         "aria-label-pane-resize-widget": "Widget de redimensionnement du panneau"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "Reculer de {{moveBackwardDuration}}",
+        "move-forward-tooltip": "Avancer de {{moveForwardDuration}}"
       },
       "viz-panel": {
         "title": {
@@ -93,6 +105,18 @@
           "placeholder-select-value": "Sélectionner une valeur"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "Tout effacer",
+        "collapse": "Réduire",
+        "collapse-filters": "Réduire les filtres",
+        "expand-filters": "Développer les filtres",
+        "group-by-label": "Regrouper par :",
+        "restore-default-group-by": "Restaurer le groupage défini par ce tableau de bord.",
+        "show-more-filters_one": "Afficher {{count}} filtres supplémentaires",
+        "show-more-filters_other": "Afficher {{count}} filtres supplémentaires",
+        "show-more-group-by_one": "Afficher {{count}} clés de regroupement supplémentaires",
+        "show-more-group-by_other": "Afficher {{count}} clés de regroupement supplémentaires"
+      },
       "data-source-variable": {
         "label": {
           "default": "par défaut"
@@ -100,8 +124,11 @@
       },
       "default-group-by-custom-indicator-container": {
         "aria-label-clear": "effacer",
-        "tooltip": "Appliqué par défaut dans ce tableau de bord. En cas de modification, il s’applique aussi aux autres tableaux de bord.",
+        "tooltip": "Appliqué par défaut dans ce tableau de bord. En cas de modification, s’applique aussi aux autres tableaux de bord.",
         "tooltip-restore-groupby-set-by-this-dashboard": "Restaurer le groupage défini par ce tableau de bord."
+      },
+      "expression-hint-placeholder": {
+        "press-enter-to-apply": ""
       },
       "format-registry": {
         "formats": {
@@ -111,7 +138,7 @@
             "format-date-in-different-ways": "Formater la date de différentes façons",
             "format-multivalued-variables-using-syntax-example": "Formater les variables à valeurs multiples avec la syntaxe glob : exemple {value1,value2}",
             "html-escaping-of-values": "Échappement HTML des valeurs",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "Séparer les valeurs par une virgule",
             "json-stringify-value": "Valeur au format JSON (stringify)",
             "keep-value-as-is": "Conserver la valeur telle quelle",
             "multiple-values-are-formatted-like-variablevalue": "Plusieurs valeurs sont formatées ainsi : variable=valeur",
