@@ -4423,9 +4423,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/eslint-config@npm:8.2.0, @grafana/eslint-config@npm:^8.1.0":
-  version: 8.2.0
-  resolution: "@grafana/eslint-config@npm:8.2.0"
+"@grafana/eslint-config@npm:9.0.0, @grafana/eslint-config@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "@grafana/eslint-config@npm:9.0.0"
   peerDependencies:
     "@stylistic/eslint-plugin-ts": ">=2.9.0"
     "@typescript-eslint/eslint-plugin": ">=6.18.0"
@@ -4434,9 +4434,9 @@ __metadata:
     eslint-config-prettier: ">=8.8.0"
     eslint-plugin-jsdoc: ">=46.8.0"
     eslint-plugin-react: ">=7.33.0"
-    eslint-plugin-react-hooks: ">=4.6.0"
+    eslint-plugin-react-hooks: ">=7.0.0"
     typescript: ">=5.2.0"
-  checksum: 10/ba006bf69401678be446901d1e35e121f0a220181798bc873b123112206b5544dc86c2f69fd401a57d38ba5427926ceaea651d7e3025e41a497787cacbb4ec0b
+  checksum: 10/e9e8d5fa9fd49f6c1142299e12f590b6a8ec9bcda0fa81f44c745cd79d1fb4128914372db8f4d958ccd13c0e0471a73f4450613f77d492be6d32ca63735139c6
   languageName: node
   linkType: hard
 
@@ -16405,7 +16405,7 @@ __metadata:
     "@auto-it/released": "npm:^11.3.6"
     "@eslint/compat": "npm:2.1.0"
     "@eslint/js": "npm:^9.28.0"
-    "@grafana/eslint-config": "npm:^8.1.0"
+    "@grafana/eslint-config": "npm:^9.0.0"
     "@grafana/tsconfig": "npm:^2.0.0"
     "@stylistic/eslint-plugin-ts": "npm:4.4.1"
     "@swc/core": "npm:^1.15.24"
@@ -26354,7 +26354,7 @@ __metadata:
     "@grafana/data": "npm:^11.6.0"
     "@grafana/e2e": "npm:9.5.21"
     "@grafana/e2e-selectors": "npm:^11.6.1"
-    "@grafana/eslint-config": "npm:8.2.0"
+    "@grafana/eslint-config": "npm:9.0.0"
     "@grafana/runtime": "npm:^11.6.0"
     "@grafana/scenes": "workspace:*"
     "@grafana/scenes-ml": "npm:^0.5.0"

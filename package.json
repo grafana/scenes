@@ -58,7 +58,7 @@
     "@auto-it/released": "^11.3.6",
     "@eslint/compat": "2.1.0",
     "@eslint/js": "^9.28.0",
-    "@grafana/eslint-config": "^8.1.0",
+    "@grafana/eslint-config": "^9.0.0",
     "@grafana/tsconfig": "^2.0.0",
     "@stylistic/eslint-plugin-ts": "4.4.1",
     "@swc/core": "^1.15.24",
