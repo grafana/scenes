@@ -1,3 +1,1574 @@
+# v8.3.0 (Fri Jun 05 2026)
+
+### Release Notes
+
+#### chore(deps): update dependency react-router-dom to v6.30.4 ([#1521](https://github.com/grafana/scenes/pull/1521))
+
+<details>
+<summary>remix-run/react-router (react-router-dom)</summary>
+
+#### fix(deps): update emotion monorepo ([#1511](https://github.com/grafana/scenes/pull/1511))
+
+<details>
+<summary>emotion-js/emotion (@&#8203;emotion/css)</summary>
+
+#### fix(deps): update dependency @floating-ui/react to ^0.27.0 ([#1509](https://github.com/grafana/scenes/pull/1509))
+
+<details>
+<summary>floating-ui/floating-ui (@&#8203;floating-ui/react)</summary>
+
+### [`v0.27.19`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02719)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.18...@floating-ui/react@0.27.19)
+
+##### Patch Changes
+
+- fix(useDismiss): ignore non-primary inside mouse presses for click outside dismissal
+- fix(react): fix shadow root host lookup when one of the parent elements is an anchor
+- Update dependencies: `@floating-ui/utils@0.2.11`, `@floating-ui/react-dom@2.1.8`
+
+### [`v0.27.18`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02718)
+
+##### Patch Changes
+
+- fix(FloatingFocusManager): use `WeakRef` for previously focused elements
+
+### [`v0.27.17`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02717)
+
+##### Patch Changes
+
+- feat: detectOverflow configurable via platform
+- fix(FloatingPortal): ensure accessibility of non-modal dialogs with iOS/Safari/Voice Control
+- Update dependencies: `@floating-ui/react-dom@2.1.7`
+
+### [`v0.27.16`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02716)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.15...@floating-ui/react@0.27.16)
+
+##### Patch Changes
+
+- Update dependencies: `@floating-ui/react-dom@2.1.6`
+
+### [`v0.27.15`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02715)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.14...@floating-ui/react@0.27.15)
+
+##### Patch Changes
+
+- Update dependencies: `@floating-ui/react-dom@2.1.5`
+
+### [`v0.27.14`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02714)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.13...@floating-ui/react@0.27.14)
+
+##### Patch Changes
+
+- fix(FloatingFocusManager): allow marking ancestor nodes with `data-floating-ui-inert`. Fixes outside presses not working when clicking on a parent ancestor node.
+- feat(FloatingPortal): support `ShadowRoot` containers
+- fix(useRole): ensure `aria-selected=true` is present without being active with `select` role
+- fix: only use blur capture to mark inside floating tree if `FloatingPortal` exists. Prevents blocking `closeOnFocusOut` behavior.
+- fix(FloatingFocusManager): clear previously focused elements that are disconnected more often
+
+### [`v0.27.13`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02713)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.12...@floating-ui/react@0.27.13)
+
+##### Patch Changes
+
+- fix(FloatingFocusManager): ensure focus is always returned correctly in deep nested trees
+- fix(markOthers): exclude elements with `role="status"` and `output` elements
+- Update dependencies: `@floating-ui/utils@0.2.10`, `@floating-ui/react-dom@2.1.4`
+
+### [`v0.27.12`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02712)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.11...@floating-ui/react@0.27.12)
+
+##### Patch Changes
+
+- fix(FloatingFocusManager): ensure `aria-hidden`/`inert` are cleaned up correctly when mixing `outsideElementsInert` `true`/`false`
+- fix(safePolygon): revert to checking if any nested child is open
+
+### [`v0.27.11`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02711)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.10...@floating-ui/react@0.27.11)
+
+##### Patch Changes
+
+- fix(FloatingFocusManager): check if target is connected for `restoreFocus` prop
+- Update dependencies: `@floating-ui/react-dom@2.1.3`
+
+### [`v0.27.10`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02710)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.9...@floating-ui/react@0.27.10)
+
+##### Patch Changes
+
+- fix(safePolygon): handle pointer moving outside of all floating elements in a tree with a close delay
+- fix(useDismiss): bail out of blur to mark inside react tree if floating tree exists
+
+### [`v0.27.9`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#0279)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.8...@floating-ui/react@0.27.9)
+
+##### Patch Changes
+
+- fix(useListNavigation): reset internal `focusItemOnOpen` state when floating element is closed. This prevents the first item being highlighted on open under certain conditions when it shouldn't be.
+- fix(FloatingOverlay): `lockScroll` detection on iPad
+- fix(useListNavigation): avoid item rerenders upon open
+- fix(FloatingFocusManager): check for blurring to nested elements inside the React tree without `FloatingTree`
+- fix(FloatingFocusManager): always prevent scroll upon returning focus
+- refactor(useHover): improve `handleClose` option and docs. You can now more easily write a custom event handler function, including exported types.
+- feat(FloatingOverlay): add `lockScroll` scrollbar width CSS variable (`--floating-ui-scrollbar-width`)
+- feat(useListNavigation, Composite): allow `disabledIndices` to be a function
+
+### [`v0.27.8`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#0278)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.7...@floating-ui/react@0.27.8)
+
+##### Patch Changes
+
+- feat: export most utils under `@floating-ui/react/utils`. This makes it a lot easier to write your own custom interaction hooks, or copy/paste the existing ones to change the way they are implemented yourself without patching or waiting for features/breaking changes.
+- perf(FloatingFocusManager): move manual tabindex handling on floating element to an event. Improves performance when the floating element has a large amount of content or the content changes frequently e.g. virtualized scrolling.
+- fix(FloatingFocusManager): prioritize returning focus to reference if available
+- feat(useListNavigation): add `parentOrientation` prop
+
+### [`v0.27.7`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#0277)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.6...@floating-ui/react@0.27.7)
+
+##### Patch Changes
+
+- fix(useTransitionStatus): avoid browser from painting before floating element opens. With `FloatingDelayGroup`, this avoids a flicker when moving between floating elements to ensure one is always open with no missing frames.
+- fix(useListNavigation): correctly scroll to the selected item on open when using a pointer and `FloatingFocusManager` `initialFocus` is not in use
+- fix(useHover): clean up blockPointerEvents when opened with click after hover
+- fix(useRole): improve "combobox" role
+- fix(useRole): handle custom id attributes
+- feat: experimental `NextFloatingDelayGroup` (and `useNextFloatingDelayGroup`). Unlike `FloatingDelayGroup`, this component doesn't cause a re-render of unrelated consumers of the context when the delay changes, improving performance. This will eventually become the new default for `FloatingDelayGroup` in v1 (`Next`), as [its API is different](https://redirect.github.com/floating-ui/floating-ui/pull/3274).
+- perf(FloatingFocusManager): ignore manual tabindex handling for non-dialog role floating elements
+- fix(useHover): prevent floating element unexpectedly closing when close to reference element when not using `safePolygon()` and a close delay
+- perf(useFloating): refactor `events` emitter
+- fix(FloatingFocusManager): ensure floating elements with no tabbable content are assigned `tabIndex=0` when `initialFocus` is -1
+- fix(useListNavigation): handle list navigation for nested lists with mixed orientation
+
+### [`v0.27.6`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#0276)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.5...@floating-ui/react@0.27.6)
+
+##### Patch Changes
+
+- fix(useFloating): prevent error when using `inline` middleware when passing a real DOM element to `refs.setPositionReference` due to `element.getClientRects()` not being handled
+- fix: avoid marking root ancestor combobox with `aria-hidden` when nested virtual floating element opens
+- fix(FloatingFocusManager): set `inert` attribute value to empty string instead of `"true"`
+- fix(FloatingFocusManager): correct tabbing to different document contexts
+- fix(useClick): fix toggle behavior with Enter key when reference element is anchor
+- feat(FloatingFocusManager): `getInsideElements` prop. Allows you to specify elements that are considered as "inside" the floating element. These will avoid being marked with `aria-hidden` and `data-floating-ui-inert` attributes.
+- fix(useFocus): improve `:focus-visible` checks
+
+### [`v0.27.5`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#0275)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.4...@floating-ui/react@0.27.5)
+
+##### Patch Changes
+
+- fix(FloatingFocusManager): return focus on outside press if possible for non-context nested floating elements
+- perf: improve performance by only clearing used timeouts
+- fix(useMergeRefs): support React 19 ref cleanup
+- fix(FloatingFocusManager): avoid returning to unrelated references
+
+### [`v0.27.4`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#0274)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.3...@floating-ui/react@0.27.4)
+
+##### Patch Changes
+
+- fix(useListNavigation): use parent's orientation when opening/closing nested menus, correctly supporting grid submenus
+- fix(FloatingList): avoid race condition between registering/unregistering nodes and setting indices
+
+### [`v0.27.3`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#0273)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.2...@floating-ui/react@0.27.3)
+
+##### Patch Changes
+
+- feat(FloatingFocusManager): accept `FloatingRootContext` as the `context` prop
+- fix(useListNavigation): check for virtual pointer on pointerenter
+- refactor: use jsx runtime
+- Update dependencies: `@floating-ui/utils@0.2.9`
+
+### [`v0.27.2`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#0272)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.1...@floating-ui/react@0.27.2)
+
+##### Patch Changes
+
+- fix(FloatingFocusManager): prevent stale `inert`/`aria-hidden` attributes from being left on outside elements
+
+### [`v0.27.1`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02719)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.27.0...@floating-ui/react@0.27.1)
+
+##### Patch Changes
+
+- fix(useDismiss): ignore non-primary inside mouse presses for click outside dismissal
+- fix(react): fix shadow root host lookup when one of the parent elements is an anchor
+- Update dependencies: `@floating-ui/utils@0.2.11`, `@floating-ui/react-dom@2.1.8`
+
+### [`v0.27.0`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#0270)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.26.28...@floating-ui/react@0.27.0)
+
+##### Minor Changes
+
+- chore: deprecate `inner` and `useInnerOffset`. This technique of aligning an inner element to the reference has poor performance with longer lists, doesn't fit with the middleware paradigm, doesn't work on touch, and has a better custom alternative using native `onScroll` that is encouraged instead.
+- breaking: drop React 16 support. 17 is the minimum supported version.
+- fix(useId): add `| undefined` return type for React 17
+
+##### Patch Changes
+
+- feat(FloatingFocusManager): add `outsideElementsInert` prop. This enables pointer modality without a backdrop.
+- perf(useListNavigation): simplify focusing to remove unneeded asynchronicity
+- fix(useDismiss): allow native clicks to work with `referencePress`
+- fix(useDismiss): read target `overflow` style for scrollbar press check. Fixes an issue where outside presses would be incorrectly prevented if the target element that was pressed appeared scrollable but was actually not.
+- fix(FloatingFocusManager): check for 'safe-polygon' reason on return focus
+
+### [`v0.26.28`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02628)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.26.27...@floating-ui/react@0.26.28)
+
+##### Patch Changes
+
+- fix(Composite): change focus to be sync
+- fix(useClick): improve consistency when combining with `useHover()`
+- feat(useClick): add `stickIfOpen` prop to determine whether to remain open upon first click when first opened by another event
+- feat(Composite): add RTL support
+- fix(FloatingFocusManager): ensure `returnFocus` is ignored correctly when using `disabled` prop
+- fix(useListNavigation): incorrect behaviour with RTL grid
+
+### [`v0.26.27`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02627)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.26.26...@floating-ui/react@0.26.27)
+
+##### Patch Changes
+
+- fix(useListNavigation): ignore Home/End key press for typeable combobox references
+- fix(useListNavigation): ensure submenu references are set as `virtualItemRef` on floating close
+- fix(inner): use list ref length for fallback detection
+- fix(FloatingPortal): allow `root` to be reactive from `null` to an element
+
+### [`v0.26.26`](https://redirect.github.com/floating-ui/floating-ui/blob/HEAD/packages/react/CHANGELOG.md#02626)
+
+[Compare Source](https://redirect.github.com/floating-ui/floating-ui/compare/@floating-ui/react@0.26.25...@floating-ui/react@0.26.26)
+
+##### Patch Changes
+
+- fix(useFloating): access `domReference` instead of `reference`
+- feat(FloatingFocusManager): specify element to return focus to
+
+</details>
+
+---
+
+#### fix(deps): update react monorepo ([#1512](https://github.com/grafana/scenes/pull/1512))
+
+<details>
+<summary>facebook/react (react)</summary>
+
+### [`v18.3.1`](https://redirect.github.com/facebook/react/blob/HEAD/CHANGELOG.md#1831-April-26-2024)
+
+[Compare Source](https://redirect.github.com/facebook/react/compare/v18.3.0...v18.3.1)
+
+- Export `act` from `react` [f1338f](https://redirect.github.com/facebook/react/commit/f1338f8080abd1386454a10bbf93d67bfe37ce85)
+
+### [`v18.3.0`](https://redirect.github.com/facebook/react/blob/HEAD/CHANGELOG.md#1830-April-25-2024)
+
+[Compare Source](https://redirect.github.com/facebook/react/compare/v18.2.0...v18.3.0)
+
+This release is identical to 18.2 but adds warnings for deprecated APIs and other changes that are needed for React 19.
+
+Read the [React 19 Upgrade Guide](https://react.dev/blog/2024/04/25/react-19-upgrade-guide) for more info.
+
+##### React
+
+- Allow writing to `this.refs` to support string ref codemod [909071](https://redirect.github.com/facebook/react/commit/9090712fd3ca4e1099e1f92e67933c2cb4f32552)
+- Warn for deprecated `findDOMNode` outside StrictMode [c3b283](https://redirect.github.com/facebook/react/commit/c3b283964108b0e8dbcf1f9eb2e7e67815e39dfb)
+- Warn for deprecated `test-utils` methods [d4ea75](https://redirect.github.com/facebook/react/commit/d4ea75dc4258095593b6ac764289f42bddeb835c)
+- Warn for deprecated Legacy Context outside StrictMode [415ee0](https://redirect.github.com/facebook/react/commit/415ee0e6ea0fe3e288e65868df2e3241143d5f7f)
+- Warn for deprecated string refs outside StrictMode [#&#8203;25383](https://redirect.github.com/facebook/react/pull/25383)
+- Warn for deprecated `defaultProps` for function components [#&#8203;25699](https://redirect.github.com/facebook/react/pull/25699)
+- Warn when spreading `key` [#&#8203;25697](https://redirect.github.com/facebook/react/pull/25697)
+- Warn when using `act` from `test-utils` [d4ea75](https://redirect.github.com/facebook/react/commit/d4ea75dc4258095593b6ac764289f42bddeb835c)
+
+##### React DOM
+
+- Warn for deprecated `unmountComponentAtNode` [8a015b](https://redirect.github.com/facebook/react/commit/8a015b68cc060079878e426610e64e86fb328f8d)
+- Warn for deprecated `renderToStaticNodeStream` [#&#8203;28874](https://redirect.github.com/facebook/react/pull/28874)
+
+</details>
+
+---
+
+#### chore(deps): update jest monorepo ([#1506](https://github.com/grafana/scenes/pull/1506))
+
+<details>
+<summary>jestjs/jest (jest)</summary>
+
+### [`v30.4.2`](https://redirect.github.com/jestjs/jest/blob/HEAD/CHANGELOG.md#3042)
+
+[Compare Source](https://redirect.github.com/jestjs/jest/compare/v30.4.1...v30.4.2)
+
+##### Fixes
+
+- `[jest-runtime]` Fix named imports from CJS modules whose `module.exports` is a function with own-property exports ([#&#8203;16150](https://redirect.github.com/jestjs/jest/pull/16150))
+
+### [`v30.4.1`](https://redirect.github.com/jestjs/jest/blob/HEAD/CHANGELOG.md#3041)
+
+[Compare Source](https://redirect.github.com/jestjs/jest/compare/v30.4.0...v30.4.1)
+
+##### Features
+
+- `[jest-config, jest-core, jest-runner, jest-schemas, jest-types]` Allow custom runner configuration options via tuple format `['runner-path', {options}]` ([#&#8203;16141](https://redirect.github.com/jestjs/jest/pull/16141))
+
+##### Fixes
+
+- `[jest-runtime]` Align CJS-from-ESM default export with Node: `module.exports` is always the ESM default, `__esModule` unwrapping is no longer applied ([#&#8203;16143](https://redirect.github.com/jestjs/jest/pull/16143))
+
+### [`v30.4.0`](https://redirect.github.com/jestjs/jest/blob/HEAD/CHANGELOG.md#3040)
+
+[Compare Source](https://redirect.github.com/jestjs/jest/compare/v30.3.0...v30.4.0)
+
+##### Features
+
+- `[babel-jest]` Support collecting coverage from `.mts`, `.cts` (and other) files ([#&#8203;15994](https://redirect.github.com/jestjs/jest/pull/15994))
+- `[jest-circus, jest-cli, jest-config, jest-core, jest-jasmine2, jest-types]` Add `--collect-tests` flag to discover and list tests without executing them ([#&#8203;16006](https://redirect.github.com/jestjs/jest/pull/16006))
+- `[jest-config, jest-runner, jest-worker]` Add `workerGracefulExitTimeout` config option to control how long workers are given to exit before being force-killed ([#&#8203;15984](https://redirect.github.com/jestjs/jest/pull/15984))
+- `[jest-config]` Add support for `jest.config.mts` as a valid configuration file ([#&#8203;16005](https://redirect.github.com/jestjs/jest/pull/16005))
+- `[jest-config, jest-core, jest-reporters, jest-runner]` `verbose` and `silent` can now be set per-project; the project-level value overrides the global value for that project's tests ([#&#8203;16133](https://redirect.github.com/jestjs/jest/pull/16133))
+- `[@jest/fake-timers]` Accept `Temporal.Duration` in `jest.advanceTimersByTime()` and `jest.advanceTimersByTimeAsync()` ([#&#8203;16128](https://redirect.github.com/jestjs/jest/pull/16128))
+- `[@jest/fake-timers]` Accept `Temporal.Instant` and `Temporal.ZonedDateTime` in `jest.setSystemTime()` and `useFakeTimers({now})` ([#&#8203;16128](https://redirect.github.com/jestjs/jest/pull/16128))
+- `[@jest/fake-timers]` Support faking `Temporal.Now.*` ([#&#8203;16131](https://redirect.github.com/jestjs/jest/pull/16131))
+- `[jest-mock]` Add `clearMocksOnScope(scope)` on `ModuleMocker` for clearing every mock function exposed on a scope object ([#&#8203;16088](https://redirect.github.com/jestjs/jest/pull/16088))
+- `[jest-resolve]` Add `canResolveSync()` on `Resolver` so callers can detect when a user-configured resolver only exports an `async` hook ([#&#8203;16064](https://redirect.github.com/jestjs/jest/pull/16064))
+- `[jest-runtime]` Use synchronous `evaluate()` for ES modules without top-level `await` on Node versions that support it (v24.9+), and prefer the synchronous transform path when a sync transformer is configured ([#&#8203;16062](https://redirect.github.com/jestjs/jest/pull/16062))
+- `[jest-runtime]` Support `require()` of ES modules on Node v24.9+ ([#&#8203;16074](https://redirect.github.com/jestjs/jest/pull/16074))
+- `[jest-runtime]` Validate TC39 import attributes (`with { type: 'json' }`) on ESM imports ([#&#8203;16127](https://redirect.github.com/jestjs/jest/pull/16127))
+- `[@jest/transform]` Add `canTransformSync(filename)` on `ScriptTransformer` so callers can pick the sync vs async transform path ([#&#8203;16062](https://redirect.github.com/jestjs/jest/pull/16062))
+- `[jest-util]` Add `isError` helper ([#&#8203;16076](https://redirect.github.com/jestjs/jest/pull/16076))
+- `[pretty-format]` Support React 19 ([#&#8203;16123](https://redirect.github.com/jestjs/jest/pull/16123))
+
+##### Fixes
+
+- `[expect-utils]` Fix `toStrictEqual` failing on `structuredClone` results due to cross-realm constructor mismatch ([#&#8203;15959](https://redirect.github.com/jestjs/jest/pull/15959))
+- `[@jest/expect-utils]` Prevent `toMatchObject`/subset matching from throwing when encountering exotic iterables ([#&#8203;15952](https://redirect.github.com/jestjs/jest/pull/15952))
+- `[fake-timers]` Convert `Date` to milliseconds before passing to `@sinonjs/fake-timers` ([#&#8203;16029](https://redirect.github.com/jestjs/jest/pull/16029))
+- `[jest]` Export `GlobalConfig` and `ProjectConfig` TypeScript types ([#&#8203;16132](https://redirect.github.com/jestjs/jest/pull/16132))
+- `[jest-circus]` Prevent crash when `asyncError` is undefined for non-Error throws ([#&#8203;16003](https://redirect.github.com/jestjs/jest/pull/16003))
+- `[jest-circus, jest-jasmine2]` Include `Error.cause` in JSON `failureMessages` output ([#&#8203;15967](https://redirect.github.com/jestjs/jest/pull/15967))
+- `[jest-config]` Fix preset path resolution on Windows when the preset uses subpath `exports` ([#&#8203;15961](https://redirect.github.com/jestjs/jest/pull/15961))
+- `[jest-config]` Allow `collectCoverage` and `coverageProvider` in project config without a validation warning ([#&#8203;16132](https://redirect.github.com/jestjs/jest/pull/16132))
+- `[jest-config]` Project config validator now emits "is not supported in an individual project configuration" instead of "probably a typing mistake" for known global-only options ([#&#8203;16132](https://redirect.github.com/jestjs/jest/pull/16132))
+- `[jest-environment-node]` Fix `--localstorage-file` warning on Node 25+ ([#&#8203;16086](https://redirect.github.com/jestjs/jest/pull/16086))
+- `[jest-reporters]` Apply global coverage threshold to unmatched pattern files in addition to glob/path thresholds ([#&#8203;16137](https://redirect.github.com/jestjs/jest/pull/16137))
+- `[jest-reporters, jest-runner, jest-runtime, jest-transform]` Fix coverage report not showing correct code coverage when using `projects` config option ([#&#8203;16140](https://redirect.github.com/jestjs/jest/pull/16140))
+- `[jest-runtime]` Resolve `expect` and `@jest/expect` from the internal module registry so test-file imports share the same `JestAssertionError` as the global `expect` ([#&#8203;16130](https://redirect.github.com/jestjs/jest/pull/16130))
+- `[jest-runtime]` Improve CJS-from-ESM interop: `__esModule`/Babel default unwrap, broader named-export coverage, and shared CJS singleton across importers ([#&#8203;16050](https://redirect.github.com/jestjs/jest/pull/16050))
+- `[jest-runtime]` Load `.js` files with ESM syntax but no `"type":"module"` marker as native ESM ([#&#8203;16050](https://redirect.github.com/jestjs/jest/pull/16050))
+- `[jest-runtime]` Extend the `.js`-with-ESM-syntax fallback to `require()` on Node v24.9+ - falls back to `require(esm)` when the CJS parser rejects ESM syntax ([#&#8203;16078](https://redirect.github.com/jestjs/jest/pull/16078))
+- `[jest-runtime]` Fix deadlocks and double-evaluation in concurrent ESM and wasm imports ([#&#8203;16050](https://redirect.github.com/jestjs/jest/pull/16050))
+- `[jest-runtime]` Fix error when `require()` is called after the Jest environment has been torn down ([#&#8203;15951](https://redirect.github.com/jestjs/jest/pull/15951))
+- `[jest-runtime]` Fix missing error when `import()` is called after the Jest environment has been torn down ([#&#8203;16080](https://redirect.github.com/jestjs/jest/pull/16080))
+- `[jest-runtime]` Fix virtual `unstable_mockModule` registrations not respected in ESM ([#&#8203;16081](https://redirect.github.com/jestjs/jest/pull/16081))
+- `[jest-runtime]` Apply `moduleNameMapper` when resolving modules with `require.resolve()` and the `paths` option ([#&#8203;16135](https://redirect.github.com/jestjs/jest/pull/16135))
+
+##### Chore & Maintenance
+
+- `[@jest/fake-timers]` Upgrade `@sinonjs/fake-timers` ([#&#8203;16139](https://redirect.github.com/jestjs/jest/pull/16139))
+- `[jest-runtime]` Use synchronous `linkRequests` / `instantiate` for ESM linking on Node v24.9+ ([#&#8203;16063](https://redirect.github.com/jestjs/jest/pull/16063))
+
+</details>
+
+---
+
+#### chore(deps): update dependency @tanstack/react-virtual to v3.13.26 ([#1491](https://github.com/grafana/scenes/pull/1491))
+
+<details>
+<summary>TanStack/virtual (@&#8203;tanstack/react-virtual)</summary>
+
+### [`v3.13.26`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31326)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.25...@tanstack/react-virtual@3.13.26)
+
+##### Patch Changes
+
+- Updated dependencies \[[`fc992ab`](https://redirect.github.com/TanStack/virtual/commit/fc992ab00a15166311b79bd7580736cf01e8cc1a)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.16.0
+
+### [`v3.13.25`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31325)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.24...@tanstack/react-virtual@3.13.25)
+
+##### Patch Changes
+
+- Replace the `useReducer(() => ({}), {})` force-rerender pattern with an ([#&#8203;1168](https://redirect.github.com/TanStack/virtual/pull/1168))
+  incrementing number counter. Same semantics (every dispatch changes the
+  reducer state, forcing a render); zero per-dispatch object allocation.
+  Trivial individual cost, but eliminates one steady-state GC source on
+  scroll-heavy apps.
+- Updated dependencies \[[`99355ad`](https://redirect.github.com/TanStack/virtual/commit/99355ad1eceee6270efaa26e51f535d8d7c31ac2), [`99355ad`](https://redirect.github.com/TanStack/virtual/commit/99355ad1eceee6270efaa26e51f535d8d7c31ac2), [`99355ad`](https://redirect.github.com/TanStack/virtual/commit/99355ad1eceee6270efaa26e51f535d8d7c31ac2), [`99355ad`](https://redirect.github.com/TanStack/virtual/commit/99355ad1eceee6270efaa26e51f535d8d7c31ac2), [`99355ad`](https://redirect.github.com/TanStack/virtual/commit/99355ad1eceee6270efaa26e51f535d8d7c31ac2), [`99355ad`](https://redirect.github.com/TanStack/virtual/commit/99355ad1eceee6270efaa26e51f535d8d7c31ac2), [`99355ad`](https://redirect.github.com/TanStack/virtual/commit/99355ad1eceee6270efaa26e51f535d8d7c31ac2)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.15.0
+
+### [`v3.13.24`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31324)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.23...@tanstack/react-virtual@3.13.24)
+
+##### Patch Changes
+
+- Updated dependencies \[[`97a204d`](https://redirect.github.com/TanStack/virtual/commit/97a204dc5526669114458685552b7569b60d2940)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.14.0
+
+### [`v3.13.23`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31323)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.22...@tanstack/react-virtual@3.13.23)
+
+##### Patch Changes
+
+- Updated dependencies \[[`7ece2d5`](https://redirect.github.com/TanStack/virtual/commit/7ece2d5d4249b7e703c68ac497ae5545c54e7c67)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.23
+
+### [`v3.13.22`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31322)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.21...@tanstack/react-virtual@3.13.22)
+
+##### Patch Changes
+
+- Updated dependencies \[[`54d771a`](https://redirect.github.com/TanStack/virtual/commit/54d771a7d4c74f6968e8132b5a85f3e04682376a), [`d3416c3`](https://redirect.github.com/TanStack/virtual/commit/d3416c386c6446957f413db2eef3211f5fdf3b5f)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.22
+
+### [`v3.13.21`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31321)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.20...@tanstack/react-virtual@3.13.21)
+
+##### Patch Changes
+
+- Updated dependencies \[[`be89e29`](https://redirect.github.com/TanStack/virtual/commit/be89e293ea01654df6334dc6473b65eebed13e51)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.21
+
+### [`v3.13.20`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31320)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.19...@tanstack/react-virtual@3.13.20)
+
+##### Patch Changes
+
+- Updated dependencies \[[`ff83e94`](https://redirect.github.com/TanStack/virtual/commit/ff83e949408ba8a714436fa10cafc3725a56274b)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.20
+
+### [`v3.13.19`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31319)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.18...@tanstack/react-virtual@3.13.19)
+
+##### Patch Changes
+
+- Updated dependencies \[[`843109c`](https://redirect.github.com/TanStack/virtual/commit/843109c5bf780591a762f9767f3808fd15e3f94e)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.19
+
+### [`v3.13.18`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31318)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.17...@tanstack/react-virtual@3.13.18)
+
+##### Patch Changes
+
+- Updated dependencies \[[`9067574`](https://redirect.github.com/TanStack/virtual/commit/9067574f1a0178d30e27bcac70853bdcbf437fec)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.18
+
+### [`v3.13.17`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31317)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.16...@tanstack/react-virtual@3.13.17)
+
+##### Patch Changes
+
+- Updated dependencies \[[`21d9a46`](https://redirect.github.com/TanStack/virtual/commit/21d9a46eac034cb4299872891694965bceed526d)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.17
+
+### [`v3.13.16`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31316)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.15...@tanstack/react-virtual@3.13.16)
+
+##### Patch Changes
+
+- Updated dependencies \[[`db6df21`](https://redirect.github.com/TanStack/virtual/commit/db6df212ed83dd7e4eb6450d1340c95475667b7b)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.16
+
+### [`v3.13.15`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31315)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.14...@tanstack/react-virtual@3.13.15)
+
+##### Patch Changes
+
+- feat(react-virtual): add `useFlushSync` option ([#&#8203;1100](https://redirect.github.com/TanStack/virtual/pull/1100))
+
+  Adds a React-specific `useFlushSync` option to control whether `flushSync` is used for synchronous scroll correction during measurement.
+
+  The default behavior remains unchanged (`useFlushSync: true`) to preserve the best scrolling experience.
+  Disabling it avoids the React 19 warning about calling `flushSync` during render, at the cost of potentially increased visible whitespace during fast scrolling with dynamically sized items.
+
+- Updated dependencies \[[`5a273bf`](https://redirect.github.com/TanStack/virtual/commit/5a273bf0c0bc0255ca172929f021c3b6e50cb69d)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.15
+
+### [`v3.13.14`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31314)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.13...@tanstack/react-virtual@3.13.14)
+
+##### Patch Changes
+
+- Updated dependencies \[[`6d9274c`](https://redirect.github.com/TanStack/virtual/commit/6d9274c3f0a9e64450b5829872079a65277bc654)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.14
+
+### [`v3.13.13`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31313)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.12...@tanstack/react-virtual@3.13.13)
+
+##### Patch Changes
+
+- Fix: Notify framework when count changes to update getTotalSize() ([#&#8203;1085](https://redirect.github.com/TanStack/virtual/pull/1085))
+
+  Fixed an issue where `getTotalSize()` would return stale values when the `count` option changed (e.g., during filtering or search operations). The virtualizer now automatically notifies the framework when measurement-affecting options change, ensuring the UI updates correctly without requiring manual `useMemo` workarounds.
+
+  **Before**: When filtering items, the list container would maintain its previous height, causing excessive blank space (when count decreased) or inaccessible items (when count increased).
+
+  **After**: Height updates automatically when count changes, providing the correct user experience.
+
+  This fix applies to all framework adapters and has minimal performance impact (< 0.1ms per change).
+
+- Updated dependencies \[[`2542c5a`](https://redirect.github.com/TanStack/virtual/commit/2542c5a3d6820cea956fa3b4f94c42e3526a8d68), [`96e32a6`](https://redirect.github.com/TanStack/virtual/commit/96e32a6ffc125743a0172ea4e0fe37ac29c4187b)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.13
+
+### [`v3.13.12`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31312)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.11...@tanstack/react-virtual@3.13.12)
+
+##### Patch Changes
+
+- chore(react-virtual): fix vite e2e build ([#&#8203;1030](https://redirect.github.com/TanStack/virtual/pull/1030))
+
+- Updated dependencies \[[`d21ed98`](https://redirect.github.com/TanStack/virtual/commit/d21ed98da3470b9986c9a028ed70fdf0d6189ab4)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.12
+
+### [`v3.13.11`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31311)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.10...@tanstack/react-virtual@3.13.11)
+
+##### Patch Changes
+
+- Updated dependencies \[[`73fa867`](https://redirect.github.com/TanStack/virtual/commit/73fa86752599a4bffba51ec8e4ff2f8cb8283010)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.11
+
+### [`v3.13.10`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31310)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.9...@tanstack/react-virtual@3.13.10)
+
+##### Patch Changes
+
+- Updated dependencies \[[`b3b7e7d`](https://redirect.github.com/TanStack/virtual/commit/b3b7e7dc8b25daeebbd2da61b3b7ae3448babbdb)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.10
+
+### [`v3.13.9`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#3139)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.8...@tanstack/react-virtual@3.13.9)
+
+##### Patch Changes
+
+- Updated dependencies \[[`9e33cdb`](https://redirect.github.com/TanStack/virtual/commit/9e33cdb1c8780c2f455aafc11a0aeea58b71fc69)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.9
+
+### [`v3.13.8`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#3138)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.7...@tanstack/react-virtual@3.13.8)
+
+##### Patch Changes
+
+- Updated dependencies \[[`60719f6`](https://redirect.github.com/TanStack/virtual/commit/60719f61b589d6f9d886e4f7c093217f6d693faf)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.8
+
+### [`v3.13.7`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#3137)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.6...@tanstack/react-virtual@3.13.7)
+
+##### Patch Changes
+
+- Updated dependencies \[[`e2d93c2`](https://redirect.github.com/TanStack/virtual/commit/e2d93c2dcde9ccf60f658e56edccd8d05aefeee6)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.7
+
+### [`v3.13.6`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#3136)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.5...@tanstack/react-virtual@3.13.6)
+
+##### Patch Changes
+
+- Updated dependencies \[[`042616f`](https://redirect.github.com/TanStack/virtual/commit/042616f39ced842470db0b4b40fca77f22454b7f)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.6
+
+### [`v3.13.5`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#3135)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.4...@tanstack/react-virtual@3.13.5)
+
+##### Patch Changes
+
+- Updated dependencies \[[`51656d9`](https://redirect.github.com/TanStack/virtual/commit/51656d94a2469a065e631f25ffc8ec0288d9f5ec)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.5
+
+### [`v3.13.4`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#3134)
+
+[Compare Source](https://redirect.github.com/TanStack/virtual/compare/@tanstack/react-virtual@3.13.3...@tanstack/react-virtual@3.13.4)
+
+##### Patch Changes
+
+- Updated dependencies \[[`514b62d`](https://redirect.github.com/TanStack/virtual/commit/514b62d04974c2fd59fc8a68ed40f4c1a1547dd2), [`f03d814`](https://redirect.github.com/TanStack/virtual/commit/f03d8142c03ea0f5816161a4dad38ca35469841c)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.4
+
+### [`v3.13.3`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#3133)
+
+##### Patch Changes
+
+- Updated dependencies \[[`02ef309`](https://redirect.github.com/TanStack/virtual/commit/02ef3097de4a14ed4077ace2ca901dc411bf81c1)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.3
+
+### [`v3.13.2`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31326)
+
+##### Patch Changes
+
+- Updated dependencies \[[`fc992ab`](https://redirect.github.com/TanStack/virtual/commit/fc992ab00a15166311b79bd7580736cf01e8cc1a)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.16.0
+
+### [`v3.13.1`](https://redirect.github.com/TanStack/virtual/blob/HEAD/packages/react-virtual/CHANGELOG.md#31319)
+
+##### Patch Changes
+
+- Updated dependencies \[[`843109c`](https://redirect.github.com/TanStack/virtual/commit/843109c5bf780591a762f9767f3808fd15e3f94e)]:
+  - [@&#8203;tanstack/virtual-core](https://redirect.github.com/tanstack/virtual-core)@&#8203;3.13.19
+
+#### chore(deps): update dependency prettier to v2.8.8 ([#1499](https://github.com/grafana/scenes/pull/1499))
+
+<details>
+<summary>prettier/prettier (prettier)</summary>
+
+### [`v2.8.8`](https://redirect.github.com/prettier/prettier/blob/HEAD/CHANGELOG.md#288)
+
+[Compare Source](https://redirect.github.com/prettier/prettier/compare/2.8.7...2.8.8)
+
+This version is a republished version of v2.8.7.
+A bad version was accidentally published and [it can't be unpublished](https://redirect.github.com/npm/cli/issues/1686), apologies for the churn.
+
+### [`v2.8.7`](https://redirect.github.com/prettier/prettier/blob/HEAD/CHANGELOG.md#287)
+
+[Compare Source](https://redirect.github.com/prettier/prettier/compare/2.8.6...2.8.7)
+
+[diff](https://redirect.github.com/prettier/prettier/compare/2.8.6...2.8.7)
+
+##### Allow multiple decorators on same getter/setter ([#&#8203;14584](https://redirect.github.com/prettier/prettier/pull/14584) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```ts
+// Input
+class A {
+  @&#8203;decorator()
+  get foo () {}
+  
+  @&#8203;decorator()
+  set foo (value) {}
+}
+
+// Prettier 2.8.6
+SyntaxError: Decorators cannot be applied to multiple get/set accessors of the same name. (5:3)
+  3 |   get foo () {}
+  4 |   
+> 5 |   @&#8203;decorator()
+    |   ^^^^^^^^^^^^
+  6 |   set foo (value) {}
+  7 | }
+
+// Prettier 2.8.7
+class A {
+  @&#8203;decorator()
+  get foo() {}
+
+  @&#8203;decorator()
+  set foo(value) {}
+}
+```
+
+### [`v2.8.6`](https://redirect.github.com/prettier/prettier/blob/HEAD/CHANGELOG.md#286)
+
+[Compare Source](https://redirect.github.com/prettier/prettier/compare/2.8.5...2.8.6)
+
+[diff](https://redirect.github.com/prettier/prettier/compare/2.8.5...2.8.6)
+
+##### Allow decorators on private members and class expressions ([#&#8203;14548](https://redirect.github.com/prettier/prettier/pull/14548) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```ts
+// Input
+class A {
+  @&#8203;decorator()
+  #privateMethod () {}
+}
+
+// Prettier 2.8.5
+SyntaxError: Decorators are not valid here. (2:3)
+  1 | class A {
+> 2 |   @&#8203;decorator()
+    |   ^^^^^^^^^^^^
+  3 |   #privateMethod () {}
+  4 | }
+
+// Prettier 2.8.6
+class A {
+  @&#8203;decorator()
+  #privateMethod() {}
+}
+```
+
+### [`v2.8.5`](https://redirect.github.com/prettier/prettier/blob/HEAD/CHANGELOG.md#285)
+
+[Compare Source](https://redirect.github.com/prettier/prettier/compare/2.8.4...2.8.5)
+
+[diff](https://redirect.github.com/prettier/prettier/compare/2.8.4...2.8.5)
+
+##### Support TypeScript 5.0 ([#&#8203;14391](https://redirect.github.com/prettier/prettier/pull/14391) by [@&#8203;fisker](https://redirect.github.com/fisker), [#&#8203;13819](https://redirect.github.com/prettier/prettier/pull/13819) by [@&#8203;fisker](https://redirect.github.com/fisker), [@&#8203;sosukesuzuki](https://redirect.github.com/sosukesuzuki))
+
+TypeScript 5.0 introduces two new syntactic features:
+
+- `const` modifiers for type parameters
+- `export type *` declarations
+
+##### Add missing parentheses for decorator ([#&#8203;14393](https://redirect.github.com/prettier/prettier/pull/14393) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```jsx
+// Input
+class Person {
+  @&#8203;(myDecoratorArray[0])
+  greet() {}
+}
+
+// Prettier 2.8.4
+class Person {
+  @&#8203;myDecoratorArray[0]
+  greet() {}
+}
+
+// Prettier 2.8.5
+class Person {
+  @&#8203;(myDecoratorArray[0])
+  greet() {}
+}
+```
+
+##### Add parentheses for `TypeofTypeAnnotation` to improve readability ([#&#8203;14458](https://redirect.github.com/prettier/prettier/pull/14458) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```tsx
+// Input
+type A = (typeof node.children)[];
+
+// Prettier 2.8.4
+type A = typeof node.children[];
+
+// Prettier 2.8.5
+type A = (typeof node.children)[];
+```
+
+##### Support `max_line_length=off` when parsing `.editorconfig` ([#&#8203;14516](https://redirect.github.com/prettier/prettier/pull/14516) by [@&#8203;josephfrazier](https://redirect.github.com/josephfrazier))
+
+If an .editorconfig file is in your project and it sets `max_line_length=off` for the file you're formatting,
+it will be interpreted as a `printWidth` of `Infinity` rather than being ignored
+(which previously resulted in the default `printWidth` of 80 being applied, if not overridden by Prettier-specific configuration).
+
+<!-- prettier-ignore -->
+
+```html
+<!-- Input -->
+<div className='HelloWorld' title={`You are visitor number ${ num }`} onMouseOver={onMouseOver}/>
+
+<!-- Prettier 2.8.4 -->
+<div
+  className="HelloWorld"
+  title={`You are visitor number ${num}`}
+  onMouseOver={onMouseOver}
+/>;
+
+<!-- Prettier 2.8.5 -->
+<div className="HelloWorld" title={`You are visitor number ${num}`} onMouseOver={onMouseOver} />;
+```
+
+### [`v2.8.4`](https://redirect.github.com/prettier/prettier/blob/HEAD/CHANGELOG.md#284)
+
+[Compare Source](https://redirect.github.com/prettier/prettier/compare/2.8.3...2.8.4)
+
+[diff](https://redirect.github.com/prettier/prettier/compare/2.8.3...2.8.4)
+
+##### Fix leading comments in mapped types with `readonly` ([#&#8203;13427](https://redirect.github.com/prettier/prettier/pull/13427) by [@&#8203;thorn0](https://redirect.github.com/thorn0), [@&#8203;sosukesuzuki](https://redirect.github.com/sosukesuzuki))
+
+<!-- prettier-ignore -->
+
+```tsx
+// Input
+type Type = {
+  // comment
+  readonly [key in Foo];
+};
+
+// Prettier 2.8.3
+type Type = {
+  readonly // comment
+  [key in Foo];
+};
+
+// Prettier 2.8.4
+type Type = {
+  // comment
+  readonly [key in Foo];
+};
+```
+
+##### Group params in opening block statements ([#&#8203;14067](https://redirect.github.com/prettier/prettier/pull/14067) by [@&#8203;jamescdavis](https://redirect.github.com/jamescdavis))
+
+This is a follow-up to [#&#8203;13930](https://redirect.github.com/prettier/prettier/issues/13930) to establish wrapping consistency between opening block statements and else blocks by
+grouping params in opening blocks. This causes params to break to a new line together and not be split across lines
+unless the length of params exceeds the print width. This also updates the else block wrapping to behave exactly the
+same as opening blocks.
+
+<!-- prettier-ignore -->
+
+```hbs
+{{! Input }}
+{{#block param param param param param param param param param param as |blockParam|}}
+  Hello
+{{else block param param param param param param param param param param as |blockParam|}}
+  There
+{{/block}}
+
+{{! Prettier 2.8.3 }}
+{{#block
+  param
+  param
+  param
+  param
+  param
+  param
+  param
+  param
+  param
+  param
+  as |blockParam|
+}}
+  Hello
+{{else block param
+param
+param
+param
+param
+param
+param
+param
+param
+param}}
+  There
+{{/block}}
+
+{{! Prettier 2.8.4 }}
+{{#block
+  param param param param param param param param param param
+  as |blockParam|
+}}
+  Hello
+{{else block
+  param param param param param param param param param param
+  as |blockParam|
+}}
+  There
+{{/block}}
+```
+
+##### Ignore files in `.sl/` ([#&#8203;14206](https://redirect.github.com/prettier/prettier/pull/14206) by [@&#8203;bolinfest](https://redirect.github.com/bolinfest))
+
+In [Sapling SCM](https://sapling-scm.com/), `.sl/` is the folder where it stores its state, analogous to `.git/` in Git. It should be ignored in Prettier like the other SCM folders.
+
+##### Recognize `@satisfies` in Closure-style type casts ([#&#8203;14262](https://redirect.github.com/prettier/prettier/pull/14262) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```jsx
+// Input
+const a = /** @&#8203;satisfies {Record<string, string>} */ ({hello: 1337});
+const b = /** @&#8203;type {Record<string, string>} */ ({hello: 1337});
+
+// Prettier 2.8.3
+const a = /** @&#8203;satisfies {Record<string, string>} */ { hello: 1337 };
+const b = /** @&#8203;type {Record<string, string>} */ ({ hello: 1337 });
+
+// Prettier 2.8.4
+const a = /** @&#8203;satisfies {Record<string, string>} */ ({hello: 1337});
+const b = /** @&#8203;type {Record<string, string>} */ ({hello: 1337});
+```
+
+##### Fix parens in inferred function return types with `extends` ([#&#8203;14279](https://redirect.github.com/prettier/prettier/pull/14279) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```ts
+// Input
+type Foo<T> = T extends ((a) => a is infer R extends string) ? R : never;
+
+// Prettier 2.8.3 (First format)
+type Foo<T> = T extends (a) => a is infer R extends string ? R : never;
+
+// Prettier 2.8.3 (Second format)
+SyntaxError: '?' expected. 
+
+// Prettier 2.8.4
+type Foo<T> = T extends ((a) => a is infer R extends string) ? R : never;
+```
+
+### [`v2.8.3`](https://redirect.github.com/prettier/prettier/blob/HEAD/CHANGELOG.md#283)
+
+[Compare Source](https://redirect.github.com/prettier/prettier/compare/2.8.2...2.8.3)
+
+[diff](https://redirect.github.com/prettier/prettier/compare/2.8.2...2.8.3)
+
+##### Allow self-closing tags on custom elements ([#&#8203;14170](https://redirect.github.com/prettier/prettier/pull/14170) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+See [Angular v15.1.0 release note](https://redirect.github.com/angular/angular/releases/tag/15.1.0) for details.
+
+<!-- prettier-ignore -->
+
+```html
+// Input
+<app-test/>
+
+// Prettier 2.8.2
+SyntaxError: Only void and foreign elements can be self closed "app-test" (1:1)
+> 1 | <app-test/>
+    | ^^^^^^^^^
+  2 |
+
+// Prettier 2.8.3
+<app-test />
+```
+
+### [`v2.8.2`](https://redirect.github.com/prettier/prettier/blob/HEAD/CHANGELOG.md#282)
+
+[Compare Source](https://redirect.github.com/prettier/prettier/compare/2.8.1...2.8.2)
+
+[diff](https://redirect.github.com/prettier/prettier/compare/2.8.1...2.8.2)
+
+##### Don't lowercase link references ([#&#8203;13155](https://redirect.github.com/prettier/prettier/pull/13155) by [@&#8203;DerekNonGeneric](https://redirect.github.com/DerekNonGeneric) & [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```markdown
+<!-- Input -->
+We now don't strictly follow the release notes format suggested by [Keep a Changelog].
+
+[Keep a Changelog]: https://example.com/
+
+<!-- Prettier 2.8.1 -->
+We now don't strictly follow the release notes format suggested by [Keep a Changelog].
+
+[keep a changelog]: https://example.com/
+<!--
+^^^^^^^^^^^^^^^^^^ lowercased
+-->
+
+<!-- Prettier 2.8.2 -->
+<Same as input>
+```
+
+##### Preserve self-closing tags ([#&#8203;13691](https://redirect.github.com/prettier/prettier/pull/13691) by [@&#8203;dcyriller](https://redirect.github.com/dcyriller))
+
+<!-- prettier-ignore -->
+
+```hbs
+{{! Input }}
+<div />
+<div></div>
+<custom-component />
+<custom-component></custom-component>
+<i />
+<i></i>
+<Component />
+<Component></Component>
+
+{{! Prettier 2.8.1 }}
+<div></div>
+<div></div>
+<custom-component></custom-component>
+<custom-component></custom-component>
+<i></i>
+<i></i>
+<Component />
+<Component />
+
+{{! Prettier 2.8.2 }}
+<div />
+<div></div>
+<custom-component />
+<custom-component></custom-component>
+<i />
+<i></i>
+<Component />
+<Component />
+```
+
+##### Allow custom "else if"-like blocks with block params ([#&#8203;13930](https://redirect.github.com/prettier/prettier/pull/13930) by [@&#8203;jamescdavis](https://redirect.github.com/jamescdavis))
+
+[#&#8203;13507](https://redirect.github.com/prettier/prettier/issues/13507) added support for custom block keywords used with `else`, but failed to allow block params. This updates printer-glimmer to allow block params with custom "else if"-like blocks.
+
+<!-- prettier-ignore -->
+
+```hbs
+{{! Input }}
+{{#when isAtWork as |work|}}
+  Ship that
+  {{work}}!
+{{else when isReading as |book|}}
+  You can finish
+  {{book}}
+  eventually...
+{{else}}
+  Go to bed!
+{{/when}}
+
+{{! Prettier 2.8.1 }}
+{{#when isAtWork as |work|}}
+  Ship that
+  {{work}}!
+{{else when isReading}}
+  You can finish
+  {{book}}
+  eventually...
+{{else}}
+  Go to bed!
+{{/when}}
+
+{{! Prettier 2.8.2 }}
+{{#when isAtWork as |work|}}
+  Ship that
+  {{work}}!
+{{else when isReading as |book|}}
+  You can finish
+  {{book}}
+  eventually...
+{{else}}
+  Go to bed!
+{{/when}}
+```
+
+##### Preserve empty lines between nested SCSS maps ([#&#8203;13931](https://redirect.github.com/prettier/prettier/pull/13931) by [@&#8203;jneander](https://redirect.github.com/jneander))
+
+<!-- prettier-ignore -->
+
+```scss
+/* Input */
+$map: (
+  'one': (
+     'key': 'value',
+  ),
+
+  'two': (
+     'key': 'value',
+  ),
+)
+
+/* Prettier 2.8.1 */
+$map: (
+  'one': (
+     'key': 'value',
+  ),
+  'two': (
+     'key': 'value',
+  ),
+)
+
+/* Prettier 2.8.2 */
+$map: (
+  'one': (
+     'key': 'value',
+  ),
+
+  'two': (
+     'key': 'value',
+  ),
+)
+```
+
+##### Fix missing parentheses when an expression statement starts with `let[` ([#&#8203;14000](https://redirect.github.com/prettier/prettier/pull/14000), [#&#8203;14044](https://redirect.github.com/prettier/prettier/pull/14044) by [@&#8203;fisker](https://redirect.github.com/fisker), [@&#8203;thorn0](https://redirect.github.com/thorn0))
+
+<!-- prettier-ignore -->
+
+```jsx
+// Input
+(let[0] = 2);
+
+// Prettier 2.8.1
+let[0] = 2;
+
+// Prettier 2.8.1 (second format)
+SyntaxError: Unexpected token (1:5)
+> 1 | let[0] = 2;
+    |     ^
+  2 |
+
+// Prettier 2.8.2
+(let)[0] = 2;
+```
+
+##### Fix semicolon duplicated at the end of LESS file ([#&#8203;14007](https://redirect.github.com/prettier/prettier/pull/14007) by [@&#8203;mvorisek](https://redirect.github.com/mvorisek))
+
+<!-- prettier-ignore -->
+
+```less
+// Input
+@&#8203;variable: {
+  field: something;
+};
+
+// Prettier 2.8.1
+@&#8203;variable: {
+  field: something;
+}; ;
+
+// Prettier 2.8.2
+@&#8203;variable: {
+  field: something;
+};
+```
+
+##### Fix no space after unary minus when followed by opening parenthesis in LESS ([#&#8203;14008](https://redirect.github.com/prettier/prettier/pull/14008) by [@&#8203;mvorisek](https://redirect.github.com/mvorisek))
+
+<!-- prettier-ignore -->
+
+```less
+// Input
+.unary_minus_single {
+  margin: -(@&#8203;a);
+}
+
+.unary_minus_multi {
+  margin: 0 -(@&#8203;a);
+}
+
+.binary_minus {
+  margin: 0 - (@&#8203;a);
+}
+
+// Prettier 2.8.1
+.unary_minus_single {
+  margin: - (@&#8203;a);
+}
+
+.unary_minus_multi {
+  margin: 0 - (@&#8203;a);
+}
+
+.binary_minus {
+  margin: 0 - (@&#8203;a);
+}
+
+// Prettier 2.8.2
+.unary_minus_single {
+  margin: -(@&#8203;a);
+}
+
+.unary_minus_multi {
+  margin: 0 -(@&#8203;a);
+}
+
+.binary_minus {
+  margin: 0 - (@&#8203;a);
+}
+```
+
+##### Do not change case of property name if inside a variable declaration in LESS ([#&#8203;14034](https://redirect.github.com/prettier/prettier/pull/14034) by [@&#8203;mvorisek](https://redirect.github.com/mvorisek))
+
+<!-- prettier-ignore -->
+
+```less
+// Input
+@&#8203;var: {
+  preserveCase: 0;
+};
+
+// Prettier 2.8.1
+@&#8203;var: {
+  preservecase: 0;
+};
+
+// Prettier 2.8.2
+@&#8203;var: {
+  preserveCase: 0;
+};
+```
+
+##### Fix formatting for auto-accessors with comments ([#&#8203;14038](https://redirect.github.com/prettier/prettier/pull/14038) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```jsx
+// Input
+class A {
+  @&#8203;dec()
+  // comment
+  accessor b;
+}
+
+// Prettier 2.8.1
+class A {
+  @&#8203;dec()
+  accessor // comment
+  b;
+}
+
+// Prettier 2.8.1 (second format)
+class A {
+  @&#8203;dec()
+  accessor; // comment
+  b;
+}
+
+// Prettier 2.8.2
+class A {
+  @&#8203;dec()
+  // comment
+  accessor b;
+}
+```
+
+##### Add parentheses for TSTypeQuery to improve readability ([#&#8203;14042](https://redirect.github.com/prettier/prettier/pull/14042) by [@&#8203;onishi-kohei](https://redirect.github.com/onishi-kohei))
+
+<!-- prettier-ignore -->
+
+```tsx
+// Input
+a as (typeof node.children)[number]
+a as (typeof node.children)[]
+a as ((typeof node.children)[number])[]
+
+// Prettier 2.8.1
+a as typeof node.children[number];
+a as typeof node.children[];
+a as typeof node.children[number][];
+
+// Prettier 2.8.2
+a as (typeof node.children)[number];
+a as (typeof node.children)[];
+a as (typeof node.children)[number][];
+```
+
+##### Fix displacing of comments in default switch case ([#&#8203;14047](https://redirect.github.com/prettier/prettier/pull/14047) by [@&#8203;thorn0](https://redirect.github.com/thorn0))
+
+It was a regression in Prettier 2.6.0.
+
+<!-- prettier-ignore -->
+
+```jsx
+// Input
+switch (state) {
+  default:
+    result = state; // no change
+    break;
+}
+
+// Prettier 2.8.1
+switch (state) {
+  default: // no change
+    result = state;
+    break;
+}
+
+// Prettier 2.8.2
+switch (state) {
+  default:
+    result = state; // no change
+    break;
+}
+```
+
+##### Support type annotations on auto accessors via `babel-ts` ([#&#8203;14049](https://redirect.github.com/prettier/prettier/pull/14049) by [@&#8203;sosukesuzuki](https://redirect.github.com/sosukesuzuki))
+
+[The bug that `@babel/parser` cannot parse auto accessors with type annotations](https://redirect.github.com/babel/babel/issues/15205) has been fixed. So we now support it via `babel-ts` parser.
+
+<!-- prettier-ignore -->
+
+```tsx
+class Foo {
+  accessor prop: number;
+}
+```
+
+##### Fix formatting of empty type parameters ([#&#8203;14073](https://redirect.github.com/prettier/prettier/pull/14073) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```jsx
+// Input
+const foo: bar</* comment */> = () => baz;
+
+// Prettier 2.8.1
+Error: Comment "comment" was not printed. Please report this error!
+
+// Prettier 2.8.2
+const foo: bar</* comment */> = () => baz;
+```
+
+##### Add parentheses to head of `ExpressionStatement` instead of the whole statement ([#&#8203;14077](https://redirect.github.com/prettier/prettier/pull/14077) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```jsx
+// Input
+({}).toString.call(foo) === "[object Array]"
+  ? foo.forEach(iterateArray)
+  : iterateObject(foo);
+
+// Prettier 2.8.1
+({}.toString.call(foo) === "[object Array]"
+  ? foo.forEach(iterateArray)
+  : iterateObject(foo));
+
+// Prettier 2.8.2
+({}).toString.call(foo.forEach) === "[object Array]"
+  ? foo.forEach(iterateArray)
+  : iterateObject(foo);
+```
+
+##### Fix comments after directive ([#&#8203;14081](https://redirect.github.com/prettier/prettier/pull/14081) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```jsx
+// Input
+"use strict" /* comment */;
+
+// Prettier 2.8.1 (with other js parsers except `babel`)
+Error: Comment "comment" was not printed. Please report this error!
+
+// Prettier 2.8.2
+<Same as input>
+```
+
+##### Fix formatting for comments inside JSX attribute ([#&#8203;14082](https://redirect.github.com/prettier/prettier/pull/14082) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```jsx
+// Input
+function MyFunctionComponent() {
+  <button label=/*old*/"new">button</button>
+}
+
+// Prettier 2.8.1
+Error: Comment "old" was not printed. Please report this error!
+
+// Prettier 2.8.2
+function MyFunctionComponent() {
+  <button label=/*old*/ "new">button</button>;
+}
+```
+
+##### Quote numeric keys for json-stringify parser ([#&#8203;14083](https://redirect.github.com/prettier/prettier/pull/14083) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```jsx
+// Input
+{0: 'value'}
+
+// Prettier 2.8.1
+{
+  0: "value"
+}
+
+// Prettier 2.8.2
+{
+  "0": "value"
+}
+```
+
+##### Fix removing commas from function arguments in maps ([#&#8203;14089](https://redirect.github.com/prettier/prettier/pull/14089) by [@&#8203;sosukesuzuki](https://redirect.github.com/sosukesuzuki))
+
+<!-- prettier-ignore -->
+
+```scss
+/* Input */
+$foo: map-fn(
+  (
+    "#{prop}": inner-fn($first, $second),
+  )
+);
+
+/* Prettier 2.8.1 */
+$foo: map-fn(("#{prop}": inner-fn($first $second)));
+
+/* Prettier 2.8.2 */
+$foo: map-fn(
+  (
+    "#{prop}": inner-fn($first, $second),
+  )
+);
+
+```
+
+##### Do not insert space in LESS property access ([#&#8203;14103](https://redirect.github.com/prettier/prettier/pull/14103) by [@&#8203;fisker](https://redirect.github.com/fisker))
+
+<!-- prettier-ignore -->
+
+```less
+// Input
+a {
+  color: @&#8203;colors[@&#8203;white];
+}
+
+// Prettier 2.8.1
+a {
+  color: @&#8203;colors[ @&#8203;white];
+}
+
+// Prettier 2.8.2
+<Same as input>
+```
+
+### [`v2.8.1`](https://redirect.github.com/prettier/prettier/blob/HEAD/CHANGELOG.md#281)
+
+[Compare Source](https://redirect.github.com/prettier/prettier/compare/2.8.0...2.8.1)
+
+[diff](https://redirect.github.com/prettier/prettier/compare/2.8.0...2.8.1)
+
+##### Fix SCSS map in arguments ([#&#8203;9184](https://redirect.github.com/prettier/prettier/pull/9184) by [@&#8203;agamkrbit](https://redirect.github.com/agamkrbit))
+
+<!-- prettier-ignore -->
+
+```scss
+// Input
+$display-breakpoints: map-deep-merge(
+  (
+    "print-only": "only print",
+    "screen-only": "only screen",
+    "xs-only": "only screen and (max-width: #{map-get($grid-breakpoints, "sm")-1})",
+  ),
+  $display-breakpoints
+);
+
+// Prettier 2.8.0
+$display-breakpoints: map-deep-merge(
+  (
+    "print-only": "only print",
+    "screen-only": "only screen",
+    "xs-only": "only screen and (max-width: #{map-get($grid-breakpoints, " sm
+      ")-1})",
+  ),
+  $display-breakpoints
+);
+
+// Prettier 2.8.1
+$display-breakpoints: map-deep-merge(
+  (
+    "print-only": "only print",
+    "screen-only": "only screen",
+    "xs-only": "only screen and (max-width: #{map-get($grid-breakpoints, "sm")-1})",
+  ),
+  $display-breakpoints
+);
+```
+
+##### Support auto accessors syntax ([#&#8203;13919](https://redirect.github.com/prettier/prettier/pull/13919) by [@&#8203;sosukesuzuki](https://redirect.github.com/sosukesuzuki))
+
+Support for [Auto Accessors Syntax](https://devblogs.microsoft.com/typescript/announcing-typescript-4-9/#auto-accessors-in-classes) landed in TypeScript 4.9.
+
+(Doesn't work well with `babel-ts` parser)
+
+<!-- prettier-ignore -->
+
+```tsx
+class Foo {
+  accessor foo: number = 3;
+}
+```
+
+### [`v2.8.0`](https://redirect.github.com/prettier/prettier/blob/HEAD/CHANGELOG.md#280)
+
+[Compare Source](https://redirect.github.com/prettier/prettier/compare/2.7.1...2.8.0)
+
+[diff](https://redirect.github.com/prettier/prettier/compare/2.7.1...2.8.0)
+
+🔗 [Release Notes](https://prettier.io/blog/2022/11/23/2.8.0.html)
+
+### [`v2.7.1`](https://redirect.github.com/prettier/prettier/blob/HEAD/CHANGELOG.md#271)
+
+[Compare Source](https://redirect.github.com/prettier/prettier/compare/2.7.0...2.7.1)
+
+[diff](https://redirect.github.com/prettier/prettier/compare/2.7.0...2.7.1)
+
+##### Keep useful empty lines in description ([#&#8203;13013](https://redirect.github.com/prettier/prettier/pull/13013) by [@&#8203;chimurai](https://redirect.github.com/chimurai))
+
+<!-- prettier-ignore -->
+
+```graphql
+
+#### chore(deps): update grafana monorepo ([#1475](https://github.com/grafana/scenes/pull/1475))
+
+<details>
+<summary>grafana/grafana (@&#8203;grafana/data)</summary>
+
+#### chore(deps): update dependency rxjs to v7.8.2 ([#1474](https://github.com/grafana/scenes/pull/1474))
+
+<details>
+<summary>reactivex/rxjs (rxjs)</summary>
+
+#### chore(deps): update dependency i18next-parser to v9.4.0 ([#1497](https://github.com/grafana/scenes/pull/1497))
+
+<details>
+<summary>i18next/i18next-parser (i18next-parser)</summary>
+
+---
+
+#### 🚀 Enhancement
+
+- Variables: Fixes multi value select mobile issue [#1526](https://github.com/grafana/scenes/pull/1526) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- chore(deps): update dependency react-router-dom to v6.30.4 [#1521](https://github.com/grafana/scenes/pull/1521) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- fix(deps): update emotion monorepo [#1511](https://github.com/grafana/scenes/pull/1511) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- fix(deps): update dependency @floating-ui/react to ^0.27.0 [#1509](https://github.com/grafana/scenes/pull/1509) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- fix(deps): update react monorepo [#1512](https://github.com/grafana/scenes/pull/1512) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update jest monorepo [#1506](https://github.com/grafana/scenes/pull/1506) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @tanstack/react-virtual to v3.13.26 [#1491](https://github.com/grafana/scenes/pull/1491) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- chore(deps): update dependency prettier to v2.8.8 [#1499](https://github.com/grafana/scenes/pull/1499) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- chore(deps): update grafana monorepo [#1475](https://github.com/grafana/scenes/pull/1475) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency rxjs to v7.8.2 [#1474](https://github.com/grafana/scenes/pull/1474) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- chore: skip unneeded translation in object [#1503](https://github.com/grafana/scenes/pull/1503) ([@mdvictor](https://github.com/mdvictor))
+- chore(deps): update dependency @types/node to v20.19.41 [#1493](https://github.com/grafana/scenes/pull/1493) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency i18next-parser to v9.4.0 [#1497](https://github.com/grafana/scenes/pull/1497) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @types/lodash to v4.17.24 [#1492](https://github.com/grafana/scenes/pull/1492) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @types/react-grid-layout to v1.3.6 [#1479](https://github.com/grafana/scenes/pull/1479) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @types/react-virtualized-auto-sizer to v1.0.8 [#1472](https://github.com/grafana/scenes/pull/1472) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore: fix typecheck fail [#1476](https://github.com/grafana/scenes/pull/1476) ([@mdvictor](https://github.com/mdvictor))
+- security: bump uuid ^9.0.0 → ^11.0.0 (CVE-2026-41907) [#1468](https://github.com/grafana/scenes/pull/1468) ([@moxious](https://github.com/moxious))
+- Filters: Better origin filter validation [#1461](https://github.com/grafana/scenes/pull/1461) ([@mdvictor](https://github.com/mdvictor))
+- Filters: Fix broken testId attr [#1462](https://github.com/grafana/scenes/pull/1462) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 4
+
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- David Allen ([@moxious](https://github.com/moxious))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.2.6 (Mon May 25 2026)
 
 #### 🐛 Bug Fix
