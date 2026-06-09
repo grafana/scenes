@@ -90,3 +90,38 @@ export function dedupAnnotations(annotations: any) {
 function isPanelAlert(event: { eventType: string }) {
   return event.eventType === 'panel-alert';
 }
+
+/**
+ * getLikelyAnnotationEventFieldNames tests a few non-contiguous annotation events to get a more complete set of field
+ * names to pass into arrayToDataFrame without iterating through the entire array.
+ * Avoids the first annotation defining the schema of all subsequent annotations. (https://github.com/grafana/grafana/issues/105257)
+ *
+ * @param annotationEvents
+ * @param samples
+ */
+export function getLikelyAnnotationEventFieldNames(annotationEvents: AnnotationEvent[], samples = 20): string[] {
+  const len = annotationEvents.length
+  const firstIdx = 0;
+  const lastIdx = len - 1;
+
+  const stride = Math.max(1, Math.floor((lastIdx - firstIdx + 1) / samples));
+
+  const annotationEventNamesSet = new Set<string>();
+  for(let annotationEventIndex = firstIdx; annotationEventIndex < len; annotationEventIndex += stride){
+    const annotationEvent = annotationEvents[annotationEventIndex];
+    const keys = Object.keys(annotationEvent);
+    for(let i = 0; i < keys.length; i++){
+      if(!annotationEventNamesSet.has(keys[i])){
+        annotationEventNamesSet.add(keys[i])
+      }
+    }
+  }
+
+  if (len > 0) {
+    for (const key of Object.keys(annotationEvents[lastIdx])) {
+      annotationEventNamesSet.add(key);
+    }
+  }
+
+  return Array.from(annotationEventNamesSet)
+}
