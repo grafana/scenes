@@ -156,7 +156,7 @@ export class AnnotationsDataLayer
 
     const stateUpdate = { ...emptyPanelData, state: events.state };
 
-    const names = getLikelyAnnotationEventFieldNames(processedEvents)
+    const names = getLikelyAnnotationEventFieldNames(processedEvents);
     const df = arrayToDataFrame(processedEvents, names);
 
     df.meta = {

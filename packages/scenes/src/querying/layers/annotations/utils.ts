@@ -100,19 +100,19 @@ function isPanelAlert(event: { eventType: string }) {
  * @param samples
  */
 export function getLikelyAnnotationEventFieldNames(annotationEvents: AnnotationEvent[], samples = 20): string[] {
-  const len = annotationEvents.length
+  const len = annotationEvents.length;
   const firstIdx = 0;
   const lastIdx = len - 1;
 
   const stride = Math.max(1, Math.floor((lastIdx - firstIdx + 1) / samples));
 
   const annotationEventNamesSet = new Set<string>();
-  for(let annotationEventIndex = firstIdx; annotationEventIndex < len; annotationEventIndex += stride){
+  for (let annotationEventIndex = firstIdx; annotationEventIndex < len; annotationEventIndex += stride) {
     const annotationEvent = annotationEvents[annotationEventIndex];
     const keys = Object.keys(annotationEvent);
-    for(let i = 0; i < keys.length; i++){
-      if(!annotationEventNamesSet.has(keys[i])){
-        annotationEventNamesSet.add(keys[i])
+    for (let i = 0; i < keys.length; i++) {
+      if (!annotationEventNamesSet.has(keys[i])) {
+        annotationEventNamesSet.add(keys[i]);
       }
     }
   }
@@ -124,5 +124,5 @@ export function getLikelyAnnotationEventFieldNames(annotationEvents: AnnotationE
     }
   }
 
-  return Array.from(annotationEventNamesSet)
+  return Array.from(annotationEventNamesSet);
 }

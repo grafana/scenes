@@ -66,7 +66,7 @@ const runRequestMock = jest.fn().mockImplementation((ds: DataSourceApi, request:
       result.annotations = packet.data;
 
       return result;
-    }),
+    })
   );
 });
 
@@ -161,7 +161,7 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
         layer as unknown as {
           processEvents: (
             query: AnnotationsDataLayer['state']['query'],
-            events: { state: LoadingState; events: AnnotationEvent[] },
+            events: { state: LoadingState; events: AnnotationEvent[] }
           ) => PanelData;
         }
       ).processEvents(layer.state.query, { state: LoadingState.Done, events });
