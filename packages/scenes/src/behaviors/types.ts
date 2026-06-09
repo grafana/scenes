@@ -45,4 +45,12 @@ export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateCon
   startProfile(name: string): void;
   cancelProfile(): void;
   runningQueriesCount(): number;
+
+  /**
+   * Re-evaluate whether an in-progress render profile can complete, without a
+   * change to the running query count. Used when the scene reaches an idle
+   * state through a non-query event (e.g. a variable update batch settling) so
+   * that a render whose panel never issued a query still signals completion.
+   */
+  attemptProfileCompletion?(): void;
 }

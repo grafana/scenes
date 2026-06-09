@@ -95,16 +95,37 @@ export class SceneQueryController
     }
 
     if (this.state.enableProfiling) {
-      // Delegate to next frame to check if all queries are completed
-      // This is to account for scenarios when there's "yet another" query that's started
-      if (this.#tryCompleteProfileFrameId) {
-        cancelAnimationFrame(this.#tryCompleteProfileFrameId);
-      }
-
-      this.#tryCompleteProfileFrameId = requestAnimationFrame(() => {
-        this.profiler?.tryCompletingProfile();
-      });
+      this.#scheduleProfileCompletionCheck();
     }
+  }
+
+  /**
+   * Re-evaluate whether the in-progress profile can complete, without a query
+   * count change. Used when the scene reaches an idle state through a non-query
+   * event (e.g. a variable update batch settling) so that a render that issued
+   * no panel query — because it was blocked on a variable, as happens when a
+   * template variable is missing from the URL during image rendering — still
+   * signals completion instead of hanging until the image-renderer times out.
+   * Safe against premature completion: a query starting within the profiler's
+   * trailing window cancels the tail recording and re-evaluates.
+   */
+  public attemptProfileCompletion() {
+    if (!this.state.enableProfiling) {
+      return;
+    }
+    this.#scheduleProfileCompletionCheck();
+  }
+
+  #scheduleProfileCompletionCheck() {
+    // Delegate to next frame to check if all queries are completed
+    // This is to account for scenarios when there's "yet another" query that's started
+    if (this.#tryCompleteProfileFrameId) {
+      cancelAnimationFrame(this.#tryCompleteProfileFrameId);
+    }
+
+    this.#tryCompleteProfileFrameId = requestAnimationFrame(() => {
+      this.profiler?.tryCompletingProfile();
+    });
   }
 
   public cancelAll() {

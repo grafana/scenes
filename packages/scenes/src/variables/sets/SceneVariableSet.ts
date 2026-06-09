@@ -208,6 +208,17 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         error: (err) => this._handleVariableError(variable, err),
       });
     }
+
+    // When the batch has fully settled (nothing updating, nothing queued) let the
+    // query controller re-evaluate whether an in-progress render profile can
+    // complete. Profile completion is otherwise only driven by query count
+    // changes, so a render whose panel never issued a query because it was
+    // blocked on a variable (e.g. a template variable missing from the URL during
+    // image rendering) would never signal completion, and the image-renderer
+    // would hang until it times out.
+    if (this._updating.size === 0 && this._variablesToUpdate.size === 0) {
+      sceneGraph.getQueryController(this)?.attemptProfileCompletion?.();
+    }
   }
 
   /**
