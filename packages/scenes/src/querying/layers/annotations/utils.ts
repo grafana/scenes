@@ -117,6 +117,7 @@ export function getLikelyAnnotationEventFieldNames(annotationEvents: AnnotationE
     }
   }
 
+  // Check last event too
   if (len > 0) {
     for (const key of Object.keys(annotationEvents[lastIdx])) {
       annotationEventNamesSet.add(key);
