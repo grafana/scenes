@@ -99,7 +99,7 @@ function isPanelAlert(event: { eventType: string }) {
  * @param annotationEvents
  * @param samples
  */
-export function getLikelyAnnotationEventFieldNames(annotationEvents: AnnotationEvent[], samples = 20): string[] {
+export function getLikelyAnnotationEventFieldNames(annotationEvents: AnnotationEvent[], samples = 250): string[] {
   const len = annotationEvents.length;
   const firstIdx = 0;
   const lastIdx = len - 1;
