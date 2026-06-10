@@ -421,7 +421,7 @@ Read the [React 19 Upgrade Guide](https://react.dev/blog/2024/04/25/react-19-upg
 
 ### [`v9.2.0`](https://redirect.github.com/rollup/plugins/blob/HEAD/packages/eslint/CHANGELOG.md#v920)
 
-*2025-10-28*
+_2025-10-28_
 
 ##### Features
 
@@ -429,7 +429,7 @@ Read the [React 19 Upgrade Guide](https://react.dev/blog/2024/04/25/react-19-upg
 
 ### [`v9.1.0`](https://redirect.github.com/rollup/plugins/blob/HEAD/packages/eslint/CHANGELOG.md#v910)
 
-*2025-10-04*
+_2025-10-04_
 
 ##### Features
 

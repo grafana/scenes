@@ -666,7 +666,6 @@ A bad version was accidentally published and [it can't be unpublished](https://r
 ##### Allow multiple decorators on same getter/setter ([#&#8203;14584](https://redirect.github.com/prettier/prettier/pull/14584) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```ts
 // Input
 class A {
@@ -705,7 +704,6 @@ class A {
 ##### Allow decorators on private members and class expressions ([#&#8203;14548](https://redirect.github.com/prettier/prettier/pull/14548) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```ts
 // Input
 class A {
@@ -744,7 +742,6 @@ TypeScript 5.0 introduces two new syntactic features:
 ##### Add missing parentheses for decorator ([#&#8203;14393](https://redirect.github.com/prettier/prettier/pull/14393) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 class Person {
@@ -768,7 +765,6 @@ class Person {
 ##### Add parentheses for `TypeofTypeAnnotation` to improve readability ([#&#8203;14458](https://redirect.github.com/prettier/prettier/pull/14458) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```tsx
 // Input
 type A = (typeof node.children)[];
@@ -787,7 +783,6 @@ it will be interpreted as a `printWidth` of `Infinity` rather than being ignored
 (which previously resulted in the default `printWidth` of 80 being applied, if not overridden by Prettier-specific configuration).
 
 <!-- prettier-ignore -->
-
 ```html
 <!-- Input -->
 <div className='HelloWorld' title={`You are visitor number ${ num }`} onMouseOver={onMouseOver}/>
@@ -812,7 +807,6 @@ it will be interpreted as a `printWidth` of `Infinity` rather than being ignored
 ##### Fix leading comments in mapped types with `readonly` ([#&#8203;13427](https://redirect.github.com/prettier/prettier/pull/13427) by [@&#8203;thorn0](https://redirect.github.com/thorn0), [@&#8203;sosukesuzuki](https://redirect.github.com/sosukesuzuki))
 
 <!-- prettier-ignore -->
-
 ```tsx
 // Input
 type Type = {
@@ -841,7 +835,6 @@ unless the length of params exceeds the print width. This also updates the else 
 same as opening blocks.
 
 <!-- prettier-ignore -->
-
 ```hbs
 {{! Input }}
 {{#block param param param param param param param param param param as |blockParam|}}
@@ -899,7 +892,6 @@ In [Sapling SCM](https://sapling-scm.com/), `.sl/` is the folder where it stores
 ##### Recognize `@satisfies` in Closure-style type casts ([#&#8203;14262](https://redirect.github.com/prettier/prettier/pull/14262) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 const a = /** @&#8203;satisfies {Record<string, string>} */ ({hello: 1337});
@@ -917,7 +909,6 @@ const b = /** @&#8203;type {Record<string, string>} */ ({hello: 1337});
 ##### Fix parens in inferred function return types with `extends` ([#&#8203;14279](https://redirect.github.com/prettier/prettier/pull/14279) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```ts
 // Input
 type Foo<T> = T extends ((a) => a is infer R extends string) ? R : never;
@@ -943,7 +934,6 @@ type Foo<T> = T extends ((a) => a is infer R extends string) ? R : never;
 See [Angular v15.1.0 release note](https://redirect.github.com/angular/angular/releases/tag/15.1.0) for details.
 
 <!-- prettier-ignore -->
-
 ```html
 // Input
 <app-test/>
@@ -967,7 +957,6 @@ SyntaxError: Only void and foreign elements can be self closed "app-test" (1:1)
 ##### Don't lowercase link references ([#&#8203;13155](https://redirect.github.com/prettier/prettier/pull/13155) by [@&#8203;DerekNonGeneric](https://redirect.github.com/DerekNonGeneric) & [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```markdown
 <!-- Input -->
 We now don't strictly follow the release notes format suggested by [Keep a Changelog].
@@ -989,7 +978,6 @@ We now don't strictly follow the release notes format suggested by [Keep a Chang
 ##### Preserve self-closing tags ([#&#8203;13691](https://redirect.github.com/prettier/prettier/pull/13691) by [@&#8203;dcyriller](https://redirect.github.com/dcyriller))
 
 <!-- prettier-ignore -->
-
 ```hbs
 {{! Input }}
 <div />
@@ -1027,7 +1015,6 @@ We now don't strictly follow the release notes format suggested by [Keep a Chang
 [#&#8203;13507](https://redirect.github.com/prettier/prettier/issues/13507) added support for custom block keywords used with `else`, but failed to allow block params. This updates printer-glimmer to allow block params with custom "else if"-like blocks.
 
 <!-- prettier-ignore -->
-
 ```hbs
 {{! Input }}
 {{#when isAtWork as |work|}}
@@ -1069,7 +1056,6 @@ We now don't strictly follow the release notes format suggested by [Keep a Chang
 ##### Preserve empty lines between nested SCSS maps ([#&#8203;13931](https://redirect.github.com/prettier/prettier/pull/13931) by [@&#8203;jneander](https://redirect.github.com/jneander))
 
 <!-- prettier-ignore -->
-
 ```scss
 /* Input */
 $map: (
@@ -1107,7 +1093,6 @@ $map: (
 ##### Fix missing parentheses when an expression statement starts with `let[` ([#&#8203;14000](https://redirect.github.com/prettier/prettier/pull/14000), [#&#8203;14044](https://redirect.github.com/prettier/prettier/pull/14044) by [@&#8203;fisker](https://redirect.github.com/fisker), [@&#8203;thorn0](https://redirect.github.com/thorn0))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 (let[0] = 2);
@@ -1128,7 +1113,6 @@ SyntaxError: Unexpected token (1:5)
 ##### Fix semicolon duplicated at the end of LESS file ([#&#8203;14007](https://redirect.github.com/prettier/prettier/pull/14007) by [@&#8203;mvorisek](https://redirect.github.com/mvorisek))
 
 <!-- prettier-ignore -->
-
 ```less
 // Input
 @&#8203;variable: {
@@ -1149,7 +1133,6 @@ SyntaxError: Unexpected token (1:5)
 ##### Fix no space after unary minus when followed by opening parenthesis in LESS ([#&#8203;14008](https://redirect.github.com/prettier/prettier/pull/14008) by [@&#8203;mvorisek](https://redirect.github.com/mvorisek))
 
 <!-- prettier-ignore -->
-
 ```less
 // Input
 .unary_minus_single {
@@ -1194,7 +1177,6 @@ SyntaxError: Unexpected token (1:5)
 ##### Do not change case of property name if inside a variable declaration in LESS ([#&#8203;14034](https://redirect.github.com/prettier/prettier/pull/14034) by [@&#8203;mvorisek](https://redirect.github.com/mvorisek))
 
 <!-- prettier-ignore -->
-
 ```less
 // Input
 @&#8203;var: {
@@ -1215,7 +1197,6 @@ SyntaxError: Unexpected token (1:5)
 ##### Fix formatting for auto-accessors with comments ([#&#8203;14038](https://redirect.github.com/prettier/prettier/pull/14038) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 class A {
@@ -1249,7 +1230,6 @@ class A {
 ##### Add parentheses for TSTypeQuery to improve readability ([#&#8203;14042](https://redirect.github.com/prettier/prettier/pull/14042) by [@&#8203;onishi-kohei](https://redirect.github.com/onishi-kohei))
 
 <!-- prettier-ignore -->
-
 ```tsx
 // Input
 a as (typeof node.children)[number]
@@ -1272,7 +1252,6 @@ a as (typeof node.children)[number][];
 It was a regression in Prettier 2.6.0.
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 switch (state) {
@@ -1301,7 +1280,6 @@ switch (state) {
 [The bug that `@babel/parser` cannot parse auto accessors with type annotations](https://redirect.github.com/babel/babel/issues/15205) has been fixed. So we now support it via `babel-ts` parser.
 
 <!-- prettier-ignore -->
-
 ```tsx
 class Foo {
   accessor prop: number;
@@ -1311,7 +1289,6 @@ class Foo {
 ##### Fix formatting of empty type parameters ([#&#8203;14073](https://redirect.github.com/prettier/prettier/pull/14073) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 const foo: bar</* comment */> = () => baz;
@@ -1326,7 +1303,6 @@ const foo: bar</* comment */> = () => baz;
 ##### Add parentheses to head of `ExpressionStatement` instead of the whole statement ([#&#8203;14077](https://redirect.github.com/prettier/prettier/pull/14077) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 ({}).toString.call(foo) === "[object Array]"
@@ -1347,7 +1323,6 @@ const foo: bar</* comment */> = () => baz;
 ##### Fix comments after directive ([#&#8203;14081](https://redirect.github.com/prettier/prettier/pull/14081) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 "use strict" /* comment */;
@@ -1362,7 +1337,6 @@ Error: Comment "comment" was not printed. Please report this error!
 ##### Fix formatting for comments inside JSX attribute ([#&#8203;14082](https://redirect.github.com/prettier/prettier/pull/14082) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 function MyFunctionComponent() {
@@ -1381,7 +1355,6 @@ function MyFunctionComponent() {
 ##### Quote numeric keys for json-stringify parser ([#&#8203;14083](https://redirect.github.com/prettier/prettier/pull/14083) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 {0: 'value'}
@@ -1400,7 +1373,6 @@ function MyFunctionComponent() {
 ##### Fix removing commas from function arguments in maps ([#&#8203;14089](https://redirect.github.com/prettier/prettier/pull/14089) by [@&#8203;sosukesuzuki](https://redirect.github.com/sosukesuzuki))
 
 <!-- prettier-ignore -->
-
 ```scss
 /* Input */
 $foo: map-fn(
@@ -1424,7 +1396,6 @@ $foo: map-fn(
 ##### Do not insert space in LESS property access ([#&#8203;14103](https://redirect.github.com/prettier/prettier/pull/14103) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```less
 // Input
 a {
@@ -1449,7 +1420,6 @@ a {
 ##### Fix SCSS map in arguments ([#&#8203;9184](https://redirect.github.com/prettier/prettier/pull/9184) by [@&#8203;agamkrbit](https://redirect.github.com/agamkrbit))
 
 <!-- prettier-ignore -->
-
 ```scss
 // Input
 $display-breakpoints: map-deep-merge(
@@ -1490,7 +1460,6 @@ Support for [Auto Accessors Syntax](https://devblogs.microsoft.com/typescript/an
 (Doesn't work well with `babel-ts` parser)
 
 <!-- prettier-ignore -->
-
 ```tsx
 class Foo {
   accessor foo: number = 3;
@@ -1514,7 +1483,6 @@ class Foo {
 ##### Keep useful empty lines in description ([#&#8203;13013](https://redirect.github.com/prettier/prettier/pull/13013) by [@&#8203;chimurai](https://redirect.github.com/chimurai))
 
 <!-- prettier-ignore -->
-
 ```graphql
 
 #### chore(deps): update grafana monorepo ([#1475](https://github.com/grafana/scenes/pull/1475))
