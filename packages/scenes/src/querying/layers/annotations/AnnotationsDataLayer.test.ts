@@ -187,14 +187,14 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
     });
 
     // Checks first, middle, last
-    it.each([0, 50, 99])('should include fields from events past first sampling window in larger results: %s', (i) => {
+    it.each([0, 124, 250])('should include fields from events past first sampling window in larger results: %s', (i) => {
       const layer = new AnnotationsDataLayer({
         name: 'Test layer',
         query: { enable: true, iconColor: 'red', name: 'Test' },
       });
 
       // 100 events where only the final event carries `timeEnd`.
-      const events: AnnotationEvent[] = Array.from({ length: 100 }, (_, i) => ({ time: i, text: `t${i}` }));
+      const events: AnnotationEvent[] = Array.from({ length: 500 }, (_, i) => ({ time: i, text: `t${i}` }));
       events[i] = { time: 50, timeEnd: 60, text: 't50' };
 
       const df = processEvents(layer, events).series![0];
