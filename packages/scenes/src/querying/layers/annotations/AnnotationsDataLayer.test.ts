@@ -187,22 +187,25 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
     });
 
     // Checks first, middle, last
-    it.each([0, 250, 500])('should include fields from events past first sampling window in larger results: %s', (i) => {
-      const layer = new AnnotationsDataLayer({
-        name: 'Test layer',
-        query: { enable: true, iconColor: 'red', name: 'Test' },
-      });
+    it.each([0, 250, 500])(
+      'should include fields from events past first sampling window in larger results: %s',
+      (i) => {
+        const layer = new AnnotationsDataLayer({
+          name: 'Test layer',
+          query: { enable: true, iconColor: 'red', name: 'Test' },
+        });
 
-      // 100 events where only the final event carries `timeEnd`.
-      const events: AnnotationEvent[] = Array.from({ length: 500 }, (_, i) => ({ time: i, text: `t${i}` }));
-      events[i] = { time: 50, timeEnd: 60, text: 't50' };
+        // 100 events where only the final event carries `timeEnd`.
+        const events: AnnotationEvent[] = Array.from({ length: 500 }, (_, i) => ({ time: i, text: `t${i}` }));
+        events[i] = { time: 50, timeEnd: 60, text: 't50' };
 
-      const df = processEvents(layer, events).series![0];
-      const timeEnd = df.fields.find((f) => f.name === 'timeEnd');
+        const df = processEvents(layer, events).series![0];
+        const timeEnd = df.fields.find((f) => f.name === 'timeEnd');
 
-      expect(timeEnd).toBeDefined();
-      expect(timeEnd!.values[i]).toBe(60);
-    });
+        expect(timeEnd).toBeDefined();
+        expect(timeEnd!.values[i]).toBe(60);
+      }
+    );
   });
 
   describe('variables support', () => {
