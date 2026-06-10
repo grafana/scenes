@@ -187,7 +187,7 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
     });
 
     // Checks first, middle, last
-    it.each([0, 124, 250])('should include fields from events past first sampling window in larger results: %s', (i) => {
+    it.each([0, 250, 500])('should include fields from events past first sampling window in larger results: %s', (i) => {
       const layer = new AnnotationsDataLayer({
         name: 'Test layer',
         query: { enable: true, iconColor: 'red', name: 'Test' },
