@@ -2,25 +2,37 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "edit-filter-with-key": "使用键 {{keyLabel}} 编辑筛选器",
+        "edit-filter-with-key": "使用 {{keyLabel}} 键编辑筛选器",
         "managed-filter": "{{origin}} 托管筛选器",
-        "non-applicable": "",
-        "remove-filter-with-key": "使用键 {{keyLabel}} 移除筛选器"
+        "non-applicable": "筛选条件不适用",
+        "remove-filter-with-key": "使用 {{keyLabel}} 键移除筛选器"
       },
       "adhoc-filters-combobox": {
         "remove-filter-value": "移除筛选器值 - {{itemLabel}}",
         "use-custom-value": "使用自定义值：{{itemLabel}}"
+      },
+      "base-pill": {
+        "remove": "移除{{label}}"
+      },
+      "drilldown-recommendations": {
+        "recent": "最近",
+        "recent-empty": "无最近的值",
+        "recommended": "推荐",
+        "recommended-empty": "无推荐的值",
+        "tooltip": "显示建议"
       },
       "fallback-page": {
         "content": "如果您使用链接找到了此处的路径，则此应用程序中可能存在错误。",
         "subTitle": "URL 与任何页面都不匹配",
         "title": "未找到"
       },
-      "lazy-loader": {
-        "placeholder": ""
+      "group-by-pill": {
+        "applied-by-default": "在此数据面板中默认应用。如果编辑，它将转移到其他数据面板。",
+        "group-by-key": "按{{keyLabel}}分组",
+        "remove-group-by-key": "按{{keyLabel}}移除分组"
       },
       "nested-scene-renderer": {
-        "collapse-button-label": "折叠场景",
+        "collapse-button-label": "收起场景",
         "expand-button-label": "展开场景",
         "remove-button-label": "移除场景"
       },
@@ -30,13 +42,13 @@
         "title-scene-debugger": "场景调试器"
       },
       "scene-grid-row": {
-        "collapse-row": "折叠行",
-        "expand-row": "展开行"
+        "collapse-row": "收起带标题{{title}}的行",
+        "expand-row": "展开带标题{{title}}的行"
       },
       "scene-refresh-picker": {
         "text-cancel": "取消",
         "text-refresh": "刷新",
-        "tooltip-cancel": ""
+        "tooltip-cancel": "取消所有查询"
       },
       "scene-time-range-compare-renderer": {
         "button-label": "比较",
@@ -46,8 +58,8 @@
         "aria-label-pane-resize-widget": "窗格大小调整小部件"
       },
       "time-picker": {
-        "move-backward-tooltip": "",
-        "move-forward-tooltip": ""
+        "move-backward-tooltip": "后退{{moveBackwardDuration}}",
+        "move-forward-tooltip": "前进{{moveForwardDuration}}"
       },
       "viz-panel": {
         "title": {
@@ -62,8 +74,8 @@
         "panel-plugin-has-no-panel-component": "面板插件没有面板组件"
       },
       "viz-panel-series-limit": {
-        "content-rendering-series-single-panel-impact-performance": "在单个面板中呈现太多系列可能会影响性能，并使数据难以阅读。",
-        "warning-message": "仅显示 {{seriesLimit}} 系列"
+        "content-rendering-series-single-panel-impact-performance": "在单个面板中呈现太多序列可能会影响性能，并使数据难以阅读。",
+        "warning-message": "仅显示 {{seriesLimit}} 个序列"
       }
     },
     "utils": {
@@ -93,6 +105,16 @@
           "placeholder-select-value": "选择值"
         }
       },
+      "adhoc-filters-combobox-renderer": {
+        "clear-all": "全部清除",
+        "collapse": "收起",
+        "collapse-filters": "收起筛选器",
+        "expand-filters": "展开筛选器",
+        "group-by-label": "分组方式：",
+        "restore-default-group-by": "还原此数据面板设置的分组。",
+        "show-more-filters_other": "显示另外 {{count}} 个筛选器",
+        "show-more-group-by_other": "按键显示另外 {{count}} 个分组"
+      },
       "data-source-variable": {
         "label": {
           "default": "默认"
@@ -103,6 +125,9 @@
         "tooltip": "在此数据面板中默认应用。如果编辑，它将转移到其他数据面板。",
         "tooltip-restore-groupby-set-by-this-dashboard": "还原此数据面板设置的分组。"
       },
+      "expression-hint-placeholder": {
+        "press-enter-to-apply": ""
+      },
       "format-registry": {
         "formats": {
           "description": {
@@ -111,7 +136,7 @@
             "format-date-in-different-ways": "以不同方式格式化日期",
             "format-multivalued-variables-using-syntax-example": "使用 glob 语法格式化多值变量，例如 {value1,value2}",
             "html-escaping-of-values": "值的 HTML 转义",
-            "join-values-with-a-comma": "",
+            "join-values-with-a-comma": "用逗号连接值",
             "json-stringify-value": "JSON 字符串化值",
             "keep-value-as-is": "保持值不变",
             "multiple-values-are-formatted-like-variablevalue": "多个值的格式为 variable=value",
