@@ -89,7 +89,7 @@
     "jest": "30.4.2",
     "jest-canvas-mock": "^2.5.2",
     "react-router-dom": "^6.30.3",
-    "rimraf": "^3.0.2",
+    "rimraf": "^6.0.0",
     "rollup": "^4.36.0",
     "rxjs": "7.8.2",
     "typescript": "^5.4.3"
