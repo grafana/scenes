@@ -997,7 +997,7 @@ Please migrate to the [`ignore`](https://redirect.github.com/SuperchupuDev/tinyg
 - `docusaurus-plugin-content-blog`
   - [#&#8203;11564](https://redirect.github.com/facebook/docusaurus/pull/11564) test(blog): Add basic tests for blog routes. ([@&#8203;slorber](https://redirect.github.com/slorber))
 
-##### :globe\_with\_meridians: Translations
+##### :globe_with_meridians: Translations
 
 - `docusaurus-theme-translations`
   - [#&#8203;11632](https://redirect.github.com/facebook/docusaurus/pull/11632) feat(i18n): add Urdu (ur) default theme translations ([@&#8203;hammadurrehman2006](https://redirect.github.com/hammadurrehman2006))
@@ -1073,7 +1073,7 @@ Please migrate to the [`ignore`](https://redirect.github.com/SuperchupuDev/tinyg
 - `docusaurus-theme-mermaid`
   - [#&#8203;11438](https://redirect.github.com/facebook/docusaurus/pull/11438) perf(theme-mermaid): lazy load the Mermaid library ([@&#8203;slorber](https://redirect.github.com/slorber))
 
-##### :nail\_care: Polish
+##### :nail_care: Polish
 
 - `docusaurus-theme-classic`
   - [#&#8203;11463](https://redirect.github.com/facebook/docusaurus/pull/11463) fix(theme): remove "Edit this page" button from print view ([@&#8203;richk21](https://redirect.github.com/richk21))
@@ -1085,7 +1085,7 @@ Please migrate to the [`ignore`](https://redirect.github.com/SuperchupuDev/tinyg
 - [#&#8203;11481](https://redirect.github.com/facebook/docusaurus/pull/11481) chore(deps): bump actions/dependency-review-action from 4.8.0 to 4.8.1 ([@&#8203;dependabot\[bot\]](https://redirect.github.com/apps/dependabot))
 - [#&#8203;11446](https://redirect.github.com/facebook/docusaurus/pull/11446) chore(deps): bump actions/dependency-review-action from 4.7.3 to 4.8.0 ([@&#8203;dependabot\[bot\]](https://redirect.github.com/apps/dependabot))
 
-##### :globe\_with\_meridians: Translations
+##### :globe_with_meridians: Translations
 
 - `docusaurus-theme-translations`
   - [#&#8203;11484](https://redirect.github.com/facebook/docusaurus/pull/11484) fix(translations): improve Arabic theme translations ([@&#8203;maysara-elshewehy](https://redirect.github.com/maysara-elshewehy))
@@ -1207,7 +1207,7 @@ Please migrate to the [`ignore`](https://redirect.github.com/SuperchupuDev/tinyg
 - Other
   - [#&#8203;11287](https://redirect.github.com/facebook/docusaurus/pull/11287) chore(website): split changelog per version + adjust changelog plugin implementation ([@&#8203;slorber](https://redirect.github.com/slorber))
 
-##### :globe\_with\_meridians: Translations
+##### :globe_with_meridians: Translations
 
 - `docusaurus-theme-translations`
   - [#&#8203;11315](https://redirect.github.com/facebook/docusaurus/pull/11315) fix(theme-translations): Add missing Portuguese (pt-BR) theme translations and improve some of it. ([@&#8203;marcelocell](https://redirect.github.com/marcelocell))
@@ -1298,9 +1298,8 @@ Please migrate to the [`ignore`](https://redirect.github.com/SuperchupuDev/tinyg
   - [#&#8203;10953](https://redirect.github.com/facebook/docusaurus/pull/10953) feat(plugin-npm2yarn): Add Bun to default tabs conversions ([@&#8203;jakeboone02](https://redirect.github.c
 
 > ✂ **Note**
-> 
+>
 > PR body was truncated to here.
-
 
 </details>
 
@@ -2080,7 +2079,6 @@ A bad version was accidentally published and [it can't be unpublished](https://r
 ##### Allow multiple decorators on same getter/setter ([#&#8203;14584](https://redirect.github.com/prettier/prettier/pull/14584) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```ts
 // Input
 class A {
@@ -2119,7 +2117,6 @@ class A {
 ##### Allow decorators on private members and class expressions ([#&#8203;14548](https://redirect.github.com/prettier/prettier/pull/14548) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```ts
 // Input
 class A {
@@ -2158,7 +2155,6 @@ TypeScript 5.0 introduces two new syntactic features:
 ##### Add missing parentheses for decorator ([#&#8203;14393](https://redirect.github.com/prettier/prettier/pull/14393) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 class Person {
@@ -2182,7 +2178,6 @@ class Person {
 ##### Add parentheses for `TypeofTypeAnnotation` to improve readability ([#&#8203;14458](https://redirect.github.com/prettier/prettier/pull/14458) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```tsx
 // Input
 type A = (typeof node.children)[];
@@ -2201,7 +2196,6 @@ it will be interpreted as a `printWidth` of `Infinity` rather than being ignored
 (which previously resulted in the default `printWidth` of 80 being applied, if not overridden by Prettier-specific configuration).
 
 <!-- prettier-ignore -->
-
 ```html
 <!-- Input -->
 <div className='HelloWorld' title={`You are visitor number ${ num }`} onMouseOver={onMouseOver}/>
@@ -2226,7 +2220,6 @@ it will be interpreted as a `printWidth` of `Infinity` rather than being ignored
 ##### Fix leading comments in mapped types with `readonly` ([#&#8203;13427](https://redirect.github.com/prettier/prettier/pull/13427) by [@&#8203;thorn0](https://redirect.github.com/thorn0), [@&#8203;sosukesuzuki](https://redirect.github.com/sosukesuzuki))
 
 <!-- prettier-ignore -->
-
 ```tsx
 // Input
 type Type = {
@@ -2255,7 +2248,6 @@ unless the length of params exceeds the print width. This also updates the else 
 same as opening blocks.
 
 <!-- prettier-ignore -->
-
 ```hbs
 {{! Input }}
 {{#block param param param param param param param param param param as |blockParam|}}
@@ -2313,7 +2305,6 @@ In [Sapling SCM](https://sapling-scm.com/), `.sl/` is the folder where it stores
 ##### Recognize `@satisfies` in Closure-style type casts ([#&#8203;14262](https://redirect.github.com/prettier/prettier/pull/14262) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 const a = /** @&#8203;satisfies {Record<string, string>} */ ({hello: 1337});
@@ -2331,7 +2322,6 @@ const b = /** @&#8203;type {Record<string, string>} */ ({hello: 1337});
 ##### Fix parens in inferred function return types with `extends` ([#&#8203;14279](https://redirect.github.com/prettier/prettier/pull/14279) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```ts
 // Input
 type Foo<T> = T extends ((a) => a is infer R extends string) ? R : never;
@@ -2357,7 +2347,6 @@ type Foo<T> = T extends ((a) => a is infer R extends string) ? R : never;
 See [Angular v15.1.0 release note](https://redirect.github.com/angular/angular/releases/tag/15.1.0) for details.
 
 <!-- prettier-ignore -->
-
 ```html
 // Input
 <app-test/>
@@ -2381,7 +2370,6 @@ SyntaxError: Only void and foreign elements can be self closed "app-test" (1:1)
 ##### Don't lowercase link references ([#&#8203;13155](https://redirect.github.com/prettier/prettier/pull/13155) by [@&#8203;DerekNonGeneric](https://redirect.github.com/DerekNonGeneric) & [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```markdown
 <!-- Input -->
 We now don't strictly follow the release notes format suggested by [Keep a Changelog].
@@ -2403,7 +2391,6 @@ We now don't strictly follow the release notes format suggested by [Keep a Chang
 ##### Preserve self-closing tags ([#&#8203;13691](https://redirect.github.com/prettier/prettier/pull/13691) by [@&#8203;dcyriller](https://redirect.github.com/dcyriller))
 
 <!-- prettier-ignore -->
-
 ```hbs
 {{! Input }}
 <div />
@@ -2441,7 +2428,6 @@ We now don't strictly follow the release notes format suggested by [Keep a Chang
 [#&#8203;13507](https://redirect.github.com/prettier/prettier/issues/13507) added support for custom block keywords used with `else`, but failed to allow block params. This updates printer-glimmer to allow block params with custom "else if"-like blocks.
 
 <!-- prettier-ignore -->
-
 ```hbs
 {{! Input }}
 {{#when isAtWork as |work|}}
@@ -2483,7 +2469,6 @@ We now don't strictly follow the release notes format suggested by [Keep a Chang
 ##### Preserve empty lines between nested SCSS maps ([#&#8203;13931](https://redirect.github.com/prettier/prettier/pull/13931) by [@&#8203;jneander](https://redirect.github.com/jneander))
 
 <!-- prettier-ignore -->
-
 ```scss
 /* Input */
 $map: (
@@ -2521,7 +2506,6 @@ $map: (
 ##### Fix missing parentheses when an expression statement starts with `let[` ([#&#8203;14000](https://redirect.github.com/prettier/prettier/pull/14000), [#&#8203;14044](https://redirect.github.com/prettier/prettier/pull/14044) by [@&#8203;fisker](https://redirect.github.com/fisker), [@&#8203;thorn0](https://redirect.github.com/thorn0))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 (let[0] = 2);
@@ -2542,7 +2526,6 @@ SyntaxError: Unexpected token (1:5)
 ##### Fix semicolon duplicated at the end of LESS file ([#&#8203;14007](https://redirect.github.com/prettier/prettier/pull/14007) by [@&#8203;mvorisek](https://redirect.github.com/mvorisek))
 
 <!-- prettier-ignore -->
-
 ```less
 // Input
 @&#8203;variable: {
@@ -2563,7 +2546,6 @@ SyntaxError: Unexpected token (1:5)
 ##### Fix no space after unary minus when followed by opening parenthesis in LESS ([#&#8203;14008](https://redirect.github.com/prettier/prettier/pull/14008) by [@&#8203;mvorisek](https://redirect.github.com/mvorisek))
 
 <!-- prettier-ignore -->
-
 ```less
 // Input
 .unary_minus_single {
@@ -2608,7 +2590,6 @@ SyntaxError: Unexpected token (1:5)
 ##### Do not change case of property name if inside a variable declaration in LESS ([#&#8203;14034](https://redirect.github.com/prettier/prettier/pull/14034) by [@&#8203;mvorisek](https://redirect.github.com/mvorisek))
 
 <!-- prettier-ignore -->
-
 ```less
 // Input
 @&#8203;var: {
@@ -2629,7 +2610,6 @@ SyntaxError: Unexpected token (1:5)
 ##### Fix formatting for auto-accessors with comments ([#&#8203;14038](https://redirect.github.com/prettier/prettier/pull/14038) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 class A {
@@ -2663,7 +2643,6 @@ class A {
 ##### Add parentheses for TSTypeQuery to improve readability ([#&#8203;14042](https://redirect.github.com/prettier/prettier/pull/14042) by [@&#8203;onishi-kohei](https://redirect.github.com/onishi-kohei))
 
 <!-- prettier-ignore -->
-
 ```tsx
 // Input
 a as (typeof node.children)[number]
@@ -2686,7 +2665,6 @@ a as (typeof node.children)[number][];
 It was a regression in Prettier 2.6.0.
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 switch (state) {
@@ -2715,7 +2693,6 @@ switch (state) {
 [The bug that `@babel/parser` cannot parse auto accessors with type annotations](https://redirect.github.com/babel/babel/issues/15205) has been fixed. So we now support it via `babel-ts` parser.
 
 <!-- prettier-ignore -->
-
 ```tsx
 class Foo {
   accessor prop: number;
@@ -2725,7 +2702,6 @@ class Foo {
 ##### Fix formatting of empty type parameters ([#&#8203;14073](https://redirect.github.com/prettier/prettier/pull/14073) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 const foo: bar</* comment */> = () => baz;
@@ -2740,7 +2716,6 @@ const foo: bar</* comment */> = () => baz;
 ##### Add parentheses to head of `ExpressionStatement` instead of the whole statement ([#&#8203;14077](https://redirect.github.com/prettier/prettier/pull/14077) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 ({}).toString.call(foo) === "[object Array]"
@@ -2761,7 +2736,6 @@ const foo: bar</* comment */> = () => baz;
 ##### Fix comments after directive ([#&#8203;14081](https://redirect.github.com/prettier/prettier/pull/14081) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 "use strict" /* comment */;
@@ -2776,7 +2750,6 @@ Error: Comment "comment" was not printed. Please report this error!
 ##### Fix formatting for comments inside JSX attribute ([#&#8203;14082](https://redirect.github.com/prettier/prettier/pull/14082) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 function MyFunctionComponent() {
@@ -2795,7 +2768,6 @@ function MyFunctionComponent() {
 ##### Quote numeric keys for json-stringify parser ([#&#8203;14083](https://redirect.github.com/prettier/prettier/pull/14083) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```jsx
 // Input
 {0: 'value'}
@@ -2814,7 +2786,6 @@ function MyFunctionComponent() {
 ##### Fix removing commas from function arguments in maps ([#&#8203;14089](https://redirect.github.com/prettier/prettier/pull/14089) by [@&#8203;sosukesuzuki](https://redirect.github.com/sosukesuzuki))
 
 <!-- prettier-ignore -->
-
 ```scss
 /* Input */
 $foo: map-fn(
@@ -2838,7 +2809,6 @@ $foo: map-fn(
 ##### Do not insert space in LESS property access ([#&#8203;14103](https://redirect.github.com/prettier/prettier/pull/14103) by [@&#8203;fisker](https://redirect.github.com/fisker))
 
 <!-- prettier-ignore -->
-
 ```less
 // Input
 a {
@@ -2863,7 +2833,6 @@ a {
 ##### Fix SCSS map in arguments ([#&#8203;9184](https://redirect.github.com/prettier/prettier/pull/9184) by [@&#8203;agamkrbit](https://redirect.github.com/agamkrbit))
 
 <!-- prettier-ignore -->
-
 ```scss
 // Input
 $display-breakpoints: map-deep-merge(
@@ -2904,7 +2873,6 @@ Support for [Auto Accessors Syntax](https://devblogs.microsoft.com/typescript/an
 (Doesn't work well with `babel-ts` parser)
 
 <!-- prettier-ignore -->
-
 ```tsx
 class Foo {
   accessor foo: number = 3;
@@ -2928,7 +2896,6 @@ class Foo {
 ##### Keep useful empty lines in description ([#&#8203;13013](https://redirect.github.com/prettier/prettier/pull/13013) by [@&#8203;chimurai](https://redirect.github.com/chimurai))
 
 <!-- prettier-ignore -->
-
 ```graphql
 
 #### chore(deps): update grafana monorepo ([#1475](https://github.com/grafana/scenes/pull/1475))
@@ -3656,14 +3623,14 @@ class Foo {
   // Original code
   class Foo {
     constructor(public x = 1) {}
-    y = 2
+    y = 2;
   }
 
   // Old output (with --loader=ts --target=es2021)
   class Foo {
     constructor(x = 1) {
       this.x = x;
-      __publicField(this, "y", 2);
+      __publicField(this, 'y', 2);
     }
     x;
   }
@@ -3671,8 +3638,8 @@ class Foo {
   // New output (with --loader=ts --target=es2021)
   class Foo {
     constructor(x = 1) {
-      __publicField(this, "x", x);
-      __publicField(this, "y", 2);
+      __publicField(this, 'x', x);
+      __publicField(this, 'y', 2);
     }
   }
   ```
@@ -3686,10 +3653,15 @@ class Foo {
   Support for transforming async generators into the equivalent state machine was added in version 0.19.0. However, the generated state machine didn't work correctly when polling async generators concurrently, such as in the following code:
 
   ```js
-  async function* inner() { yield 1; yield 2 }
-  async function* outer() { yield* inner() }
-  let gen = outer()
-  for await (let x of [gen.next(), gen.next()]) console.log(x)
+  async function* inner() {
+    yield 1;
+    yield 2;
+  }
+  async function* outer() {
+    yield* inner();
+  }
+  let gen = outer();
+  for await (let x of [gen.next(), gen.next()]) console.log(x);
   ```
 
   Previously esbuild's output of the above code behaved incorrectly when async generators were transformed (such as with `--supported:async-generator=false`). The transformation should be fixed starting with this release.
@@ -3752,19 +3724,24 @@ class Foo {
 
   ```css
   /* Original code */
-  @&#8203;media only screen and ((min-width: 10px) or (min-height: 10px)) {
-    a { color: red }
+  @& #8203;
+  media only screen and ((min-width: 10px) or (min-height: 10px)) {
+    a {
+      color: red;
+    }
   }
 
   /* Old output (incorrect) */
-  @&#8203;media only screen and (min-width: 10px) or (min-height: 10px) {
+  @& #8203;
+  media only screen and (min-width: 10px) or (min-height: 10px) {
     a {
       color: red;
     }
   }
 
   /* New output (correct) */
-  @&#8203;media only screen and ((min-width: 10px) or (min-height: 10px)) {
+  @& #8203;
+  media only screen and ((min-width: 10px) or (min-height: 10px)) {
     a {
       color: red;
     }
@@ -3809,8 +3786,12 @@ class Foo {
     ```html
     <!DOCTYPE html>
     <html>
-      <head><link rel="stylesheet" href="icons.css"></head>
-      <body><div class="triangle"></div></body>
+      <head>
+        <link rel="stylesheet" href="icons.css" />
+      </head>
+      <body>
+        <div class="triangle"></div>
+      </body>
     </html>
     ```
 
@@ -3857,17 +3838,28 @@ class Foo {
 
   ```css
   /* Original code */
-  @&#8203;scope (:global(.foo)) to (:local(.bar)) {
+  @& #8203;
+  scope (:global(.foo)) to (:local(.bar)) {
     .bar {
       color: red;
     }
   }
 
   /* Old output (with --loader=local-css --minify) */
-  @&#8203;scope (:global(.foo)) to (:local(.bar)){.o{color:red}}
+  @& #8203;
+  scope (:global(.foo)) to (:local(.bar)) {
+    .o {
+      color: red;
+    }
+  }
 
   /* New output (with --loader=local-css --minify) */
-  @&#8203;scope(.foo)to (.o){.o{color:red}}
+  @& #8203;
+  scope(.foo)to (.o) {
+    .o {
+      color: red;
+    }
+  }
   ```
 
 - Fix a minification bug with lowering of `for await` ([#&#8203;4378](https://redirect.github.com/evanw/esbuild/pull/4378), [#&#8203;4385](https://redirect.github.com/evanw/esbuild/pull/4385))
@@ -3890,7 +3882,7 @@ class Foo {
 
 ### [`v9.2.0`](https://redirect.github.com/rollup/plugins/blob/HEAD/packages/eslint/CHANGELOG.md#v920)
 
-*2025-10-28*
+_2025-10-28_
 
 ##### Features
 
@@ -3898,7 +3890,7 @@ class Foo {
 
 ### [`v9.1.0`](https://redirect.github.com/rollup/plugins/blob/HEAD/packages/eslint/CHANGELOG.md#v910)
 
-*2025-10-04*
+_2025-10-04_
 
 ##### Features
 
@@ -4002,7 +3994,7 @@ Thank you, Andrew Lisowski ([@&#8203;sfc-gh-alisowski](https://redirect.github.c
 
 - Andrew Lisowski ([@&#8203;sfc-gh-alisowski](https://redirect.github.com/sfc-gh-alisowski))
 
-***
+---
 
 ### [`v11.3.5`](https://redirect.github.com/intuit/auto/blob/HEAD/CHANGELOG.md#v1135-Fri-Nov-14-2025)
 
@@ -4021,7 +4013,7 @@ Thank you, Kevin Ross ([@&#8203;rosskevin](https://redirect.github.com/rosskevin
 
 - Kevin Ross ([@&#8203;rosskevin](https://redirect.github.com/rosskevin))
 
-***
+---
 
 ### [`v11.3.4`](https://redirect.github.com/intuit/auto/blob/HEAD/CHANGELOG.md#v1134-Fri-Nov-14-2025)
 
@@ -4040,7 +4032,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 - Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/nayanmanojgupta))
 
-***
+---
 
 ### [`v11.3.3`](https://redirect.github.com/intuit/auto/blob/HEAD/CHANGELOG.md#v1133-Fri-Nov-14-2025)
 
@@ -4055,7 +4047,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 - Julien Bouyoud ([@&#8203;jBouyoud](https://redirect.github.com/jBouyoud))
 
-***
+---
 
 #### chore(deps): update actions/checkout action to v4.3.1 ([#1484](https://github.com/grafana/scenes/pull/1484))
 
@@ -4129,7 +4121,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 - **(es/minifier)** Fine grained effect analysis of class ([#&#8203;11814](https://redirect.github.com/swc-project/swc/issues/11814)) ([c9058ad](https://redirect.github.com/swc-project/swc/commit/c9058adb5bb7d6bbe354e6136685271f722354a0))
 
-- **(swc\_cli)** Implement all features for `swc_cli` ([#&#8203;11797](https://redirect.github.com/swc-project/swc/issues/11797)) ([9300ede](https://redirect.github.com/swc-project/swc/commit/9300ede1d495463042da1db11754c76057a50954))
+- **(swc_cli)** Implement all features for `swc_cli` ([#&#8203;11797](https://redirect.github.com/swc-project/swc/issues/11797)) ([9300ede](https://redirect.github.com/swc-project/swc/commit/9300ede1d495463042da1db11754c76057a50954))
 
 ##### Miscellaneous Tasks
 
@@ -4143,7 +4135,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 - **(es/codegen)** Speed up JsWriter position and srcmap tracking ([#&#8203;11867](https://redirect.github.com/swc-project/swc/issues/11867)) ([dbceade](https://redirect.github.com/swc-project/swc/commit/dbceade22809ac9a9cb7548456ab335df26fb046))
 
-- **(es/codegen)** Remove JsWriter last\_srcmap cache ([#&#8203;11869](https://redirect.github.com/swc-project/swc/issues/11869)) ([3bc1c2b](https://redirect.github.com/swc-project/swc/commit/3bc1c2b9b2594b05478dc4240977b981d6f8521b))
+- **(es/codegen)** Remove JsWriter last_srcmap cache ([#&#8203;11869](https://redirect.github.com/swc-project/swc/issues/11869)) ([3bc1c2b](https://redirect.github.com/swc-project/swc/commit/3bc1c2b9b2594b05478dc4240977b981d6f8521b))
 
 - **(es/minifier)** Reduce minifier profiling hotspots ([#&#8203;11853](https://redirect.github.com/swc-project/swc/issues/11853)) ([28c1091](https://redirect.github.com/swc-project/swc/commit/28c1091adb2c6f6d0e46daa5595908d1ba6fccb7))
 
@@ -4151,7 +4143,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 ##### Testing
 
-- **(es/minifier)** Move issue\_11835 fixture out of terser folder ([#&#8203;11840](https://redirect.github.com/swc-project/swc/issues/11840)) ([3dd3431](https://redirect.github.com/swc-project/swc/commit/3dd34310d429baff6e8d1a6393266c648684d3c6))
+- **(es/minifier)** Move issue_11835 fixture out of terser folder ([#&#8203;11840](https://redirect.github.com/swc-project/swc/issues/11840)) ([3dd3431](https://redirect.github.com/swc-project/swc/commit/3dd34310d429baff6e8d1a6393266c648684d3c6))
 
 ##### Ci
 
@@ -4263,9 +4255,9 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 ##### Features
 
-- **(swc\_common)** Add SourceMapper.map\_raw\_pos ([#&#8203;11777](https://redirect.github.com/swc-project/swc/issues/11777)) ([7d2e94c](https://redirect.github.com/swc-project/swc/commit/7d2e94ce379ba8fc738a5697299cdb9a3c748e8a))
+- **(swc_common)** Add SourceMapper.map_raw_pos ([#&#8203;11777](https://redirect.github.com/swc-project/swc/issues/11777)) ([7d2e94c](https://redirect.github.com/swc-project/swc/commit/7d2e94ce379ba8fc738a5697299cdb9a3c748e8a))
 
-- **(swc\_config)** Add Hash/Eq for options and CachedRegex ([#&#8203;11775](https://redirect.github.com/swc-project/swc/issues/11775)) ([86a4c38](https://redirect.github.com/swc-project/swc/commit/86a4c383b8da40a53bad1b1b5098227d3087927c))
+- **(swc_config)** Add Hash/Eq for options and CachedRegex ([#&#8203;11775](https://redirect.github.com/swc-project/swc/issues/11775)) ([86a4c38](https://redirect.github.com/swc-project/swc/commit/86a4c383b8da40a53bad1b1b5098227d3087927c))
 
 ##### Performance
 
@@ -4396,7 +4388,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.58.0...v4.59.0)
 
-*2026-02-22*
+_2026-02-22_
 
 ##### Features
 
@@ -4410,7 +4402,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.57.1...v4.58.0)
 
-*2026-02-20*
+_2026-02-20_
 
 ##### Features
 
@@ -4420,7 +4412,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 - [#&#8203;6256](https://redirect.github.com/rollup/rollup/pull/6256): docs: document PreRenderedChunk properties including isDynamicEntry and isImplicitEntry ([@&#8203;njg7194](https://redirect.github.com/njg7194), [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
 - [#&#8203;6259](https://redirect.github.com/rollup/rollup/pull/6259): docs: Correct typo and improve sentence structure in docs for `output.experimentalMinChunkSize` ([@&#8203;millerick](https://redirect.github.com/millerick), [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
-- [#&#8203;6260](https://redirect.github.com/rollup/rollup/pull/6260): fix(deps): update rust crate swc\_compiler\_base to v47 ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot], [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
+- [#&#8203;6260](https://redirect.github.com/rollup/rollup/pull/6260): fix(deps): update rust crate swc_compiler_base to v47 ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot], [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
 - [#&#8203;6261](https://redirect.github.com/rollup/rollup/pull/6261): fix(deps): lock file maintenance minor/patch updates ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot], [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
 - [#&#8203;6262](https://redirect.github.com/rollup/rollup/pull/6262): Avoid unnecessary cloning of the code string ([@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
 - [#&#8203;6263](https://redirect.github.com/rollup/rollup/pull/6263): fix(deps): update minor/patch updates ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot], [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
@@ -4429,13 +4421,13 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 - [#&#8203;6268](https://redirect.github.com/rollup/rollup/pull/6268): chore(deps): update dependency eslint-plugin-unicorn to v63 ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot], [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
 - [#&#8203;6269](https://redirect.github.com/rollup/rollup/pull/6269): chore(deps): update dependency lru-cache to v11 ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot])
 - [#&#8203;6270](https://redirect.github.com/rollup/rollup/pull/6270): chore(deps): lock file maintenance ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot])
-- [#&#8203;6272](https://redirect.github.com/rollup/rollup/pull/6272): forward NO\_SIDE\_EFFECTS annotations to function expressions in variable declarations ([@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
+- [#&#8203;6272](https://redirect.github.com/rollup/rollup/pull/6272): forward NO_SIDE_EFFECTS annotations to function expressions in variable declarations ([@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
 
 ### [`v4.57.1`](https://redirect.github.com/rollup/rollup/blob/HEAD/CHANGELOG.md#4571)
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.57.0...v4.57.1)
 
-*2026-01-30*
+_2026-01-30_
 
 ##### Bug Fixes
 
@@ -4454,7 +4446,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.56.0...v4.57.0)
 
-*2026-01-27*
+_2026-01-27_
 
 ##### Features
 
@@ -4473,7 +4465,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.55.3...v4.56.0)
 
-*2026-01-22*
+_2026-01-22_
 
 ##### Features
 
@@ -4491,7 +4483,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.55.2...v4.55.3)
 
-*2026-01-21*
+_2026-01-21_
 
 ##### Bug Fixes
 
@@ -4505,7 +4497,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.55.1...v4.55.2)
 
-*2026-01-19*
+_2026-01-19_
 
 ##### Bug Fixes
 
@@ -4524,7 +4516,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.54.0...v4.55.1)
 
-*2026-01-05*
+_2026-01-05_
 
 ##### Bug Fixes
 
@@ -4538,7 +4530,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.53.5...v4.54.0)
 
-*2025-12-20*
+_2025-12-20_
 
 ##### Features
 
@@ -4564,7 +4556,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.53.4...v4.53.5)
 
-*2025-12-16*
+_2025-12-16_
 
 ##### Bug Fixes
 
@@ -4580,7 +4572,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.53.3...v4.53.4)
 
-*2025-12-15*
+_2025-12-15_
 
 ##### Bug Fixes
 
@@ -4603,7 +4595,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.53.2...v4.53.3)
 
-*2025-11-19*
+_2025-11-19_
 
 ##### Bug Fixes
 
@@ -4622,7 +4614,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.53.1...v4.53.2)
 
-*2025-11-10*
+_2025-11-10_
 
 ##### Bug Fixes
 
@@ -4636,7 +4628,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.53.0...v4.53.1)
 
-*2025-11-07*
+_2025-11-07_
 
 ##### Bug Fixes
 
@@ -4650,7 +4642,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.52.5...v4.53.0)
 
-*2025-11-07*
+_2025-11-07_
 
 ##### Features
 
@@ -4676,7 +4668,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.52.4...v4.52.5)
 
-*2025-10-18*
+_2025-10-18_
 
 ##### Bug Fixes
 
@@ -4697,7 +4689,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.52.3...v4.52.4)
 
-*2025-10-03*
+_2025-10-03_
 
 ##### Bug Fixes
 
@@ -4713,7 +4705,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.52.2...v4.52.3)
 
-*2025-09-27*
+_2025-09-27_
 
 ##### Bug Fixes
 
@@ -4730,7 +4722,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.52.1...v4.52.2)
 
-*2025-09-23*
+_2025-09-23_
 
 ##### Bug Fixes
 
@@ -4744,7 +4736,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.52.0...v4.52.1)
 
-*2025-09-23*
+_2025-09-23_
 
 ##### Bug Fixes
 
@@ -4758,28 +4750,28 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.51.0...v4.52.0)
 
-*2025-09-19*
+_2025-09-19_
 
 ##### Features
 
 - Add option `output.onlyExplicitManualChunks` to turn off merging additional dependencies into manual chunks ([#&#8203;6087](https://redirect.github.com/rollup/rollup/issues/6087))
-- Add support for x86\_64-pc-windows-gnu platform ([#&#8203;6110](https://redirect.github.com/rollup/rollup/issues/6110))
+- Add support for x86_64-pc-windows-gnu platform ([#&#8203;6110](https://redirect.github.com/rollup/rollup/issues/6110))
 
 ##### Pull Requests
 
 - [#&#8203;6087](https://redirect.github.com/rollup/rollup/pull/6087): fix: manualChunks and non manualChunks shared dependencies are merged with the first manualChunk encountered alphabetically ([@&#8203;maiieul](https://redirect.github.com/maiieul))
-- [#&#8203;6110](https://redirect.github.com/rollup/rollup/pull/6110): Add support x86\_64-pc-windows-gnu ([@&#8203;lsq](https://redirect.github.com/lsq), [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
+- [#&#8203;6110](https://redirect.github.com/rollup/rollup/pull/6110): Add support x86_64-pc-windows-gnu ([@&#8203;lsq](https://redirect.github.com/lsq), [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
 - [#&#8203;6118](https://redirect.github.com/rollup/rollup/pull/6118): Automatically remove REPL artefacts label from PRs ([@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
 
 ### [`v4.51.0`](https://redirect.github.com/rollup/rollup/blob/HEAD/CHANGELOG.md#4510)
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.50.2...v4.51.0)
 
-*2025-09-19*
+_2025-09-19_
 
 ##### Features
 
-- Support ROLLUP\_FILE\_URL\_OBJ placeholder to inject file URLs into the generated code ([#&#8203;6108](https://redirect.github.com/rollup/rollup/issues/6108))
+- Support ROLLUP_FILE_URL_OBJ placeholder to inject file URLs into the generated code ([#&#8203;6108](https://redirect.github.com/rollup/rollup/issues/6108))
 
 ##### Bug Fixes
 
@@ -4787,11 +4779,11 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 ##### Pull Requests
 
-- [#&#8203;6108](https://redirect.github.com/rollup/rollup/pull/6108): feat: support ROLLUP\_FILE\_URL\_OBJ for URL object instead of string ([@&#8203;guybedford](https://redirect.github.com/guybedford), [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
+- [#&#8203;6108](https://redirect.github.com/rollup/rollup/pull/6108): feat: support ROLLUP_FILE_URL_OBJ for URL object instead of string ([@&#8203;guybedford](https://redirect.github.com/guybedford), [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
 - [#&#8203;6112](https://redirect.github.com/rollup/rollup/pull/6112): Disable Cargo cache for Android ([@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
-- [#&#8203;6113](https://redirect.github.com/rollup/rollup/pull/6113): fix(deps): update rust crate swc\_compiler\_base to v35 ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot])
+- [#&#8203;6113](https://redirect.github.com/rollup/rollup/pull/6113): fix(deps): update rust crate swc_compiler_base to v35 ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot])
 - [#&#8203;6114](https://redirect.github.com/rollup/rollup/pull/6114): chore(deps): lock file maintenance minor/patch updates ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot])
-- [#&#8203;6115](https://redirect.github.com/rollup/rollup/pull/6115): Disable local\_dynamic\_tls for OpenHarmony ([@&#8203;hqzing](https://redirect.github.com/hqzing))
+- [#&#8203;6115](https://redirect.github.com/rollup/rollup/pull/6115): Disable local_dynamic_tls for OpenHarmony ([@&#8203;hqzing](https://redirect.github.com/hqzing))
 - [#&#8203;6116](https://redirect.github.com/rollup/rollup/pull/6116): chore(deps): lock file maintenance minor/patch updates ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot])
 - [#&#8203;6117](https://redirect.github.com/rollup/rollup/pull/6117): chore(deps): lock file maintenance ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot])
 
@@ -4799,7 +4791,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.50.1...v4.50.2)
 
-*2025-09-15*
+_2025-09-15_
 
 ##### Bug Fixes
 
@@ -4818,7 +4810,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.50.0...v4.50.1)
 
-*2025-09-07*
+_2025-09-07_
 
 ##### Bug Fixes
 
@@ -4828,7 +4820,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 - [#&#8203;6088](https://redirect.github.com/rollup/rollup/pull/6088): feat(www): shorter repl shareables ([@&#8203;cyyynthia](https://redirect.github.com/cyyynthia), [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
 - [#&#8203;6090](https://redirect.github.com/rollup/rollup/pull/6090): Call includeNode for self or children nodes in includeDestructuredIfNecessary ([@&#8203;TrickyPi](https://redirect.github.com/TrickyPi))
-- [#&#8203;6091](https://redirect.github.com/rollup/rollup/pull/6091): fix(deps): update rust crate swc\_compiler\_base to v33 ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot])
+- [#&#8203;6091](https://redirect.github.com/rollup/rollup/pull/6091): fix(deps): update rust crate swc_compiler_base to v33 ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot])
 - [#&#8203;6092](https://redirect.github.com/rollup/rollup/pull/6092): chore(deps): lock file maintenance minor/patch updates ([@&#8203;renovate](https://redirect.github.com/renovate)\[bot])
 - [#&#8203;6094](https://redirect.github.com/rollup/rollup/pull/6094): perf: replace startsWith with strict equality ([@&#8203;btea](https://redirect.github.com/btea))
 
@@ -4836,7 +4828,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.49.0...v4.50.0)
 
-*2025-08-31*
+_2025-08-31_
 
 ##### Features
 
@@ -4855,7 +4847,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.48.1...v4.49.0)
 
-*2025-08-27*
+_2025-08-27_
 
 ##### Features
 
@@ -4870,7 +4862,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.48.0...v4.48.1)
 
-*2025-08-25*
+_2025-08-25_
 
 ##### Bug Fixes
 
@@ -4885,7 +4877,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.47.1...v4.48.0)
 
-*2025-08-23*
+_2025-08-23_
 
 ##### Features
 
@@ -4905,7 +4897,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.47.0...v4.47.1)
 
-*2025-08-21*
+_2025-08-21_
 
 ##### Bug Fixes
 
@@ -4919,7 +4911,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.46.4...v4.47.0)
 
-*2025-08-21*
+_2025-08-21_
 
 ##### Features
 
@@ -4934,13 +4926,13 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 - [#&#8203;6053](https://redirect.github.com/rollup/rollup/pull/6053): build: aggressively optimize wasm build, improve pipeline ([@&#8203;cyyynthia](https://redirect.github.com/cyyynthia))
 - [#&#8203;6061](https://redirect.github.com/rollup/rollup/pull/6061): fix(types): add support for exactOptionalPropertyTypes ([@&#8203;remcohaszing](https://redirect.github.com/remcohaszing), [@&#8203;lukastaegert](https://redirect.github.com/lukastaegert))
-- [#&#8203;6072](https://redirect.github.com/rollup/rollup/pull/6072): build(rust): mimalloc-safe/no\_opt\_arch on aarch64 ([@&#8203;cyyynthia](https://redirect.github.com/cyyynthia))
+- [#&#8203;6072](https://redirect.github.com/rollup/rollup/pull/6072): build(rust): mimalloc-safe/no_opt_arch on aarch64 ([@&#8203;cyyynthia](https://redirect.github.com/cyyynthia))
 
 ### [`v4.46.4`](https://redirect.github.com/rollup/rollup/blob/HEAD/CHANGELOG.md#4464)
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.46.3...v4.46.4)
 
-*2025-08-20*
+_2025-08-20_
 
 ##### Bug Fixes
 
@@ -4955,7 +4947,7 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 
 [Compare Source](https://redirect.github.com/rollup/rollup/compare/v4.46.2...v4.46.3)
 
-*2025-08-18*
+_2025-08-18_
 
 ##### Bug Fixes
 
@@ -4972,9 +4964,8 @@ Thank you, Nayan Gupta ([@&#8203;nayanmanojgupta](https://redirect.github.com/na
 - [#&#8203;6062](https://redirect.github.com/rollup/rollup/pull/6062): docs: upda
 
 > ✂ **Note**
-> 
+>
 > PR body was truncated to here.
-
 
 </details>
 
