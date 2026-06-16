@@ -28,7 +28,7 @@
     "@swc/helpers": "^0.5.8",
     "@swc/jest": "^0.2.36",
     "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^12.1.3",
+    "@testing-library/react": "^16.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.11.30",
     "@typescript-eslint/eslint-plugin": "^8.34.0",
