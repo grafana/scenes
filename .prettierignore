@@ -8,3 +8,6 @@ packages/*/dist/**
 # Added by lerna repair
 /.nx/workspace-data
 .turbo
+
+# Changelogs are autogens; leave them as is
+**/CHANGELOG.md
