@@ -26,7 +26,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "precommit": "yarn run lint-staged",
+    "precommit": "yarn run lint-staged && yarn prettier:check",
     "prepare": "husky install",
     "packages:publish": "lerna exec --no-private -- npm publish",
     "docs": "yarn workspace website run start --port 8080",
