@@ -274,6 +274,49 @@ describe('SceneRefreshPicker', () => {
     });
   });
 
+  describe('image renderer', () => {
+    beforeEach(() => {
+      window.__grafanaImageRendererMessageChannel = jest.fn();
+    });
+
+    afterEach(() => {
+      delete (window as Record<string, unknown>).__grafanaImageRendererMessageChannel;
+    });
+
+    it('does not update time range on configured interval', () => {
+      const { timeRange } = setupScene('5s');
+      const onRefreshMock = jest.spyOn(timeRange, 'onRefresh');
+
+      jest.advanceTimersByTime(5000);
+
+      expect(onRefreshMock).not.toHaveBeenCalled();
+    });
+
+    it('keeps configured refresh interval in state', () => {
+      const { refreshPicker } = setupScene('5s');
+
+      expect(refreshPicker.state.refresh).toBe('5s');
+    });
+
+    it('does not update time range when auto interval is selected', () => {
+      const autoInterval = 20000;
+      const { timeRange, calculateIntervalSpy } = setupScene(
+        RefreshPicker.autoOption.value,
+        undefined,
+        true,
+        autoInterval
+      );
+      const t1 = timeRange.state.value;
+
+      expect(calculateIntervalSpy).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(autoInterval);
+
+      expect(dateTime(timeRange.state.value.from).diff(t1.from, 's')).toBe(0);
+      expect(dateTime(timeRange.state.value.to).diff(t1.to, 's')).toBe(0);
+    });
+  });
+
   describe('auto interval', () => {
     it('includes auto interval in options by default', () => {
       const { refreshPicker } = setupScene('5s', undefined, undefined);
