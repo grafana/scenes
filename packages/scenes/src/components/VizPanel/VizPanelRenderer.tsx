@@ -282,7 +282,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           onFocus={setPanelAttention}
           onMouseEnter={setPanelAttention}
           onMouseMove={debouncedMouseMove}
-          // @ts-expect-error remove this on next grafana/ui update
           subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
           onDragStart={(e: React.PointerEvent) => {
             dragHooks.onDragStart?.(e, model);
