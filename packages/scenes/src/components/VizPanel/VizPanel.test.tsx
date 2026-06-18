@@ -15,6 +15,7 @@ import {
   PanelProps,
   toUtc,
   DataTransformerConfig,
+  DataQueryRequest,
 } from '@grafana/data';
 import * as grafanaData from '@grafana/data';
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
@@ -907,6 +908,41 @@ describe('VizPanel', () => {
         // Verify panel props time range comes from data time range
         expect(panelProps?.timeRange.from.toISOString()).toEqual('2022-01-01T00:00:00.000Z');
         expect(panelProps?.data.timeRange.from.toISOString()).toEqual('2022-01-01T00:00:00.000Z');
+      });
+
+      it('Should increment renderCounter only when a new data request settles', async () => {
+        const data = new SceneDataNode({
+          data: { ...getTestData(), state: LoadingState.Done, request: { requestId: 'SQR1' } as DataQueryRequest },
+        });
+
+        panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          pluginId: 'custom-plugin-id',
+          $timeRange: new SceneTimeRange(),
+          $data: data,
+        });
+
+        pluginToLoad = getTestPlugin1();
+
+        render(<panel.Component model={panel} />);
+
+        expect(await screen.findByText('My custom panel')).toBeInTheDocument();
+
+        const initialRenderCounter = panelProps?.renderCounter ?? 0;
+
+        // Same request id, only the loading state changes: no new request, renderCounter unchanged.
+        act(() => {
+          data.setState({ data: { ...data.state.data!, state: LoadingState.Streaming } });
+        });
+        expect(panelProps?.renderCounter).toBe(initialRenderCounter);
+
+        // A new data request settles (e.g. a query variable finished loading and the query re-ran).
+        // The component re-renders from the data subscription, so the plugin must receive a new
+        // renderCounter; otherwise plugins that re-apply imperative DOM changes on renderCounter
+        // change would silently lose them.
+        act(() => {
+          data.setState({ data: { ...data.state.data!, request: { requestId: 'SQR2' } as DataQueryRequest } });
+        });
+        expect(panelProps?.renderCounter).toBe(initialRenderCounter + 1);
       });
     });
 
