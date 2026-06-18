@@ -1,5 +1,5 @@
 import { Trans, t } from '@grafana/i18n';
-import React, { memo, RefCallback, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import React, { memo, RefCallback, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useMeasure, usePrevious } from 'react-use';
 
 // @ts-ignore
@@ -103,6 +103,27 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
   const dataWithFieldConfig = model.applyFieldConfig(dataWithSeriesLimit);
+
+  // Preserve the legacy panel render contract for data-driven re-renders.
+  // Panel plugins that imperatively mutate their own DOM after render (e.g. text/HTML
+  // panels that run a post-render script) re-apply those mutations whenever `renderCounter`
+  // changes. In the legacy architecture renderCounter was bumped on every render/refresh,
+  // but VizPanel only bumps _renderCounter on forceRender() (referenced-variable change,
+  // options change, time range for skipDataQuery panels). A data-driven re-render, e.g. a
+  // query-type variable settling and the panel's query re-running, re-renders the plugin and
+  // resets its DOM without ever changing renderCounter, so those plugins never re-apply and
+  // their DOM changes are lost. Bump the counter the plugin sees whenever a new data request
+  // settles so the contract holds without requiring any plugin changes.
+  const [dataRenderCounter, setDataRenderCounter] = useState(0);
+  const prevRequestId = useRef<string | undefined>(undefined);
+  const requestId = rawData.data?.request?.requestId;
+  useEffect(() => {
+    if (prevRequestId.current !== undefined && requestId !== prevRequestId.current) {
+      setDataRenderCounter((counter) => counter + 1);
+    }
+    prevRequestId.current = requestId;
+  }, [requestId]);
+
   const sceneTimeRange = sceneGraph.getTimeRange(model);
   const timeZone = sceneTimeRange.getTimeZone();
   const timeRange = model.getTimeRange(dataWithFieldConfig);
@@ -307,7 +328,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                         transparent={displayMode === 'transparent'}
                         width={innerWidth}
                         height={innerHeight}
-                        renderCounter={_renderCounter}
+                        renderCounter={_renderCounter + dataRenderCounter}
                         replaceVariables={model.interpolate}
                         onOptionsChange={model.onOptionsChange}
                         onFieldConfigChange={model.onFieldConfigChange}
