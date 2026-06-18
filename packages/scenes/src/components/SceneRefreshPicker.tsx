@@ -162,6 +162,7 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     if (this._intervalTimer || refresh === '') {
       clearInterval(this._intervalTimer);
     }
+    console.log('isImageRenderer', isImageRenderer());
 
     if (refresh === '') {
       return;
@@ -169,6 +170,12 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
 
     // If the provided interval is not allowed
     if (refresh !== RefreshPicker.autoOption.value && intervals && !intervals.includes(refresh)) {
+      return;
+    }
+
+    // Disable refreshes in image renderer, as they may cause unintentional timeouts
+    // The UI will still show the configure refresh amount, but it will not refresh.
+    if (isImageRenderer()) {
       return;
     }
 
@@ -284,4 +291,9 @@ function findClosestInterval(userInterval: string, allowedIntervals: string[]): 
     selectedInterval = allowedIntervals[i];
   }
   return selectedInterval;
+}
+
+function isImageRenderer() {
+  // Check binding added by chromedp. Does not work with the polling method
+  return typeof window.__grafanaImageRendererMessageChannel === 'function';
 }
