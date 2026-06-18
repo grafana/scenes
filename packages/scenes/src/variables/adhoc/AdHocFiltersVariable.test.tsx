@@ -50,6 +50,8 @@ import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 import { ScopesVariable } from '../variants/ScopesVariable';
+import { TestVariable } from '../variants/TestVariable';
+import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 
 function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariableFilter[] {
   setTemplateSrv({
@@ -2148,6 +2150,67 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         timeRange: timeRange.state.value,
       })
     );
+  });
+
+  describe('Defers data source calls until in-scope template variables finish loading', () => {
+    function setupWithSlowVariable() {
+      setTemplateSrvWithFilters([]);
+      const getTagKeysSpy = jest.fn().mockReturnValue([{ text: 'k1', value: 'k1' }]);
+      setDataSourceSrv({
+        get: () =>
+          ({
+            getTagKeys: getTagKeysSpy,
+            getRef: () => ({ uid: 'my-ds-uid' }),
+          } as unknown),
+        getInstanceSettings: () => ({ uid: 'my-ds-uid' }),
+      } as unknown as DataSourceSrv);
+
+      // No delayMs → stays loading until `signalUpdateCompleted` is called.
+      const slowVariable = new TestVariable({ name: 'base64', query: 'query' });
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'my-ds-uid' },
+        name: 'filters',
+        filters: [],
+      });
+
+      const scene = new EmbeddedScene({
+        $timeRange: new SceneTimeRange(),
+        $variables: new SceneVariableSet({ variables: [slowVariable, filtersVar] }),
+        body: new SceneFlexLayout({ children: [] }),
+      });
+
+      activateFullSceneTree(scene);
+
+      return { slowVariable, filtersVar, getTagKeysSpy };
+    }
+
+    it('_getKeys does not call getTagKeys while a sibling variable is still loading', async () => {
+      const { slowVariable, filtersVar, getTagKeysSpy } = setupWithSlowVariable();
+
+      const keysPromise = filtersVar._getKeys(null);
+
+      await new Promise((r) => setTimeout(r, 10));
+      expect(getTagKeysSpy).not.toHaveBeenCalled();
+
+      // Resolve the variable; the awaiting `_getKeys` should now proceed.
+      slowVariable.signalUpdateCompleted();
+      await keysPromise;
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('drains multiple concurrent waiters when the variable settles', async () => {
+      const { slowVariable, filtersVar, getTagKeysSpy } = setupWithSlowVariable();
+
+      const first = filtersVar._getKeys(null);
+      const second = filtersVar._getKeys(null);
+
+      await new Promise((r) => setTimeout(r, 10));
+      expect(getTagKeysSpy).not.toHaveBeenCalled();
+
+      slowVariable.signalUpdateCompleted();
+      await Promise.all([first, second]);
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('variable expression / value', () => {
