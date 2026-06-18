@@ -1,3 +1,4 @@
+import '../types/window';
 import { dateTime, rangeUtil } from '@grafana/data';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
@@ -280,7 +281,7 @@ describe('SceneRefreshPicker', () => {
     });
 
     afterEach(() => {
-      delete (window as Record<string, unknown>).__grafanaImageRendererMessageChannel;
+      window.__grafanaImageRendererMessageChannel = undefined;
     });
 
     it('does not update time range on configured interval', () => {

@@ -1,3 +1,4 @@
+import '../types/window';
 import React from 'react';
 import { Unsubscribable } from 'rxjs';
 import { rangeUtil } from '@grafana/data';
@@ -162,7 +163,6 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     if (this._intervalTimer || refresh === '') {
       clearInterval(this._intervalTimer);
     }
-    console.log('isImageRenderer', isImageRenderer());
 
     if (refresh === '') {
       return;
