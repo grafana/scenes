@@ -59,7 +59,7 @@ describe('VARIABLE_REGEX', () => {
     });
   });
 
-  it('matches single-quoted bracket key ${filters[\'env\']}', () => {
+  it("matches single-quoted bracket key ${filters['env']}", () => {
     expect(matchOne("${filters['env']}")).toMatchObject({
       match: "${filters['env']}",
       var3: 'filters',
