@@ -1,5 +1,14 @@
-import { DataFrame, DataQueryError, LoadingState, PanelData, toDataFrame } from '@grafana/data';
-import { combineLatest, Observable, of, Subject } from 'rxjs';
+import {
+  DataFrame,
+  DataQueryError,
+  DataQueryRequest,
+  FieldType,
+  LoadingState,
+  PanelData,
+  TimeRange,
+  toDataFrame,
+} from '@grafana/data';
+import { combineLatest, lastValueFrom, Observable, of, Subject } from 'rxjs';
 
 import { ExtraQueryDataProcessor } from './ExtraQueryProvider';
 import {
@@ -15,6 +24,7 @@ function makePanelData(
     series?: DataFrame[];
     annotations?: DataFrame[];
     errors?: DataQueryError[];
+    refId?: string;
   } = {}
 ): PanelData {
   return {
@@ -22,8 +32,20 @@ function makePanelData(
     series: options.series ?? [],
     annotations: options.annotations,
     errors: options.errors,
-    request: { requestId: options.requestId ?? 'A' } as PanelData['request'],
+    request: { requestId: options.requestId ?? 'A' } as DataQueryRequest,
     timeRange: {} as PanelData['timeRange'],
+  };
+}
+
+function makeDataByRefId(refId: string, overrides: Partial<PanelData> = {}): PanelData {
+  return {
+    state: LoadingState.Done,
+    series: [toDataFrame({ refId, datapoints: [[1, 1]] })],
+    annotations: [],
+    timeRange: {} as TimeRange,
+    // The operator looks up processors by the secondary's request.requestId.
+    request: { requestId: refId } as DataQueryRequest,
+    ...overrides,
   };
 }
 
@@ -189,6 +211,59 @@ describe('extraQueryProcessingOperator', () => {
 
     expect(processorCalls).toBe(1);
     expect(emissions[emissions.length - 1].series.map((s) => s.refId)).toEqual(['A-compare']);
+  });
+
+  describe('previous (forkJoin) behavior', () => {
+    it('concatenates annotations primary-first', async () => {
+      const annotationFrame = (refId: string) =>
+        toDataFrame({ refId, fields: [{ name: 'time', type: FieldType.time, values: [1] }] });
+      const primary = makeDataByRefId('A', { annotations: [annotationFrame('pa')] });
+      const secondary = makeDataByRefId('sec1', { annotations: [annotationFrame('sa')] });
+
+      const result = await lastValueFrom(
+        of([primary, secondary] as [PanelData, ...PanelData[]]).pipe(extraQueryProcessingOperator(new Map()))
+      );
+
+      expect(result.annotations?.map((a) => a.refId)).toEqual(['pa', 'sa']);
+    });
+
+    it('keeps the primary series first and preserves secondary order', async () => {
+      const result = await lastValueFrom(
+        of([makeDataByRefId('A'), makeDataByRefId('sec1'), makeDataByRefId('sec2')] as [
+          PanelData,
+          ...PanelData[]
+        ]).pipe(extraQueryProcessingOperator(new Map()))
+      );
+
+      expect(result.series.map((s) => s.refId)).toEqual(['A', 'sec1', 'sec2']);
+    });
+
+    it('falls back to passthrough when no processor is registered for the secondary', async () => {
+      const result = await lastValueFrom(
+        of([makeDataByRefId('A'), makeDataByRefId('sec1')] as [PanelData, ...PanelData[]]).pipe(
+          extraQueryProcessingOperator(new Map())
+        )
+      );
+
+      expect(result.series.map((s) => s.refId)).toEqual(['A', 'sec1']);
+    });
+
+    it('applies the processor matched by the secondary request id', async () => {
+      const processor: ExtraQueryDataProcessor = (_primary, secondary) =>
+        of({
+          ...secondary,
+          series: secondary.series.map((frame) => ({ ...frame, refId: `${frame.refId}-processed` })),
+        });
+      const processors = new Map([['sec1', processor]]);
+
+      const result = await lastValueFrom(
+        of([makeDataByRefId('A'), makeDataByRefId('sec1')] as [PanelData, ...PanelData[]]).pipe(
+          extraQueryProcessingOperator(processors)
+        )
+      );
+
+      expect(result.series.map((s) => s.refId)).toEqual(['A', 'sec1-processed']);
+    });
   });
 });
 
