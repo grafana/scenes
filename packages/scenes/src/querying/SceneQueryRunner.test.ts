@@ -1906,6 +1906,119 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
     });
   });
 
+  describe('secondary query loading and error states', () => {
+    const tick = () => new Promise((r) => setTimeout(r, 1));
+
+    const panelDataFrom = (request: DataQueryRequest, p: Partial<PanelData>): PanelData => ({
+      series: [],
+      annotations: [],
+      state: LoadingState.Loading,
+      timeRange: request.range,
+      request,
+      ...p,
+    });
+
+    // Wire the primary runRequest to one subject and the secondary to another so each can be
+    // driven independently. The primary request is issued first, the secondary second.
+    const mockPrimaryAndSecondaryStreams = () => {
+      const primarySubject = new Subject<Partial<PanelData>>();
+      const secondarySubject = new Subject<Partial<PanelData>>();
+      runRequestMock
+        .mockImplementationOnce((_ds: DataSourceApi, request: DataQueryRequest) =>
+          primarySubject.pipe(map((p) => panelDataFrom(request, p)))
+        )
+        .mockImplementationOnce((_ds: DataSourceApi, request: DataQueryRequest) =>
+          secondarySubject.pipe(map((p) => panelDataFrom(request, p)))
+        );
+      return { primarySubject: primarySubject, secondarySubject: secondarySubject };
+    };
+
+    it('emits Loading while the secondary query is still in flight', async () => {
+      const { primarySubject, secondarySubject } = mockPrimaryAndSecondaryStreams();
+
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }] });
+      const provider = new TestExtraQueryProvider({ foo: 1 }, true);
+      const scene = new EmbeddedScene({
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        controls: [provider],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      scene.activate();
+      await tick();
+
+      // Primary completes but the secondary is still loading -> overall state is Loading.
+      primarySubject.next({ state: LoadingState.Done });
+      secondarySubject.next({ state: LoadingState.Loading });
+      await tick();
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Loading);
+
+      // Secondary completes -> overall state transitions to Done.
+      secondarySubject.next({ state: LoadingState.Done });
+      await tick();
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+    });
+
+    it('emits errors when the secondary query fails', async () => {
+      const { primarySubject, secondarySubject } = mockPrimaryAndSecondaryStreams();
+
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }] });
+      const provider = new TestExtraQueryProvider({ foo: 1 }, true);
+      const scene = new EmbeddedScene({
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        controls: [provider],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      scene.activate();
+      await tick();
+
+      primarySubject.next({ state: LoadingState.Done });
+      secondarySubject.next({ state: LoadingState.Error, errors: [{ message: 'secondary failed' }] });
+      await tick();
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Error);
+      expect(queryRunner.state.data?.errors).toEqual([{ message: 'secondary failed' }]);
+    });
+
+    it('applies requestId suffix when the primary re-emits', async () => {
+      const { primarySubject, secondarySubject } = mockPrimaryAndSecondaryStreams();
+
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }] });
+      const comparer = new SceneTimeRangeCompare({ compareWith: '1h' });
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: [comparer],
+        body: new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: new SceneCanvasText({ text: 'A' }) })],
+        }),
+      });
+
+      scene.activate();
+      comparer.activate();
+      await tick();
+
+      // A single secondary response object is processed...
+      secondarySubject.next({ state: LoadingState.Done, series: [toDataFrame({ refId: 'A', fields: [] })] });
+      // ...then the primary re-emits twice, each re-triggering combineLatest against the same secondary.
+      // extraQueryProcessingOperator should prevent the processor from re-running and double-suffixing the refId.
+      primarySubject.next({ state: LoadingState.Streaming, series: [toDataFrame({ refId: 'A', fields: [] })] });
+      primarySubject.next({ state: LoadingState.Done, series: [toDataFrame({ refId: 'A', fields: [] })] });
+      await tick();
+
+      const refIds = queryRunner.state.data?.series.map((s) => s.refId) ?? [];
+      expect(refIds.filter((refId) => refId === 'A-compare')).toHaveLength(1);
+      expect(refIds).not.toContain('A-compare-compare');
+    });
+  });
+
   test('enriching query request', async () => {
     const queryRunner = new SceneQueryRunner({
       queries: [{ refId: 'A' }],
