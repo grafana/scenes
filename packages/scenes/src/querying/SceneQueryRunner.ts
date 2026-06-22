@@ -1,5 +1,5 @@
 import { cloneDeep, isEqual } from 'lodash';
-import { forkJoin, ReplaySubject, Unsubscribable } from 'rxjs';
+import { combineLatest, ReplaySubject, Unsubscribable } from 'rxjs';
 
 import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
 
@@ -18,7 +18,7 @@ import {
 
 // TODO: Remove this ignore annotation when the grafana runtime dependency has been updated
 // @ts-ignore
-import { getRunRequest, toDataQueryError, isExpressionReference, config } from '@grafana/runtime';
+import { config, getRunRequest, isExpressionReference, toDataQueryError } from '@grafana/runtime';
 
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
@@ -36,11 +36,11 @@ import { writeSceneLog } from '../utils/writeSceneLog';
 import { VariableValueRecorder } from '../variables/VariableValueRecorder';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { getClosest } from '../core/sceneGraph/utils';
-import { isExtraQueryProvider, ExtraQueryDataProcessor, ExtraQueryProvider } from './ExtraQueryProvider';
-import { passthroughProcessor, extraQueryProcessingOperator } from './extraQueryProcessingOperator';
+import { ExtraQueryDataProcessor, ExtraQueryProvider, isExtraQueryProvider } from './ExtraQueryProvider';
+import { extraQueryProcessingOperator, passthroughProcessor } from './extraQueryProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
-import { registerQueryWithController, QueryProfilerLike } from './registerQueryWithController';
+import { QueryProfilerLike, registerQueryWithController } from './registerQueryWithController';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
@@ -574,7 +574,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         // extra request providers.
         const op = extraQueryProcessingOperator(processors);
         // Combine the primary and secondary streams into a single stream, and apply the operator.
-        stream = forkJoin([stream, ...secondaryStreams]).pipe(op);
+        // Use combineLatest so intermediate loading/error states from the primary and secondary requests are emitted as
+        // they arrive, instead of only a single combined emission once every request has completed.
+        stream = combineLatest([stream, ...secondaryStreams]).pipe(op);
       }
 
       const panelProfiler: QueryProfilerLike | undefined = findPanelProfiler(this);
