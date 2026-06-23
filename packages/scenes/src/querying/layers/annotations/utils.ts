@@ -109,11 +109,8 @@ export function getLikelyAnnotationEventFieldNames(annotationEvents: AnnotationE
   const annotationEventNamesSet = new Set<string>();
   for (let annotationEventIndex = firstIdx; annotationEventIndex < len; annotationEventIndex += stride) {
     const annotationEvent = annotationEvents[annotationEventIndex];
-    const keys = Object.keys(annotationEvent);
-    for (let i = 0; i < keys.length; i++) {
-      if (!annotationEventNamesSet.has(keys[i])) {
-        annotationEventNamesSet.add(keys[i]);
-      }
+    for (const key of Object.keys(annotationEvent)) {
+      annotationEventNamesSet.add(key);
     }
   }
 
