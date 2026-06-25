@@ -1,4 +1,4 @@
-import { arrayToDataFrame, DataTopic, AnnotationQuery, ScopedVars, PanelData } from '@grafana/data';
+import { AnnotationQuery, arrayToDataFrame, DataTopic, PanelData, ScopedVars } from '@grafana/data';
 import { LoadingState } from '@grafana/schema';
 import React from 'react';
 import { map, Unsubscribable } from 'rxjs';
@@ -16,7 +16,7 @@ import { writeSceneLog } from '../../../utils/writeSceneLog';
 import { registerQueryWithController } from '../../registerQueryWithController';
 import { SceneDataLayerBase } from '../SceneDataLayerBase';
 import { AnnotationQueryResults, executeAnnotationQuery } from './standardAnnotationQuery';
-import { dedupAnnotations, postProcessQueryResult } from './utils';
+import { dedupAnnotations, getLikelyAnnotationEventFieldNames, postProcessQueryResult } from './utils';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
 import { RefreshEvent } from '@grafana/runtime';
 import { DrilldownDependenciesManager } from '../../../variables/DrilldownDependenciesManager';
@@ -155,7 +155,9 @@ export class AnnotationsDataLayer
     processedEvents = dedupAnnotations(processedEvents);
 
     const stateUpdate = { ...emptyPanelData, state: events.state };
-    const df = arrayToDataFrame(processedEvents);
+
+    const names = getLikelyAnnotationEventFieldNames(processedEvents);
+    const df = arrayToDataFrame(processedEvents, names);
 
     df.meta = {
       ...df.meta,
