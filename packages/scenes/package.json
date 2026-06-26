@@ -92,7 +92,7 @@
     "rimraf": "^6.0.0",
     "rollup": "^4.36.0",
     "rxjs": "7.8.2",
-    "typescript": "^5.4.3"
+    "typescript": "^6.0.0"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
