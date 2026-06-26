@@ -98,7 +98,7 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
 
             {filter.origin && cleanFilter && (
               <Tooltip content={getOriginFilterTooltips(filter.origin).info} placement={'bottom'}>
-                <Icon name="info-circle" size="md" className={styles.infoPillIcon} />
+                <Icon name="info-circle" size="sm" className={styles.infoPillIcon} />
               </Tooltip>
             )}
 
