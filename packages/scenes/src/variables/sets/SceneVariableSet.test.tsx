@@ -18,6 +18,7 @@ import { TestObjectWithVariableDependency, TestScene } from '../TestScene';
 import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 import { SceneVariable, SceneVariableState, VariableValue } from '../types';
 import { ObjectVariable } from '../variants/ObjectVariable';
+import { SceneQueryController } from '../../behaviors/SceneQueryController';
 
 interface SceneTextItemState extends SceneObjectState {
   text: string;
@@ -1003,6 +1004,31 @@ describe('SceneVariableList', () => {
 
       // Change B while C is loading (They are on different levels but should behave the same as with A & B)
       expect(C.state.value).toBe('ABBA');
+    });
+  });
+
+  describe('Render profile completion', () => {
+    it('notifies the query controller when the update batch settles', () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const queryController = new SceneQueryController({ enableProfiling: true });
+      const scene = new TestScene({
+        $behaviors: [queryController],
+        $variables: new SceneVariableSet({ variables: [A] }),
+      });
+
+      const attemptSpy = jest.spyOn(queryController, 'attemptProfileCompletion');
+
+      activateFullSceneTree(scene);
+
+      // While A is still loading the batch has not settled, so we don't poke the controller.
+      expect(A.state.loading).toBe(true);
+      expect(attemptSpy).not.toHaveBeenCalled();
+
+      // Once the variable resolves the batch settles and the controller is notified, so a
+      // render whose panel never issued a query can still complete instead of hanging.
+      A.signalUpdateCompleted();
+
+      expect(attemptSpy).toHaveBeenCalled();
     });
   });
 });

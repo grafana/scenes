@@ -4,7 +4,8 @@ import {
   ADHOC_VALUES_DROPDOWN_INTERACTION,
   GROUPBY_DIMENSIONS_INTERACTION,
 } from './interactionConstants';
-import { SceneComponentInteractionEvent, SceneQueryControllerLike } from '../behaviors/types';
+import { SceneComponentInteractionEvent, SceneQueryControllerEntry, SceneQueryControllerLike } from '../behaviors/types';
+import { SceneQueryController } from '../behaviors/SceneQueryController';
 // ScenePerformanceTracker imports handled via mocking
 
 // Mock writeSceneLog to prevent console noise in tests
@@ -768,6 +769,71 @@ describe('SceneRenderProfiler integration tests', () => {
       // Verify performance APIs were consumed for network processing
       expect((global.performance.getEntriesByType as jest.Mock).mock.calls.length).toBeGreaterThan(0);
       expect((global.performance.clearResourceTimings as jest.Mock).mock.calls.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Render readiness when a render is blocked on a variable', () => {
+    // Reproduces the image-renderer hang from support escalation #22639: when a solo-panel
+    // render is blocked on a template variable (e.g. the variable is missing from the URL),
+    // the panel never issues a query, so the scene can go idle without a running-query
+    // transition. Profile completion is otherwise only driven by query-count changes, so the
+    // dashboard_view interaction never completes and the image-renderer hangs until timeout.
+    const queryEntry = (origin: SceneQueryControllerLike): SceneQueryControllerEntry => ({
+      type: 'SceneQueryRunner/runQueries',
+      origin,
+      cancel: () => {},
+    });
+
+    it('does not complete the profile when the scene goes idle without a query (the bug)', () => {
+      const controller = new SceneQueryController({ enableProfiling: true }, profiler);
+      controller.startProfile('dashboard_view');
+
+      // No query ever runs (panel blocked on a variable) and nothing pokes the controller.
+      mockTracker.notifyDashboardInteractionComplete.mockClear();
+      simulateAnimationFrames(2000);
+
+      expect(mockTracker.notifyDashboardInteractionComplete).not.toHaveBeenCalled();
+    });
+
+    it('completes the profile when the variable set settles (the fix)', () => {
+      const controller = new SceneQueryController({ enableProfiling: true }, profiler);
+      controller.startProfile('dashboard_view');
+
+      // SceneVariableSet calls this when its update batch settles with nothing pending.
+      controller.attemptProfileCompletion();
+      mockTracker.notifyDashboardInteractionComplete.mockClear();
+      // A bit more than POST_STORM_WINDOW (2000ms): the tail starts one frame into the
+      // simulation because attemptProfileCompletion schedules tryCompletingProfile via rAF.
+      simulateAnimationFrames(2100);
+
+      expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalledWith(
+        expect.objectContaining({ interactionType: 'dashboard_view' })
+      );
+    });
+
+    it('does not complete early if a query starts before the variable-triggered tail finishes', () => {
+      const controller = new SceneQueryController({ enableProfiling: true }, profiler);
+      controller.startProfile('dashboard_view');
+
+      // Variable set settles and starts the trailing window...
+      controller.attemptProfileCompletion();
+      simulateAnimationFrames(100);
+      expect(profiler.isTailRecording()).toBe(true);
+
+      // ...but the panel then issues its query within the window, which cancels the tail.
+      const entry = queryEntry(controller);
+      controller.queryStarted(entry);
+      expect(profiler.isTailRecording()).toBe(false);
+
+      mockTracker.notifyDashboardInteractionComplete.mockClear();
+      simulateAnimationFrames(2000);
+      // A query is still running, so the profile must not complete yet.
+      expect(mockTracker.notifyDashboardInteractionComplete).not.toHaveBeenCalled();
+
+      // Once the query completes the scene settles and the profile completes normally.
+      controller.queryCompleted(entry);
+      simulateAnimationFrames(2100);
+      expect(mockTracker.notifyDashboardInteractionComplete).toHaveBeenCalled();
     });
   });
 });
