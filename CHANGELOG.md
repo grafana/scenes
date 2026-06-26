@@ -1,5 +1,112 @@
 # v8.3.0 (Fri Jun 26 2026)
 
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Dashboards: Push error and notice status items into panel header [#1550](https://github.com/grafana/scenes/pull/1550) ([@mdvictor](https://github.com/mdvictor))
+  - Variables: Fixes multi value select mobile issue [#1526](https://github.com/grafana/scenes/pull/1526) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- chore: ignore changelogs in prettier [#1548](https://github.com/grafana/scenes/pull/1548) ([@mdvictor](https://github.com/mdvictor))
+- chore(DX): run `prettier:check` on local precommit [#1541](https://github.com/grafana/scenes/pull/1541) ([@gtk-grafana](https://github.com/gtk-grafana))
+- chore(deps): update dependency rollup-plugin-node-externals to v9 [#1535](https://github.com/grafana/scenes/pull/1535) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update grafana/shared-workflows/create-github-app-token action to v0.3.1 [#1523](https://github.com/grafana/scenes/pull/1523) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency lint-staged to v17 [#1531](https://github.com/grafana/scenes/pull/1531) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency husky to v9 [#1529](https://github.com/grafana/scenes/pull/1529) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency turbo to ^2.9.15 [#1522](https://github.com/grafana/scenes/pull/1522) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update actions/checkout action to v6 [#1514](https://github.com/grafana/scenes/pull/1514) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update actions/setup-node action to v6 [#1515](https://github.com/grafana/scenes/pull/1515) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @docusaurus/module-type-aliases to v3 [#1516](https://github.com/grafana/scenes/pull/1516) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update actions/cache action to v5 [#1513](https://github.com/grafana/scenes/pull/1513) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update yarn to v4.15.0 [#1508](https://github.com/grafana/scenes/pull/1508) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update grafana/shared-workflows/login-to-gcs action to v0.3.0 [#1505](https://github.com/grafana/scenes/pull/1505) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update google-github-actions/setup-gcloud action to v2.2.1 [#1504](https://github.com/grafana/scenes/pull/1504) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency lint-staged to ^13.3.0 [#1498](https://github.com/grafana/scenes/pull/1498) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency react-router-dom to v6.30.3 [#1500](https://github.com/grafana/scenes/pull/1500) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update docusaurus monorepo [#1502](https://github.com/grafana/scenes/pull/1502) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency esbuild to ^0.28.0 [#1495](https://github.com/grafana/scenes/pull/1495) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency docusaurus-lunr-search to v3.6.0 [#1494](https://github.com/grafana/scenes/pull/1494) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @mdx-js/react to v3.1.1 [#1489](https://github.com/grafana/scenes/pull/1489) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update auto monorepo to ^11.3.6 [#1485](https://github.com/grafana/scenes/pull/1485) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update actions/checkout action to v4.3.1 [#1484](https://github.com/grafana/scenes/pull/1484) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency ts-jest to v29.4.11 [#1482](https://github.com/grafana/scenes/pull/1482) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency cookiejs to v2.1.4 [#1480](https://github.com/grafana/scenes/pull/1480) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency prism-react-renderer to v2.4.1 [#1473](https://github.com/grafana/scenes/pull/1473) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @leeoniya/ufuzzy to v1.0.19 [#1471](https://github.com/grafana/scenes/pull/1471) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- fix(security/high): update dependency lodash to v4.18.1 [security] [#1463](https://github.com/grafana/scenes/pull/1463) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- fix(security/high): update dependency rollup to v4.59.0 [security] [#1464](https://github.com/grafana/scenes/pull/1464) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- fix(security/medium): update dependency turbo to v2.9.14 [security] [#1466](https://github.com/grafana/scenes/pull/1466) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dorny/paths-filter digest to d1c1ffe [#1470](https://github.com/grafana/scenes/pull/1470) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Clean changelog [#1556](https://github.com/grafana/scenes/pull/1556) ([@mdvictor](https://github.com/mdvictor))
+  - chore(deps): update dependency rimraf to v6 [#1534](https://github.com/grafana/scenes/pull/1534) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore: run prettier on main [#1539](https://github.com/grafana/scenes/pull/1539) ([@gtk-grafana](https://github.com/gtk-grafana))
+  - fix(deps): update emotion monorepo [#1511](https://github.com/grafana/scenes/pull/1511) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+  - chore(deps): update dependency @types/node to v20.19.41 [#1493](https://github.com/grafana/scenes/pull/1493) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @types/lodash to v4.17.24 [#1492](https://github.com/grafana/scenes/pull/1492) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @types/react-grid-layout to v1.3.6 [#1479](https://github.com/grafana/scenes/pull/1479) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @types/react-virtualized-auto-sizer to v1.0.8 [#1472](https://github.com/grafana/scenes/pull/1472) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - security: bump uuid ^9.0.0 → ^11.0.0 (CVE-2026-41907) [#1468](https://github.com/grafana/scenes/pull/1468) ([@moxious](https://github.com/moxious))
+- `@grafana/scenes`
+  - fix(AnnotationsDataLayer): pass sampled field names into `arrayToDataFrame` [#1538](https://github.com/grafana/scenes/pull/1538) ([@gtk-grafana](https://github.com/gtk-grafana))
+  - Filters: Key fetching waits for other vars to load first [#1460](https://github.com/grafana/scenes/pull/1460) ([@mdvictor](https://github.com/mdvictor))
+  - test: move transformation variable tests from @grafana/data [#1542](https://github.com/grafana/scenes/pull/1542) ([@hugohaggmark](https://github.com/hugohaggmark))
+  - I18n: Download translations from Crowdin [#1320](https://github.com/grafana/scenes/pull/1320) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+  - chore(deps): update dependency react-router-dom to v6.30.4 [#1521](https://github.com/grafana/scenes/pull/1521) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - fix(deps): update dependency @floating-ui/react to ^0.27.0 [#1509](https://github.com/grafana/scenes/pull/1509) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @tanstack/react-virtual to v3.13.26 [#1491](https://github.com/grafana/scenes/pull/1491) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+  - chore(deps): update dependency prettier to v2.8.8 [#1499](https://github.com/grafana/scenes/pull/1499) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+  - chore: skip unneeded translation in object [#1503](https://github.com/grafana/scenes/pull/1503) ([@mdvictor](https://github.com/mdvictor))
+  - chore(deps): update dependency i18next-parser to v9.4.0 [#1497](https://github.com/grafana/scenes/pull/1497) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore: fix typecheck fail [#1476](https://github.com/grafana/scenes/pull/1476) ([@mdvictor](https://github.com/mdvictor))
+  - Filters: Better origin filter validation [#1461](https://github.com/grafana/scenes/pull/1461) ([@mdvictor](https://github.com/mdvictor))
+  - Filters: Fix broken testId attr [#1462](https://github.com/grafana/scenes/pull/1462) ([@mdvictor](https://github.com/mdvictor))
+- `scenes-app`
+  - chore(deps): update dependency webpack-cli to v7 [#1537](https://github.com/grafana/scenes/pull/1537) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency fork-ts-checker-webpack-plugin to v9 [#1528](https://github.com/grafana/scenes/pull/1528) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency eslint-webpack-plugin to v6 [#1527](https://github.com/grafana/scenes/pull/1527) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @grafana/tsconfig to v2 [#1519](https://github.com/grafana/scenes/pull/1519) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+  - chore(deps): update dependency copy-webpack-plugin to v14 [#1524](https://github.com/grafana/scenes/pull/1524) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency eslint-plugin-jsdoc to v63 [#1525](https://github.com/grafana/scenes/pull/1525) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - fix(deps): update dependency @grafana/scenes-ml to ^0.5.0 [#1510](https://github.com/grafana/scenes/pull/1510) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+  - chore(deps): update dependency @eslint/compat to v2 [#1517](https://github.com/grafana/scenes/pull/1517) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @stylistic/eslint-plugin-ts to v4 [#1520](https://github.com/grafana/scenes/pull/1520) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update testing-library monorepo [#1507](https://github.com/grafana/scenes/pull/1507) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency webpack to ^5.104.1 [#1501](https://github.com/grafana/scenes/pull/1501) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency eslint-plugin-jsdoc to v50.8.0 [#1496](https://github.com/grafana/scenes/pull/1496) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @grafana/eslint-config to v8.2.0 [#1488](https://github.com/grafana/scenes/pull/1488) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @eslint/compat to v1.4.1 [#1487](https://github.com/grafana/scenes/pull/1487) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @swc/helpers to ^0.5.8 [#1486](https://github.com/grafana/scenes/pull/1486) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update swc monorepo [#1483](https://github.com/grafana/scenes/pull/1483) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency eslint-webpack-plugin to v5.0.3 [#1481](https://github.com/grafana/scenes/pull/1481) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @babel/core to ^7.29.0 [#1478](https://github.com/grafana/scenes/pull/1478) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore: fix baseUrl prop to pass build [#1477](https://github.com/grafana/scenes/pull/1477) ([@mdvictor](https://github.com/mdvictor))
+- `@grafana/scenes-react`
+  - chore(deps): update dependency jest to v30 [#1530](https://github.com/grafana/scenes/pull/1530) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency @rollup/plugin-eslint to ^9.2.0 [#1490](https://github.com/grafana/scenes/pull/1490) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- `scenes-app`, `@grafana/scenes-react`, `@grafana/scenes`
+  - fix(deps): update react monorepo [#1512](https://github.com/grafana/scenes/pull/1512) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update dependency rxjs to v7.8.2 [#1474](https://github.com/grafana/scenes/pull/1474) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- `scenes-app`, `@grafana/scenes`
+  - chore(deps): update jest monorepo [#1506](https://github.com/grafana/scenes/pull/1506) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+  - chore(deps): update grafana monorepo [#1475](https://github.com/grafana/scenes/pull/1475) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+
+#### Authors: 8
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- David Allen ([@moxious](https://github.com/moxious))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Hugo Häggmark ([@hugohaggmark](https://github.com/hugohaggmark))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.3.0 (Fri Jun 26 2026)
+
 ### Release Notes
 
 #### chore(deps): update dependency webpack-cli to v7 ([#1537](https://github.com/grafana/scenes/pull/1537))

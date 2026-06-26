@@ -1,3 +1,36 @@
+# v8.9.0 (Fri Jun 26 2026)
+
+#### 🐛 Bug Fix
+
+- Clean changelog [#1556](https://github.com/grafana/scenes/pull/1556) ([@mdvictor](https://github.com/mdvictor))
+- Bump version to: v8.8.0 \[skip ci\] ([@grafanabot](https://github.com/grafanabot))
+- Update CHANGELOG.md \[skip ci\] ([@grafanabot](https://github.com/grafanabot))
+- Bump version to: v8.5.0 \[skip ci\] ([@grafanabot](https://github.com/grafanabot))
+- chore(deps): update dependency rimraf to v6 [#1534](https://github.com/grafana/scenes/pull/1534) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- Bump version to: v8.4.0 \[skip ci\] ([@grafanabot](https://github.com/grafanabot))
+- chore: run prettier on main [#1539](https://github.com/grafana/scenes/pull/1539) ([@gtk-grafana](https://github.com/gtk-grafana))
+- Bump version to: v8.3.0 \[skip ci\] ([@grafanabot](https://github.com/grafanabot))
+- chore(deps): update dependency jest to v30 [#1530](https://github.com/grafana/scenes/pull/1530) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- fix(deps): update emotion monorepo [#1511](https://github.com/grafana/scenes/pull/1511) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- fix(deps): update react monorepo [#1512](https://github.com/grafana/scenes/pull/1512) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency rxjs to v7.8.2 [#1474](https://github.com/grafana/scenes/pull/1474) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- chore(deps): update dependency @types/node to v20.19.41 [#1493](https://github.com/grafana/scenes/pull/1493) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @types/lodash to v4.17.24 [#1492](https://github.com/grafana/scenes/pull/1492) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @rollup/plugin-eslint to ^9.2.0 [#1490](https://github.com/grafana/scenes/pull/1490) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @types/react-grid-layout to v1.3.6 [#1479](https://github.com/grafana/scenes/pull/1479) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @types/react-virtualized-auto-sizer to v1.0.8 [#1472](https://github.com/grafana/scenes/pull/1472) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- security: bump uuid ^9.0.0 → ^11.0.0 (CVE-2026-41907) [#1468](https://github.com/grafana/scenes/pull/1468) ([@moxious](https://github.com/moxious))
+
+#### Authors: 5
+
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- David Allen ([@moxious](https://github.com/moxious))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Grot (@grafanabot) ([@grafanabot](https://github.com/grafanabot))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.6.0 (Fri Jun 26 2026)
 
 ### Release Notes

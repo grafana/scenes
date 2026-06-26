@@ -1,3 +1,58 @@
+# v8.9.0 (Fri Jun 26 2026)
+
+#### 🚀 Enhancement
+
+- Dashboards: Push error and notice status items into panel header [#1550](https://github.com/grafana/scenes/pull/1550) ([@mdvictor](https://github.com/mdvictor))
+- Variables: Fixes multi value select mobile issue [#1526](https://github.com/grafana/scenes/pull/1526) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Clean changelog [#1556](https://github.com/grafana/scenes/pull/1556) ([@mdvictor](https://github.com/mdvictor))
+- Bump version to: v8.8.0 \[skip ci\] ([@grafanabot](https://github.com/grafanabot))
+- Update CHANGELOG.md \[skip ci\] ([@grafanabot](https://github.com/grafanabot))
+- fix(AnnotationsDataLayer): pass sampled field names into `arrayToDataFrame` [#1538](https://github.com/grafana/scenes/pull/1538) ([@gtk-grafana](https://github.com/gtk-grafana))
+- Bump version to: v8.5.0 \[skip ci\] ([@grafanabot](https://github.com/grafanabot))
+- Filters: Key fetching waits for other vars to load first [#1460](https://github.com/grafana/scenes/pull/1460) ([@mdvictor](https://github.com/mdvictor))
+- chore(deps): update dependency rimraf to v6 [#1534](https://github.com/grafana/scenes/pull/1534) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- Bump version to: v8.4.0 \[skip ci\] ([@grafanabot](https://github.com/grafanabot))
+- test: move transformation variable tests from @grafana/data [#1542](https://github.com/grafana/scenes/pull/1542) ([@hugohaggmark](https://github.com/hugohaggmark))
+- I18n: Download translations from Crowdin [#1320](https://github.com/grafana/scenes/pull/1320) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+- chore: run prettier on main [#1539](https://github.com/grafana/scenes/pull/1539) ([@gtk-grafana](https://github.com/gtk-grafana))
+- Bump version to: v8.3.0 \[skip ci\] ([@grafanabot](https://github.com/grafanabot))
+- chore(deps): update dependency react-router-dom to v6.30.4 [#1521](https://github.com/grafana/scenes/pull/1521) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- fix(deps): update emotion monorepo [#1511](https://github.com/grafana/scenes/pull/1511) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- fix(deps): update dependency @floating-ui/react to ^0.27.0 [#1509](https://github.com/grafana/scenes/pull/1509) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- fix(deps): update react monorepo [#1512](https://github.com/grafana/scenes/pull/1512) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update jest monorepo [#1506](https://github.com/grafana/scenes/pull/1506) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @tanstack/react-virtual to v3.13.26 [#1491](https://github.com/grafana/scenes/pull/1491) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- chore(deps): update dependency prettier to v2.8.8 [#1499](https://github.com/grafana/scenes/pull/1499) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- chore(deps): update grafana monorepo [#1475](https://github.com/grafana/scenes/pull/1475) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency rxjs to v7.8.2 [#1474](https://github.com/grafana/scenes/pull/1474) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]) [@mdvictor](https://github.com/mdvictor))
+- chore: skip unneeded translation in object [#1503](https://github.com/grafana/scenes/pull/1503) ([@mdvictor](https://github.com/mdvictor))
+- chore(deps): update dependency @types/node to v20.19.41 [#1493](https://github.com/grafana/scenes/pull/1493) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency i18next-parser to v9.4.0 [#1497](https://github.com/grafana/scenes/pull/1497) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @types/lodash to v4.17.24 [#1492](https://github.com/grafana/scenes/pull/1492) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @types/react-grid-layout to v1.3.6 [#1479](https://github.com/grafana/scenes/pull/1479) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency @types/react-virtualized-auto-sizer to v1.0.8 [#1472](https://github.com/grafana/scenes/pull/1472) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore: fix typecheck fail [#1476](https://github.com/grafana/scenes/pull/1476) ([@mdvictor](https://github.com/mdvictor))
+- security: bump uuid ^9.0.0 → ^11.0.0 (CVE-2026-41907) [#1468](https://github.com/grafana/scenes/pull/1468) ([@moxious](https://github.com/moxious))
+- Filters: Better origin filter validation [#1461](https://github.com/grafana/scenes/pull/1461) ([@mdvictor](https://github.com/mdvictor))
+- Filters: Fix broken testId attr [#1462](https://github.com/grafana/scenes/pull/1462) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 9
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- David Allen ([@moxious](https://github.com/moxious))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Grot (@grafanabot) ([@grafanabot](https://github.com/grafanabot))
+- Hugo Häggmark ([@hugohaggmark](https://github.com/hugohaggmark))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.6.0 (Fri Jun 26 2026)
 
 ### Release Notes
