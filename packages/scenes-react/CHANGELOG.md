@@ -117,6 +117,14 @@
 
 # v7.0.0 (Thu Feb 26 2026)
 
+### Release Notes
+
+#### fix esm builds ([#1368](https://github.com/grafana/scenes/pull/1368))
+
+`@grafana/scenes` and `@grafana/scenes-react` now ship with exports defined in package.json, allowing only specific files to be exposed while blocking access to the packages internals. We consider this a breaking change.
+
+---
+
 #### 💥 Breaking Change
 
 - fix esm builds [#1368](https://github.com/grafana/scenes/pull/1368) ([@jackw](https://github.com/jackw))
@@ -393,6 +401,15 @@
 ---
 
 # v5.13.0 (Wed Sep 04 2024)
+
+### Release Notes
+
+#### UrlSync: Support browser history steps, remove singleton ([#878](https://github.com/grafana/scenes/pull/878))
+
+getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider.
+If you called getUrlSyncManager().getUrlState that util function is available via the exported object sceneUtils.
+
+---
 
 #### 🚀 Enhancement
 

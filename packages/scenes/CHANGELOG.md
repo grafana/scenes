@@ -645,6 +645,14 @@
 
 # v7.0.0 (Thu Feb 26 2026)
 
+### Release Notes
+
+#### fix esm builds ([#1368](https://github.com/grafana/scenes/pull/1368))
+
+`@grafana/scenes` and `@grafana/scenes-react` now ship with exports defined in package.json, allowing only specific files to be exposed while blocking access to the packages internals. We consider this a breaking change.
+
+---
+
 #### 💥 Breaking Change
 
 - fix esm builds [#1368](https://github.com/grafana/scenes/pull/1368) ([@jackw](https://github.com/jackw))
@@ -994,6 +1002,14 @@
 ---
 
 # v6.48.1 (Thu Dec 04 2025)
+
+### Release Notes
+
+#### Dashboard: Round down invalid refresh interval ([#1310](https://github.com/grafana/scenes/pull/1310))
+
+When a dashboard URL carried an invalid refresh value, the system previously defaulted the refresh interval to the minimum allowed value. This behaviour has now changed. Instead of jumping to the minimum interval, the refresh value is now rounded down to the nearest valid refresh interval.
+
+---
 
 #### 🐛 Bug Fix
 
@@ -2040,6 +2056,16 @@
 
 # v6.12.0 (Fri May 16 2025)
 
+### Release Notes
+
+#### Scopes: Replace ScopesBridge with ScopesVariable ([#1121](https://github.com/grafana/scenes/pull/1121))
+
+SceneScopesBridge is now replaced by ScopesVariable, which now needs to be added to a SceneVariableSet attached to every SceneAppPage or EmbeddedScene (whatever suits your scenario) where you want to use scopes. This variable is not visible in the UI. You can control whether scopes are enabled or disabled on a specific page/scene using the ScopesVariable or control this on a higher level using ScopesContext.
+
+sceneGraph.getScopesBridge is replaced by sceneGraph.getScopes, which just returns the scopes (by looking up the ScopesVariable and getting it from it's value).
+
+---
+
 #### 🚀 Enhancement
 
 - Scopes: Replace ScopesBridge with ScopesVariable [#1121](https://github.com/grafana/scenes/pull/1121) ([@torkelo](https://github.com/torkelo) [@tskarhed](https://github.com/tskarhed))
@@ -2182,6 +2208,14 @@
 ---
 
 # v6.8.1 (Fri Apr 11 2025)
+
+### Release Notes
+
+#### Variables: Rename renderSelectForVariable to MultiOrSingleValueSelect ([#1097](https://github.com/grafana/scenes/pull/1097))
+
+RenderSelectForVariable was renamed to MultiOrSingleValueSelect and is now React component.
+
+---
 
 #### 🐛 Bug Fix
 
@@ -2681,6 +2715,14 @@
 ---
 
 # v5.36.0 (Fri Dec 20 2024)
+
+### Release Notes
+
+#### AdHocFiltersVariable: provide updateFilters method to allow updating filters without emitting SceneVariableValueChangedEvent ([#1004](https://github.com/grafana/scenes/pull/1004))
+
+New AdHocFiltersVariable method `updateFilters` to allow updating filters state. Allows skipping emit of `SceneVariableValueChangedEvent` to prevent filter changes from notifying dependent scene objects.
+
+---
 
 #### 🚀 Enhancement
 
@@ -3334,6 +3376,15 @@
 
 # v5.13.0 (Wed Sep 04 2024)
 
+### Release Notes
+
+#### UrlSync: Support browser history steps, remove singleton ([#878](https://github.com/grafana/scenes/pull/878))
+
+getUrlSyncManager is no longer exported as UrlSyncManager is now no longer global singleton but local to the UrlSyncContextProvider.
+If you called getUrlSyncManager().getUrlState that util function is available via the exported object sceneUtils.
+
+---
+
 #### 🚀 Enhancement
 
 - UrlSync: Support browser history steps, remove singleton [#878](https://github.com/grafana/scenes/pull/878) ([@torkelo](https://github.com/torkelo))
@@ -3423,6 +3474,14 @@
 ---
 
 # v5.10.0 (Mon Aug 19 2024)
+
+### Release Notes
+
+#### SafeSerializableSceneObject: Wrap only for supported Grafana version ([#854](https://github.com/grafana/scenes/pull/854))
+
+Brings a fix for [variables interpolation bug](https://github.com/grafana/scenes/issues/851) when apps using scenes 5.6.0+ were run in Grafana version lower than 11.2.0, 11.1.2, 11.0.4, 10.4.8.
+
+---
 
 #### 🚀 Enhancement
 
@@ -4890,6 +4949,14 @@
 
 # v3.9.0 (Tue Mar 05 2024)
 
+### Release Notes
+
+#### SceneObjectBase: Call self activation handlers before child data, time range and variable handlers ([#628](https://github.com/grafana/scenes/pull/628))
+
+Activation handlers are for a scene object is now called before any direct child activation handlers. Before this release the activation handlers of direction $data, $timeRange, $variables and $behaviors was called before the SceneObjects own activation handlers.
+
+---
+
 #### 🚀 Enhancement
 
 - SceneObjectBase: Call self activation handlers before child data, time range and variable handlers [#628](https://github.com/grafana/scenes/pull/628) ([@torkelo](https://github.com/torkelo))
@@ -5013,6 +5080,45 @@
 
 # v3.4.0 (Wed Feb 14 2024)
 
+### Release Notes
+
+#### VariableDependencyConfig: Support `*` to extract dependencies from every state path ([#599](https://github.com/grafana/scenes/pull/599))
+
+**Possible breaking change: `VariableDependencyConfig` default behavior**
+
+- **Previously:** Using `VariableDependencyConfig` without options scanned the entire state.
+- **Now:** Default behavior requires an explicit wildcard (`*`) to scan the whole state. This prevents unintended dependency resolution.
+
+**Impact:** If you intentionally scanned the entire state, use `statePaths: ['*']`. Otherwise, specify desired `statePaths` or `variableNames`.
+
+**Example:**
+
+```diff
+class TestObj extends SceneObjectBase<TestState> {
+  public constructor() {
+    super({
+      query: 'query with ${queryVarA} ${queryVarB}',
+      otherProp: 'string with ${otherPropA}',
+      nested: {
+        query: 'nested object with ${nestedVarA}',
+      },
+    });
+  }
+}
+
+it('Should be able to extract dependencies from all state', () => {
+    const sceneObj = new TestObj();
+-    const deps = new VariableDependencyConfig(sceneObj, {});
++    const deps = new VariableDependencyConfig(sceneObj, { statePaths: ['*'] });
+
+    expect(deps.getNames()).toEqual(new Set(['queryVarA', 'queryVarB', 'nestedVarA', 'otherPropA']));
+  });
+```
+
+This mproves performance and avoids unexpected dependency resolution.
+
+---
+
 #### 🚀 Enhancement
 
 - VariableDependencyConfig: Support `*` to extract dependencies from every state path [#599](https://github.com/grafana/scenes/pull/599) ([@ivanortegaalba](https://github.com/ivanortegaalba))
@@ -5030,6 +5136,14 @@
 ---
 
 # v3.3.0 (Tue Feb 13 2024)
+
+### Release Notes
+
+#### Variables: Clear current value when no options are returned ([#595](https://github.com/grafana/scenes/pull/595))
+
+All variables that extend from MultValueVariable (Query, DataSource, Custom) now clear the current value if no options / values are returned by query, clears to empty string or array depending on multi or not.
+
+---
 
 #### 🚀 Enhancement
 
@@ -5090,6 +5204,18 @@
 ---
 
 # v3.0.0 (Mon Feb 12 2024)
+
+### Release Notes
+
+#### AdHocFiltersSet/Variable: Unify both objects as a scene variable (breaking change) ([#586](https://github.com/grafana/scenes/pull/586))
+
+AdHocFilterSet is now removed from the library. AdHocFiltersVariable can now be used in both modes (auto and manual).
+
+To migrate replace AdHocFilterSet with AdHocFiltersVariable , the `applyMode` defaults to `auto` which is the new renamed value that was previously `same-datasource`. Instead of adding this directly to a controls array add it to the variables array of a SceneVariableSet. It will then be rendered along with other variables via the VariableValueSelectors controls component. If you want to render ad hoc filters separately you can set `hide: VariableHide.hideVariable` so that the filters are not rendered by VariableValueSelectors and use the new component VariableValueControl that can render a specific variable.
+
+`AdHocFiltersVariable.create` is also removed as this separate factory function is no longer needed. If you where using `AdHocFiltersVariable.create` then switch to the normal constructor but be sure to pass in `applyMode: 'manual'` when you create it to preserve the same behavior as before.
+
+---
 
 #### 💥 Breaking Change
 
@@ -5328,6 +5454,28 @@
 ---
 
 # v2.0.0 (Mon Jan 22 2024)
+
+### Release Notes
+
+#### Variables: Notify scene after each variable completion or value change ([#525](https://github.com/grafana/scenes/pull/525))
+
+`VariableDependencyConfigLike` interface has changed so that scene objects now get notified after each variable update is completed (or changed value). Before, the `SceneVariableSet` waited for all variables to complete before notifying scene objects.
+
+The function `variableUpdatesCompleted` has changed name and signature:
+
+```ts
+variableUpdateCompleted(variable: SceneVariable, hasChanged: boolean): void;
+```
+
+`VariableDependencyConfig` has also some breaking changes. The function named `onVariableUpdatesCompleted` has changed name and signature to:
+
+```ts
+ onVariableUpdateCompleted?: () => void;
+```
+
+`VariableDependencyConfig` now handles the state logic for "waitingForVariables". If you call `VariableDependencyConfig.hasDependencyInLoadingState` and it returns true it will remember this waiting state and call `onVariableUpdateCompleted` as soon as the next variable update is completed, no matter if that variable is a dependency or if it changed or not.
+
+---
 
 #### 💥 Breaking Change
 
@@ -5730,6 +5878,14 @@
 ---
 
 # v1.20.0 (Thu Oct 26 2023)
+
+### Release Notes
+
+#### DataSourceVariable: Value should be uid, and other fixes ([#400](https://github.com/grafana/scenes/pull/400))
+
+DataSourceVariable value is now the uid of the data source not the name. Please test and verify that your data source variables works like before.
+
+---
 
 #### 🚀 Enhancement
 
@@ -6238,6 +6394,48 @@
 
 # v0.27.0 (Tue Aug 29 2023)
 
+### Release Notes
+
+#### Allow time range comparison ([#244](https://github.com/grafana/scenes/pull/244))
+
+You can now automatically perform queries against a secondary time range to visualize time-over-time comparisons. Use `SceneTimeRangeCompare` as in the example below:
+
+```ts
+const queryRunner = new SceneQueryRunner({
+  datasource: {
+    type: 'prometheus',
+    uid: 'gdev-prometheus',
+  },
+  queries: [
+    {
+      refId: 'A',
+      expr: 'rate(prometheus_http_requests_total{handler=~"/metrics"}[5m])',
+    },
+  ],
+});
+
+const scene = new EmbeddedScene({
+  $data: queryRunner,
+  $timeRange: new SceneTimeRange({ from: 'now-5m', to: 'now' }),
+  controls: [
+    new SceneTimePicker({}),
+    new SceneTimeRangeCompare({}), // Use this object to enable time frame comparison UI
+  ],
+  body: new SceneFlexLayout({
+    direction: 'row',
+    children: [
+      new SceneFlexItem({
+        width: '100%',
+        height: '100%',
+        body: PanelBuilders.timeseries().setTitle('Panel using global time range').build(),
+      }),
+    ],
+  }),
+});
+```
+
+---
+
 #### 🚀 Enhancement
 
 - Allow time range comparison [#244](https://github.com/grafana/scenes/pull/244) ([@dprokop](https://github.com/dprokop) [@kaydelaney](https://github.com/kaydelaney))
@@ -6622,6 +6820,36 @@
 
 # v0.7.0 (Mon May 08 2023)
 
+### Release Notes
+
+#### Add support for timezones ([#167](https://github.com/grafana/scenes/pull/167))
+
+You can now use multiple time zones in Scene. `SceneTimeRange` and `SceneTimePicker` respect time zone settings. Additionally, a new object was added, `SceneTimeZoneOverride`. It can be used to override the time zone provided by a time range object higher in the scene hierarchy. Objects within `SceneTimeZoneOverride` scope will use the closest `SceneTimeRange` range, but a locally specified time zone.
+
+Example:
+
+```ts
+const scene = new EmbeddedScene({
+  $timeRange: new SceneTimeRange({ from: 'now-6h', to: 'now', timeZone: 'browser'}),
+  children: [
+    // Will use global time range and time zone
+    new VizPanel({
+      $data: new SceneQueryRunner({ ... }),
+      ...
+    }),
+    // Will use global time range and locally specified time zone
+    new VizPanel({
+      $timeRange: new SceneTimeZoneOverride({ timeZone: 'America/New_York' }),
+      $data: new SceneQueryRunner({ ... }),
+      ...
+    }),
+  ],
+  ...
+})
+```
+
+---
+
 #### 🚀 Enhancement
 
 - VizPanel: Support adding header actions to top right corner of PanelChrome [#174](https://github.com/grafana/scenes/pull/174) ([@torkelo](https://github.com/torkelo))
@@ -6669,6 +6897,16 @@
 
 # v0.4.0 (Tue Apr 18 2023)
 
+### Release Notes
+
+#### Behaviors: Add state and runtime behavior to any scene object ([#119](https://github.com/grafana/scenes/pull/119))
+
+You can now augment any scene object with runtime state & behavior using the new `$behaviors` state key. Behaviors are implemented as SceneObjects that are activated when their parent is activated or as pure functions that get called when the SceneObject they are attached to get's activated.
+
+With behaviors you can easily implement conditional display of panels using the new `isHidden` property on SceneFlexItem. and other dynamic layout behaviors. View the [behaviors demo](https://github.com/grafana/scenes/blob/main/packages/scenes-app/src/demos/behaviors/behaviorsDemo.tsx) for some examples.
+
+---
+
 #### 🚀 Enhancement
 
 - Behaviors: Add state and runtime behavior to any scene object [#119](https://github.com/grafana/scenes/pull/119) ([@torkelo](https://github.com/torkelo))
@@ -6703,6 +6941,14 @@
 
 # v0.3.0 (Mon Apr 03 2023)
 
+### Release Notes
+
+#### SceneObject: Rename SceneObjectStatePlain to SceneObjectState ([#122](https://github.com/grafana/scenes/pull/122))
+
+`SceneObjectStatePlain` is now named `SceneObjectState`. So if you have custom scene objects that extends `SceneObjectStatePlain` just do a search and replace for `SceneObjectStatePlain` and replace with`SceneObjectState`.
+
+---
+
 #### 🚀 Enhancement
 
 - SceneObject: Rename SceneObjectStatePlain to SceneObjectState [#122](https://github.com/grafana/scenes/pull/122) ([@torkelo](https://github.com/torkelo))
@@ -6729,6 +6975,53 @@
 
 # v0.2.0 (Wed Mar 29 2023)
 
+### Release Notes
+
+#### Layout: Create atomic, layout specific objects ([#97](https://github.com/grafana/scenes/pull/97))
+
+The interface of `SceneFlexLayout` and `SceneGridLayout` has changed. These scene objects now accept only dedicated layout item objects as children:
+
+- `SceneFlexItem` for `SceneFlexLayout`
+- `SceneGridItem` and `SceneGridRow` for `SceneGridLayout`
+
+`placement` property has been replaced by those layout-specific objects.
+
+Example
+
+```tsx
+// BEFORE
+const layout = new SceneFlexLayout({
+  direction: 'column',
+  children: [
+    new VizPanel({
+      placement: {
+        width: '50%',
+        height: '400',
+     },
+     ...
+    })
+  ],
+  ...
+})
+
+
+// AFTER
+const layout = new SceneFlexLayout({
+  direction: 'column',
+  children: [
+    new SceneFlexItem({
+      width: '50%',
+      height: '400',
+      body: new VizPanel({ ... }),
+    }),
+  ],
+  ...
+})
+
+```
+
+---
+
 #### 🚀 Enhancement
 
 - Layout: Create atomic, layout specific objects [#97](https://github.com/grafana/scenes/pull/97) ([@dprokop](https://github.com/dprokop) [@torkelo](https://github.com/torkelo))
@@ -6743,6 +7036,14 @@
 ---
 
 # v0.1.0 (Mon Mar 27 2023)
+
+### Release Notes
+
+#### UrlSync: Simplify url sync interface ([#100](https://github.com/grafana/scenes/pull/100))
+
+The SceneObjectUrlSyncHandler interface has changed. The function `getUrlState` no longer takes state as parameter. The implementation needs to use the current scene object state instead.
+
+---
 
 #### 🚀 Enhancement
 
