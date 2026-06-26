@@ -15,6 +15,7 @@
       {
         "labels": "no-changelog"
       }
-    ]
+    ],
+    "./.github/auto-plugins/omit-bot-release-notes.js"
   ]
 }
