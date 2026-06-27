@@ -81,6 +81,8 @@ export function SceneAppPageView({ page }: Props) {
     pageActions.push(<SceneDebugger scene={containerPage} key={'scene-debugger'} />);
   }
 
+  const background = page.state.background ?? appContext?.state.defaultPageBackground ?? 'primary';
+
   return (
     <PluginPage
       layout={layout}
@@ -88,6 +90,7 @@ export function SceneAppPageView({ page }: Props) {
       actions={pageActions}
       renderTitle={containerState.renderTitle}
       subTitle={containerState.subTitle}
+      background={background}
     >
       <scene.Component model={scene} />
     </PluginPage>
