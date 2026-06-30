@@ -1872,6 +1872,31 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(value).toEqual(['scopeOriginFilter|=|val#scope']);
   });
 
+  it('Excludes non-applicable origin filters from getValue() when fieldPath is passed', () => {
+    const { filtersVar } = setup({
+      originFilters: [
+        {
+          key: 'applicableFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: 'scope',
+        },
+        {
+          key: 'nonApplicableFilter',
+          operator: '=',
+          value: 'val2',
+          values: ['val2'],
+          origin: 'scope',
+          nonApplicable: true,
+        },
+      ],
+    });
+
+    const value = filtersVar.getValue('originFilters');
+    expect(value).toEqual(['applicableFilter|=|val#scope']);
+  });
+
   it('Returns filters expression through getValue()', () => {
     const { filtersVar } = setup({
       filters: [{ key: 'key1', operator: '=', value: 'val1' }],
