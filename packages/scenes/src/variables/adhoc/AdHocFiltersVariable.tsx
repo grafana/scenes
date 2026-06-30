@@ -729,9 +729,9 @@ export class AdHocFiltersVariable
       }
 
       return [
-        ...originFilters.map((filter) =>
-          toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}`)
-        ),
+        ...originFilters
+          .filter((filter) => !filter.nonApplicable)
+          .map((filter) => toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}`)),
       ];
     }
 
