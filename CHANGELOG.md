@@ -1,3 +1,16 @@
+# v8.9.2 (Tue Jun 30 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Do not pass non-applicable origin filters [#1560](https://github.com/grafana/scenes/pull/1560) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.9.1 (Tue Jun 30 2026)
 
 #### 🐛 Bug Fix
