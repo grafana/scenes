@@ -1535,6 +1535,89 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
     });
   });
 
+  describe('When query is using a variable that failed to update', () => {
+    const origError = console.error;
+    beforeEach(() => (console.error = jest.fn()));
+    afterEach(() => (console.error = origError));
+
+    it('Should not execute query when a dependency is in error state and blockDependentsOnError is enabled', async () => {
+      const variable = new TestVariable({ name: 'A', value: '', query: 'A.*', throwError: 'Danger!' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable], blockDependentsOnError: true }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(variable.state.error).toBe('Danger!');
+      expect(runRequestMock.mock.calls.length).toBe(0);
+    });
+
+    it('Should execute query (current behaviour) when blockDependentsOnError is not enabled', async () => {
+      const variable = new TestVariable({ name: 'A', value: '', query: 'A.*', throwError: 'Danger!' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(variable.state.error).toBe('Danger!');
+      expect(runRequestMock.mock.calls.length).toBe(1);
+    });
+
+    it('Should keep previously loaded data and not run a new query when dependency fails on refresh', async () => {
+      const variable = new TestVariable({ name: 'A', value: '', query: 'A.*' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A', query: '$A' }],
+      });
+      const timeRange = new SceneTimeRange();
+
+      const scene = new SceneFlexLayout({
+        $variables: new SceneVariableSet({ variables: [variable], blockDependentsOnError: true }),
+        $timeRange: timeRange,
+        $data: queryRunner,
+        children: [],
+      });
+
+      scene.activate();
+
+      // First successful load runs the query
+      variable.signalUpdateCompleted();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(runRequestMock.mock.calls.length).toBe(1);
+
+      const dataBeforeError = queryRunner.state.data;
+
+      // Now the variable fails on a subsequent update
+      variable.setState({ error: 'Now failing' });
+      timeRange.onRefresh();
+      await new Promise((r) => setTimeout(r, 1));
+
+      // No new query should have run and previous data is kept
+      expect(runRequestMock.mock.calls.length).toBe(1);
+      expect(queryRunner.state.data).toBe(dataBeforeError);
+      expect(queryRunner.state.data?.state).not.toBe(LoadingState.Loading);
+    });
+  });
+
   describe('Supporting custom runtime data source', () => {
     it('Should find and use runtime registered data source', async () => {
       const uid = 'my-custom-datasource-uid';
