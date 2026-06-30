@@ -3602,7 +3602,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/react@npm:11.14.0, @emotion/react@npm:^11.8.1":
+"@emotion/react@npm:11.14.0, @emotion/react@npm:^11.14.0, @emotion/react@npm:^11.8.1":
   version: 11.14.0
   resolution: "@emotion/react@npm:11.14.0"
   dependencies:
@@ -4532,7 +4532,7 @@ __metadata:
   resolution: "@grafana/scenes-react@workspace:packages/scenes-react"
   dependencies:
     "@emotion/css": "npm:^11.13.5"
-    "@emotion/react": "npm:11.14.0"
+    "@emotion/react": "npm:^11.14.0"
     "@grafana/scenes": "workspace:*"
     "@rollup/plugin-eslint": "npm:^9.2.0"
     "@rollup/plugin-node-resolve": "npm:^16.0.1"
@@ -4570,7 +4570,7 @@ __metadata:
   resolution: "@grafana/scenes@workspace:packages/scenes"
   dependencies:
     "@emotion/css": "npm:^11.13.5"
-    "@emotion/react": "npm:11.14.0"
+    "@emotion/react": "npm:^11.14.0"
     "@floating-ui/react": "npm:^0.27.0"
     "@grafana/i18n": "npm:12.4.3"
     "@leeoniya/ufuzzy": "npm:^1.0.16"
