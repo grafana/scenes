@@ -1,3 +1,16 @@
+# v8.9.1 (Tue Jun 30 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Fix: Scope var `queryparam` name mismatch [#1559](https://github.com/grafana/scenes/pull/1559) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.3.0 (Fri Jun 26 2026)
 
 #### 🚀 Enhancement
