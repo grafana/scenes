@@ -141,7 +141,7 @@ export class ScopesVariableFormatter implements CustomVariableValue {
 
   public formatter(formatNameOrFn?: string): string {
     if (formatNameOrFn === VariableFormatID.QueryParam) {
-      return this._value.map((scope) => `scope=${encodeURIComponent(scope)}`).join('&');
+      return this._value.map((scope) => `scopes=${encodeURIComponent(scope)}`).join('&');
     }
 
     return this._value.join(', ');

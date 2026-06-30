@@ -54,7 +54,7 @@ describe('ScopesVariable', () => {
     const { scene } = renderTestScene({ initialScopes: ['scope1', 'scope2'] });
 
     // Interpolate using sceneInterpolator and the variable set as context
-    expect(sceneInterpolator(scene, '${__scopes:queryparam}')).toEqual('scope=scope1&scope=scope2');
+    expect(sceneInterpolator(scene, '${__scopes:queryparam}')).toEqual('scopes=scope1&scopes=scope2');
     expect(sceneInterpolator(scene, '${__scopes}')).toEqual('scope1, scope2');
   });
 
