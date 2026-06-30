@@ -105,8 +105,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     // Remember current variable values
     for (const variable of this.state.variables) {
-      // if the current variable is not in queue to update and validate and not being actively updated then the value is ok
-      if (!this._variablesToUpdate.has(variable) && !this._updating.has(variable)) {
+      // if the current variable is not in queue to update and validate and not being actively updated then the value is ok.
+      // Variables in an error state are intentionally excluded so they are re-validated on re-activation instead of being
+      // remembered as valid, which would otherwise unblock their dependents while the value is still failing or empty.
+      if (
+        !this._variablesToUpdate.has(variable) &&
+        !this._updating.has(variable) &&
+        !this._erroredVariables.has(variable)
+      ) {
         this._variableValueRecorder.recordCurrentValue(variable);
       }
     }
@@ -443,10 +449,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   }
 
   private _isVariableConsideredEmpty(variable: SceneVariable): boolean {
-    // A variable that resolves to the special "All" value is not considered empty
-    const maybeMulti = variable as Partial<{ hasAllValue: () => boolean }>;
+    // A variable that resolves to the special "All" value is not considered empty, as long as it
+    // actually has options for "All" to expand into. An "Include All" variable that returned no
+    // options still resolves to the All token but expands to nothing, so it must count as empty to
+    // avoid running an unscoped All-query against an empty option set.
+    const maybeMulti = variable as Partial<{ hasAllValue: () => boolean }> & { state: { options?: unknown[] } };
     if (typeof maybeMulti.hasAllValue === 'function' && maybeMulti.hasAllValue()) {
-      return false;
+      const options = maybeMulti.state.options;
+      return Array.isArray(options) && options.length === 0;
     }
 
     const value = variable.getValue();

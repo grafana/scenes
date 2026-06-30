@@ -970,6 +970,85 @@ describe('SceneVariableList', () => {
     });
   });
 
+  describe('When blockDependentsOnError corner cases', () => {
+    const origError = console.error;
+    beforeEach(() => (console.error = jest.fn()));
+    afterEach(() => (console.error = origError));
+
+    // Corner case P1: a multi-value variable with "Include All" that returns no options
+    // resolves its value to the special $__all token (hasAllValue() === true). That must NOT
+    // be treated as a non-empty value, otherwise dependents run an unscoped All-query against
+    // an empty option set instead of being blocked.
+    it('Should treat an empty "Include All" variable as an error when treatEmptyAsError is enabled', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        optionsToReturn: [],
+        includeAll: true,
+        isMulti: true,
+        delayMs: 0,
+      });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+
+      const set = new SceneVariableSet({
+        variables: [B, A],
+        blockDependentsOnError: true,
+        treatEmptyAsError: true,
+      });
+      const scene = new TestScene({ $variables: set });
+
+      scene.activate();
+
+      // A resolved to the All token because it has includeAll and no options
+      expect(A.hasAllValue()).toBe(true);
+
+      // ...but with no options there is nothing to scope by, so it must count as empty/error
+      expect(set.isVariableInErrorState(A)).toBe(true);
+      expect(set.isVariableInErrorState(B)).toBe(true);
+      expect(B.getValueOptionsCount).toBe(0);
+    });
+
+    // Corner case P2: the empty-as-error state must survive a deactivate/re-activate cycle.
+    // On re-activation the failed variable must not silently "recover" without re-validating,
+    // otherwise dependents get unblocked and issue queries against the still-empty value.
+    it('Should keep blocking dependents after deactivate/re-activate when value is still empty', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+
+      const set = new SceneVariableSet({
+        variables: [B, A],
+        blockDependentsOnError: true,
+        treatEmptyAsError: true,
+      });
+      const scene = new TestScene({ $variables: set });
+
+      const deactivate = scene.activate();
+
+      expect(set.isVariableInErrorState(A)).toBe(true);
+      expect(B.getValueOptionsCount).toBe(0);
+
+      // Deactivate and re-activate without A's value changing (still empty)
+      deactivate();
+      scene.activate();
+
+      // A is still empty so it must still be in error state and B must stay blocked
+      expect(set.isVariableInErrorState(A)).toBe(true);
+      expect(set.isVariableInErrorState(B)).toBe(true);
+      expect(B.getValueOptionsCount).toBe(0);
+    });
+  });
+
   describe('When nesting SceneVariableSet', () => {
     it('Should update variables in dependency order', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
