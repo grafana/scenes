@@ -4002,6 +4002,44 @@ describe('group-by', () => {
         { label: 'dim2', value: 'dim2' },
       ]);
     });
+
+    it('keys used in filters can be reused in groupBy', async () => {
+      // A key that is already used as a (multi-value) filter should still be
+      // offered as a groupBy option. We achieve this by not passing the current
+      // filters to getGroupByKeys, so the datasource never excludes those keys.
+      const getGroupByKeysSpy = jest.fn().mockResolvedValue([
+        { text: 'cell', value: 'cell' },
+        { text: 'namespace', value: 'namespace' },
+      ]);
+      setDataSourceSrv({
+        get() {
+          return {
+            getGroupByKeys: getGroupByKeysSpy,
+            getRef() {
+              return { uid: 'test' };
+            },
+          };
+        },
+        getInstanceSettings() {
+          return { uid: 'test' };
+        },
+      } as unknown as DataSourceSrv);
+
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([{ key: 'cell', operator: '=|', value: 'jg', values: ['jg', 'wr'] }]),
+      });
+      variable.activate();
+
+      const keys = await variable._getGroupByKeys(null);
+
+      // `cell` is still listed as a groupBy option even though it is filtered
+      expect(keys).toContainEqual({ label: 'cell', value: 'cell' });
+      // no filters are forwarded to the datasource, so it cannot exclude filtered keys
+      expect(getGroupByKeysSpy).toHaveBeenCalledWith(expect.objectContaining({ filters: [] }));
+    });
   });
 
   describe('isGroupByFilter', () => {
