@@ -46,8 +46,8 @@
     "url": "https://github.com/grafana/scenes/issues"
   },
   "dependencies": {
-    "@emotion/css": "11.13.5",
-    "@emotion/react": "11.14.0",
+    "@emotion/css": "^11.13.5",
+    "@emotion/react": "^11.14.0",
     "@grafana/scenes": "workspace:*",
     "lodash": "^4.17.21",
     "lru-cache": "^10.2.2",
