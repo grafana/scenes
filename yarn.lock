@@ -347,7 +347,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@auto-it/omit-commits@npm:^11.3.6":
+"@auto-it/omit-commits@npm:11.3.6":
   version: 11.3.6
   resolution: "@auto-it/omit-commits@npm:11.3.6"
   dependencies:
@@ -369,7 +369,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@auto-it/released@npm:11.3.6, @auto-it/released@npm:^11.3.6":
+"@auto-it/released@npm:11.3.6":
   version: 11.3.6
   resolution: "@auto-it/released@npm:11.3.6"
   dependencies:
@@ -437,7 +437,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/core@npm:^7.21.3, @babel/core@npm:^7.23.9, @babel/core@npm:^7.25.9, @babel/core@npm:^7.27.4, @babel/core@npm:^7.29.0":
+"@babel/core@npm:7.29.7, @babel/core@npm:^7.21.3, @babel/core@npm:^7.23.9, @babel/core@npm:^7.25.9, @babel/core@npm:^7.27.4":
   version: 7.29.7
   resolution: "@babel/core@npm:7.29.7"
   dependencies:
@@ -3432,7 +3432,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@docusaurus/tsconfig@npm:^3.10.1":
+"@docusaurus/tsconfig@npm:3.10.1":
   version: 3.10.1
   resolution: "@docusaurus/tsconfig@npm:3.10.1"
   checksum: 10/f357273afe3661f0bde62390946168fefa98dcdea96acc1fc43505c8252bb64fc477d8f6fc8707d5df6761e3f57076580908fde9bacdcf928072416453dcf3da
@@ -4158,7 +4158,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:9.28.0, @eslint/js@npm:^9.28.0":
+"@eslint/js@npm:9.28.0":
   version: 9.28.0
   resolution: "@eslint/js@npm:9.28.0"
   checksum: 10/c2ab0416aef01f28f189525c9a86253f531852a1ed45db94a97f01bcc51d15720f38a8c201af7a7331eb1e80c991a7ef54c4be193b17540e48044672dba69bd8
@@ -4373,7 +4373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/e2e-selectors@npm:11.6.14, @grafana/e2e-selectors@npm:^11.6.1":
+"@grafana/e2e-selectors@npm:11.6.14":
   version: 11.6.14
   resolution: "@grafana/e2e-selectors@npm:11.6.14"
   dependencies:
@@ -4430,7 +4430,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@grafana/eslint-config@npm:8.2.0, @grafana/eslint-config@npm:^8.1.0":
+"@grafana/eslint-config@npm:8.2.0":
   version: 8.2.0
   resolution: "@grafana/eslint-config@npm:8.2.0"
   peerDependencies:
@@ -4534,8 +4534,8 @@ __metadata:
     "@emotion/css": "npm:^11.13.5"
     "@emotion/react": "npm:^11.14.0"
     "@grafana/scenes": "workspace:*"
-    "@rollup/plugin-eslint": "npm:^9.2.0"
-    "@rollup/plugin-node-resolve": "npm:^16.0.1"
+    "@rollup/plugin-eslint": "npm:9.2.0"
+    "@rollup/plugin-node-resolve": "npm:16.0.1"
     "@types/history": "npm:4.7.11"
     "@types/lodash": "npm:4.17.24"
     "@types/node": "npm:20.19.41"
@@ -4543,15 +4543,15 @@ __metadata:
     "@types/react-dom": "npm:18.3.7"
     "@types/react-grid-layout": "npm:1.3.6"
     "@types/react-virtualized-auto-sizer": "npm:1.0.8"
-    eslint: "npm:^9.28.0"
+    eslint: "npm:9.28.0"
     jest: "npm:30.4.2"
     lodash: "npm:^4.17.21"
     lru-cache: "npm:^10.2.2"
     react-use: "npm:^17.4.0"
-    rimraf: "npm:^6.0.0"
-    rollup: "npm:^4.36.0"
+    rimraf: "npm:6.1.3"
+    rollup: "npm:4.60.4"
     rxjs: "npm:7.8.2"
-    typescript: "npm:^5.4.3"
+    typescript: "npm:5.9.3"
   peerDependencies:
     "@grafana/data": ">=11.6"
     "@grafana/e2e-selectors": ">=11.6"
@@ -4575,7 +4575,7 @@ __metadata:
     "@grafana/i18n": "npm:12.4.3"
     "@leeoniya/ufuzzy": "npm:^1.0.16"
     "@rollup/plugin-dynamic-import-vars": "npm:2.1.5"
-    "@rollup/plugin-json": "npm:^6.1.0"
+    "@rollup/plugin-json": "npm:6.1.0"
     "@tanstack/react-virtual": "npm:^3.9.0"
     "@types/history": "npm:4.7.11"
     "@types/lodash": "npm:4.17.24"
@@ -4584,22 +4584,22 @@ __metadata:
     "@types/react-dom": "npm:18.3.7"
     "@types/react-grid-layout": "npm:1.3.6"
     "@types/react-virtualized-auto-sizer": "npm:1.0.8"
-    "@types/systemjs": "npm:^6.15.1"
-    eslint: "npm:^9.28.0"
+    "@types/systemjs": "npm:6.15.1"
+    eslint: "npm:9.28.0"
     history: "npm:^4.9.0"
     i18next-parser: "npm:9.4.0"
     jest: "npm:30.4.2"
-    jest-canvas-mock: "npm:^2.5.2"
+    jest-canvas-mock: "npm:2.5.2"
     lodash: "npm:^4.17.21"
     react-grid-layout: "npm:^1.3.4"
-    react-router-dom: "npm:^6.30.3"
+    react-router-dom: "npm:6.30.4"
     react-select: "npm:^5.10.2"
     react-use: "npm:^17.5.0"
     react-virtualized-auto-sizer: "npm:^1.0.24"
-    rimraf: "npm:^6.0.0"
-    rollup: "npm:^4.36.0"
+    rimraf: "npm:6.1.3"
+    rollup: "npm:4.60.4"
     rxjs: "npm:7.8.2"
-    typescript: "npm:^5.4.3"
+    typescript: "npm:5.9.3"
     uuid: "npm:^11.0.0"
   peerDependencies:
     "@grafana/data": ">=11.6"
@@ -7250,7 +7250,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-eslint@npm:^9.2.0":
+"@rollup/plugin-eslint@npm:9.2.0":
   version: 9.2.0
   resolution: "@rollup/plugin-eslint@npm:9.2.0"
   dependencies:
@@ -7265,7 +7265,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-json@npm:^6.1.0":
+"@rollup/plugin-json@npm:6.1.0":
   version: 6.1.0
   resolution: "@rollup/plugin-json@npm:6.1.0"
   dependencies:
@@ -7279,7 +7279,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rollup/plugin-node-resolve@npm:^16.0.1":
+"@rollup/plugin-node-resolve@npm:16.0.1":
   version: 16.0.1
   resolution: "@rollup/plugin-node-resolve@npm:16.0.1"
   dependencies:
@@ -7951,7 +7951,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core@npm:^1.15.24":
+"@swc/core@npm:1.15.24":
   version: 1.15.24
   resolution: "@swc/core@npm:1.15.24"
   dependencies:
@@ -8010,7 +8010,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/helpers@npm:^0.5.0, @swc/helpers@npm:^0.5.8":
+"@swc/helpers@npm:0.5.23, @swc/helpers@npm:^0.5.0":
   version: 0.5.23
   resolution: "@swc/helpers@npm:0.5.23"
   dependencies:
@@ -8019,7 +8019,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/jest@npm:^0.2.36, @swc/jest@npm:^0.2.39":
+"@swc/jest@npm:0.2.39":
   version: 0.2.39
   resolution: "@swc/jest@npm:0.2.39"
   dependencies:
@@ -8101,7 +8101,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/jest-dom@npm:6.9.1, @testing-library/jest-dom@npm:^6.9.1":
+"@testing-library/jest-dom@npm:6.9.1":
   version: 6.9.1
   resolution: "@testing-library/jest-dom@npm:6.9.1"
   dependencies:
@@ -8137,6 +8137,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@testing-library/react@npm:12.1.5":
+  version: 12.1.5
+  resolution: "@testing-library/react@npm:12.1.5"
+  dependencies:
+    "@babel/runtime": "npm:^7.12.5"
+    "@testing-library/dom": "npm:^8.0.0"
+    "@types/react-dom": "npm:<18.0.0"
+  peerDependencies:
+    react: <18.0.0
+    react-dom: <18.0.0
+  checksum: 10/24ea6ed298ae65c374b3068974359371f551fa1ffdeb5de9853432856ff63b71576d8bbfa8ee1e45d4fa214c2135e49561bafc9b11528cecc8a7943e2a942255
+  languageName: node
+  linkType: hard
+
 "@testing-library/react@npm:14.3.1":
   version: 14.3.1
   resolution: "@testing-library/react@npm:14.3.1"
@@ -8148,20 +8162,6 @@ __metadata:
     react: ^18.0.0
     react-dom: ^18.0.0
   checksum: 10/83359dcdf9eaf067839f34604e1a181cbc14fc09f3a07672403700fcc6a900c4b8054ad1114fc24b4b9f89d84e2a09e1b7c9afce2306b1d4b4c9e30eb1cb12de
-  languageName: node
-  linkType: hard
-
-"@testing-library/react@npm:^12.1.3":
-  version: 12.1.5
-  resolution: "@testing-library/react@npm:12.1.5"
-  dependencies:
-    "@babel/runtime": "npm:^7.12.5"
-    "@testing-library/dom": "npm:^8.0.0"
-    "@types/react-dom": "npm:<18.0.0"
-  peerDependencies:
-    react: <18.0.0
-    react-dom: <18.0.0
-  checksum: 10/24ea6ed298ae65c374b3068974359371f551fa1ffdeb5de9853432856ff63b71576d8bbfa8ee1e45d4fa214c2135e49561bafc9b11528cecc8a7943e2a942255
   languageName: node
   linkType: hard
 
@@ -8574,7 +8574,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:30.0.0, @types/jest@npm:^30.0.0":
+"@types/jest@npm:30.0.0":
   version: 30.0.0
   resolution: "@types/jest@npm:30.0.0"
   dependencies:
@@ -8708,7 +8708,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:20.19.41, @types/node@npm:^20.11.30":
+"@types/node@npm:20.19.41":
   version: 20.19.41
   resolution: "@types/node@npm:20.19.41"
   dependencies:
@@ -8973,7 +8973,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/systemjs@npm:^6.15.1":
+"@types/systemjs@npm:6.15.1":
   version: 6.15.1
   resolution: "@types/systemjs@npm:6.15.1"
   checksum: 10/4c29f4951299b67a287b8b21219416c4d8eee277582ae045f6a97eaaa9d27ad59789f6b608c5519adf0e42eee23f139c4027cc157f37807a16b4601b353f5442
@@ -9049,7 +9049,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/eslint-plugin@npm:^8.34.0":
+"@typescript-eslint/eslint-plugin@npm:8.34.0":
   version: 8.34.0
   resolution: "@typescript-eslint/eslint-plugin@npm:8.34.0"
   dependencies:
@@ -9070,7 +9070,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/parser@npm:^8.34.0":
+"@typescript-eslint/parser@npm:8.34.0":
   version: 8.34.0
   resolution: "@typescript-eslint/parser@npm:8.34.0"
   dependencies:
@@ -10315,7 +10315,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"auto@npm:^11.3.6":
+"auto@npm:11.3.6":
   version: 11.3.6
   resolution: "auto@npm:11.3.6"
   dependencies:
@@ -12206,6 +12206,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"copy-webpack-plugin@npm:14.0.0":
+  version: 14.0.0
+  resolution: "copy-webpack-plugin@npm:14.0.0"
+  dependencies:
+    glob-parent: "npm:^6.0.1"
+    normalize-path: "npm:^3.0.0"
+    schema-utils: "npm:^4.2.0"
+    serialize-javascript: "npm:^7.0.3"
+    tinyglobby: "npm:^0.2.12"
+  peerDependencies:
+    webpack: ^5.1.0
+  checksum: 10/734524b9569b873686bdd3addef77ac9604ecaf6eaadaf2fc37f1a91eb4a50c38e8d034899e65a189af37d29b1778b34b818493e5922dc1d089625ecd0f33211
+  languageName: node
+  linkType: hard
+
 "copy-webpack-plugin@npm:^11.0.0":
   version: 11.0.0
   resolution: "copy-webpack-plugin@npm:11.0.0"
@@ -12219,21 +12234,6 @@ __metadata:
   peerDependencies:
     webpack: ^5.1.0
   checksum: 10/dc103be79ef72a4bb0bc8ce498b2cca964e3771326b009a1f3cb2d17960fca17538a725b09427161eccf485e2badbbd5490ddf2570f7976938e4e7338f1fd7e9
-  languageName: node
-  linkType: hard
-
-"copy-webpack-plugin@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "copy-webpack-plugin@npm:14.0.0"
-  dependencies:
-    glob-parent: "npm:^6.0.1"
-    normalize-path: "npm:^3.0.0"
-    schema-utils: "npm:^4.2.0"
-    serialize-javascript: "npm:^7.0.3"
-    tinyglobby: "npm:^0.2.12"
-  peerDependencies:
-    webpack: ^5.1.0
-  checksum: 10/734524b9569b873686bdd3addef77ac9604ecaf6eaadaf2fc37f1a91eb4a50c38e8d034899e65a189af37d29b1778b34b818493e5922dc1d089625ecd0f33211
   languageName: node
   linkType: hard
 
@@ -12405,6 +12405,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"css-loader@npm:7.1.2":
+  version: 7.1.2
+  resolution: "css-loader@npm:7.1.2"
+  dependencies:
+    icss-utils: "npm:^5.1.0"
+    postcss: "npm:^8.4.33"
+    postcss-modules-extract-imports: "npm:^3.1.0"
+    postcss-modules-local-by-default: "npm:^4.0.5"
+    postcss-modules-scope: "npm:^3.2.0"
+    postcss-modules-values: "npm:^4.0.0"
+    postcss-value-parser: "npm:^4.2.0"
+    semver: "npm:^7.5.4"
+  peerDependencies:
+    "@rspack/core": 0.x || 1.x
+    webpack: ^5.27.0
+  peerDependenciesMeta:
+    "@rspack/core":
+      optional: true
+    webpack:
+      optional: true
+  checksum: 10/ddde22fb103888320f60a1414a6a04638d2e9760a532a52d03c45e6e2830b32dd76c734aeef426f78dd95b2d15f77eeec3854ac53061aff02569732dc6e6801c
+  languageName: node
+  linkType: hard
+
 "css-loader@npm:^6.11.0":
   version: 6.11.0
   resolution: "css-loader@npm:6.11.0"
@@ -12426,30 +12450,6 @@ __metadata:
     webpack:
       optional: true
   checksum: 10/9e3665509f6786d46683de5c5f5c4bdd4aa62396b4017b41dbbb41ea5ada4012c80ee1e3302b79b504bc24da7fa69e3552d99006cecc953e0d9eef4a3053b929
-  languageName: node
-  linkType: hard
-
-"css-loader@npm:^7.1.2":
-  version: 7.1.2
-  resolution: "css-loader@npm:7.1.2"
-  dependencies:
-    icss-utils: "npm:^5.1.0"
-    postcss: "npm:^8.4.33"
-    postcss-modules-extract-imports: "npm:^3.1.0"
-    postcss-modules-local-by-default: "npm:^4.0.5"
-    postcss-modules-scope: "npm:^3.2.0"
-    postcss-modules-values: "npm:^4.0.0"
-    postcss-value-parser: "npm:^4.2.0"
-    semver: "npm:^7.5.4"
-  peerDependencies:
-    "@rspack/core": 0.x || 1.x
-    webpack: ^5.27.0
-  peerDependenciesMeta:
-    "@rspack/core":
-      optional: true
-    webpack:
-      optional: true
-  checksum: 10/ddde22fb103888320f60a1414a6a04638d2e9760a532a52d03c45e6e2830b32dd76c734aeef426f78dd95b2d15f77eeec3854ac53061aff02569732dc6e6801c
   languageName: node
   linkType: hard
 
@@ -14545,7 +14545,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-prettier@npm:^10.1.5":
+"eslint-config-prettier@npm:10.1.5":
   version: 10.1.5
   resolution: "eslint-config-prettier@npm:10.1.5"
   peerDependencies:
@@ -14579,7 +14579,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-import@npm:^2.32.0":
+"eslint-plugin-import@npm:2.32.0":
   version: 2.32.0
   resolution: "eslint-plugin-import@npm:2.32.0"
   dependencies:
@@ -14632,7 +14632,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-prettier@npm:^5.4.1":
+"eslint-plugin-prettier@npm:5.4.1":
   version: 5.4.1
   resolution: "eslint-plugin-prettier@npm:5.4.1"
   dependencies:
@@ -14652,7 +14652,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react-hooks@npm:^5.2.0":
+"eslint-plugin-react-hooks@npm:5.2.0":
   version: 5.2.0
   resolution: "eslint-plugin-react-hooks@npm:5.2.0"
   peerDependencies:
@@ -14661,7 +14661,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:^7.37.5":
+"eslint-plugin-react@npm:7.37.5":
   version: 7.37.5
   resolution: "eslint-plugin-react@npm:7.37.5"
   dependencies:
@@ -14745,7 +14745,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.28.0":
+"eslint@npm:9.28.0":
   version: 9.28.0
   resolution: "eslint@npm:9.28.0"
   dependencies:
@@ -15566,7 +15566,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fork-ts-checker-webpack-plugin@npm:^9.0.0":
+"fork-ts-checker-webpack-plugin@npm:9.1.0":
   version: 9.1.0
   resolution: "fork-ts-checker-webpack-plugin@npm:9.1.0"
   dependencies:
@@ -16392,48 +16392,48 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "grafana-scenes@workspace:."
   dependencies:
-    "@auto-it/omit-commits": "npm:^11.3.6"
-    "@auto-it/released": "npm:^11.3.6"
+    "@auto-it/omit-commits": "npm:11.3.6"
+    "@auto-it/released": "npm:11.3.6"
     "@eslint/compat": "npm:2.1.0"
-    "@eslint/js": "npm:^9.28.0"
-    "@grafana/eslint-config": "npm:^8.1.0"
-    "@grafana/tsconfig": "npm:^2.0.0"
+    "@eslint/js": "npm:9.28.0"
+    "@grafana/eslint-config": "npm:8.2.0"
+    "@grafana/tsconfig": "npm:2.2.0"
     "@stylistic/eslint-plugin-ts": "npm:4.4.1"
-    "@swc/core": "npm:^1.15.24"
-    "@swc/jest": "npm:^0.2.39"
+    "@swc/core": "npm:1.15.24"
+    "@swc/jest": "npm:0.2.39"
     "@testing-library/dom": "npm:9.3.4"
     "@testing-library/jest-dom": "npm:6.9.1"
     "@testing-library/react": "npm:14.3.1"
     "@testing-library/react-hooks": "npm:8.0.1"
     "@testing-library/user-event": "npm:14.6.1"
     "@types/jest": "npm:30.0.0"
-    "@typescript-eslint/eslint-plugin": "npm:^8.34.0"
-    "@typescript-eslint/parser": "npm:^8.34.0"
-    auto: "npm:^11.3.6"
+    "@typescript-eslint/eslint-plugin": "npm:8.34.0"
+    "@typescript-eslint/parser": "npm:8.34.0"
+    auto: "npm:11.3.6"
     esbuild: "npm:^0.28.0"
-    eslint: "npm:^9.28.0"
-    eslint-config-prettier: "npm:^10.1.5"
-    eslint-plugin-import: "npm:^2.32.0"
+    eslint: "npm:9.28.0"
+    eslint-config-prettier: "npm:10.1.5"
+    eslint-plugin-import: "npm:2.32.0"
     eslint-plugin-jsdoc: "npm:63.0.0"
-    eslint-plugin-prettier: "npm:^5.4.1"
-    eslint-plugin-react: "npm:^7.37.5"
-    eslint-plugin-react-hooks: "npm:^5.2.0"
-    husky: "npm:^9.0.0"
+    eslint-plugin-prettier: "npm:5.4.1"
+    eslint-plugin-react: "npm:7.37.5"
+    eslint-plugin-react-hooks: "npm:5.2.0"
+    husky: "npm:9.1.7"
     jest: "npm:30.4.2"
     jest-environment-jsdom: "npm:30.4.1"
     jest-matcher-utils: "npm:30.4.1"
-    lerna: "npm:^9.0.0"
-    lint-staged: "npm:^17.0.0"
+    lerna: "npm:9.0.0"
+    lint-staged: "npm:17.0.7"
     prettier: "npm:2.8.8"
-    react-select-event: "npm:^5.5.1"
-    rollup: "npm:^4.36.0"
-    rollup-plugin-dts: "npm:^6.2.0"
-    rollup-plugin-esbuild: "npm:^6.2.1"
-    rollup-plugin-node-externals: "npm:^9.0.0"
+    react-select-event: "npm:5.5.1"
+    rollup: "npm:4.60.4"
+    rollup-plugin-dts: "npm:6.2.0"
+    rollup-plugin-esbuild: "npm:6.2.1"
+    rollup-plugin-node-externals: "npm:9.0.1"
     ts-jest: "npm:29.4.11"
     ts-node: "npm:10.9.2"
-    turbo: "npm:^2.9.15"
-    typescript: "npm:^5.4.3"
+    turbo: "npm:2.9.16"
+    typescript: "npm:5.9.3"
   languageName: unknown
   linkType: soft
 
@@ -17259,7 +17259,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"husky@npm:^9.0.0":
+"husky@npm:9.1.7":
   version: 9.1.7
   resolution: "husky@npm:9.1.7"
   bin:
@@ -18496,7 +18496,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-canvas-mock@npm:^2.5.2":
+"jest-canvas-mock@npm:2.5.2":
   version: 2.5.2
   resolution: "jest-canvas-mock@npm:2.5.2"
   dependencies:
@@ -19375,7 +19375,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lerna@npm:^9.0.0":
+"lerna@npm:9.0.0":
   version: 9.0.0
   resolution: "lerna@npm:9.0.0"
   dependencies:
@@ -19526,7 +19526,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:^17.0.0":
+"lint-staged@npm:17.0.7":
   version: 17.0.7
   resolution: "lint-staged@npm:17.0.7"
   dependencies:
@@ -23946,7 +23946,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:2.8.8, prettier@npm:^2.5.0":
+"prettier@npm:2.8.8":
   version: 2.8.8
   resolution: "prettier@npm:2.8.8"
   bin:
@@ -24397,7 +24397,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"raw-loader@npm:^4.0.2":
+"raw-loader@npm:4.0.2":
   version: 4.0.2
   resolution: "raw-loader@npm:4.0.2"
   dependencies:
@@ -24983,7 +24983,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^6.28.0, react-router-dom@npm:^6.30.3":
+"react-router-dom@npm:6.30.4, react-router-dom@npm:^6.28.0":
   version: 6.30.4
   resolution: "react-router-dom@npm:6.30.4"
   dependencies:
@@ -25037,7 +25037,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-select-event@npm:^5.5.1":
+"react-select-event@npm:5.5.1":
   version: 5.5.1
   resolution: "react-select-event@npm:5.5.1"
   dependencies:
@@ -25629,7 +25629,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"replace-in-file-webpack-plugin@npm:^1.0.6":
+"replace-in-file-webpack-plugin@npm:1.0.6":
   version: 1.0.6
   resolution: "replace-in-file-webpack-plugin@npm:1.0.6"
   checksum: 10/0c00a074e544ebe1aef0615e594f6daad47427950a2454e88f94dcb185839d68ce07854b83bbcb5f9b2336f8e8ae24017db4eca085135a9be84e43585163301a
@@ -25944,6 +25944,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rimraf@npm:6.1.3":
+  version: 6.1.3
+  resolution: "rimraf@npm:6.1.3"
+  dependencies:
+    glob: "npm:^13.0.3"
+    package-json-from-dist: "npm:^1.0.1"
+  bin:
+    rimraf: dist/esm/bin.mjs
+  checksum: 10/dd98ec2ad7cd2cccae1c7110754d472eac8edb2bab8a8b057dce04edfe1433dab246a889b3fd85a66c78ca81caa1429caa0e736c7647f6832b04fd5d4dfb8ab8
+  languageName: node
+  linkType: hard
+
 "rimraf@npm:^2.5.4":
   version: 2.7.1
   resolution: "rimraf@npm:2.7.1"
@@ -25977,18 +25989,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rimraf@npm:^6.0.0":
-  version: 6.1.3
-  resolution: "rimraf@npm:6.1.3"
-  dependencies:
-    glob: "npm:^13.0.3"
-    package-json-from-dist: "npm:^1.0.1"
-  bin:
-    rimraf: dist/esm/bin.mjs
-  checksum: 10/dd98ec2ad7cd2cccae1c7110754d472eac8edb2bab8a8b057dce04edfe1433dab246a889b3fd85a66c78ca81caa1429caa0e736c7647f6832b04fd5d4dfb8ab8
-  languageName: node
-  linkType: hard
-
 "robust-predicates@npm:^3.0.2":
   version: 3.0.2
   resolution: "robust-predicates@npm:3.0.2"
@@ -25996,7 +25996,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-dts@npm:^6.2.0":
+"rollup-plugin-dts@npm:6.2.0":
   version: 6.2.0
   resolution: "rollup-plugin-dts@npm:6.2.0"
   dependencies:
@@ -26012,7 +26012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-esbuild@npm:^6.2.1":
+"rollup-plugin-esbuild@npm:6.2.1":
   version: 6.2.1
   resolution: "rollup-plugin-esbuild@npm:6.2.1"
   dependencies:
@@ -26027,7 +26027,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-node-externals@npm:^9.0.0":
+"rollup-plugin-node-externals@npm:9.0.1":
   version: 9.0.1
   resolution: "rollup-plugin-node-externals@npm:9.0.1"
   peerDependencies:
@@ -26042,7 +26042,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup@npm:^4.36.0":
+"rollup@npm:4.60.4":
   version: 4.60.4
   resolution: "rollup@npm:4.60.4"
   dependencies:
@@ -26297,12 +26297,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "scenes-app@workspace:packages/scenes-app"
   dependencies:
-    "@babel/core": "npm:^7.29.0"
+    "@babel/core": "npm:7.29.7"
     "@emotion/css": "npm:^11.1.3"
     "@eslint/compat": "npm:2.1.0"
     "@grafana/data": "npm:^11.6.0"
     "@grafana/e2e": "npm:9.5.21"
-    "@grafana/e2e-selectors": "npm:^11.6.1"
+    "@grafana/e2e-selectors": "npm:11.6.14"
     "@grafana/eslint-config": "npm:8.2.0"
     "@grafana/runtime": "npm:^11.6.0"
     "@grafana/scenes": "workspace:*"
@@ -26312,41 +26312,41 @@ __metadata:
     "@grafana/tsconfig": "npm:2.2.0"
     "@grafana/ui": "npm:^11.6.0"
     "@stylistic/eslint-plugin-ts": "npm:4.4.1"
-    "@swc/core": "npm:^1.15.24"
-    "@swc/helpers": "npm:^0.5.8"
-    "@swc/jest": "npm:^0.2.36"
-    "@testing-library/jest-dom": "npm:^6.9.1"
-    "@testing-library/react": "npm:^12.1.3"
-    "@types/jest": "npm:^30.0.0"
+    "@swc/core": "npm:1.15.24"
+    "@swc/helpers": "npm:0.5.23"
+    "@swc/jest": "npm:0.2.39"
+    "@testing-library/jest-dom": "npm:6.9.1"
+    "@testing-library/react": "npm:12.1.5"
+    "@types/jest": "npm:30.0.0"
     "@types/lodash": "npm:latest"
-    "@types/node": "npm:^20.11.30"
-    "@typescript-eslint/eslint-plugin": "npm:^8.34.0"
-    "@typescript-eslint/parser": "npm:^8.34.0"
-    copy-webpack-plugin: "npm:^14.0.0"
-    css-loader: "npm:^7.1.2"
-    eslint: "npm:^9.28.0"
-    eslint-config-prettier: "npm:^10.1.5"
+    "@types/node": "npm:20.19.41"
+    "@typescript-eslint/eslint-plugin": "npm:8.34.0"
+    "@typescript-eslint/parser": "npm:8.34.0"
+    copy-webpack-plugin: "npm:14.0.0"
+    css-loader: "npm:7.1.2"
+    eslint: "npm:9.28.0"
+    eslint-config-prettier: "npm:10.1.5"
     eslint-plugin-jsdoc: "npm:63.0.0"
-    eslint-plugin-prettier: "npm:^5.4.1"
-    eslint-plugin-react: "npm:^7.37.5"
-    eslint-plugin-react-hooks: "npm:^5.2.0"
+    eslint-plugin-prettier: "npm:5.4.1"
+    eslint-plugin-react: "npm:7.37.5"
+    eslint-plugin-react-hooks: "npm:5.2.0"
     eslint-webpack-plugin: "npm:6.0.0"
-    fork-ts-checker-webpack-plugin: "npm:^9.0.0"
+    fork-ts-checker-webpack-plugin: "npm:9.1.0"
     jest: "npm:30.4.2"
-    prettier: "npm:^2.5.0"
-    raw-loader: "npm:^4.0.2"
+    prettier: "npm:2.8.8"
+    raw-loader: "npm:4.0.2"
     react: "npm:18.3.1"
     react-dom: "npm:18.3.1"
     react-router-dom: "npm:^6.28.0"
-    replace-in-file-webpack-plugin: "npm:^1.0.6"
-    style-loader: "npm:^4.0.0"
-    swc-loader: "npm:^0.2.0"
-    ts-node: "npm:^10.9.2"
-    tsconfig-paths: "npm:^4.2.0"
-    typescript: "npm:^5.4.3"
-    webpack: "npm:^5.104.1"
-    webpack-cli: "npm:^7.0.0"
-    webpack-livereload-plugin: "npm:^3.0.2"
+    replace-in-file-webpack-plugin: "npm:1.0.6"
+    style-loader: "npm:4.0.0"
+    swc-loader: "npm:0.2.7"
+    ts-node: "npm:10.9.2"
+    tsconfig-paths: "npm:4.2.0"
+    typescript: "npm:5.9.3"
+    webpack: "npm:5.107.2"
+    webpack-cli: "npm:7.0.3"
+    webpack-livereload-plugin: "npm:3.0.2"
   languageName: unknown
   linkType: soft
 
@@ -27691,7 +27691,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"style-loader@npm:^4.0.0":
+"style-loader@npm:4.0.0":
   version: 4.0.0
   resolution: "style-loader@npm:4.0.0"
   peerDependencies:
@@ -27812,7 +27812,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"swc-loader@npm:^0.2.0":
+"swc-loader@npm:0.2.7":
   version: 0.2.7
   resolution: "swc-loader@npm:0.2.7"
   dependencies:
@@ -28434,7 +28434,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-node@npm:10.9.2, ts-node@npm:^10.9.1, ts-node@npm:^10.9.2":
+"ts-node@npm:10.9.2, ts-node@npm:^10.9.1":
   version: 10.9.2
   resolution: "ts-node@npm:10.9.2"
   dependencies:
@@ -28493,6 +28493,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tsconfig-paths@npm:4.2.0, tsconfig-paths@npm:^4.1.2":
+  version: 4.2.0
+  resolution: "tsconfig-paths@npm:4.2.0"
+  dependencies:
+    json5: "npm:^2.2.2"
+    minimist: "npm:^1.2.6"
+    strip-bom: "npm:^3.0.0"
+  checksum: 10/5e55cc2fb6b800eb72011522e10edefccb45b1f9af055681a51354c9b597d1390c6fa9cc356b8c7529f195ac8a90a78190d563159f3a1eed10e01bbd4d01a8ab
+  languageName: node
+  linkType: hard
+
 "tsconfig-paths@npm:^3.15.0":
   version: 3.15.0
   resolution: "tsconfig-paths@npm:3.15.0"
@@ -28502,17 +28513,6 @@ __metadata:
     minimist: "npm:^1.2.6"
     strip-bom: "npm:^3.0.0"
   checksum: 10/2041beaedc6c271fc3bedd12e0da0cc553e65d030d4ff26044b771fac5752d0460944c0b5e680f670c2868c95c664a256cec960ae528888db6ded83524e33a14
-  languageName: node
-  linkType: hard
-
-"tsconfig-paths@npm:^4.1.2, tsconfig-paths@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "tsconfig-paths@npm:4.2.0"
-  dependencies:
-    json5: "npm:^2.2.2"
-    minimist: "npm:^1.2.6"
-    strip-bom: "npm:^3.0.0"
-  checksum: 10/5e55cc2fb6b800eb72011522e10edefccb45b1f9af055681a51354c9b597d1390c6fa9cc356b8c7529f195ac8a90a78190d563159f3a1eed10e01bbd4d01a8ab
   languageName: node
   linkType: hard
 
@@ -28591,7 +28591,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"turbo@npm:^2.9.15":
+"turbo@npm:2.9.16":
   version: 2.9.16
   resolution: "turbo@npm:2.9.16"
   dependencies:
@@ -28812,7 +28812,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:>=3 < 6, typescript@npm:^5.0.4, typescript@npm:^5.4.3":
+"typescript@npm:5.9.3, typescript@npm:>=3 < 6, typescript@npm:^5.0.4":
   version: 5.9.3
   resolution: "typescript@npm:5.9.3"
   bin:
@@ -28842,7 +28842,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.0.4#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.4.3#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.0.4#optional!builtin<compat/typescript>":
   version: 5.9.3
   resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
   bin:
@@ -29776,7 +29776,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack-cli@npm:^7.0.0":
+"webpack-cli@npm:7.0.3":
   version: 7.0.3
   resolution: "webpack-cli@npm:7.0.3"
   dependencies:
@@ -29867,7 +29867,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack-livereload-plugin@npm:^3.0.2":
+"webpack-livereload-plugin@npm:3.0.2":
   version: 3.0.2
   resolution: "webpack-livereload-plugin@npm:3.0.2"
   dependencies:
@@ -29910,7 +29910,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack@npm:^5.104.1, webpack@npm:^5.88.1, webpack@npm:^5.95.0":
+"webpack@npm:5.107.2, webpack@npm:^5.88.1, webpack@npm:^5.95.0":
   version: 5.107.2
   resolution: "webpack@npm:5.107.2"
   dependencies:
@@ -29973,7 +29973,7 @@ __metadata:
     "@docusaurus/core": "npm:^3.9.2"
     "@docusaurus/module-type-aliases": "npm:3.10.1"
     "@docusaurus/preset-classic": "npm:^3.9.2"
-    "@docusaurus/tsconfig": "npm:^3.10.1"
+    "@docusaurus/tsconfig": "npm:3.10.1"
     "@grafana/scenes": "workspace:*"
     "@grafana/scenes-react": "workspace:*"
     "@mdx-js/react": "npm:^3.0.0"
@@ -29983,7 +29983,7 @@ __metadata:
     prism-react-renderer: "npm:^2.1.0"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
-    typescript: "npm:^5.4.3"
+    typescript: "npm:5.9.3"
   languageName: unknown
   linkType: soft
 
