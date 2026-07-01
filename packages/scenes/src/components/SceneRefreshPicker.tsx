@@ -1,3 +1,4 @@
+import '../types/window';
 import React from 'react';
 import { Unsubscribable } from 'rxjs';
 import { rangeUtil } from '@grafana/data';
@@ -172,6 +173,12 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
       return;
     }
 
+    // Disable refreshes in image renderer, as they may cause unintentional timeouts
+    // The UI will still show the configure refresh amount, but it will not refresh.
+    if (isImageRenderer()) {
+      return;
+    }
+
     let intervalMs: number;
 
     // Unsubscribe from previous listener no matter what
@@ -284,4 +291,9 @@ function findClosestInterval(userInterval: string, allowedIntervals: string[]): 
     selectedInterval = allowedIntervals[i];
   }
   return selectedInterval;
+}
+
+function isImageRenderer() {
+  // Check binding added by chromedp. Does not work with the polling method
+  return typeof window.__grafanaImageRendererMessageChannel === 'function';
 }
