@@ -74,6 +74,66 @@ describe('ScopesVariable', () => {
     const { valueChangedCount } = renderTestScene({ initialScopes: [] });
     expect(valueChangedCount.value).toEqual(1);
   });
+
+  // Two ScopesVariables can be alive at the same moment during e.g. a dashboard-to-dashboard
+  // redirect. Without the ownership guard in setContext, the second cleanup can resurrect
+  // enabled=true by restoring its stale oldState snapshot, leaving the scope UI stuck on
+  // pages that no longer have any ScopesVariable mounted.
+  describe('overlapping ScopesVariables', () => {
+    it('Should leave enabled=false after both cleanups when cleanup order is A then B', () => {
+      const context = new FakeScopesContext();
+      const varA = new ScopesVariable({ enable: true });
+      const varB = new ScopesVariable({ enable: true });
+
+      const cleanupA = varA.setContext(context);
+      expect(context.state.enabled).toBe(true);
+
+      const cleanupB = varB.setContext(context);
+      expect(context.state.enabled).toBe(true);
+
+      cleanupA?.();
+      cleanupB?.();
+
+      expect(context.state.enabled).toBe(false);
+    });
+
+    it('Should leave enabled=false after both cleanups when cleanup order is B then A', () => {
+      const context = new FakeScopesContext();
+      const varA = new ScopesVariable({ enable: true });
+      const varB = new ScopesVariable({ enable: true });
+
+      const cleanupA = varA.setContext(context);
+      const cleanupB = varB.setContext(context);
+      expect(context.state.enabled).toBe(true);
+
+      cleanupB?.();
+      cleanupA?.();
+
+      expect(context.state.enabled).toBe(false);
+    });
+
+    it('Should not resurrect enabled=true from a stale oldState snapshot', () => {
+      const context = new FakeScopesContext();
+      // Simulate a state where another ScopesVariable had already enabled scopes before
+      // this one mounts (the overlap scenario, condensed into a single instance).
+      context.setEnabled(true);
+
+      const variable = new ScopesVariable({ enable: true });
+      const cleanup = variable.setContext(context);
+      // At this point oldState.enabled was captured as true.
+
+      // Something else (another cleanup, an external caller) legitimately disables scopes.
+      context.setEnabled(false);
+      expect(context.state.enabled).toBe(false);
+
+      cleanup?.();
+
+      // Without the guard, cleanup would call setEnabled(oldState.enabled=true) and
+      // resurrect the flag. With the guard, cleanup sees enabled has drifted away
+      // from this.state.enable and skips.
+      expect(context.state.enabled).toBe(false);
+    });
+  });
 });
 
 interface SetupOptions {
@@ -128,7 +188,7 @@ export class FakeScopesContext {
   };
 
   changeScopes = (scopeNames: string[]) => {
-    const value = scopeNames.map((name) => ({ spec: { title: name }, metadata: { name } } as Scope));
+    const value = scopeNames.map((name) => ({ spec: { title: name }, metadata: { name } }) as Scope);
     this.state = { ...this.state, value, loading: true };
     this.stateObservable.next(this.state);
 

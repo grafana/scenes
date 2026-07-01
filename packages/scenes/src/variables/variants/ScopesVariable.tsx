@@ -99,8 +99,11 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
     return () => {
       sub.unsubscribe();
 
-      // If some other ScopesVariable changed the enabled state, we don't want to override it
-      if (this.state.enable != null && context.state.enabled === oldState.enabled) {
+      // Only restore the previous enabled state if this variable is still the current authority —
+      // i.e. the live enabled flag still matches what we set on mount. If it has drifted, another
+      // ScopesVariable's cleanup (or an external setEnabled call) has taken over ownership and we
+      // must not clobber their value.
+      if (this.state.enable != null && context.state.enabled === this.state.enable) {
         context.setEnabled(oldState.enabled);
       }
     };
