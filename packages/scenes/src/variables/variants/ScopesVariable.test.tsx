@@ -188,7 +188,7 @@ export class FakeScopesContext {
   };
 
   changeScopes = (scopeNames: string[]) => {
-    const value = scopeNames.map((name) => ({ spec: { title: name }, metadata: { name } }) as Scope);
+    const value = scopeNames.map((name) => ({ spec: { title: name }, metadata: { name } } as Scope));
     this.state = { ...this.state, value, loading: true };
     this.stateObservable.next(this.state);
 
