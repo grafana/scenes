@@ -99,7 +99,8 @@ export class ScopesVariable extends SceneObjectBase<ScopesVariableState> impleme
     return () => {
       sub.unsubscribe();
 
-      if (this.state.enable != null) {
+      // If some other ScopesVariable changed the enabled state, we don't want to override it
+      if (this.state.enable != null && context.state.enabled === oldState.enabled) {
         context.setEnabled(oldState.enabled);
       }
     };
