@@ -1207,19 +1207,13 @@ export class AdHocFiltersVariable
 
     await this._waitForVariables();
 
-    const applicableOriginFilters =
-      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
-    const otherFilters = this.state.filters
-      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f))
-      .concat(this.state.baseFilters ?? [])
-      .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queriesForKeys =
       queries ?? (this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined);
 
     // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     const response = await ds.getGroupByKeys({
-      filters: otherFilters,
+      filters: [],
       queries: queriesForKeys,
       timeRange,
       scopes: sceneGraph.getScopes(this),
