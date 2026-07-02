@@ -1,3 +1,15 @@
+# v8.9.4 (Thu Jul 02 2026)
+
+#### 🐛 Bug Fix
+
+- Filters: Allow keys used in filters to be reused in groupBy [#1562](https://github.com/grafana/scenes/pull/1562) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.9.3 (Thu Jul 02 2026)
 
 #### 🐛 Bug Fix
