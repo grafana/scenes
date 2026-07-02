@@ -1,3 +1,17 @@
+# v8.9.3 (Thu Jul 02 2026)
+
+#### 🐛 Bug Fix
+
+- feat(variables): per-key interpolation for ad hoc filter variables [#1553](https://github.com/grafana/scenes/pull/1553) ([@dprokop](https://github.com/dprokop))
+- Deps: Unpin production dependencies in `@grafana/scenes` + `@grafana/scenes-react` [#1561](https://github.com/grafana/scenes/pull/1561) ([@MattIPv4](https://github.com/MattIPv4))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Matt Cowley ([@MattIPv4](https://github.com/MattIPv4))
+
+---
+
 # v8.9.2 (Tue Jun 30 2026)
 
 #### 🐛 Bug Fix
