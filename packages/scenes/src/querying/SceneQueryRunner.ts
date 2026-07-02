@@ -540,6 +540,17 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
+    // Skip executing queries if a variable dependency failed to update. We keep the previously loaded
+    // data instead of running a query that would interpolate failed/empty variable values.
+    if (this._variableDependency.hasDependencyInErrorState()) {
+      writeSceneLog('SceneQueryRunner', 'Variable dependency is in error state, skipping query execution');
+      // Make sure we are not stuck in a loading state from a previously deferred run
+      if (this.state.data && this.state.data.state === LoadingState.Loading) {
+        this.setState({ data: { ...this.state.data, state: LoadingState.Done } });
+      }
+      return;
+    }
+
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
 
     const { queries } = this.state;

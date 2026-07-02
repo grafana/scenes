@@ -21,6 +21,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
   /** Variables currently updating  */
   private _updating = new Map<SceneVariable, VariableUpdateInProgress>();
 
+  /**
+   * Variables that are considered to be in an error state for the purpose of blocking dependent
+   * variables and panels. This includes variables whose query failed and, when `treatEmptyAsError`
+   * is enabled, variables that resolved to an empty value. Only populated when
+   * `blockDependentsOnError` is enabled.
+   */
+  private _erroredVariables = new Set<SceneVariable>();
+
   private _variableValueRecorder = new VariableValueRecorder();
 
   /**
@@ -97,14 +105,21 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     // Remember current variable values
     for (const variable of this.state.variables) {
-      // if the current variable is not in queue to update and validate and not being actively updated then the value is ok
-      if (!this._variablesToUpdate.has(variable) && !this._updating.has(variable)) {
+      // if the current variable is not in queue to update and validate and not being actively updated then the value is ok.
+      // Variables in an error state are intentionally excluded so they are re-validated on re-activation instead of being
+      // remembered as valid, which would otherwise unblock their dependents while the value is still failing or empty.
+      if (
+        !this._variablesToUpdate.has(variable) &&
+        !this._updating.has(variable) &&
+        !this._erroredVariables.has(variable)
+      ) {
         this._variableValueRecorder.recordCurrentValue(variable);
       }
     }
 
     this._variablesToUpdate.clear();
     this._updating.clear();
+    this._erroredVariables.clear();
   };
 
   /**
@@ -190,6 +205,18 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         continue;
       }
 
+      // If a dependency failed to update, do not run this variable. Remove it from the queue and
+      // make sure it is not seen as loading so dependent panels keep their previous data instead of
+      // showing a perpetual loading state.
+      if (this.state.blockDependentsOnError && sceneGraph.hasVariableDependencyInErrorState(variable)) {
+        writeVariableTraceLog(variable, 'Skipping updateAndValidate, a dependency is in error state');
+        this._variablesToUpdate.delete(variable);
+        if (variable.state.loading) {
+          variable.setState({ loading: false });
+        }
+        continue;
+      }
+
       // Wait for variables that has dependencies that also needs updates
       if (sceneGraph.hasVariableDependencyInLoadingState(variable)) {
         continue;
@@ -223,6 +250,23 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     this._updating.delete(variable);
     this._variablesToUpdate.delete(variable);
+
+    // When configured to treat empty values as errors, a variable that resolved to an empty value is
+    // handled the same way as a failed variable: it blocks its dependents and referencing panels.
+    if (
+      this.state.blockDependentsOnError &&
+      this.state.treatEmptyAsError &&
+      this._isVariableConsideredEmpty(variable)
+    ) {
+      this._erroredVariables.add(variable);
+      writeVariableTraceLog(variable, 'updateAndValidate completed with empty value, treated as error');
+      this._notifyDependentSceneObjects(variable);
+      this._updateNextBatch();
+      return;
+    }
+
+    // Variable updated successfully, clear any previous blocking error state
+    this._erroredVariables.delete(variable);
 
     writeVariableTraceLog(variable, 'updateAndValidate completed');
 
@@ -378,6 +422,45 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
 
     // Last scenario is to check the variable's own dependencies as well
     return sceneGraph.hasVariableDependencyInLoadingState(variable);
+  }
+
+  /**
+   * Return true if `blockDependentsOnError` is enabled and the variable is in an error state, either
+   * because its own update failed (or it resolved to an empty value when `treatEmptyAsError` is set),
+   * or because one of its dependencies is in an error state.
+   */
+  public isVariableInErrorState(variable: SceneVariable): boolean {
+    if (!this.state.blockDependentsOnError) {
+      return false;
+    }
+
+    // Root cause: the variable's own query failed
+    if (variable.state.error) {
+      return true;
+    }
+
+    // Root cause: the variable resolved to an empty value and we treat that as an error
+    if (this._erroredVariables.has(variable)) {
+      return true;
+    }
+
+    // Transitive: a dependency of the variable is in an error state
+    return sceneGraph.hasVariableDependencyInErrorState(variable);
+  }
+
+  private _isVariableConsideredEmpty(variable: SceneVariable): boolean {
+    // A variable that resolves to the special "All" value is not considered empty, as long as it
+    // actually has options for "All" to expand into. An "Include All" variable that returned no
+    // options still resolves to the All token but expands to nothing, so it must count as empty to
+    // avoid running an unscoped All-query against an empty option set.
+    const maybeMulti = variable as Partial<{ hasAllValue: () => boolean }> & { state: { options?: unknown[] } };
+    if (typeof maybeMulti.hasAllValue === 'function' && maybeMulti.hasAllValue()) {
+      const options = maybeMulti.state.options;
+      return Array.isArray(options) && options.length === 0;
+    }
+
+    const value = variable.getValue();
+    return value == null || value === '' || (Array.isArray(value) && value.length === 0);
   }
 }
 
