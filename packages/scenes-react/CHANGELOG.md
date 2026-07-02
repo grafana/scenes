@@ -1,3 +1,15 @@
+# v8.9.3 (Thu Jul 02 2026)
+
+#### 🐛 Bug Fix
+
+- Deps: Unpin production dependencies in `@grafana/scenes` + `@grafana/scenes-react` [#1561](https://github.com/grafana/scenes/pull/1561) ([@MattIPv4](https://github.com/MattIPv4))
+
+#### Authors: 1
+
+- Matt Cowley ([@MattIPv4](https://github.com/MattIPv4))
+
+---
+
 # v8.9.0 (Fri Jun 26 2026)
 
 #### 🐛 Bug Fix

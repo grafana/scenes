@@ -1906,6 +1906,91 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(value).toEqual(filtersVar.state.filterExpression);
   });
 
+  describe('getValue per-key resolution', () => {
+    function makeVariable(overrides: Partial<AdHocFiltersVariableState>) {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        name: 'filters',
+        filters: [],
+        ...overrides,
+      });
+      variable.activate();
+      return variable;
+    }
+
+    it('resolves a single-value filter to a scalar', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'prod' }] });
+      expect(variable.getValue('["env"]')).toBe('prod');
+    });
+
+    it('resolves a multi-value (=|) filter to an array of values', () => {
+      const variable = makeVariable({
+        filters: [{ key: 'env', operator: '=|', value: 'prod', values: ['prod', 'staging'] }],
+      });
+      expect(variable.getValue('["env"]')).toEqual(['prod', 'staging']);
+    });
+
+    it('flattens multiple filters sharing a key into one array', () => {
+      const variable = makeVariable({
+        filters: [
+          { key: 'env', operator: '=', value: 'prod' },
+          { key: 'env', operator: '=', value: 'staging' },
+        ],
+      });
+      expect(variable.getValue('["env"]')).toEqual(['prod', 'staging']);
+    });
+
+    it('resolves a key containing dots, spaces and special chars', () => {
+      const variable = makeVariable({ filters: [{ key: 'pod.name region', operator: '=', value: 'api-0' }] });
+      expect(variable.getValue('["pod.name region"]')).toBe('api-0');
+    });
+
+    it('returns empty string for a missing key', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'prod' }] });
+      expect(variable.getValue('["region"]')).toBe('');
+    });
+
+    it('resolves the .operator accessor to the operator token', () => {
+      const variable = makeVariable({
+        filters: [{ key: 'env', operator: '=|', value: 'prod', values: ['prod', 'staging'] }],
+      });
+      expect(variable.getValue('["env"].operator')).toBe('=|');
+    });
+
+    it('returns empty string for an unrecognized accessor', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'prod' }] });
+      expect(variable.getValue('["env"].foo')).toBe('');
+    });
+
+    it('returns empty string for the .operator accessor on a missing key', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'prod' }] });
+      expect(variable.getValue('["region"].operator')).toBe('');
+    });
+
+    it('excludes groupBy filters from value resolution', () => {
+      const variable = makeVariable({
+        filters: [],
+        originFilters: [{ key: 'env', operator: GROUP_BY_OPERATOR, value: '', origin: 'scope' }],
+      });
+      expect(variable.getValue('["env"]')).toBe('');
+    });
+
+    it('resolves an origin/scope-injected filter by key', () => {
+      const variable = makeVariable({
+        filters: [],
+        originFilters: [{ key: 'env', operator: '=', value: 'prod', origin: 'scope' }],
+      });
+      expect(variable.getValue('["env"]')).toBe('prod');
+    });
+
+    it('falls through to the whole expression for a dot-form field path', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'prod' }] });
+      // Dot form is not a per-key accessor; getValue returns the whole filter expression.
+      expect(variable.getValue('env')).toBe(variable.state.filterExpression);
+    });
+  });
+
   it('Can override and replace getTagKeys and getTagValues', async () => {
     const { filtersVar } = setup({
       getTagKeysProvider: () => {
