@@ -50,7 +50,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    */
   pluginId: string;
   title: string;
-  description?: string;
+  /** Shown in info icon tooltip next to the title, supports markdown */
+  description?: string | (() => string);
+  /** Shown as text below the title, supports markdown */
+  subtitle?: string;
   options: DeepPartial<TOptions>;
   fieldConfig: FieldConfigSource<DeepPartial<TFieldConfig>>;
   pluginVersion?: string;

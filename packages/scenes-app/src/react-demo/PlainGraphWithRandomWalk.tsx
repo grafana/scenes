@@ -5,10 +5,11 @@ import { plainGraph } from './visualizations';
 interface Props {
   maxDataPoints?: number;
   title: string;
+  subtitle: string;
   queryAlias?: string;
 }
 
-export function PlainGraphWithRandomWalk({ maxDataPoints = 20, title, queryAlias }: Props) {
+export function PlainGraphWithRandomWalk({ maxDataPoints = 20, title, subtitle, queryAlias }: Props) {
   const queries = [{ uid: 'gdev-testdata', refId: 'A', scenarioId: 'random_walk', alias: queryAlias ?? 'env = $env' }];
 
   const dataProvider = useQueryRunner({
@@ -17,5 +18,5 @@ export function PlainGraphWithRandomWalk({ maxDataPoints = 20, title, queryAlias
     cacheKey: [queries, maxDataPoints],
   });
 
-  return <VizPanel title={title} viz={plainGraph} dataProvider={dataProvider} />;
+  return <VizPanel title={title} subtitle={subtitle} viz={plainGraph} dataProvider={dataProvider} />;
 }
