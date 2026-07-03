@@ -1,3 +1,16 @@
+# v8.9.5 (Fri Jul 03 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - ScopesVariable: don't clobber enabled state from a stale cleanup [#1563](https://github.com/grafana/scenes/pull/1563) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
 # v8.9.4 (Thu Jul 02 2026)
 
 #### 🐛 Bug Fix
