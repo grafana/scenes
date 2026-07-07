@@ -88,6 +88,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     if: "github.event_name == 'push' && !contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
+    concurrency:
+      group: release-main
+      cancel-in-progress: false
     permissions:
       id-token: write
     steps:
@@ -125,11 +128,11 @@ jobs:
         id: bump
         run: |
           AUTO_OUTPUT="$(yarn auto version)"
-          BUMP="$(echo "$AUTO_OUTPUT" | tail -n1)"
-          case "$BUMP" in
-            major | minor | patch) ;;
-            *) BUMP='' ;;
-          esac
+          BUMP="$(echo "$AUTO_OUTPUT" | grep -oE '^(major|minor|patch)$' | tail -n1)"
+          if [ -z "$BUMP" ]; then
+            echo "No version bump detected. Output of \`auto version\`:"
+            echo "$AUTO_OUTPUT"
+          fi
           echo "bump=${BUMP}" >> "$GITHUB_OUTPUT"
           echo "Calculated version bump: ${BUMP:-none (skipping release)}"
         env:
@@ -141,8 +144,9 @@ jobs:
         # them locally (unsigned). Drop the commit but keep the file changes so the
         # next step can re-create it through the API.
         run: |
+          BEFORE_CHANGELOG="$(git rev-parse HEAD)"
           yarn auto changelog
-          git reset --mixed HEAD~1
+          git reset --mixed "$BEFORE_CHANGELOG"
         env:
           GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
 
@@ -190,6 +194,8 @@ jobs:
 
       - name: Check out version bump commit
         if: steps.bump.outputs.bump != ''
+        # The local tag is not pushed; it is what `auto release` below uses to
+        # resolve the release version (`git describe --tags` on HEAD).
         run: |
           git fetch origin main
           git reset --hard "$VERSION_COMMIT"
@@ -198,19 +204,31 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
           VERSION_COMMIT: ${{ steps.version-commit.outputs.commit-hash }}
 
+      - name: Push release tag
+        if: steps.bump.outputs.bump != ''
+        # Tag before publishing to npm: a publish failure then leaves git fully
+        # consistent, and this step is skipped on a re-run if the tag already
+        # points at the right commit.
+        run: |
+          EXISTING="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${VERSION}" --jq .object.sha 2>/dev/null || true)"
+          if [ -z "$EXISTING" ]; then
+            gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f "ref=refs/tags/v${VERSION}" -f "sha=${VERSION_COMMIT}"
+          elif [ "$EXISTING" = "$VERSION_COMMIT" ]; then
+            echo "Tag v${VERSION} already exists at ${VERSION_COMMIT}, skipping"
+          else
+            echo "Tag v${VERSION} already exists but points at ${EXISTING} instead of ${VERSION_COMMIT}" >&2
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_COMMIT: ${{ steps.version-commit.outputs.commit-hash }}
+
       - name: Publish to npm
         if: steps.bump.outputs.bump != ''
         # Same command the npm plugin runs from `auto shipit`. Publishing
         # authenticates via npm trusted publishing (OIDC), hence id-token: write.
         run: yarn lerna publish from-package --yes --no-verify-access
-
-      - name: Push release tag
-        if: steps.bump.outputs.bump != ''
-        run: gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f "ref=refs/tags/v${VERSION}" -f "sha=${VERSION_COMMIT}"
-        env:
-          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
-          VERSION: ${{ steps.version.outputs.version }}
-          VERSION_COMMIT: ${{ steps.version-commit.outputs.commit-hash }}
 
       - name: Create GitHub release
         if: steps.bump.outputs.bump != ''
