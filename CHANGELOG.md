@@ -1,3 +1,15 @@
+# v8.10.1 (Tue Jul 07 2026)
+
+#### 🐛 Bug Fix
+
+- Chore: Sign commits made by auto [#1567](https://github.com/grafana/scenes/pull/1567) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.10.0 (Tue Jul 07 2026)
 
 #### 🚀 Enhancement
