@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   AdHocVariableFilter,
   DataSourceApi,
-  // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
   GetTagResponse,
   GrafanaTheme2,
@@ -265,14 +264,12 @@ export class GroupByVariable extends MultiValueVariable<GroupByVariableState> {
   ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await getDataSource(this.state.datasource, this._scopedVars);
 
-    // @ts-expect-error (temporary till we update grafana/data)
     if (!ds.getDrilldownsApplicability) {
       return;
     }
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
 
-    // @ts-expect-error (temporary till we update grafana/data)
     return await ds.getDrilldownsApplicability({
       groupByKeys: Array.isArray(value) ? value.map((v) => String(v)) : value ? [String(value)] : [],
       queries,

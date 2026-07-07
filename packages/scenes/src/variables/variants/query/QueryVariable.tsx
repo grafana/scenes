@@ -9,7 +9,6 @@ import {
   ScopedVars,
   VariableRefresh,
   VariableSort,
-  // @ts-expect-error TODO: remove suppression after updating grafana/data
   VariableRegexApplyTo,
 } from '@grafana/data';
 

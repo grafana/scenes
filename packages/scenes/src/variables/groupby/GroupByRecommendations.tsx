@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
   SelectableValue,
   store,
@@ -113,7 +112,6 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
   private async _fetchRecommendedDrilldowns() {
     const ds = await getDataSource(this._groupBy.state.datasource, this._scopedVars);
 
-    // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getRecommendedDrilldowns) {
       this.setState({ datasourceSupportsRecommendations: false });
       return;
@@ -134,7 +132,6 @@ export class GroupByRecommendations extends SceneObjectBase<GroupByRecommendatio
     const dashboardUid = enrichedRequest?.dashboardUID;
 
     try {
-      // @ts-expect-error (temporary till we update grafana/data)
       const recommendedDrilldowns = await ds.getRecommendedDrilldowns({
         timeRange,
         dashboardUid,

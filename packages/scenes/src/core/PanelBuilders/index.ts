@@ -56,10 +56,7 @@ import {
   defaultOptions as defaultStatusHistoryOptions,
   defaultFieldConfig as defaultStatusHistoryFieldConfig,
 } from '@grafana/schema/dist/esm/raw/composable/statushistory/panelcfg/x/StatusHistoryPanelCfg_types.gen';
-import {
-  Options as TableOptions,
-  defaultOptions as defaultTableOptions,
-} from '@grafana/schema/dist/esm/raw/composable/table/panelcfg/x/TablePanelCfg_types.gen';
+import { Options as TableOptions } from '@grafana/schema/dist/esm/raw/composable/table/panelcfg/x/TablePanelCfg_types.gen';
 import {
   Options as TextOptions,
   defaultOptions as defaultTextOptions,
@@ -148,7 +145,7 @@ export const PanelBuilders = {
     );
   },
   table() {
-    return new VizPanelBuilder<TableOptions, TableFieldConfig>('table', '10.0.0', () => defaultTableOptions);
+    return new VizPanelBuilder<TableOptions, TableFieldConfig>('table', '10.0.0');
   },
   text() {
     return new VizPanelBuilder<TextOptions, {}>('text', '10.0.0', () => defaultTextOptions);

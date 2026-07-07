@@ -1789,9 +1789,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
           metadata: { name: `Scope ${i}` },
           spec: {
             title: `Scope ${i}`,
-            type: 'test',
-            description: 'Test scope',
-            category: 'test',
             filters: scopeFilters[i] as ScopeSpecFilter[],
           },
         });
@@ -1823,9 +1820,6 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         metadata: { name: `Scope` },
         spec: {
           title: `Scope`,
-          type: 'test',
-          description: 'Test scope',
-          category: 'test',
           filters: [{ key: 'scopeOriginFilter', operator: 'equals', value: 'val' }],
         },
       },
@@ -3852,9 +3846,6 @@ function newScopesVariableFromScopeFilters(filters: ScopeSpecFilter[]) {
       metadata: { name: `Scope 1` },
       spec: {
         title: `Scope 1`,
-        type: 'test',
-        description: 'Test scope',
-        category: 'test',
         filters,
       },
     },

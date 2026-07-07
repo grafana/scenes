@@ -275,7 +275,6 @@ export function handleOptionGroups(values: SelectableValue[]): Array<SelectableV
 
 export const getVariableControlId = (variableType: VariableType, key?: string) => {
   // TODO: remove this once switch is in the schema
-  // @ts-expect-error - switch is a valid variable type, but not in the schema yet
   if (variableType === 'switch') {
     return `var-switch-${key}`;
   }

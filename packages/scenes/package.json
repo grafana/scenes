@@ -61,12 +61,12 @@
     "uuid": "^11.0.0"
   },
   "peerDependencies": {
-    "@grafana/data": ">=11.6",
-    "@grafana/e2e-selectors": ">=11.6",
-    "@grafana/i18n": "*",
-    "@grafana/runtime": ">=11.6",
-    "@grafana/schema": ">=11.6",
-    "@grafana/ui": ">=11.6",
+    "@grafana/data": ">=12.3",
+    "@grafana/e2e-selectors": ">=12.3",
+    "@grafana/i18n": ">=12.3",
+    "@grafana/runtime": ">=12.3",
+    "@grafana/schema": ">=12.3",
+    "@grafana/ui": ">=12.3",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.28.0",
@@ -74,6 +74,7 @@
   },
   "devDependencies": {
     "@grafana/i18n": "12.4.5",
+    "@openfeature/web-sdk": "^1.8.0",
     "@rollup/plugin-dynamic-import-vars": "2.1.5",
     "@rollup/plugin-json": "^6.1.0",
     "@types/history": "4.7.11",

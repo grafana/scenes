@@ -15,7 +15,7 @@ export class SceneToolbarButton extends SceneObjectBase<ToolbarButtonState> {
   public static Component = ({ model }: SceneComponentProps<SceneToolbarButton>) => {
     const state = model.useState();
 
-    return <ToolbarButton onClick={state.onClick} icon={state.icon} />;
+    return <ToolbarButton onClick={state.onClick} icon={state.icon} aria-label={state.icon} />;
   };
 }
 
