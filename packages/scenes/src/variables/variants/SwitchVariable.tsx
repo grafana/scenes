@@ -27,7 +27,6 @@ export class SwitchVariable extends SceneObjectBase<SwitchVariableState> impleme
 
   public constructor(initialState: Partial<SwitchVariableState>) {
     super({
-      // TODO: remove this once switch is in the schema @leventebalogh
       type: 'switch',
       value: 'false',
       enabledValue: 'true',

@@ -42,6 +42,5 @@ export function isGroupByVariable(variable: SceneVariable): variable is GroupByV
 }
 
 export function isSwitchVariable(variable: SceneVariable): variable is SwitchVariable {
-  // TODO: remove this once switch is in the schema @leventebalogh
   return variable.state.type === 'switch';
 }
