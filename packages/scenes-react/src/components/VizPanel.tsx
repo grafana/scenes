@@ -18,6 +18,7 @@ import { useAddToScene } from '../contexts/SceneContextObject';
 export interface VizPanelProps {
   title: string;
   description?: string;
+  subtitle?: string;
   dataProvider?: SceneDataProvider;
   viz: VizConfig;
   displayMode?: 'default' | 'transparent';
@@ -42,6 +43,7 @@ export function VizPanel(props: VizPanelProps) {
     displayMode,
     hoverHeader,
     hoverHeaderOffset,
+    subtitle,
     headerActions,
     menu,
     titleItems,
@@ -63,6 +65,7 @@ export function VizPanel(props: VizPanelProps) {
       key: key,
       pluginId: viz.pluginId,
       title: title,
+      subtitle: subtitle,
       titleItems: titleItems,
       description: description,
       options: viz.options,
@@ -98,6 +101,10 @@ export function VizPanel(props: VizPanelProps) {
 
     if (description !== prevProps.description) {
       stateUpdate.description = description;
+    }
+
+    if (subtitle !== prevProps.subtitle) {
+      stateUpdate.subtitle = subtitle;
     }
 
     if (displayMode !== prevProps.displayMode) {
@@ -183,6 +190,7 @@ export function VizPanel(props: VizPanelProps) {
     collapsible,
     collapsed,
     prevProps,
+    subtitle,
   ]);
 
   return <panel.Component model={panel} />;
