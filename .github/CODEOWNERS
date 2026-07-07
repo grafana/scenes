@@ -1,0 +1,3 @@
+# The Dashboards squad maintains grafana/scenes.
+# The catch-all requests review from the squad on every PR.
+* @grafana/grafana-dashboards-core
