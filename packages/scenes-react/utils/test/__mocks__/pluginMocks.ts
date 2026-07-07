@@ -1,10 +1,7 @@
 import { ComponentType } from 'react';
 import { PanelPluginMeta, PanelProps, PanelPlugin, PluginType } from '@grafana/data';
 
-export function getPanelPlugin(
-  options: Partial<PanelPluginMeta>,
-  reactPanel?: ComponentType<PanelProps>
-): PanelPlugin {
+export function getPanelPlugin(options: Partial<PanelPluginMeta>, reactPanel?: ComponentType<PanelProps>): PanelPlugin {
   const plugin = new PanelPlugin(reactPanel!);
   plugin.meta = {
     id: options.id!,

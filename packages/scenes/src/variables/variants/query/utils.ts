@@ -1,10 +1,6 @@
 import { isNumber, sortBy, toLower, uniqBy } from 'lodash';
 
-import {
-  stringToJsRegex,
-  VariableSort,
-  VariableRegexApplyTo,
-} from '@grafana/data';
+import { stringToJsRegex, VariableSort, VariableRegexApplyTo } from '@grafana/data';
 
 import { VariableValueOption } from '../../types';
 

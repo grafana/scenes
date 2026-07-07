@@ -97,9 +97,7 @@ class PaginationControl extends SceneObjectBase<PaginationControlState> {
     const isEnabled = !this.state.isEnabled;
     this.setState({ isEnabled });
 
-    const nextOptions = PanelOptionsBuilders.table()
-      .setOption('enablePagination', isEnabled)
-      .build();
+    const nextOptions = PanelOptionsBuilders.table().setOption('enablePagination', isEnabled).build();
 
     this.state.vizPanelRef.resolve().onOptionsChange(nextOptions);
   };
