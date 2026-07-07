@@ -5,7 +5,7 @@ import { plainGraph } from './visualizations';
 interface Props {
   maxDataPoints?: number;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   queryAlias?: string;
 }
 
