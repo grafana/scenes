@@ -1,3 +1,15 @@
+# v8.10.0 (Tue Jul 07 2026)
+
+#### 🚀 Enhancement
+
+- VizPanel: Add support for new subtitle prop [#1565](https://github.com/grafana/scenes/pull/1565) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v8.9.3 (Thu Jul 02 2026)
 
 #### 🐛 Bug Fix

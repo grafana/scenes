@@ -1,3 +1,25 @@
+# v8.10.0 (Tue Jul 07 2026)
+
+#### 🚀 Enhancement
+
+- `scenes-app`, `@grafana/scenes-react`, `@grafana/scenes`
+  - VizPanel: Add support for new subtitle prop [#1565](https://github.com/grafana/scenes/pull/1565) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- chore(deps): update actions/cache digest to caa2961 [#1568](https://github.com/grafana/scenes/pull/1568) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- Scenes: Add dashboards core as code owner [#1566](https://github.com/grafana/scenes/pull/1566) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+- `scenes-app`, `@grafana/scenes`
+  - chore(deps): update grafana monorepo [#1549](https://github.com/grafana/scenes/pull/1549) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+
+#### Authors: 3
+
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v8.9.5 (Fri Jul 03 2026)
 
 #### 🐛 Bug Fix
