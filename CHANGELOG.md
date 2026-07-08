@@ -1,3 +1,16 @@
+# v8.10.1 (Wed Jul 08 2026)
+
+#### 🐛 Bug Fix
+
+- Chore: Fix tag creation [#1570](https://github.com/grafana/scenes/pull/1570) ([@mdvictor](https://github.com/mdvictor))
+- Chore: Sign commits made by auto [#1567](https://github.com/grafana/scenes/pull/1567) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.10.1 (Tue Jul 07 2026)
 
 #### 🐛 Bug Fix
