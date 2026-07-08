@@ -210,7 +210,7 @@ jobs:
         # consistent, and this step is skipped on a re-run if the tag already
         # points at the right commit.
         run: |
-          EXISTING="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${VERSION}" --jq .object.sha 2>/dev/null || true)"
+          EXISTING="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${VERSION}" --jq .object.sha 2>/dev/null)" || EXISTING=""
           if [ -z "$EXISTING" ]; then
             gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f "ref=refs/tags/v${VERSION}" -f "sha=${VERSION_COMMIT}"
           elif [ "$EXISTING" = "$VERSION_COMMIT" ]; then
