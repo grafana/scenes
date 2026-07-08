@@ -39,10 +39,10 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneQueryController } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
-import { SceneDeactivationHandler, SceneObjectState } from '../core/types';
+import { SceneDataQuery, SceneDeactivationHandler, SceneObjectState } from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
+import { ExtraQueryDataProcessor, ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
 import { SafeSerializableSceneObject } from '../utils/SafeSerializableSceneObject';
 import { SceneQueryStateControllerState } from '../behaviors/types';
 import { config } from '@grafana/runtime';
@@ -89,6 +89,39 @@ const getDataSourceMock = jest.fn().mockImplementation((datasource) => {
                   type: 'string',
                   values: ['bar1', 'bar2', 'bar3'],
                 },
+              ],
+            }),
+          ],
+        });
+      }
+
+      // Secondary (extra) query routing used by the secondary-query merging tests.
+      // Annotation-only secondary used to assert annotation concatenation.
+      const firstRefId = request.targets[0]?.refId;
+      if (firstRefId === 'secAnnotations') {
+        return of({
+          data: [
+            toDataFrame({
+              refId: 'secAnnotations',
+              name: 'secondary annotation',
+              meta: { dataTopic: 'annotations' },
+              fields: [
+                { name: 'time', type: FieldType.time, values: [1] },
+                { name: 'text', type: FieldType.string, values: ['secondary annotation'] },
+              ],
+            }),
+          ],
+        });
+      }
+      // Any other secondary echoes its refId so series identity/order can be asserted.
+      if (typeof firstRefId === 'string' && firstRefId.startsWith('sec')) {
+        return of({
+          data: [
+            toDataFrame({
+              refId: firstRefId,
+              datapoints: [
+                [10, 1],
+                [20, 2],
               ],
             }),
           ],
@@ -1704,6 +1737,216 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
     });
   });
 
+  // Tests for the merge step where the primary and all secondary streams are combined with combineLatest and piped through extraQueryProcessingOperator
+  describe('secondary query merging', () => {
+    const tick = () => new Promise((r) => setTimeout(r, 1));
+
+    const buildScene = (providers: TestExtraQueryProvider[], queries: SceneDataQuery[] = [{ refId: 'A' }]) => {
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+      const queryRunner = new SceneQueryRunner({ queries });
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: providers,
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+      return { scene, queryRunner };
+    };
+
+    it('appends a passthrough secondary (no processor) after the primary series', async () => {
+      const provider = new TestExtraQueryProvider({ foo: 1 }, false, [secondaryDescriptor('secA')]);
+      const { scene, queryRunner } = buildScene([provider]);
+
+      scene.activate();
+      await tick();
+
+      expect(runRequestMock).toHaveBeenCalledTimes(2);
+      expect(queryRunner.state.data?.series.map((s) => s.refId)).toEqual(['A', 'secA']);
+    });
+
+    it('spreads the primary PanelData into the merged result', async () => {
+      const provider = new TestExtraQueryProvider({ foo: 1 }, false, [secondaryDescriptor('secA')]);
+      const { scene, queryRunner } = buildScene([provider]);
+
+      scene.activate();
+      await tick();
+
+      // state, request and timeRange all originate from the primary response.
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(queryRunner.state.data?.request?.requestId).toBe(runRequestMock.mock.calls[0][1].requestId);
+      expect(queryRunner.state.data?.timeRange).toEqual(runRequestMock.mock.calls[0][1].range);
+    });
+
+    it('applies the descriptor processor to the secondary series', async () => {
+      const renameProcessor: ExtraQueryDataProcessor = (_primary, secondary) =>
+        of({
+          ...secondary,
+          series: secondary.series.map((frame) => ({
+            ...frame,
+            refId: `${frame.refId}-processed`,
+            meta: { ...frame.meta, custom: { processed: true } },
+          })),
+        });
+
+      const provider = new TestExtraQueryProvider({ foo: 1 }, false, [secondaryDescriptor('secA', renameProcessor)]);
+      const { scene, queryRunner } = buildScene([provider]);
+
+      scene.activate();
+      await tick();
+
+      const series = queryRunner.state.data?.series ?? [];
+      expect(series.map((s) => s.refId)).toEqual(['A', 'secA-processed']);
+      expect(series[1].meta?.custom).toEqual({ processed: true });
+    });
+
+    it('merges multiple secondaries from a single provider in order', async () => {
+      const provider = new TestExtraQueryProvider({ foo: 1 }, false, [
+        secondaryDescriptor('secA'),
+        secondaryDescriptor('secB'),
+      ]);
+      const { scene, queryRunner } = buildScene([provider]);
+
+      scene.activate();
+      await tick();
+
+      expect(runRequestMock).toHaveBeenCalledTimes(3);
+      expect(queryRunner.state.data?.series.map((s) => s.refId)).toEqual(['A', 'secA', 'secB']);
+    });
+
+    it('merges secondaries contributed by multiple providers', async () => {
+      const providerA = new TestExtraQueryProvider({ foo: 1 }, false, [secondaryDescriptor('secA')]);
+      const providerB = new SecondTestExtraQueryProvider({ foo: 2 }, false, [secondaryDescriptor('secB')]);
+      const { scene, queryRunner } = buildScene([providerA, providerB]);
+
+      scene.activate();
+      await tick();
+
+      expect(runRequestMock).toHaveBeenCalledTimes(3);
+      const refIds = queryRunner.state.data?.series.map((s) => s.refId) ?? [];
+      expect(refIds[0]).toBe('A');
+      expect(refIds.slice(1).sort()).toEqual(['secA', 'secB']);
+    });
+
+    it('concatenates annotations from a secondary onto the primary annotations', async () => {
+      const provider = new TestExtraQueryProvider({ foo: 1 }, false, [secondaryDescriptor('secAnnotations')]);
+      const { scene, queryRunner } = buildScene([provider], [{ refId: 'withAnnotations' }]);
+
+      scene.activate();
+      await tick();
+
+      const annotationNames = (queryRunner.state.data?.annotations ?? []).map((frame) => frame.name);
+      expect(annotationNames).toContain('exemplar');
+      expect(annotationNames).toContain('secondary annotation');
+    });
+
+    describe('stream combination semantics', () => {
+      const panelData = (over: Partial<PanelData> = {}): PanelData => ({
+        state: LoadingState.Done,
+        series: [],
+        annotations: [],
+        timeRange: {} as any,
+        request: { requestId: 'controlled' } as any,
+        ...over,
+      });
+
+      it('emits when primary and all secondaries complete', async () => {
+        const primarySubject = new Subject<PanelData>();
+        const secondarySubject = new Subject<PanelData>();
+        runRequestMock.mockImplementationOnce(() => primarySubject).mockImplementationOnce(() => secondarySubject);
+
+        const provider = new TestExtraQueryProvider({ foo: 1 }, false, [secondaryDescriptor('secCtrl')]);
+        const { scene, queryRunner } = buildScene([provider]);
+
+        scene.activate();
+        await tick();
+        expect(runRequestMock).toHaveBeenCalledTimes(2);
+
+        // Only the primary has completed: secondary must not have emitted yet.
+        primarySubject.next(panelData({ series: [toDataFrame({ refId: 'A', datapoints: [[1, 1]] })] }));
+        primarySubject.complete();
+        await tick();
+        expect(queryRunner.state.data).toBeUndefined();
+
+        // Once the secondary completes too, the combined result is emitted.
+        secondarySubject.next(
+          panelData({
+            series: [toDataFrame({ refId: 'secCtrl', datapoints: [[2, 1]] })],
+            request: { requestId: 'sec-controlled' } as any,
+          })
+        );
+        secondarySubject.complete();
+        await tick();
+
+        expect(queryRunner.state.data?.series.map((s) => s.refId)).toEqual(['A', 'secCtrl']);
+        expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      });
+
+      it('emits error when secondary reports an error', async () => {
+        const primarySubject = new Subject<PanelData>();
+        const secondarySubject = new Subject<PanelData>();
+        runRequestMock.mockImplementationOnce(() => primarySubject).mockImplementationOnce(() => secondarySubject);
+
+        const provider = new TestExtraQueryProvider({ foo: 1 }, false, [secondaryDescriptor('secCtrl')]);
+        const { scene, queryRunner } = buildScene([provider]);
+
+        scene.activate();
+        await tick();
+
+        primarySubject.next(panelData({ series: [toDataFrame({ refId: 'A', datapoints: [[1, 1]] })] }));
+        primarySubject.complete();
+        secondarySubject.next(
+          panelData({
+            state: LoadingState.Error,
+            series: [toDataFrame({ refId: 'secCtrl', datapoints: [[2, 1]] })],
+            errors: [{ message: 'secondary boom' }],
+            request: { requestId: 'sec-controlled' } as any,
+          })
+        );
+        secondarySubject.complete();
+        await tick();
+
+        // The merged state is taken from the primary, so the secondary error is masked,
+        // but its series are still merged in.
+        expect(queryRunner.state.data?.state).toBe(LoadingState.Error);
+        expect(queryRunner.state.data?.series.map((s) => s.refId)).toEqual(['A', 'secCtrl']);
+        expect(queryRunner.state.data?.errors ?? []).toEqual([{ message: 'secondary boom' }]);
+      });
+
+      it('tears down the combined subscription when the query is cancelled', async () => {
+        const primarySubject = new Subject<PanelData>();
+        const secondarySubject = new Subject<PanelData>();
+        runRequestMock.mockImplementationOnce(() => primarySubject).mockImplementationOnce(() => secondarySubject);
+
+        const provider = new TestExtraQueryProvider({ foo: 1 }, false, [secondaryDescriptor('secCtrl')]);
+        const { scene, queryRunner } = buildScene([provider]);
+
+        scene.activate();
+        await tick();
+        expect(runRequestMock).toHaveBeenCalledTimes(2);
+
+        queryRunner.cancelQuery();
+        expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+
+        // Emissions after cancellation must not reach the runner.
+        primarySubject.next(panelData({ series: [toDataFrame({ refId: 'A', datapoints: [[1, 1]] })] }));
+        primarySubject.complete();
+        secondarySubject.next(
+          panelData({
+            series: [toDataFrame({ refId: 'secCtrl', datapoints: [[2, 1]] })],
+            request: { requestId: 'sec-controlled' } as DataQueryRequest,
+          })
+        );
+        secondarySubject.complete();
+        await tick();
+
+        expect(queryRunner.state.data?.series ?? []).toHaveLength(0);
+      });
+    });
+  });
+
   describe('time frame comparison', () => {
     test('should run query with time range comparison', async () => {
       const timeRange = new SceneTimeRange({
@@ -1903,6 +2146,119 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
           },
         }
       `);
+    });
+  });
+
+  describe('secondary query loading and error states', () => {
+    const tick = () => new Promise((r) => setTimeout(r, 1));
+
+    const panelDataFrom = (request: DataQueryRequest, p: Partial<PanelData>): PanelData => ({
+      series: [],
+      annotations: [],
+      state: LoadingState.Loading,
+      timeRange: request.range,
+      request,
+      ...p,
+    });
+
+    // Wire the primary runRequest to one subject and the secondary to another so each can be
+    // driven independently. The primary request is issued first, the secondary second.
+    const mockPrimaryAndSecondaryStreams = () => {
+      const primarySubject = new Subject<Partial<PanelData>>();
+      const secondarySubject = new Subject<Partial<PanelData>>();
+      runRequestMock
+        .mockImplementationOnce((_ds: DataSourceApi, request: DataQueryRequest) =>
+          primarySubject.pipe(map((p) => panelDataFrom(request, p)))
+        )
+        .mockImplementationOnce((_ds: DataSourceApi, request: DataQueryRequest) =>
+          secondarySubject.pipe(map((p) => panelDataFrom(request, p)))
+        );
+      return { primarySubject: primarySubject, secondarySubject: secondarySubject };
+    };
+
+    it('emits Loading while the secondary query is still in flight', async () => {
+      const { primarySubject, secondarySubject } = mockPrimaryAndSecondaryStreams();
+
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }] });
+      const provider = new TestExtraQueryProvider({ foo: 1 }, true);
+      const scene = new EmbeddedScene({
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        controls: [provider],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      scene.activate();
+      await tick();
+
+      // Primary completes but the secondary is still loading -> overall state is Loading.
+      primarySubject.next({ state: LoadingState.Done });
+      secondarySubject.next({ state: LoadingState.Loading });
+      await tick();
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Loading);
+
+      // Secondary completes -> overall state transitions to Done.
+      secondarySubject.next({ state: LoadingState.Done });
+      await tick();
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+    });
+
+    it('emits errors when the secondary query fails', async () => {
+      const { primarySubject, secondarySubject } = mockPrimaryAndSecondaryStreams();
+
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }] });
+      const provider = new TestExtraQueryProvider({ foo: 1 }, true);
+      const scene = new EmbeddedScene({
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        controls: [provider],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      scene.activate();
+      await tick();
+
+      primarySubject.next({ state: LoadingState.Done });
+      secondarySubject.next({ state: LoadingState.Error, errors: [{ message: 'secondary failed' }] });
+      await tick();
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Error);
+      expect(queryRunner.state.data?.errors).toEqual([{ message: 'secondary failed' }]);
+    });
+
+    it('applies requestId suffix when the primary re-emits', async () => {
+      const { primarySubject, secondarySubject } = mockPrimaryAndSecondaryStreams();
+
+      const timeRange = new SceneTimeRange({
+        from: '2023-08-24T05:00:00.000Z',
+        to: '2023-08-24T07:00:00.000Z',
+      });
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }] });
+      const comparer = new SceneTimeRangeCompare({ compareWith: '1h' });
+      const scene = new EmbeddedScene({
+        $timeRange: timeRange,
+        $data: queryRunner,
+        controls: [comparer],
+        body: new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: new SceneCanvasText({ text: 'A' }) })],
+        }),
+      });
+
+      scene.activate();
+      comparer.activate();
+      await tick();
+
+      // A single secondary response object is processed...
+      secondarySubject.next({ state: LoadingState.Done, series: [toDataFrame({ refId: 'A', fields: [] })] });
+      // ...then the primary re-emits twice, each re-triggering combineLatest against the same secondary.
+      // extraQueryProcessingOperator should prevent the processor from re-running and double-suffixing the refId.
+      primarySubject.next({ state: LoadingState.Streaming, series: [toDataFrame({ refId: 'A', fields: [] })] });
+      primarySubject.next({ state: LoadingState.Done, series: [toDataFrame({ refId: 'A', fields: [] })] });
+      await tick();
+
+      const refIds = queryRunner.state.data?.series.map((s) => s.refId) ?? [];
+      expect(refIds.filter((refId) => refId === 'A-compare')).toHaveLength(1);
+      expect(refIds).not.toContain('A-compare-compare');
     });
   });
 
@@ -2978,13 +3334,21 @@ interface TestExtraQueryProviderState extends SceneObjectState {
 
 class TestExtraQueryProvider extends SceneObjectBase<TestExtraQueryProviderState> implements ExtraQueryProvider<{}> {
   private _shouldRerun: boolean;
+  private _descriptors?: ExtraQueryDescriptor[];
 
-  public constructor(state: { foo: number }, shouldRerun: boolean) {
+  public constructor(state: { foo: number }, shouldRerun: boolean, descriptors?: ExtraQueryDescriptor[]) {
     super(state);
     this._shouldRerun = shouldRerun;
+    this._descriptors = descriptors;
   }
 
   public getExtraQueries(): ExtraQueryDescriptor[] {
+    // When explicit descriptors are provided, use them so tests can exercise
+    // multiple secondaries, missing processors (passthrough), etc.
+    if (this._descriptors) {
+      return this._descriptors;
+    }
+
     return [
       {
         req: {
@@ -3000,4 +3364,19 @@ class TestExtraQueryProvider extends SceneObjectBase<TestExtraQueryProviderState
   public shouldRerun(prev: {}, next: {}): boolean {
     return this._shouldRerun;
   }
+}
+
+// A distinct provider class. `getClosestExtraQueryProviders` de-duplicates
+// providers by their constructor, so testing multiple providers at once
+// requires more than one class.
+class SecondTestExtraQueryProvider extends TestExtraQueryProvider {}
+
+// Build an ExtraQueryDescriptor whose secondary request targets a single refId.
+// The shared datasource mock echoes any refId starting with `sec` (see
+// getDataSourceMock) so the merged series can be asserted by refId.
+function secondaryDescriptor(refId: string, processor?: ExtraQueryDataProcessor): ExtraQueryDescriptor {
+  return {
+    req: { targets: [{ refId }] } as DataQueryRequest,
+    processor,
+  };
 }
