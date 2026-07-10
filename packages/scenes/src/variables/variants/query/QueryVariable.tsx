@@ -1,10 +1,11 @@
-import { Observable, of, filter, take, mergeMap, catchError, throwError, from, lastValueFrom } from 'rxjs';
+import { Observable, of, filter, take, mergeMap, catchError, throwError, from, lastValueFrom, forkJoin } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
   CoreApp,
   DataQueryRequest,
   LoadingState,
+  MetricFindValue,
   PanelData,
   ScopedVars,
   VariableRefresh,
@@ -30,6 +31,7 @@ import { SEARCH_FILTER_VARIABLE } from '../../constants';
 import { debounce } from 'lodash';
 import { registerQueryWithController } from '../../../querying/registerQueryWithController';
 import { wrapInSafeSerializableSceneObject } from '../../../utils/wrapInSafeSerializableSceneObject';
+import { expandMultiValueDatasourceUids } from '../../datasourceVariableRef';
 import React from 'react';
 
 export interface QueryVariableState extends MultiValueVariableState {
@@ -79,64 +81,91 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
 
     this.setState({ loading: true, error: null });
 
-    return from(
-      getDataSource(this.state.datasource, {
-        __sceneObject: wrapInSafeSerializableSceneObject(this),
-      })
-    ).pipe(
-      mergeMap((ds) => {
-        const runner = createQueryVariableRunner(ds);
-        const target = runner.getTarget(this);
-        const request = this.getRequest(target, args.searchFilter);
+    const fanOutUids = expandMultiValueDatasourceUids(this, this.state.datasource);
+    const datasourceRefs: Array<DataSourceRef | null> = fanOutUids
+      ? fanOutUids.map((uid) => ({ ...this.state.datasource, uid }))
+      : [this.state.datasource];
 
-        return runner.runRequest({ variable: this, searchFilter: args.searchFilter }, request).pipe(
-          registerQueryWithController({
-            type: 'QueryVariable/getValueOptions',
-            request: request,
-            origin: this,
-          }),
-          filter((data) => data.state === LoadingState.Done || data.state === LoadingState.Error), // we only care about done or error for now
-          take(1), // take the first result, using first caused a bug where it in some situations throw an uncaught error because of no results had been received yet
-          mergeMap((data: PanelData) => {
-            if (data.state === LoadingState.Error) {
-              return throwError(() => data.error);
-            }
-            return of(data);
-          }),
-          toMetricFindValues(),
-          mergeMap((values) => {
-            let regex = '';
-            if (this.state.regex) {
-              regex = sceneGraph.interpolate(this, this.state.regex, undefined, 'regex');
-            }
-            let options = metricNamesToVariableValues({
-              variableRegEx: regex,
-              variableRegexApplyTo: this.state.regexApplyTo,
-              sort: this.state.sort,
-              metricNames: values,
-            });
-            if (this.state.staticOptions) {
-              const customOptions = this.state.staticOptions;
-              options = options.filter((option) => !customOptions.find((custom) => custom.value === option.value));
-              if (this.state.staticOptionsOrder === 'after') {
-                options.push(...customOptions);
-              } else if (this.state.staticOptionsOrder === 'sorted') {
-                options = sortVariableValues(options.concat(customOptions), this.state.sort);
-              } else {
-                options.unshift(...customOptions);
-              }
-            }
-            return of(options);
-          }),
-          catchError((error) => {
-            if (error.cancelled) {
-              return of([]);
-            }
-            return throwError(() => error);
-          })
-        );
+    const scopedSceneObject = {
+      __sceneObject: wrapInSafeSerializableSceneObject(this),
+    };
+
+    const perDatasource = datasourceRefs.map((datasource) =>
+      from(getDataSource(datasource, scopedSceneObject)).pipe(
+        mergeMap((ds) => this.runMetricFindForDatasource(ds, args)),
+        catchError((error) => {
+          if (error?.cancelled) {
+            return of({ values: [] as MetricFindValue[], error: undefined });
+          }
+          return of({ values: [] as MetricFindValue[], error });
+        })
+      )
+    );
+
+    return forkJoin(perDatasource).pipe(
+      mergeMap((results) => {
+        const values = results.flatMap((result) => result.values);
+        const errors = results.map((result) => result.error).filter(Boolean);
+
+        if (values.length === 0 && errors.length > 0) {
+          return throwError(() => errors[0]);
+        }
+
+        return of(this.metricFindValuesToOptions(values));
       })
     );
+  }
+
+  private runMetricFindForDatasource(
+    ds: Awaited<ReturnType<typeof getDataSource>>,
+    args: VariableGetOptionsArgs
+  ): Observable<{ values: MetricFindValue[]; error?: unknown }> {
+    const runner = createQueryVariableRunner(ds);
+    const target = runner.getTarget(this);
+    const request = this.getRequest(target, args.searchFilter);
+
+    return runner.runRequest({ variable: this, searchFilter: args.searchFilter }, request).pipe(
+      registerQueryWithController({
+        type: 'QueryVariable/getValueOptions',
+        request: request,
+        origin: this,
+      }),
+      filter((data) => data.state === LoadingState.Done || data.state === LoadingState.Error),
+      take(1),
+      mergeMap((data: PanelData) => {
+        if (data.state === LoadingState.Error) {
+          return throwError(() => data.error);
+        }
+        return of(data);
+      }),
+      toMetricFindValues(),
+      mergeMap((values) => of({ values, error: undefined as unknown }))
+    );
+  }
+
+  private metricFindValuesToOptions(values: MetricFindValue[]): VariableValueOption[] {
+    let regex = '';
+    if (this.state.regex) {
+      regex = sceneGraph.interpolate(this, this.state.regex, undefined, 'regex');
+    }
+    let options = metricNamesToVariableValues({
+      variableRegEx: regex,
+      variableRegexApplyTo: this.state.regexApplyTo,
+      sort: this.state.sort,
+      metricNames: values,
+    });
+    if (this.state.staticOptions) {
+      const customOptions = this.state.staticOptions;
+      options = options.filter((option) => !customOptions.find((custom) => custom.value === option.value));
+      if (this.state.staticOptionsOrder === 'after') {
+        options.push(...customOptions);
+      } else if (this.state.staticOptionsOrder === 'sorted') {
+        options = sortVariableValues(options.concat(customOptions), this.state.sort);
+      } else {
+        options.unshift(...customOptions);
+      }
+    }
+    return options;
   }
 
   private getRequest(target: DataQuery | string, searchFilter?: string) {
