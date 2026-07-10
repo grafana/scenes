@@ -161,6 +161,147 @@ function shouldUseMixedRuntimeDatasource(
   return false;
 }
 
+function parseRefsFromMathExpression(input: string): string[] {
+  const bracket = /\$\{([A-Za-z0-9_ ]+?)\}/gm;
+  const simple = /\$([A-Za-z0-9_]+)/gm;
+  const found = new Set<string>();
+  let match: RegExpExecArray | null;
+  while ((match = bracket.exec(input)) !== null) {
+    found.add(match[1]);
+  }
+  while ((match = simple.exec(input)) !== null) {
+    found.add(match[1]);
+  }
+  return Array.from(found);
+}
+
+// Returns the refIds a server-side expression query depends on.
+function getExpressionReferences(query: DataQueryExtended): string[] {
+  const { type, expression, conditions } = query;
+  if (type === 'math' || type === 'sql') {
+    return parseRefsFromMathExpression(expression ?? '');
+  }
+  if (type === 'classic_conditions') {
+    return (conditions ?? [])
+      .map((condition: { query?: { params?: string[] } }) => condition.query?.params?.[0])
+      .filter((refId: string | undefined): refId is string => Boolean(refId));
+  }
+  // reduce / resample / threshold: the whole `expression` is a single refId
+  return expression ? [expression] : [];
+}
+
+// Renames the refIds a server-side expression references, according to renameMap.
+function rewriteExpressionReferences(query: DataQueryExtended, renameMap: Record<string, string>): void {
+  const { type } = query;
+  if (type === 'math' || type === 'sql') {
+    let expression: string = query.expression ?? '';
+    for (const oldRef of Object.keys(renameMap)) {
+      const pattern = new RegExp('(\\$' + oldRef + '\\b)|(\\$\\{' + oldRef + '\\})', 'gm');
+      expression = expression.replace(pattern, '${' + renameMap[oldRef] + '}');
+    }
+    query.expression = expression;
+  } else if (type === 'classic_conditions') {
+    (query.conditions ?? []).forEach((condition: { query?: { params?: string[] } }) => {
+      const params = condition.query?.params;
+      if (params && params[0] && renameMap[params[0]]) {
+        params[0] = renameMap[params[0]];
+      }
+    });
+  } else if (query.expression && renameMap[query.expression]) {
+    query.expression = renameMap[query.expression];
+  }
+}
+
+/**
+ * When a data query using a multi-value datasource variable feeds a server-side expression, the
+ * whole graph must be evaluated once per selected datasource. We fan out by cloning the data query
+ * (pinned to a concrete datasource) and its dependent expression subgraph once per selected value,
+ * rewriting refIds so each replica is self-contained. Queries and expressions that do not depend on
+ * the multi-value variable are left untouched (they run once).
+ *
+ * Only a single multi-value datasource variable shared by the data queries is supported.
+ */
+function expandExpressionFanOut(sceneObject: SceneQueryRunner, targets: DataQueryExtended[]): DataQueryExtended[] {
+  const isExpression = (query: DataQueryExtended) =>
+    Boolean(isExpressionReference && isExpressionReference(query.datasource));
+
+  if (!targets.some(isExpression)) {
+    return targets;
+  }
+
+  // Find the multi-value datasource variable used by a data query (if any).
+  let variableName: string | undefined;
+  let uids: string[] | undefined;
+  for (const target of targets) {
+    if (isExpression(target)) {
+      continue;
+    }
+    const candidate = getSimpleVariableNameFromDatasourceUid(target.datasource?.uid);
+    if (!candidate) {
+      continue;
+    }
+    const value = sceneGraph.lookupVariable(candidate, sceneObject)?.getValue();
+    if (Array.isArray(value)) {
+      const selected = value.filter((item) => item !== 'default').map(String);
+      if (selected.length > 1) {
+        variableName = candidate;
+        uids = selected;
+        break;
+      }
+    }
+  }
+
+  if (!variableName || !uids) {
+    return targets;
+  }
+
+  // Data queries using the multi-value variable are the fan-out roots.
+  const fannedRootRefIds = new Set<string>();
+  for (const target of targets) {
+    if (!isExpression(target) && getSimpleVariableNameFromDatasourceUid(target.datasource?.uid) === variableName) {
+      fannedRootRefIds.add(target.refId);
+    }
+  }
+
+  // Transitive closure of expressions that (transitively) depend on a fan-out root.
+  const dependentRefIds = new Set<string>(fannedRootRefIds);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const target of targets) {
+      if (!isExpression(target) || dependentRefIds.has(target.refId)) {
+        continue;
+      }
+      if (getExpressionReferences(target).some((refId) => dependentRefIds.has(refId))) {
+        dependentRefIds.add(target.refId);
+        changed = true;
+      }
+    }
+  }
+
+  const expanded: DataQueryExtended[] = targets.filter((target) => !dependentRefIds.has(target.refId));
+  const toFanOut = targets.filter((target) => dependentRefIds.has(target.refId));
+
+  uids.forEach((uid, index) => {
+    const renameMap: Record<string, string> = {};
+    for (const target of toFanOut) {
+      renameMap[target.refId] = `${target.refId}_${index}`;
+    }
+    for (const target of toFanOut) {
+      const clone = cloneDeep(target);
+      clone.refId = renameMap[target.refId];
+      if (fannedRootRefIds.has(target.refId)) {
+        clone.datasource = { ...clone.datasource, uid };
+      } else {
+        rewriteExpressionReferences(clone, renameMap);
+      }
+      expanded.push(clone);
+    }
+  });
+
+  return expanded;
+}
+
 export interface DataQueryExtended extends DataQuery {
   [key: string]: any;
 
@@ -677,6 +818,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       }
       return query;
     });
+
+    request.targets = expandExpressionFanOut(this, request.targets);
 
     const lowerIntervalLimit = minInterval ? interpolate(this, minInterval) : ds.interval;
     const norm = rangeUtil.calculateInterval(timeRange.state.value, request.maxDataPoints!, lowerIntervalLimit);
