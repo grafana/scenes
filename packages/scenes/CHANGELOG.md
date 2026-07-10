@@ -1,3 +1,20 @@
+# v8.11.0 (Fri Jul 10 2026)
+
+#### 🚀 Enhancement
+
+- SceneQueryRunner: fan out multi-value datasource variable feeding an expression [#1572](https://github.com/grafana/scenes/pull/1572) ([@sarahzinger](https://github.com/sarahzinger))
+
+#### 🐛 Bug Fix
+
+- SceneQueryRunner: convert forkJoin to combineLatest [#1554](https://github.com/grafana/scenes/pull/1554) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 2
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Sarah Zinger ([@sarahzinger](https://github.com/sarahzinger))
+
+---
+
 # v8.10.2 (Wed Jul 08 2026)
 
 #### 🐛 Bug Fix
