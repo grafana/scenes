@@ -48,6 +48,7 @@ import { SceneQueryStateControllerState } from '../behaviors/types';
 import { config } from '@grafana/runtime';
 import { ScopesVariable } from '../variables/variants/ScopesVariable';
 import { ConstantVariable } from '../variables/variants/ConstantVariable';
+import { CustomVariable } from '../variables/variants/CustomVariable';
 
 const getDataSourceMock = jest.fn().mockImplementation((datasource) => {
   const isMixed = datasource?.uid === '-- Mixed --';
@@ -568,6 +569,47 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       expect((getDataSourceCall[1].__sceneObject.value as SafeSerializableSceneObject).valueOf()).toBe(queryRunner);
       expect(getDataSourceCall[1].__sceneObject.text).toBe('__sceneObject');
+    });
+
+    it('should fan out a query + dependent expression across a multi-value datasource variable', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: '-- Mixed --' },
+        queries: [
+          { refId: 'A', datasource: { uid: '$ds' }, hide: true },
+          { refId: 'B', datasource: { type: '__expr__', uid: '__expr__' }, type: 'math', expression: '$A' },
+        ],
+      });
+
+      const dsVar = new CustomVariable({
+        name: 'ds',
+        query: 'ds1,ds2',
+        isMulti: true,
+        value: ['ds1', 'ds2'],
+        text: ['ds1', 'ds2'],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [dsVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const targets = runRequestMock.mock.calls[0][1].targets;
+      // A + B fanned out once per selected datasource, with unique refIds
+      expect(targets.map((t: DataQuery) => t.refId).sort()).toEqual(['A_0', 'A_1', 'B_0', 'B_1']);
+
+      const byRefId = (refId: string) => targets.find((t: DataQuery) => t.refId === refId);
+      // data-query clones pinned to concrete datasources
+      expect(byRefId('A_0').datasource.uid).toBe('ds1');
+      expect(byRefId('A_1').datasource.uid).toBe('ds2');
+      // expression clones reference their own fanned-out data query
+      expect(byRefId('B_0').expression).toBe('${A_0}');
+      expect(byRefId('B_1').expression).toBe('${A_1}');
     });
 
     it('should pass adhoc filters via request object', async () => {
