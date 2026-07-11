@@ -17,6 +17,7 @@ import {
   dataFromResponse,
   escapeOriginFilterUrlDelimiters,
   getQueriesForVariables,
+  getVariableControlId,
   renderPrometheusLabelFilters,
   responseHasError,
 } from '../utils';
@@ -39,6 +40,8 @@ import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
 import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
 import { AdHocFiltersRecommendations } from './AdHocFiltersRecommendations';
+import { OriginFilterValueControl } from './OriginFilterValueControl';
+import { ControlsLabel } from '../../utils/ControlsLabel';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -187,6 +190,19 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
    * When true, the "groupBy" operator is available and filters can be used as group-by dimensions.
    */
   enableGroupBy?: boolean;
+
+  /**
+   * @experimental
+   * Controls how dashboard-origin filters are rendered in the combobox layout.
+   * - 'pills' (default): rendered as pills inside the filters combobox.
+   * - 'controls': rendered as standalone, labeled, value-only controls before the
+   *   filters combobox. Their keys are removed from the combobox key suggestions so a
+   *   field is never managed in two places. The renderer also renders a label for the
+   *   combobox (using the variable label/name), so hosts that render their own variable
+   *   label should skip it when this mode is active.
+   * Scope-origin filters and group-by origin filters keep the pill rendering.
+   */
+  originFiltersRenderMode?: 'pills' | 'controls';
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
@@ -1355,7 +1371,8 @@ function haveGroupByKeysChanged(prev: AdHocFilterWithLabels[], next: AdHocFilter
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
-  const { filters, readOnly, addFilterButtonText } = model.useState();
+  const state = model.useState();
+  const { filters, readOnly, addFilterButtonText } = state;
   const styles = useStyles2(getStyles);
 
   // Create controller adapter for combobox mode
@@ -1365,6 +1382,28 @@ export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHo
   );
 
   if (controller) {
+    const originFilterControls = getOriginFilterControls(state);
+
+    if (originFilterControls.length > 0) {
+      return (
+        <div className={styles.originControlsWrapper}>
+          {originFilterControls.map((filter) => (
+            <OriginFilterValueControl key={`${filter.origin}-${filter.key}`} filter={filter} model={model} />
+          ))}
+          <div className={styles.labeledCombobox}>
+            <ControlsLabel
+              htmlFor={getVariableControlId(state.type, state.key)}
+              label={state.label || state.name}
+              isLoading={state.loading}
+              error={state.error}
+              description={state.description || undefined}
+            />
+            <AdHocFiltersComboboxRenderer controller={controller} />
+          </div>
+        </div>
+      );
+    }
+
     return <AdHocFiltersComboboxRenderer controller={controller} />;
   }
 
@@ -1390,6 +1429,22 @@ const getStyles = (theme: GrafanaTheme2) => ({
     alignItems: 'flex-end',
     columnGap: theme.spacing(2),
     rowGap: theme.spacing(1),
+  }),
+  originControlsWrapper: css({
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: theme.spacing(1),
+  }),
+  labeledCombobox: css({
+    display: 'flex',
+    alignItems: 'center',
+    flexGrow: 1,
+    // No left border radius for the combobox as the label and combobox share a border
+    '> :nth-child(2)': css({
+      borderTopLeftRadius: 0,
+      borderBottomLeftRadius: 0,
+    }),
   }),
 });
 
@@ -1434,6 +1489,20 @@ export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
 
 export function isFilterApplicable(filter: AdHocFilterWithLabels): boolean {
   return !filter.nonApplicable;
+}
+
+/**
+ * The dashboard-origin filters that render as standalone value-only controls when
+ * `originFiltersRenderMode` is 'controls'. Returns an empty array when the mode is not active.
+ */
+export function getOriginFilterControls(state: AdHocFiltersVariableState): AdHocFilterWithLabels[] {
+  if (state.originFiltersRenderMode !== 'controls' || (state.layout ?? 'combobox') !== 'combobox') {
+    return [];
+  }
+
+  return (state.originFilters ?? []).filter(
+    (filter) => filter.origin === 'dashboard' && !isGroupByFilter(filter) && !filter.hidden
+  );
 }
 
 function findLastAdhocFilterIndex(filters: AdHocFilterWithLabels[]): number {

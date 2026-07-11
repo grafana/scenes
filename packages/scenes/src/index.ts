@@ -87,6 +87,7 @@ export {
   OPERATORS,
   GROUP_BY_OPERATOR,
   isGroupByFilter,
+  getOriginFilterControls,
   type OperatorDefinition,
 } from './variables/adhoc/AdHocFiltersVariable';
 export type { AdHocFilterWithLabels } from './variables/adhoc/AdHocFiltersVariable';
