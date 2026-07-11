@@ -1,5 +1,5 @@
 import { SelectableValue } from '@grafana/data';
-import { AdHocFilterWithLabels, AdHocFiltersVariable } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, AdHocFiltersVariable, getOriginFilterControls } from '../AdHocFiltersVariable';
 import { AdHocFiltersController, AdHocFiltersControllerState } from './AdHocFiltersController';
 import { getQueryController } from '../../../core/sceneGraph/getQueryController';
 import { getInteractionTracker } from '../../../core/sceneGraph/getInteractionTracker';
@@ -15,9 +15,14 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
   public useState(): AdHocFiltersControllerState {
     const state = this.model.useState();
 
+    // Origin filters rendered as standalone controls are managed outside the combobox
+    const controlFilters = new Set(getOriginFilterControls(state));
+
     return {
       filters: state.filters,
-      originFilters: state.originFilters,
+      originFilters: controlFilters.size
+        ? state.originFilters?.filter((filter) => !controlFilters.has(filter))
+        : state.originFilters,
       readOnly: state.readOnly,
       allowCustomValue: state.allowCustomValue,
       supportsMultiValueOperators: state.supportsMultiValueOperators,
@@ -34,7 +39,16 @@ export class AdHocFiltersVariableController implements AdHocFiltersController {
   }
 
   public async getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
-    return this.model._getKeys(currentKey);
+    const keys = await this.model._getKeys(currentKey);
+
+    // Keys managed by standalone origin filter controls are removed from the combobox
+    // suggestions so a field is never managed in two places
+    const controlKeys = new Set(getOriginFilterControls(this.model.state).map((filter) => filter.key));
+    if (controlKeys.size === 0) {
+      return keys;
+    }
+
+    return keys.filter((key) => key.value == null || !controlKeys.has(key.value));
   }
 
   public async getGroupByKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
