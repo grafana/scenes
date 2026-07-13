@@ -1,4 +1,4 @@
-import '../types/window';
+/// <reference path="../types/window.d.ts" />
 import React from 'react';
 import { Unsubscribable } from 'rxjs';
 import { rangeUtil } from '@grafana/data';
@@ -173,6 +173,9 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
       return;
     }
 
+    // Unsubscribe from previous listener no matter what
+    this._autoTimeRangeListener?.unsubscribe();
+
     // Disable refreshes in image renderer, as they may cause unintentional timeouts
     // The UI will still show the configure refresh amount, but it will not refresh.
     if (isImageRenderer()) {
@@ -180,9 +183,6 @@ export class SceneRefreshPicker extends SceneObjectBase<SceneRefreshPickerState>
     }
 
     let intervalMs: number;
-
-    // Unsubscribe from previous listener no matter what
-    this._autoTimeRangeListener?.unsubscribe();
 
     if (refresh === RefreshPicker.autoOption.value) {
       const autoRefreshInterval = this.calculateAutoRefreshInterval();
@@ -223,8 +223,8 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
     refresh === RefreshPicker.autoOption?.value
       ? autoValue
       : withText
-      ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
-      : undefined;
+        ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
+        : undefined;
   let tooltip: string | undefined;
   let loadingText: string | undefined;
   if (withText) {
@@ -295,5 +295,5 @@ function findClosestInterval(userInterval: string, allowedIntervals: string[]): 
 
 function isImageRenderer() {
   // Check binding added by chromedp. Does not work with the polling method
-  return typeof window.__grafanaImageRendererMessageChannel === 'function';
+  return typeof window !== 'undefined' && typeof window.__grafanaImageRendererMessageChannel === 'function';
 }

@@ -1,4 +1,4 @@
-import '../types/window';
+/// <reference path="../types/window.d.ts" />
 import { dateTime, rangeUtil } from '@grafana/data';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
