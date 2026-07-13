@@ -1,3 +1,16 @@
+# v8.13.0 (Mon Jul 13 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - QueryVariable: fan out metric-find across multi-value datasource variables [#1573](https://github.com/grafana/scenes/pull/1573) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 1
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+
+---
+
 # v8.12.1 (Mon Jul 13 2026)
 
 #### 🐛 Bug Fix
