@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference -- type-only reference; avoids emitting a runtime import for a pure global augmentation
 /// <reference path="../types/window.d.ts" />
 import { dateTime, rangeUtil } from '@grafana/data';
 import { SceneTimeRange } from '../core/SceneTimeRange';
