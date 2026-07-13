@@ -34,13 +34,13 @@ yarn build                        # Frontend production build
 ### Test
 
 ````bash
-yarn test:scenes path/to/file                      # Run tests for a specific file inside scenes library
-yarn test:scenes -t "pattern"                      # Run tests by pattern for scenes library
-yarn test:scenes -u                                # Update snapshots for scenes library
+yarn test:scenes path/to/file  --watch=false                     # Run tests for a specific file inside scenes library
+yarn test:scenes -t "pattern"  --watch=false                     # Run tests by pattern for scenes library
+yarn test:scenes -u --watch=false                                # Update snapshots for scenes library
 
-yarn test:scenes-react path/to/file                # Run tests for a specific file inside scenes-react library
-yarn test:scenes-react -t "pattern"                # Run tests by pattern for scenes-react library
-yarn test:scenes-react -u                          # Update snapshots for scenes-react library
+yarn test:scenes-react path/to/file --watch=false                # Run tests for a specific file inside scenes-react library
+yarn test:scenes-react -t "pattern" --watch=false                # Run tests by pattern for scenes-react library
+yarn test:scenes-react -u --watch=false                          # Update snapshots for scenes-react library
 
 
 ### Lint & Format
