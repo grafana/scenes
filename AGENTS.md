@@ -33,7 +33,7 @@ yarn build                        # Frontend production build
 
 ### Test
 
-````bash
+```bash
 yarn test:scenes path/to/file  --watch=false                     # Run tests for a specific file inside scenes library
 yarn test:scenes -t "pattern"  --watch=false                     # Run tests by pattern for scenes library
 yarn test:scenes -u --watch=false                                # Update snapshots for scenes library
@@ -41,7 +41,7 @@ yarn test:scenes -u --watch=false                                # Update snapsh
 yarn test:scenes-react path/to/file --watch=false                # Run tests for a specific file inside scenes-react library
 yarn test:scenes-react -t "pattern" --watch=false                # Run tests by pattern for scenes-react library
 yarn test:scenes-react -u --watch=false                          # Update snapshots for scenes-react library
-
+```
 
 ### Lint & Format
 
@@ -50,8 +50,6 @@ yarn lint                         # ESLint
 yarn lint:fix                     # ESLint auto-fix
 yarn prettier:write               # Prettier auto-format
 yarn typecheck                    # TypeScript check
-````
+```
 
 ## Architecture
-
-TODO
