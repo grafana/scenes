@@ -224,8 +224,8 @@ export function SceneRefreshPickerRenderer({ model }: SceneComponentProps<SceneR
     refresh === RefreshPicker.autoOption?.value
       ? autoValue
       : withText
-        ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
-        : undefined;
+      ? t('grafana-scenes.components.scene-refresh-picker.text-refresh', 'Refresh')
+      : undefined;
   let tooltip: string | undefined;
   let loadingText: string | undefined;
   if (withText) {
