@@ -121,3 +121,46 @@ new SceneQueryRunner({
 ```
 
 Such configured query contains the variable expression `$filters`. You can change the name of the variable. By default, the `AdHocFiltersVariable` will render the filters to valid Prometheus label filter expressions separated by a comma.
+
+## Interpolating a single filter by key
+
+Use bracket-quoted key syntax to interpolate the value(s) of one filter instead of the whole expression:
+
+```ts
+// filter: env = prod
+'${filters["env"]}'; // -> prod
+```
+
+Both double-quoted (`["env"]`) and single-quoted (`['env']`) forms are supported. The key is matched exactly against the combined origin (scope/dashboard) and user filters; group-by entries are excluded. Keys containing dots or spaces are fine inside the brackets:
+
+```ts
+// filter: pod.name = api-0
+'${filters["pod.name"]}'; // -> api-0
+```
+
+A single resolved value renders as a scalar. Multiple values - a multi-value operator (`=|` / `!=|`) or several filters sharing a key - render through the standard variable formatters:
+
+```ts
+// filter: env =| prod|staging
+'${filters["env"]}'; // -> {prod,staging}  (glob default)
+'${filters["env"]:csv}'; // -> prod,staging
+'${filters["env"]:pipe}'; // -> prod|staging
+'${filters["env"]:json}'; // -> ["prod","staging"]
+'${filters["env"]:singlequote}'; // -> 'prod','staging'
+```
+
+The operator token of the (first) matching filter is available via the `.operator` accessor:
+
+```ts
+// filter: env =| prod|staging
+'${filters["env"].operator}'; // -> =|
+```
+
+### Notes and limitations
+
+- A missing key renders as an empty string (`${filters["unknown"]}` -> ``), including with a formatter.
+- An unrecognized accessor (anything other than `.operator`) renders as an empty string.
+- The dot form `${filters.env}` is **not** a per-key accessor. It falls through to the whole-expression behavior and logs a development-mode warning advising bracket syntax. Always use brackets for per-key access.
+- The output shape depends on cardinality: a single-value key returns a scalar, so `${filters["env"]:json}` yields the raw string `"prod"` rather than `["prod"]`. This matches multi-value-variable behavior.
+- A key containing a quote of the active delimiter cannot be expressed; use the other delimiter (no backslash escaping). Nested interpolation inside a key (`${filters["${other}"]}`) is not supported - the key is matched literally.
+- Per-key interpolation is a `@grafana/scenes` feature; it is independent of Grafana core's `template_srv`.

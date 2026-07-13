@@ -1,4 +1,5 @@
 import {
+  AnnotationEvent,
   DataQueryRequest,
   DataQueryResponse,
   DataSourceApi,
@@ -149,6 +150,62 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
         done();
       });
     });
+  });
+
+  // Regression coverage for https://github.com/grafana/grafana/issues/105257 where the first annotation event
+  // defined the data frame schema, dropping fields that only appear on later events.
+  describe('annotation field schema', () => {
+    // Calls the protected processEvents directly with row-oriented events to exercise the arrayToDataFrame path.
+    const processEvents = (layer: AnnotationsDataLayer, events: AnnotationEvent[]): PanelData =>
+      (
+        layer as unknown as {
+          processEvents: (
+            query: AnnotationsDataLayer['state']['query'],
+            events: { state: LoadingState; events: AnnotationEvent[] }
+          ) => PanelData;
+        }
+      ).processEvents(layer.state.query, { state: LoadingState.Done, events });
+
+    it('should not only use the first event to define field schema', () => {
+      const layer = new AnnotationsDataLayer({
+        name: 'Test layer',
+        query: { enable: true, iconColor: 'red', name: 'Test' },
+      });
+
+      // The first event has no `timeEnd`; only the second (region) event does.
+      const events: AnnotationEvent[] = [
+        { time: 1, text: 'a' },
+        { time: 2, timeEnd: 5, text: 'b' },
+      ];
+
+      const df = processEvents(layer, events).series![0];
+      const timeEnd = df.fields.find((f) => f.name === 'timeEnd');
+
+      expect(df.length).toBe(2);
+      expect(timeEnd).toBeDefined();
+      expect(timeEnd!.values).toEqual([undefined, 5]);
+    });
+
+    // Checks first, middle, last
+    it.each([0, 250, 500])(
+      'should include fields from events past first sampling window in larger results: %s',
+      (i) => {
+        const layer = new AnnotationsDataLayer({
+          name: 'Test layer',
+          query: { enable: true, iconColor: 'red', name: 'Test' },
+        });
+
+        // 100 events where only the final event carries `timeEnd`.
+        const events: AnnotationEvent[] = Array.from({ length: 500 }, (_, i) => ({ time: i, text: `t${i}` }));
+        events[i] = { time: 50, timeEnd: 60, text: 't50' };
+
+        const df = processEvents(layer, events).series![0];
+        const timeEnd = df.fields.find((f) => f.name === 'timeEnd');
+
+        expect(timeEnd).toBeDefined();
+        expect(timeEnd!.values[i]).toBe(60);
+      }
+    );
   });
 
   describe('variables support', () => {

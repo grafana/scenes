@@ -12,6 +12,8 @@ import {
   PanelProps,
   PluginContextProvider,
   PluginType,
+  QueryResultMetaNotice,
+  renderMarkdown,
   SetPanelAttentionEvent,
 } from '@grafana/data';
 
@@ -40,6 +42,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     menu,
     headerActions,
     subHeader,
+    subtitle,
     titleItems,
     seriesLimit,
     seriesLimitShowAll,
@@ -77,6 +80,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       endRenderCallbackRef.current = callback || null;
     }
   });
+
+  const subtitleContent = useMemo(() => {
+    if (subtitle) {
+      return renderMarkdown(model.interpolate(subtitle, undefined, 'text'));
+    }
+    return undefined;
+  }, [subtitle, model]);
 
   // Use useEffect (after DOM updates) to measure complete render cycle timing
   useEffect(() => {
@@ -234,6 +244,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const isReadyToRender = dataObject.isDataReadyToDisplay ? dataObject.isDataReadyToDisplay() : true;
 
   const context = model.getPanelContext();
+  // The host (e.g. dashboard) only provides an inspector opener when the new panel errors UI
+  // is enabled. Use its presence to decide between the new errors/notices popover and the
+  // legacy single status message.
+  // @ts-expect-error onOpenInspector is added in a newer @grafana/ui version
+  const showNewPanelErrorsUI = Boolean(context.onOpenInspector);
   const panelId = model.getLegacyPanelId();
   const outdatedPluginError = t(
     'grafana-scenes.components.viz-panel-renderer.outdated-plugin-error',
@@ -252,9 +267,17 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         <PanelChrome
           title={titleInterpolated}
           description={description?.trim() ? model.getDescription : undefined}
+          // @ts-expect-error remove this on next grafana/ui update
+          subtitle={subtitleContent}
           loadingState={data.state}
           statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
-          statusMessageOnClick={model.onStatusMessageClick}
+          statusItems={showNewPanelErrorsUI ? getChromeStatusItems(data, _pluginLoadError) : undefined}
+          statusMessageOnClick={() => {
+            // Report the interaction for analytics, then let the container (e.g. dashboard) open the inspector.
+            model.onStatusMessageClick();
+            // @ts-expect-error onOpenInspector is added in a newer @grafana/ui version
+            context.onOpenInspector?.();
+          }}
           width={width === 0 ? undefined : width}
           height={height === 0 ? undefined : height}
           selectionId={model.state.key}
@@ -269,7 +292,6 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           onFocus={setPanelAttention}
           onMouseEnter={setPanelAttention}
           onMouseMove={debouncedMouseMove}
-          // @ts-expect-error remove this on next grafana/ui update
           subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
           onDragStart={(e: React.PointerEvent) => {
             dragHooks.onDragStart?.(e, model);
@@ -429,6 +451,45 @@ function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | un
     message = data.errors.map((e) => e.message).join(', ');
   }
   return message;
+}
+
+type PanelStatusSeverity = QueryResultMetaNotice['severity'];
+
+interface PanelStatusItem {
+  severity: PanelStatusSeverity;
+  text: string;
+}
+
+/**
+ * Builds the combined list of query errors and result notices shown in the panel header
+ * status popover. Errors come from the query response, notices from the frame metadata.
+ */
+function getChromeStatusItems(data: PanelData, pluginLoadingError: string | undefined): PanelStatusItem[] {
+  const items: PanelStatusItem[] = [];
+
+  if (pluginLoadingError) {
+    items.push({ severity: 'error', text: pluginLoadingError });
+  }
+
+  const errors = data.errors ?? (data.error ? [data.error] : []);
+  for (const error of errors) {
+    items.push({ severity: 'error', text: error.message ?? 'Query error' });
+  }
+
+  const seen = new Set<string>();
+  for (const frame of data.series ?? []) {
+    for (const notice of frame.meta?.notices ?? []) {
+      const severity: PanelStatusSeverity = notice.severity ?? 'info';
+      const key = `${severity}:${notice.text}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      items.push({ severity, text: notice.text });
+    }
+  }
+
+  return items;
 }
 
 const relativeWrapper = css({

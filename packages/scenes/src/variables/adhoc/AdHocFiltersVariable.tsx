@@ -32,7 +32,7 @@ import { css } from '@emotion/css';
 import { getEnrichedFiltersRequest } from '../getEnrichedFiltersRequest';
 import { AdHocFiltersComboboxRenderer } from './AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import { wrapInSafeSerializableSceneObject } from '../../utils/wrapInSafeSerializableSceneObject';
-import { debounce, isEqual } from 'lodash';
+import { debounce, isEqual, toPath } from 'lodash';
 import { getAdHocFiltersFromScopes } from './getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../VariableDependencyConfig';
 import { getQueryController } from '../../core/sceneGraph/getQueryController';
@@ -294,7 +294,11 @@ export class AdHocFiltersVariable
   protected _variableDependency = new VariableDependencyConfig(this, {
     dependsOnScopes: true,
     onReferencedVariableValueChanged: () => this._updateScopesFilters(),
+    onAnyVariableChanged: () => this._drainPendingVariableWaits(),
   });
+
+  /** Resolvers waiting for in-scope variables to finish loading before a data source call. */
+  private _pendingVariableWaits: Array<() => void> = [];
 
   protected _urlSync = new AdHocFiltersVariableUrlSyncHandler(this);
 
@@ -725,13 +729,71 @@ export class AdHocFiltersVariable
       }
 
       return [
-        ...originFilters.map((filter) =>
-          toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}`)
-        ),
+        ...originFilters
+          .filter((filter) => !filter.nonApplicable)
+          .map((filter) => toArray(filter).map(escapeOriginFilterUrlDelimiters).join('|').concat(`#${filter.origin}`)),
       ];
     }
 
+    if (fieldPath) {
+      const parsed = parseFilterFieldPath(fieldPath);
+
+      if (parsed) {
+        return this.getFilterValueByKey(parsed.key, parsed.accessor);
+      }
+
+      // A dot-only path (`${filters.env}`) is not a per-key accessor; bracket syntax is the
+      // documented contract. Warn in dev builds, then fall through to whole-expression behavior.
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(
+          `[AdHocFiltersVariable] "${fieldPath}" is not a per-key accessor. ` +
+            `Use bracket-quoted key syntax, e.g. \${${this.state.name}["${fieldPath}"]}. ` +
+            `Falling back to the whole filter expression.`
+        );
+      }
+    }
+
     return this.state.filterExpression;
+  }
+
+  /**
+   * Resolves a single filter key (and optional accessor) to its value(s). Candidate filters are
+   * the combined origin + user filters, excluding groupBy and WIP filters - the same set used to
+   * build `filterExpression`. Returns:
+   *  - value accessor (default): the flattened value(s) of all filters matching `key` - a scalar
+   *    string when exactly one value resolves, otherwise a `string[]` for the formatter to render.
+   *  - `operator` accessor: the operator token of the first matching filter.
+   *  - any other accessor, or a missing key: an empty string.
+   */
+  private getFilterValueByKey(key: string, accessor?: string): VariableValue {
+    const { originFilters, filters, _wip } = this.state;
+
+    const matches = [...(originFilters ?? []), ...filters].filter(
+      (f) => f !== _wip && !isGroupByFilter(f) && f.key === key
+    );
+
+    if (matches.length === 0) {
+      return '';
+    }
+
+    if (accessor === 'operator') {
+      return matches[0].operator;
+    }
+
+    if (accessor !== undefined) {
+      // Unrecognized accessor (e.g. `.foo`).
+      return '';
+    }
+
+    const values = matches.flatMap((f) =>
+      isMultiValueOperator(f.operator) ? f.values ?? [] : f.value != null ? [f.value] : []
+    );
+
+    if (values.length === 1) {
+      return values[0];
+    }
+
+    return values;
   }
 
   public _updateFilter(filter: AdHocFilterWithLabels, update: Partial<AdHocFilterWithLabels>) {
@@ -1035,6 +1097,35 @@ export class AdHocFiltersVariable
   }
 
   /**
+   * Wait until template variables in scope have finished loading.
+   *  Prevents data source calls like getTagKeys
+   * from running with unresolved `$var` references in the panel queries we forward.
+   */
+  private _waitForVariables(): Promise<void> {
+    if (!this._isAnyInScopeVariableLoading()) {
+      return Promise.resolve();
+    }
+
+    return new Promise<void>((resolve) => {
+      this._pendingVariableWaits.push(resolve);
+    });
+  }
+
+  private _isAnyInScopeVariableLoading(): boolean {
+    const variableSet = sceneGraph.getVariables(this);
+    return variableSet.state.variables.some((v) => variableSet.isVariableLoadingOrWaitingToUpdate(v));
+  }
+
+  private _drainPendingVariableWaits() {
+    if (this._pendingVariableWaits.length === 0 || this._isAnyInScopeVariableLoading()) {
+      return;
+    }
+    const waiters = this._pendingVariableWaits;
+    this._pendingVariableWaits = [];
+    waiters.forEach((resolve) => resolve());
+  }
+
+  /**
    * Get possible keys given current filters. Do not call from plugins directly
    */
   public async _getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
@@ -1052,6 +1143,8 @@ export class AdHocFiltersVariable
     if (!ds || !ds.getTagKeys) {
       return [];
     }
+
+    await this._waitForVariables();
 
     const applicableOriginFilters =
       this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
@@ -1112,19 +1205,15 @@ export class AdHocFiltersVariable
       return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
     }
 
-    const applicableOriginFilters =
-      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
-    const otherFilters = this.state.filters
-      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f))
-      .concat(this.state.baseFilters ?? [])
-      .concat(applicableOriginFilters);
+    await this._waitForVariables();
+
     const timeRange = sceneGraph.getTimeRange(this).state.value;
     const queriesForKeys =
       queries ?? (this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined);
 
     // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     const response = await ds.getGroupByKeys({
-      filters: otherFilters,
+      filters: [],
       queries: queriesForKeys,
       timeRange,
       scopes: sceneGraph.getScopes(this),
@@ -1163,6 +1252,8 @@ export class AdHocFiltersVariable
     if (!ds || !ds.getTagValues) {
       return [];
     }
+
+    await this._waitForVariables();
 
     const originFilters =
       this.state.originFilters?.filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f)) ??
@@ -1358,6 +1449,29 @@ function originalValueKey({ key, origin, operator }: { key: string; origin?: str
   return operator === GROUP_BY_OPERATOR
     ? `${key}${VALUE_KEY_DELIMITER}${origin}${VALUE_KEY_DELIMITER}${GROUP_BY_OPERATOR}`
     : `${key}${VALUE_KEY_DELIMITER}${origin}`;
+}
+
+/**
+ * Parses a bracket-quoted filter field path into a filter key and optional accessor.
+ *
+ * Only paths whose first segment is bracket-quoted (`["env"]`, `['env']`, `["env"].operator`,
+ * `["a"]["b"]`) are treated as per-key accessors. A plain dot path (`env`, `a.b`) returns null so
+ * the caller falls through to legacy whole-expression behavior. The first lodash path segment is
+ * the filter key; an optional second segment is the accessor.
+ */
+export function parseFilterFieldPath(fieldPath: string): { key: string; accessor?: string } | null {
+  // Bracket syntax is the documented contract for per-key access. A dot-first path is legacy.
+  if (fieldPath.charAt(0) !== '[') {
+    return null;
+  }
+
+  const segments = toPath(fieldPath);
+
+  if (segments.length === 0) {
+    return null;
+  }
+
+  return { key: segments[0], accessor: segments[1] };
 }
 
 export function isMultiValueOperator(operatorValue: string): boolean {

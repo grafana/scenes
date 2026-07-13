@@ -9,6 +9,7 @@ import { VariableInterpolation } from '@grafana/runtime';
 import { VariableFormatID } from '@grafana/schema';
 
 import { sceneInterpolator } from './sceneInterpolator';
+import { AdHocFiltersVariable } from '../adhoc/AdHocFiltersVariable';
 
 describe('sceneInterpolator', () => {
   it('Should be interpolated and use closest variable', () => {
@@ -383,5 +384,121 @@ describe('sceneInterpolator', () => {
     const scene = new TestScene({});
 
     expect(sceneInterpolator(scene, 123 as any)).toBe(123);
+  });
+
+  describe('Ad hoc filter per-key interpolation', () => {
+    function sceneWithFilters(variable: AdHocFiltersVariable) {
+      return new TestScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+      });
+    }
+
+    it('resolves a single-value key to a scalar', () => {
+      const scene = sceneWithFilters(
+        new AdHocFiltersVariable({
+          name: 'filters',
+          applyMode: 'manual',
+          filters: [{ key: 'env', operator: '=', value: 'prod' }],
+        })
+      );
+
+      expect(sceneInterpolator(scene, '${filters["env"]}')).toBe('prod');
+    });
+
+    it('composes a multi-value key with the csv / json / pipe / singlequote formatters', () => {
+      const scene = sceneWithFilters(
+        new AdHocFiltersVariable({
+          name: 'filters',
+          applyMode: 'manual',
+          filters: [{ key: 'env', operator: '=|', value: 'prod', values: ['prod', 'staging'] }],
+        })
+      );
+
+      expect(sceneInterpolator(scene, '${filters["env"]:csv}')).toBe('prod,staging');
+      expect(sceneInterpolator(scene, '${filters["env"]:json}')).toBe('["prod","staging"]');
+      expect(sceneInterpolator(scene, '${filters["env"]:pipe}')).toBe('prod|staging');
+      expect(sceneInterpolator(scene, '${filters["env"]:singlequote}')).toBe(`'prod','staging'`);
+      // glob default renders multiple values as {a,b}
+      expect(sceneInterpolator(scene, '${filters["env"]}')).toBe('{prod,staging}');
+    });
+
+    it('resolves the .operator accessor', () => {
+      const scene = sceneWithFilters(
+        new AdHocFiltersVariable({
+          name: 'filters',
+          applyMode: 'manual',
+          filters: [{ key: 'env', operator: '=|', value: 'prod', values: ['prod', 'staging'] }],
+        })
+      );
+
+      expect(sceneInterpolator(scene, '${filters["env"].operator}')).toBe('=|');
+    });
+
+    it('falls through to the whole expression for the dot form and emits a dev warning', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const variable = new AdHocFiltersVariable({
+        name: 'filters',
+        applyMode: 'manual',
+        filters: [
+          { key: 'env', operator: '=', value: 'prod' },
+          { key: 'region', operator: '=', value: 'us' },
+        ],
+      });
+      const scene = sceneWithFilters(variable);
+
+      expect(sceneInterpolator(scene, '${filters.env}')).toBe(variable.state.filterExpression);
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('not a per-key accessor'));
+
+      warnSpy.mockRestore();
+    });
+
+    it('resolves the whole expression with no field path', () => {
+      const variable = new AdHocFiltersVariable({
+        name: 'filters',
+        applyMode: 'manual',
+        filters: [
+          { key: 'env', operator: '=', value: 'prod' },
+          { key: 'region', operator: '=', value: 'us' },
+        ],
+      });
+      const scene = sceneWithFilters(variable);
+
+      expect(sceneInterpolator(scene, '${filters}')).toBe(variable.state.filterExpression);
+      expect(variable.state.filterExpression).toBe('env="prod",region="us"');
+    });
+
+    it('renders empty for a missing key, with or without a formatter', () => {
+      const scene = sceneWithFilters(
+        new AdHocFiltersVariable({
+          name: 'filters',
+          applyMode: 'manual',
+          filters: [{ key: 'env', operator: '=', value: 'prod' }],
+        })
+      );
+
+      expect(sceneInterpolator(scene, '${filters["region"]}')).toBe('');
+      expect(sceneInterpolator(scene, '${filters["region"]:csv}')).toBe('');
+    });
+  });
+
+  describe('Backward compatibility', () => {
+    it('leaves legacy $var / [[var]] / ${var} / ${var.field} / ${var.1} forms unchanged', () => {
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({
+          variables: [
+            new ConstantVariable({ name: 'simple', value: 'hello' }),
+            new ObjectVariable({ type: 'custom', name: 'obj', value: { prop1: 'prop1Value' } }),
+            new TestVariable({ name: 'arr', value: ['a', 'b'] }),
+          ],
+        }),
+      });
+
+      expect(sceneInterpolator(scene, '$simple')).toBe('hello');
+      expect(sceneInterpolator(scene, '[[simple]]')).toBe('hello');
+      expect(sceneInterpolator(scene, '${simple}')).toBe('hello');
+      expect(sceneInterpolator(scene, '${obj.prop1}')).toBe('prop1Value');
+      expect(sceneInterpolator(scene, '${arr.1}')).toBe('b');
+    });
   });
 });

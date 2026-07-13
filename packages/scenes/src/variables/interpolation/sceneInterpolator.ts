@@ -31,9 +31,15 @@ export function sceneInterpolator(
 
   VARIABLE_REGEX.lastIndex = 0;
 
-  return target.replace(VARIABLE_REGEX, (match, var1, var2, fmt2, var3, fieldPath, fmt3) => {
+  return target.replace(VARIABLE_REGEX, (match, var1, var2, fmt2, var3, rawFieldPath, fmt3) => {
     const variableName = var1 || var2 || var3;
     const fmt = fmt2 || fmt3 || format;
+    // The widened regex captures the leading `.` for dot-paths (`.field`), whereas the legacy
+    // regex captured `field`. Strip one leading dot so dot-path consumers (getValue/getFieldAccessor)
+    // and the VariableInterpolation instrumentation see the same string as before. Bracket paths
+    // (`["env"]`, `["env"].operator`) start with `[` and are passed through untouched.
+    const fieldPath =
+      rawFieldPath && rawFieldPath.charCodeAt(0) === 0x2e /* '.' */ ? rawFieldPath.slice(1) : rawFieldPath || undefined;
     const variable = lookupFormatVariable(variableName, match, scopedVars, sceneObject);
 
     if (!variable) {

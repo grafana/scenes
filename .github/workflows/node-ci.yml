@@ -42,11 +42,11 @@ jobs:
       - name: Build library
         run: yarn build
 
-  release:
-    name: Release
+  canary:
+    name: Canary release
     runs-on: ubuntu-latest
     needs: test
-    if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
+    if: github.event_name == 'pull_request'
     permissions:
       id-token: write
     steps:
@@ -75,7 +75,163 @@ jobs:
       - name: Build library
         run: yarn run lerna run build --no-private
 
-      - name: Run auto shipit
+      # On pull requests `auto shipit` takes its canary path: it publishes a canary
+      # version to npm and comments on the PR. It creates no git commits, so it is
+      # unaffected by the signed-commit requirement and can stay as-is.
+      - name: Run auto shipit (canary)
         run: yarn auto shipit
+        env:
+          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: test
+    if: "github.event_name == 'push' && !contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
+    concurrency:
+      group: release-main
+      cancel-in-progress: false
+    permissions:
+      id-token: write
+    steps:
+      - name: Get GitHub App Token
+        id: get-github-app-token
+        uses: grafana/shared-workflows/actions/create-github-app-token@46f48da11e78ebdba7a8747ae456b11062fac83e # create-github-app-token/v0.3.1
+        with:
+          github_app: scenes-repo-bot-access-token
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          token: ${{ steps.get-github-app-token.outputs.token }}
+          persist-credentials: false
+
+      - name: Prepare repository
+        run: git fetch --unshallow --tags
+
+      - name: Test using Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        uses: ./.github/actions/yarn-nm-install
+
+      - name: Build library
+        run: yarn run lerna run build --no-private
+
+      # `auto shipit` is decomposed into the steps below so that the changelog and
+      # version-bump commits can be created through the GitHub GraphQL API
+      # (createCommitOnBranch) instead of `git push`. Commits created that way are
+      # signed by GitHub ("Verified"), which the branch protection on main requires.
+
+      - name: Calculate version bump
+        id: bump
+        run: |
+          AUTO_OUTPUT="$(yarn auto version)"
+          BUMP="$(echo "$AUTO_OUTPUT" | grep -oE '^(major|minor|patch)$' | tail -n1)"
+          if [ -z "$BUMP" ]; then
+            echo "No version bump detected. Output of \`auto version\`:"
+            echo "$AUTO_OUTPUT"
+          fi
+          echo "bump=${BUMP}" >> "$GITHUB_OUTPUT"
+          echo "Calculated version bump: ${BUMP:-none (skipping release)}"
+        env:
+          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+
+      - name: Update changelogs
+        if: steps.bump.outputs.bump != ''
+        # `auto changelog` writes the root and per-package changelogs and commits
+        # them locally (unsigned). Drop the commit but keep the file changes so the
+        # next step can re-create it through the API.
+        run: |
+          BEFORE_CHANGELOG="$(git rev-parse HEAD)"
+          yarn auto changelog
+          git reset --mixed "$BEFORE_CHANGELOG"
+        env:
+          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+
+      - name: Commit changelogs
+        id: changelog-commit
+        if: steps.bump.outputs.bump != ''
+        uses: planetscale/ghcommit-action@a6b150b81dca5dd027baa898604418eec9e11465 # v0.2.22
+        with:
+          commit_message: 'Update CHANGELOG.md [skip ci]'
+          repo: ${{ github.repository }}
+          branch: main
+          file_pattern: 'CHANGELOG.md packages/*/CHANGELOG.md'
+        env:
+          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+
+      - name: Sync with remote
+        if: steps.bump.outputs.bump != ''
+        run: |
+          git fetch origin main
+          git reset --hard "${CHANGELOG_COMMIT:-FETCH_HEAD}"
+        env:
+          CHANGELOG_COMMIT: ${{ steps.changelog-commit.outputs.commit-hash }}
+
+      - name: Bump versions
+        id: version
+        if: steps.bump.outputs.bump != ''
+        # Same command `auto shipit` runs internally, plus --no-git-tag-version so
+        # that lerna only updates lerna.json and the package.json files without
+        # creating a commit or tag.
+        run: |
+          yarn lerna version "${{ steps.bump.outputs.bump }}" --force-publish --no-commit-hooks --yes --no-push --no-git-tag-version
+          echo "version=$(node -p "require('./lerna.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Commit version bump
+        id: version-commit
+        if: steps.bump.outputs.bump != ''
+        uses: planetscale/ghcommit-action@a6b150b81dca5dd027baa898604418eec9e11465 # v0.2.22
+        with:
+          commit_message: 'Bump version to: v${{ steps.version.outputs.version }} [skip ci]'
+          repo: ${{ github.repository }}
+          branch: main
+          file_pattern: 'lerna.json packages/*/package.json'
+        env:
+          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+
+      - name: Check out version bump commit
+        if: steps.bump.outputs.bump != ''
+        # The local tag is not pushed; it is what `auto release` below uses to
+        # resolve the release version (`git describe --tags` on HEAD).
+        run: |
+          git fetch origin main
+          git reset --hard "$VERSION_COMMIT"
+          git tag "v$VERSION" "$VERSION_COMMIT"
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_COMMIT: ${{ steps.version-commit.outputs.commit-hash }}
+
+      - name: Push release tag
+        if: steps.bump.outputs.bump != ''
+        # Tag before publishing to npm: a publish failure then leaves git fully
+        # consistent, and this step is skipped on a re-run if the tag already
+        # points at the right commit.
+        run: |
+          EXISTING="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${VERSION}" --jq .object.sha 2>/dev/null)" || EXISTING=""
+          if [ -z "$EXISTING" ]; then
+            gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f "ref=refs/tags/v${VERSION}" -f "sha=${VERSION_COMMIT}"
+          elif [ "$EXISTING" = "$VERSION_COMMIT" ]; then
+            echo "Tag v${VERSION} already exists at ${VERSION_COMMIT}, skipping"
+          else
+            echo "Tag v${VERSION} already exists but points at ${EXISTING} instead of ${VERSION_COMMIT}" >&2
+            exit 1
+          fi
+        env:
+          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          VERSION_COMMIT: ${{ steps.version-commit.outputs.commit-hash }}
+
+      - name: Publish to npm
+        if: steps.bump.outputs.bump != ''
+        # Same command the npm plugin runs from `auto shipit`. Publishing
+        # authenticates via npm trusted publishing (OIDC), hence id-token: write.
+        run: yarn lerna publish from-package --yes --no-verify-access
+
+      - name: Create GitHub release
+        if: steps.bump.outputs.bump != ''
+        run: yarn auto release
         env:
           GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}

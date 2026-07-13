@@ -53,7 +53,7 @@ function HomePage() {
     <PageWrapper title="Home" subTitle="Welcome to the React first demos">
       <Stack direction={'column'} gap={2}>
         <DemoVizLayout>
-          <PlainGraphWithRandomWalk title="Welcome" maxDataPoints={50} />
+          <PlainGraphWithRandomWalk title="Welcome" subtitle="This is panel with a subtitle" maxDataPoints={50} />
         </DemoVizLayout>
         <h2>Examples</h2>
         <TextLink href={`${urlBase}/repeat-by-variable`}>Repeat by variable</TextLink>

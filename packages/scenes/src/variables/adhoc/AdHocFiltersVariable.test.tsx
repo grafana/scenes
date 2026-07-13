@@ -50,6 +50,8 @@ import { TestContextProvider } from '../../../utils/test/TestContextProvider';
 import { FiltersRequestEnricher } from '../../core/types';
 import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 import { ScopesVariable } from '../variants/ScopesVariable';
+import { TestVariable } from '../variants/TestVariable';
+import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 
 function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariableFilter[] {
   setTemplateSrv({
@@ -1870,6 +1872,31 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(value).toEqual(['scopeOriginFilter|=|val#scope']);
   });
 
+  it('Excludes non-applicable origin filters from getValue() when fieldPath is passed', () => {
+    const { filtersVar } = setup({
+      originFilters: [
+        {
+          key: 'applicableFilter',
+          operator: '=',
+          value: 'val',
+          values: ['val'],
+          origin: 'scope',
+        },
+        {
+          key: 'nonApplicableFilter',
+          operator: '=',
+          value: 'val2',
+          values: ['val2'],
+          origin: 'scope',
+          nonApplicable: true,
+        },
+      ],
+    });
+
+    const value = filtersVar.getValue('originFilters');
+    expect(value).toEqual(['applicableFilter|=|val#scope']);
+  });
+
   it('Returns filters expression through getValue()', () => {
     const { filtersVar } = setup({
       filters: [{ key: 'key1', operator: '=', value: 'val1' }],
@@ -1877,6 +1904,91 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     const value = filtersVar.getValue();
     expect(value).toEqual(filtersVar.state.filterExpression);
+  });
+
+  describe('getValue per-key resolution', () => {
+    function makeVariable(overrides: Partial<AdHocFiltersVariableState>) {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        name: 'filters',
+        filters: [],
+        ...overrides,
+      });
+      variable.activate();
+      return variable;
+    }
+
+    it('resolves a single-value filter to a scalar', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'prod' }] });
+      expect(variable.getValue('["env"]')).toBe('prod');
+    });
+
+    it('resolves a multi-value (=|) filter to an array of values', () => {
+      const variable = makeVariable({
+        filters: [{ key: 'env', operator: '=|', value: 'prod', values: ['prod', 'staging'] }],
+      });
+      expect(variable.getValue('["env"]')).toEqual(['prod', 'staging']);
+    });
+
+    it('flattens multiple filters sharing a key into one array', () => {
+      const variable = makeVariable({
+        filters: [
+          { key: 'env', operator: '=', value: 'prod' },
+          { key: 'env', operator: '=', value: 'staging' },
+        ],
+      });
+      expect(variable.getValue('["env"]')).toEqual(['prod', 'staging']);
+    });
+
+    it('resolves a key containing dots, spaces and special chars', () => {
+      const variable = makeVariable({ filters: [{ key: 'pod.name region', operator: '=', value: 'api-0' }] });
+      expect(variable.getValue('["pod.name region"]')).toBe('api-0');
+    });
+
+    it('returns empty string for a missing key', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'prod' }] });
+      expect(variable.getValue('["region"]')).toBe('');
+    });
+
+    it('resolves the .operator accessor to the operator token', () => {
+      const variable = makeVariable({
+        filters: [{ key: 'env', operator: '=|', value: 'prod', values: ['prod', 'staging'] }],
+      });
+      expect(variable.getValue('["env"].operator')).toBe('=|');
+    });
+
+    it('returns empty string for an unrecognized accessor', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'prod' }] });
+      expect(variable.getValue('["env"].foo')).toBe('');
+    });
+
+    it('returns empty string for the .operator accessor on a missing key', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'prod' }] });
+      expect(variable.getValue('["region"].operator')).toBe('');
+    });
+
+    it('excludes groupBy filters from value resolution', () => {
+      const variable = makeVariable({
+        filters: [],
+        originFilters: [{ key: 'env', operator: GROUP_BY_OPERATOR, value: '', origin: 'scope' }],
+      });
+      expect(variable.getValue('["env"]')).toBe('');
+    });
+
+    it('resolves an origin/scope-injected filter by key', () => {
+      const variable = makeVariable({
+        filters: [],
+        originFilters: [{ key: 'env', operator: '=', value: 'prod', origin: 'scope' }],
+      });
+      expect(variable.getValue('["env"]')).toBe('prod');
+    });
+
+    it('falls through to the whole expression for a dot-form field path', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'prod' }] });
+      // Dot form is not a per-key accessor; getValue returns the whole filter expression.
+      expect(variable.getValue('env')).toBe(variable.state.filterExpression);
+    });
   });
 
   it('Can override and replace getTagKeys and getTagValues', async () => {
@@ -2148,6 +2260,67 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         timeRange: timeRange.state.value,
       })
     );
+  });
+
+  describe('Defers data source calls until in-scope template variables finish loading', () => {
+    function setupWithSlowVariable() {
+      setTemplateSrvWithFilters([]);
+      const getTagKeysSpy = jest.fn().mockReturnValue([{ text: 'k1', value: 'k1' }]);
+      setDataSourceSrv({
+        get: () =>
+          ({
+            getTagKeys: getTagKeysSpy,
+            getRef: () => ({ uid: 'my-ds-uid' }),
+          } as unknown),
+        getInstanceSettings: () => ({ uid: 'my-ds-uid' }),
+      } as unknown as DataSourceSrv);
+
+      // No delayMs → stays loading until `signalUpdateCompleted` is called.
+      const slowVariable = new TestVariable({ name: 'base64', query: 'query' });
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'my-ds-uid' },
+        name: 'filters',
+        filters: [],
+      });
+
+      const scene = new EmbeddedScene({
+        $timeRange: new SceneTimeRange(),
+        $variables: new SceneVariableSet({ variables: [slowVariable, filtersVar] }),
+        body: new SceneFlexLayout({ children: [] }),
+      });
+
+      activateFullSceneTree(scene);
+
+      return { slowVariable, filtersVar, getTagKeysSpy };
+    }
+
+    it('_getKeys does not call getTagKeys while a sibling variable is still loading', async () => {
+      const { slowVariable, filtersVar, getTagKeysSpy } = setupWithSlowVariable();
+
+      const keysPromise = filtersVar._getKeys(null);
+
+      await new Promise((r) => setTimeout(r, 10));
+      expect(getTagKeysSpy).not.toHaveBeenCalled();
+
+      // Resolve the variable; the awaiting `_getKeys` should now proceed.
+      slowVariable.signalUpdateCompleted();
+      await keysPromise;
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('drains multiple concurrent waiters when the variable settles', async () => {
+      const { slowVariable, filtersVar, getTagKeysSpy } = setupWithSlowVariable();
+
+      const first = filtersVar._getKeys(null);
+      const second = filtersVar._getKeys(null);
+
+      await new Promise((r) => setTimeout(r, 10));
+      expect(getTagKeysSpy).not.toHaveBeenCalled();
+
+      slowVariable.signalUpdateCompleted();
+      await Promise.all([first, second]);
+      expect(getTagKeysSpy).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('variable expression / value', () => {
@@ -3913,6 +4086,44 @@ describe('group-by', () => {
         { label: 'dim1', value: 'dim1' },
         { label: 'dim2', value: 'dim2' },
       ]);
+    });
+
+    it('keys used in filters can be reused in groupBy', async () => {
+      // A key that is already used as a (multi-value) filter should still be
+      // offered as a groupBy option. We achieve this by not passing the current
+      // filters to getGroupByKeys, so the datasource never excludes those keys.
+      const getGroupByKeysSpy = jest.fn().mockResolvedValue([
+        { text: 'cell', value: 'cell' },
+        { text: 'namespace', value: 'namespace' },
+      ]);
+      setDataSourceSrv({
+        get() {
+          return {
+            getGroupByKeys: getGroupByKeysSpy,
+            getRef() {
+              return { uid: 'test' };
+            },
+          };
+        },
+        getInstanceSettings() {
+          return { uid: 'test' };
+        },
+      } as unknown as DataSourceSrv);
+
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'test' },
+        applyMode: 'manual',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([{ key: 'cell', operator: '=|', value: 'jg', values: ['jg', 'wr'] }]),
+      });
+      variable.activate();
+
+      const keys = await variable._getGroupByKeys(null);
+
+      // `cell` is still listed as a groupBy option even though it is filtered
+      expect(keys).toContainEqual({ label: 'cell', value: 'cell' });
+      // no filters are forwarded to the datasource, so it cannot exclude filtered keys
+      expect(getGroupByKeysSpy).toHaveBeenCalledWith(expect.objectContaining({ filters: [] }));
     });
   });
 
