@@ -1,7 +1,7 @@
 {
   "name": "scenes-app",
   "private": true,
-  "version": "8.9.2",
+  "version": "8.11.0",
   "author": "Grafana Labs",
   "license": "Apache-2.0",
   "description": "A basic grafana app plugin",
@@ -20,7 +20,7 @@
     "@babel/core": "^7.29.0",
     "@eslint/compat": "2.1.0",
     "@grafana/e2e": "9.5.21",
-    "@grafana/e2e-selectors": "^11.6.1",
+    "@grafana/e2e-selectors": "^11.6.14",
     "@grafana/eslint-config": "8.2.0",
     "@grafana/tsconfig": "2.2.0",
     "@stylistic/eslint-plugin-ts": "4.4.1",

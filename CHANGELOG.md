@@ -1,3 +1,111 @@
+# v8.11.0 (Fri Jul 10 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: fan out multi-value datasource variable feeding an expression [#1572](https://github.com/grafana/scenes/pull/1572) ([@sarahzinger](https://github.com/sarahzinger))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: convert forkJoin to combineLatest [#1554](https://github.com/grafana/scenes/pull/1554) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 2
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Sarah Zinger ([@sarahzinger](https://github.com/sarahzinger))
+
+---
+
+# v8.10.1 (Wed Jul 08 2026)
+
+#### 🐛 Bug Fix
+
+- Chore: Fix tag creation [#1570](https://github.com/grafana/scenes/pull/1570) ([@mdvictor](https://github.com/mdvictor))
+- Chore: Sign commits made by auto [#1567](https://github.com/grafana/scenes/pull/1567) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.10.1 (Tue Jul 07 2026)
+
+#### 🐛 Bug Fix
+
+- Chore: Sign commits made by auto [#1567](https://github.com/grafana/scenes/pull/1567) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.10.0 (Tue Jul 07 2026)
+
+#### 🚀 Enhancement
+
+- `scenes-app`, `@grafana/scenes-react`, `@grafana/scenes`
+  - VizPanel: Add support for new subtitle prop [#1565](https://github.com/grafana/scenes/pull/1565) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- chore(deps): update actions/cache digest to caa2961 [#1568](https://github.com/grafana/scenes/pull/1568) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- Scenes: Add dashboards core as code owner [#1566](https://github.com/grafana/scenes/pull/1566) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+- `scenes-app`, `@grafana/scenes`
+  - chore(deps): update grafana monorepo [#1549](https://github.com/grafana/scenes/pull/1549) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+
+#### Authors: 3
+
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v8.9.5 (Fri Jul 03 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - ScopesVariable: don't clobber enabled state from a stale cleanup [#1563](https://github.com/grafana/scenes/pull/1563) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
+# v8.9.4 (Thu Jul 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Filters: Allow keys used in filters to be reused in groupBy [#1562](https://github.com/grafana/scenes/pull/1562) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.9.3 (Thu Jul 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - feat(variables): per-key interpolation for ad hoc filter variables [#1553](https://github.com/grafana/scenes/pull/1553) ([@dprokop](https://github.com/dprokop))
+- `@grafana/scenes-react`, `@grafana/scenes`
+  - Deps: Unpin production dependencies in `@grafana/scenes` + `@grafana/scenes-react` [#1561](https://github.com/grafana/scenes/pull/1561) ([@MattIPv4](https://github.com/MattIPv4))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Matt Cowley ([@MattIPv4](https://github.com/MattIPv4))
+
+---
+
 # v8.9.2 (Tue Jun 30 2026)
 
 #### 🐛 Bug Fix

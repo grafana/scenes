@@ -13,6 +13,7 @@ import {
   PluginContextProvider,
   PluginType,
   QueryResultMetaNotice,
+  renderMarkdown,
   SetPanelAttentionEvent,
 } from '@grafana/data';
 
@@ -41,6 +42,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     menu,
     headerActions,
     subHeader,
+    subtitle,
     titleItems,
     seriesLimit,
     seriesLimitShowAll,
@@ -78,6 +80,13 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
       endRenderCallbackRef.current = callback || null;
     }
   });
+
+  const subtitleContent = useMemo(() => {
+    if (subtitle) {
+      return renderMarkdown(model.interpolate(subtitle, undefined, 'text'));
+    }
+    return undefined;
+  }, [subtitle, model]);
 
   // Use useEffect (after DOM updates) to measure complete render cycle timing
   useEffect(() => {
@@ -258,9 +267,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         <PanelChrome
           title={titleInterpolated}
           description={description?.trim() ? model.getDescription : undefined}
+          // @ts-expect-error remove this on next grafana/ui update
+          subtitle={subtitleContent}
           loadingState={data.state}
           statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
-          // @ts-expect-error remove this on next grafana/ui update
           statusItems={showNewPanelErrorsUI ? getChromeStatusItems(data, _pluginLoadError) : undefined}
           statusMessageOnClick={() => {
             // Report the interaction for analytics, then let the container (e.g. dashboard) open the inspector.

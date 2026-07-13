@@ -1,3 +1,87 @@
+# v8.11.0 (Fri Jul 10 2026)
+
+#### 🚀 Enhancement
+
+- SceneQueryRunner: fan out multi-value datasource variable feeding an expression [#1572](https://github.com/grafana/scenes/pull/1572) ([@sarahzinger](https://github.com/sarahzinger))
+
+#### 🐛 Bug Fix
+
+- SceneQueryRunner: convert forkJoin to combineLatest [#1554](https://github.com/grafana/scenes/pull/1554) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 2
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Sarah Zinger ([@sarahzinger](https://github.com/sarahzinger))
+
+---
+
+# v8.10.2 (Wed Jul 08 2026)
+
+#### 🐛 Bug Fix
+
+- Bump version to: v8.10.1 \[skip ci\] ([@scenes-repo-bot-access-token[bot]](https://github.com/scenes-repo-bot-access-token[bot]))
+
+#### Authors: 1
+
+- [@scenes-repo-bot-access-token[bot]](https://github.com/scenes-repo-bot-access-token[bot])
+
+---
+
+# v8.10.0 (Tue Jul 07 2026)
+
+#### 🚀 Enhancement
+
+- VizPanel: Add support for new subtitle prop [#1565](https://github.com/grafana/scenes/pull/1565) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- chore(deps): update grafana monorepo [#1549](https://github.com/grafana/scenes/pull/1549) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+
+#### Authors: 2
+
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v8.9.5 (Fri Jul 03 2026)
+
+#### 🐛 Bug Fix
+
+- ScopesVariable: don't clobber enabled state from a stale cleanup [#1563](https://github.com/grafana/scenes/pull/1563) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
+# v8.9.4 (Thu Jul 02 2026)
+
+#### 🐛 Bug Fix
+
+- Filters: Allow keys used in filters to be reused in groupBy [#1562](https://github.com/grafana/scenes/pull/1562) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.9.3 (Thu Jul 02 2026)
+
+#### 🐛 Bug Fix
+
+- feat(variables): per-key interpolation for ad hoc filter variables [#1553](https://github.com/grafana/scenes/pull/1553) ([@dprokop](https://github.com/dprokop))
+- Deps: Unpin production dependencies in `@grafana/scenes` + `@grafana/scenes-react` [#1561](https://github.com/grafana/scenes/pull/1561) ([@MattIPv4](https://github.com/MattIPv4))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Matt Cowley ([@MattIPv4](https://github.com/MattIPv4))
+
+---
+
 # v8.9.2 (Tue Jun 30 2026)
 
 #### 🐛 Bug Fix
