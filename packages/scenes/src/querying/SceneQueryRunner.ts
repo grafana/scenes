@@ -49,6 +49,10 @@ import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
 import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializableSceneObject';
 import { DrilldownDependenciesManager } from '../variables/DrilldownDependenciesManager';
+import {
+  getDatasourceVariableSelectionCount,
+  getSimpleVariableNameFromDatasourceUid,
+} from '../variables/datasourceVariableRef';
 
 let counter = 100;
 const MIXED_DATASOURCE_UID = '-- Mixed --';
@@ -95,41 +99,6 @@ function isTemplatedDatasourceUid(uid: string | undefined): boolean {
 
 function isTemplatedDatasourceRef(datasource: DataSourceRef | null | undefined): boolean {
   return isTemplatedDatasourceUid(datasource?.uid);
-}
-
-function getSimpleVariableNameFromDatasourceUid(uid: string | undefined): string | undefined {
-  if (!uid) {
-    return undefined;
-  }
-  const shortMatch = uid.match(/^\$([A-Za-z0-9_]+)$/);
-  if (shortMatch) {
-    return shortMatch[1];
-  }
-
-  const bracketMatch = uid.match(/^\$\{([A-Za-z0-9_]+)\}$/);
-  if (bracketMatch) {
-    return bracketMatch[1];
-  }
-
-  return undefined;
-}
-
-function getDatasourceVariableSelectionCount(sceneObject: SceneQueryRunner, variableName: string): number | undefined {
-  const variable = sceneGraph.lookupVariable(variableName, sceneObject);
-  if (!variable) {
-    return undefined;
-  }
-
-  const value = variable.getValue();
-  if (Array.isArray(value)) {
-    return value.filter((item) => item !== 'default').length;
-  }
-
-  if (value === null || value === undefined) {
-    return undefined;
-  }
-
-  return value === 'default' ? 0 : 1;
 }
 
 function shouldUseMixedRuntimeDatasource(
