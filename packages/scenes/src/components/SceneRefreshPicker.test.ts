@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference -- type-only reference; avoids emitting a runtime import for a pure global augmentation
+/// <reference path="../types/window.d.ts" />
 import { dateTime, rangeUtil } from '@grafana/data';
 import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneFlexItem, SceneFlexLayout } from './layout/SceneFlexLayout';
@@ -271,6 +273,49 @@ describe('SceneRefreshPicker', () => {
     it('does not crash if refresh interval is set to empty string', () => {
       const { refreshPicker } = setupScene('5s', [''], undefined, undefined, '10s');
       expect(refreshPicker.state.intervals).toEqual([]);
+    });
+  });
+
+  describe('image renderer', () => {
+    beforeEach(() => {
+      window.__grafanaImageRendererMessageChannel = jest.fn();
+    });
+
+    afterEach(() => {
+      window.__grafanaImageRendererMessageChannel = undefined;
+    });
+
+    it('does not update time range on configured interval', () => {
+      const { timeRange } = setupScene('5s');
+      const onRefreshMock = jest.spyOn(timeRange, 'onRefresh');
+
+      jest.advanceTimersByTime(5000);
+
+      expect(onRefreshMock).not.toHaveBeenCalled();
+    });
+
+    it('keeps configured refresh interval in state', () => {
+      const { refreshPicker } = setupScene('5s');
+
+      expect(refreshPicker.state.refresh).toBe('5s');
+    });
+
+    it('does not update time range when auto interval is selected', () => {
+      const autoInterval = 20000;
+      const { timeRange, calculateIntervalSpy } = setupScene(
+        RefreshPicker.autoOption.value,
+        undefined,
+        true,
+        autoInterval
+      );
+      const t1 = timeRange.state.value;
+
+      expect(calculateIntervalSpy).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(autoInterval);
+
+      expect(dateTime(timeRange.state.value.from).diff(t1.from, 's')).toBe(0);
+      expect(dateTime(timeRange.state.value.to).diff(t1.to, 's')).toBe(0);
     });
   });
 
