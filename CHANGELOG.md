@@ -1,3 +1,16 @@
+# v8.12.0 (Mon Jul 13 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - UrlSyncManager: Support removing url state for removed scene objects [#1575](https://github.com/grafana/scenes/pull/1575) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v8.11.0 (Fri Jul 10 2026)
 
 #### 🚀 Enhancement

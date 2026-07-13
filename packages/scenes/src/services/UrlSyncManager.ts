@@ -26,6 +26,14 @@ export class NewSceneObjectAddedEvent extends BusEventWithPayload<SceneObject> {
   public static readonly type = 'new-scene-object-added';
 }
 
+/**
+ * Notify the url sync manager of a scene object that has been removed from the scene
+ * and needs to clean up state from URL.
+ */
+export class SceneObjectRemovedEvent extends BusEventWithPayload<SceneObject> {
+  public static readonly type = 'scene-object-removed';
+}
+
 export class UrlSyncManager implements UrlSyncManagerLike {
   private _urlKeyMapper: UniqueUrlKeyMapper;
   private _lastSyncedObjectKeys = new WeakMap<SceneObject, string[]>();
@@ -70,6 +78,12 @@ export class UrlSyncManager implements UrlSyncManagerLike {
     this._subs.add(
       root.subscribeToEvent(NewSceneObjectAddedEvent, (evt) => {
         this.handleNewObject(evt.payload);
+      })
+    );
+
+    this._subs.add(
+      root.subscribeToEvent(SceneObjectRemovedEvent, (evt) => {
+        this.handleObjectRemoved(evt.payload);
       })
     );
 
@@ -134,6 +148,45 @@ export class UrlSyncManager implements UrlSyncManagerLike {
 
     syncStateFromUrl(sceneObj, this._paramsCache.getParams(), this._urlKeyMapper);
     this.cacheObjectUrlKeys(sceneObj);
+  }
+
+  /**
+   * When a scene object is removed from the scene we clean up the URL keys it owned.
+   * The removed object may already be detached from the scene tree, so we rely on the
+   * unique keys cached while it was synced rather than recomputing them from the tree.
+   */
+  private handleObjectRemoved(sceneObj: SceneObject) {
+    if (!this._sceneRoot) {
+      return;
+    }
+
+    const searchParams = this._locationService.getSearch();
+    const mappedUpdated: SceneObjectUrlValues = {};
+
+    const visitNode = (obj: SceneObject) => {
+      const keys = this._lastSyncedObjectKeys.get(obj);
+      if (keys) {
+        for (const uniqueKey of keys) {
+          if (searchParams.has(uniqueKey)) {
+            mappedUpdated[uniqueKey] = null;
+          }
+        }
+      }
+
+      this._lastSyncedObjectKeys.delete(obj);
+
+      obj.forEachChild(visitNode);
+    };
+
+    visitNode(sceneObj);
+
+    if (Object.keys(mappedUpdated).length > 0) {
+      writeSceneLog('UrlSyncManager', 'handleObjectRemoved, cleaning up URL keys');
+      this._locationService.partial(mappedUpdated, true);
+
+      // Mark the location already handled
+      this._lastLocation = this._locationService.getLocation();
+    }
   }
 
   private handleSceneObjectStateChanged(changedObject: SceneObject) {
