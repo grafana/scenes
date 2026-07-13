@@ -1,3 +1,16 @@
+# v8.12.1 (Mon Jul 13 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRefreshPicker: Disable refresh when in image render mode [#1552](https://github.com/grafana/scenes/pull/1552) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
 # v8.12.0 (Mon Jul 13 2026)
 
 #### 🚀 Enhancement
