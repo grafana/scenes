@@ -8,7 +8,7 @@ import { SceneTimeRange } from '../core/SceneTimeRange';
 import { SceneObjectState, SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../core/types';
 
 import { SceneObjectUrlSyncConfig } from './SceneObjectUrlSyncConfig';
-import { UrlSyncManager } from './UrlSyncManager';
+import { SceneObjectRemovedEvent, UrlSyncManager } from './UrlSyncManager';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 import { updateUrlStateAndSyncState } from '../../utils/test/updateUrlStateAndSyncState';
 
@@ -256,6 +256,42 @@ describe.each([
 
         expect(locationService.getSearchObject()).toEqual({
           [valueKey]: 'b',
+        });
+      });
+    });
+
+    describe('When a scene object is removed', () => {
+      it('should clean up the URL keys the removed object owned', () => {
+        const objToKeep = new TestObj({ name: 'keep' });
+        const objToRemove = new TestObj({ name: 'remove' });
+        const keyPrefix = options?.namespace ? `${options.namespace}-` : '';
+
+        scene = new SceneFlexLayout({
+          children: [new SceneFlexItem({ body: objToKeep }), new SceneFlexItem({ body: objToRemove })],
+        });
+
+        urlManager = new UrlSyncManager(options);
+        urlManager.initSync(scene);
+        deactivate = scene.activate();
+
+        // Populate the url for both objects
+        objToKeep.setState({ optional: 'keep-optional' });
+        objToRemove.setState({ optional: 'remove-optional' });
+
+        expect(locationService.getSearchObject()).toEqual({
+          [`${keyPrefix}name`]: 'keep',
+          [`${keyPrefix}optional`]: 'keep-optional',
+          [`${keyPrefix}name-2`]: 'remove',
+          [`${keyPrefix}optional-2`]: 'remove-optional',
+        });
+
+        // When an object is removed from the scene
+        scene.publishEvent(new SceneObjectRemovedEvent(objToRemove), true);
+
+        // Should only remove the url keys that the removed object owned
+        expect(locationService.getSearchObject()).toEqual({
+          [`${keyPrefix}name`]: 'keep',
+          [`${keyPrefix}optional`]: 'keep-optional',
         });
       });
     });
