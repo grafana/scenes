@@ -3,7 +3,5 @@
   "useNx": false,
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
   "version": "8.11.0",
-  "packages": [
-    "packages/*"
-  ]
+  "packages": ["packages/*"]
 }
