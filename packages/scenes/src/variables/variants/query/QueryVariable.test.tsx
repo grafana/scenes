@@ -32,6 +32,8 @@ import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { config, setRunRequest } from '@grafana/runtime';
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
+import { CustomVariable } from '../CustomVariable';
+import { activateFullSceneTree } from '../../../utils/test/activateFullSceneTree';
 import { VariableSort } from '@grafana/schema';
 
 function createMockData(valueValues: string[], textValues?: string[]) {
@@ -94,7 +96,12 @@ jest.mock('@grafana/runtime', () => ({
   getDataSourceSrv: () => ({
     get: (ds: DataSourceRef, vars: ScopedVars): Promise<DataSourceApi> => {
       getDataSourceMock(ds, vars);
-      return Promise.resolve(fakeDsMock);
+      const uid = typeof ds === 'string' ? ds : ds?.uid ?? 'fake-std';
+      return Promise.resolve({
+        ...fakeDsMock,
+        uid,
+        getRef: () => ({ type: 'fake-std', uid }),
+      } as DataSourceApi);
     },
   }),
   config: {
@@ -162,7 +169,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
     describe('Issuing variable query', () => {
       const originalNow = Date.now;
       beforeEach(() => {
-        setCreateQueryVariableRunnerFactory(() => new FakeQueryRunner(fakeDsMock, runRequestMock));
+        setCreateQueryVariableRunnerFactory((ds) => new FakeQueryRunner(ds, runRequestMock));
       });
 
       beforeEach(() => {
@@ -173,6 +180,7 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         Date.now = originalNow;
         runRequestMock.mockClear();
         getDataSourceMock.mockClear();
+        runRequestMock.mockReturnValue(createMockData(['val1', 'val2', 'val11']));
       });
 
       it('Should resolve variable options via provided runner', (done) => {
@@ -195,6 +203,48 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         });
 
         expect(variable.state.loading).toEqual(true);
+      });
+
+      it('Should fan out metric-find across a multi-value datasource variable and union options', async () => {
+        runRequestMock.mockImplementation((ds: DataSourceApi) => {
+          if (ds.uid === 'ds1') {
+            return createMockData(['alpha', 'shared']);
+          }
+          if (ds.uid === 'ds2') {
+            return createMockData(['beta', 'shared']);
+          }
+          return createMockData(['unexpected']);
+        });
+
+        const dsVar = new CustomVariable({
+          name: 'ds',
+          query: 'ds1,ds2',
+          isMulti: true,
+          value: ['ds1', 'ds2'],
+          text: ['ds1', 'ds2'],
+        });
+
+        const variable = new QueryVariable({
+          name: 'job',
+          datasource: { uid: '$ds', type: 'fake-std' },
+          query: 'label_values(job)',
+          sort: VariableSort.alphabeticalAsc,
+        });
+
+        const scene = new EmbeddedScene({
+          $variables: new SceneVariableSet({ variables: [dsVar, variable] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+        const deactivate = activateFullSceneTree(scene);
+
+        await lastValueFrom(variable.validateAndUpdate());
+
+        const requestedUids = getDataSourceMock.mock.calls.map((call) => call[0]?.uid);
+        expect(requestedUids).toEqual(expect.arrayContaining(['ds1', 'ds2']));
+        expect(runRequestMock.mock.calls.length).toBeGreaterThanOrEqual(2);
+        expect(variable.state.options.map((o) => o.value)).toEqual(['alpha', 'beta', 'shared']);
+
+        deactivate();
       });
 
       describe('When properties are received', () => {

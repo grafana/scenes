@@ -100,7 +100,12 @@ export { GroupByVariable } from './variables/groupby/GroupByVariable';
 export { type MacroVariableConstructor } from './variables/macros/types';
 export { escapeUrlPipeDelimiters, getQueriesForVariables } from './variables/utils';
 
-export { type UrlSyncManagerLike, UrlSyncManager, NewSceneObjectAddedEvent } from './services/UrlSyncManager';
+export {
+  type UrlSyncManagerLike,
+  UrlSyncManager,
+  NewSceneObjectAddedEvent,
+  SceneObjectRemovedEvent,
+} from './services/UrlSyncManager';
 export { useUrlSync } from './services/useUrlSync';
 export { UrlSyncContextProvider } from './services/UrlSyncContextProvider';
 export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';

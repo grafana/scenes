@@ -1,3 +1,61 @@
+# v8.13.0 (Mon Jul 13 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - QueryVariable: fan out metric-find across multi-value datasource variables [#1573](https://github.com/grafana/scenes/pull/1573) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 1
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+
+---
+
+# v8.12.1 (Mon Jul 13 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneRefreshPicker: Disable refresh when in image render mode [#1552](https://github.com/grafana/scenes/pull/1552) ([@tskarhed](https://github.com/tskarhed))
+
+#### Authors: 1
+
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+
+---
+
+# v8.12.0 (Mon Jul 13 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - UrlSyncManager: Support removing url state for removed scene objects [#1575](https://github.com/grafana/scenes/pull/1575) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 1
+
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v8.11.0 (Fri Jul 10 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: fan out multi-value datasource variable feeding an expression [#1572](https://github.com/grafana/scenes/pull/1572) ([@sarahzinger](https://github.com/sarahzinger))
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - SceneQueryRunner: convert forkJoin to combineLatest [#1554](https://github.com/grafana/scenes/pull/1554) ([@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 2
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Sarah Zinger ([@sarahzinger](https://github.com/sarahzinger))
+
+---
+
 # v8.10.1 (Wed Jul 08 2026)
 
 #### 🐛 Bug Fix
