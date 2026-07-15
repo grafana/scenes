@@ -171,7 +171,6 @@
       },
       "origin-filter-value-control": {
         "placeholder-all": "All",
-        "restore-aria-label": "Restore filter to its original value",
         "restore-tooltip": "Restore the filter set by this dashboard."
       },
       "test-object-with-variable-dependency": {
