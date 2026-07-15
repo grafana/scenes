@@ -13,6 +13,7 @@ import {
   SceneVariableValueChangedEvent,
 } from '../types';
 import { VariableValueRecorder } from '../VariableValueRecorder';
+import { AdHocFiltersVariable } from '../adhoc/AdHocFiltersVariable';
 
 export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> implements SceneVariables {
   /** Variables that are scheduled to be validated and updated */
@@ -340,7 +341,12 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       if (localVar?.isAncestorLoading) {
         variable = localVar;
       } else if (localVar) {
-        return;
+        // AdHoc filters merge across hierarchy at query time (section + dashboard + scopes).
+        // Continue notifying dependents so parent AdHoc changes still re-run section queries
+        // even when the section defines an AdHoc with the same name (e.g. filter0).
+        if (!(variable instanceof AdHocFiltersVariable && localVar instanceof AdHocFiltersVariable)) {
+          return;
+        }
       }
     }
 

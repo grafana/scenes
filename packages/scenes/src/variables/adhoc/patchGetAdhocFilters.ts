@@ -54,18 +54,37 @@ export function findClosestAdHocFilterInHierarchy(
   dsUid: string | undefined,
   sceneObject: SceneObject
 ): AdHocFiltersVariable | undefined {
+  const all = findAllAdHocFiltersInHierarchy(dsUid, sceneObject);
+  // findAll returns root → leaf; closest is the last entry
+  return all.length > 0 ? all[all.length - 1] : undefined;
+}
+
+/**
+ * Walk up the scene graph from sceneObject and collect every AdHocFiltersVariable
+ * whose interpolated datasource UID matches dsUid.
+ *
+ * Returns variables in root → leaf order (dashboard first, then section). Use this
+ * when query-time filter merge should apply parent filters alongside section filters.
+ */
+export function findAllAdHocFiltersInHierarchy(
+  dsUid: string | undefined,
+  sceneObject: SceneObject
+): AdHocFiltersVariable[] {
+  const found: AdHocFiltersVariable[] = [];
   let current: SceneObject | undefined = sceneObject;
+
   while (current) {
     const variables = current.state.$variables?.state.variables ?? [];
     for (const variable of variables) {
       if (variable instanceof AdHocFiltersVariable && interpolate(variable, variable.state.datasource?.uid) === dsUid) {
-        return variable;
+        found.push(variable);
       }
     }
     current = current.parent;
   }
 
-  return undefined;
+  // Walk collected leaf → root; reverse so callers merge root first
+  return found.reverse();
 }
 
 /**

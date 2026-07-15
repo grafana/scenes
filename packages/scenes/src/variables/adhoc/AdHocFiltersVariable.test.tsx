@@ -1817,6 +1817,82 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     }
   );
 
+  it('injects already-selected scopes into originFilters on activation', () => {
+    const scopes: Scope[] = [
+      {
+        metadata: { name: 'Scope' },
+        spec: {
+          title: 'Scope',
+          type: 'test',
+          description: 'Test scope',
+          category: 'test',
+          filters: [{ key: 'cluster', operator: 'equals', value: 'prod' }],
+        },
+      },
+    ];
+
+    const scopesVar = new ScopesVariable({
+      scopes,
+      loading: false,
+    });
+
+    const { filtersVar } = setup({ filters: [], originFilters: [] }, undefined, scopesVar);
+
+    expect(filtersVar.state.originFilters).toEqual([
+      expect.objectContaining({
+        key: 'cluster',
+        operator: '=',
+        value: 'prod',
+        origin: 'scope',
+      }),
+    ]);
+  });
+
+  it('does not inject scopes into originFilters for nested (section) AdHoc variables', () => {
+    const scopes: Scope[] = [
+      {
+        metadata: { name: 'Scope' },
+        spec: {
+          title: 'Scope',
+          type: 'test',
+          description: 'Test scope',
+          category: 'test',
+          filters: [{ key: 'service', operator: 'equals', value: 'workers' }],
+        },
+      },
+    ];
+
+    const scopesVar = new ScopesVariable({
+      scopes,
+      loading: false,
+    });
+
+    const sectionFilters = new AdHocFiltersVariable({
+      name: 'filter0',
+      datasource: { uid: 'Prometheus' },
+      filters: [{ key: 'cluster', operator: '=', value: 'us-east', condition: '' }],
+      originFilters: [],
+    });
+
+    // Row/section: nested $variables under a child scene object
+    const section = new SceneFlexItem({
+      body: new SceneCanvasText({ text: 'section' }),
+      $variables: new SceneVariableSet({ variables: [sectionFilters] }),
+    });
+
+    const scene = new EmbeddedScene({
+      $variables: new SceneVariableSet({ variables: [scopesVar] }),
+      body: new SceneFlexLayout({ children: [section] }),
+    });
+
+    activateFullSceneTree(scene);
+
+    expect(sectionFilters.state.originFilters?.some((f) => f.origin === 'scope')).toBeFalsy();
+    expect(sectionFilters.state.filters).toEqual([
+      expect.objectContaining({ key: 'cluster', value: 'us-east' }),
+    ]);
+  });
+
   it('Removes scope originated filters when scopes themselves are removed', () => {
     const scopes: Scope[] = [
       {

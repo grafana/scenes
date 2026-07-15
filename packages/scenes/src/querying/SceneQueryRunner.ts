@@ -464,7 +464,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    */
   private onAnyVariableChanged(variable: SceneVariable) {
     if (
-      this._drilldownDependenciesManager.adHocFiltersVar === variable ||
+      (variable instanceof AdHocFiltersVariable &&
+        this._drilldownDependenciesManager.isSubscribedAdHocFiltersVar(variable)) ||
       this._drilldownDependenciesManager.groupByVar === variable ||
       !this.isQueryModeAuto()
     ) {

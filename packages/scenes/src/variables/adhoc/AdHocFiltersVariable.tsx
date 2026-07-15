@@ -11,7 +11,7 @@ import {
 } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
-import { ControlsLayout, SceneComponentProps, SceneDataQuery } from '../../core/types';
+import { ControlsLayout, SceneComponentProps, SceneDataQuery, SceneObject } from '../../core/types';
 import { DataSourceRef } from '@grafana/schema';
 import {
   dataFromResponse,
@@ -356,6 +356,17 @@ export class AdHocFiltersVariable
   }
 
   private _activationHandler = () => {
+    // Dashboard-level AdHoc shows scopes as originFilters in the filter bar.
+    // Section AdHoc must not — scopes apply at query time via DrilldownDependenciesManager
+    // (same as dashboard filters: background merge, not shown in the section UI).
+    if (isNestedVariableSetMember(this)) {
+      this._clearScopeOriginFilters();
+    } else if (sceneGraph.getScopes(this)?.length) {
+      // If scopes are already selected (activated after scopes), inject them now.
+      // Skip when scopes are empty so we do not clear pre-seeded / edited scope
+      // originFilters before scopes load.
+      this._updateScopesFilters();
+    }
     this._debouncedVerifyApplicability();
 
     return () => {
@@ -380,7 +391,23 @@ export class AdHocFiltersVariable
     return this._recommendations;
   }
 
+  private _clearScopeOriginFilters() {
+    if (!this.state.originFilters?.some((filter) => filter.origin === 'scope')) {
+      return;
+    }
+    this.setState({
+      originFilters: this.state.originFilters.filter((filter) => filter.origin !== 'scope'),
+    });
+  }
+
   private _updateScopesFilters() {
+    // Section / nested AdHoc: keep scopes out of originFilters (and thus the combobox UI).
+    // DrilldownDependenciesManager merges getScopes() into request.filters at query time.
+    if (isNestedVariableSetMember(this)) {
+      this._clearScopeOriginFilters();
+      return;
+    }
+
     const scopes = sceneGraph.getScopes(this);
 
     if (!scopes || !scopes.length) {
@@ -1422,6 +1449,22 @@ export const VALUE_KEY_DELIMITER = '::';
 
 export function isGroupByFilter(filter: AdHocFilterWithLabels): boolean {
   return filter.operator === GROUP_BY_OPERATOR;
+}
+
+/**
+ * True when this object lives under a nested SceneVariableSet (e.g. row/tab section
+ * variables). Looks for an ancestor `$variables` that is not this variable's own set.
+ */
+export function isNestedVariableSetMember(sceneObject: SceneObject): boolean {
+  const ownSet = sceneObject.parent;
+  let current = ownSet?.parent;
+  while (current) {
+    if (current.state.$variables && current.state.$variables !== ownSet) {
+      return true;
+    }
+    current = current.parent;
+  }
+  return false;
 }
 
 export function isFilterComplete(filter: AdHocFilterWithLabels): boolean {
