@@ -68,8 +68,8 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     const groupByVar = useAdhocGroupBy
       ? undefined
       : sceneObject
-        ? findClosestGroupByInHierarchy(interpolatedUid, sceneObject)
-        : findGlobalGroupByVariableByUid(interpolatedUid);
+      ? findClosestGroupByInHierarchy(interpolatedUid, sceneObject)
+      : findGlobalGroupByVariableByUid(interpolatedUid);
 
     let hasChanges = false;
 
@@ -180,9 +180,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return undefined;
     }
 
-    return this._getMergedFilters().filter(
-      (f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f)
-    );
+    return this._getMergedFilters().filter((f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f));
   }
 
   /**

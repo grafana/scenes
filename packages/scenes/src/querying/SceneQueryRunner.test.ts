@@ -716,10 +716,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       await new Promise((r) => setTimeout(r, 1));
 
       const runRequestCall = runRequestMock.mock.calls[0];
-      expect(runRequestCall[1].filters).toEqual([
-        ...dashboardFilters.state.filters,
-        ...sectionFilters.state.filters,
-      ]);
+      expect(runRequestCall[1].filters).toEqual([...dashboardFilters.state.filters, ...sectionFilters.state.filters]);
     });
 
     it('should apply scope filters when only a section adhoc variable exists', async () => {

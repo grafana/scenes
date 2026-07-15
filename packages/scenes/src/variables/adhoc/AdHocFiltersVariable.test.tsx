@@ -1888,9 +1888,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     activateFullSceneTree(scene);
 
     expect(sectionFilters.state.originFilters?.some((f) => f.origin === 'scope')).toBeFalsy();
-    expect(sectionFilters.state.filters).toEqual([
-      expect.objectContaining({ key: 'cluster', value: 'us-east' }),
-    ]);
+    expect(sectionFilters.state.filters).toEqual([expect.objectContaining({ key: 'cluster', value: 'us-east' })]);
   });
 
   it('Removes scope originated filters when scopes themselves are removed', () => {
