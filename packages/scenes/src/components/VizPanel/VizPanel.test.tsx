@@ -30,6 +30,8 @@ import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { EmptyDataNode } from '../../variables/interpolation/defaults';
 import { mockTransformationsRegistry } from '../../utils/mockTransformationsRegistry';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
+import { SceneVariableSet } from '../../variables/sets/SceneVariableSet';
+import { TestVariable } from '../../variables/variants/TestVariable';
 
 let pluginToLoad: PanelPlugin | undefined;
 
@@ -1215,6 +1217,59 @@ describe('VizPanel', () => {
       const result = panel.applyFieldConfig({ ...testData, series: [newFrame] });
 
       expect(result.series[0]).not.toBe(newFrame);
+    });
+  });
+
+  describe('field config cache invalidation on variable change', () => {
+    async function setup(state: Partial<VizPanelState<OptionsPlugin1, FieldConfigPlugin1>>) {
+      const variable = new TestVariable({
+        name: 'server',
+        value: 'A',
+        text: 'A',
+        query: 'A.*',
+        options: [],
+        delayMs: 0,
+      });
+      const panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        $timeRange: new SceneTimeRange(),
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        ...state,
+      });
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+      variable.signalUpdateCompleted();
+      await Promise.resolve();
+      return { panel, variable };
+    }
+
+    it('should clear the cache when a variable referenced in fieldConfig changes', async () => {
+      const { panel, variable } = await setup({
+        fieldConfig: { defaults: { unit: '$server' }, overrides: [] },
+      });
+
+      const testData = getTestData();
+      const first = panel.applyFieldConfig(testData);
+      expect(panel.applyFieldConfig(testData)).toBe(first);
+
+      variable.changeValueTo('B');
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(panel.applyFieldConfig(testData)).not.toBe(first);
+    });
+
+    it('should keep the cache when the changed variable is only referenced in the title', async () => {
+      const { panel, variable } = await setup({ title: 'Panel $server' });
+      const forceRenderSpy = jest.spyOn(panel, 'forceRender');
+
+      const testData = getTestData();
+      const first = panel.applyFieldConfig(testData);
+
+      variable.changeValueTo('B');
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(forceRenderSpy).toHaveBeenCalled();
+      expect(panel.applyFieldConfig(testData)).toBe(first);
     });
   });
 });
