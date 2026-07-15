@@ -1258,7 +1258,7 @@ describe('VizPanel', () => {
       expect(panel.applyFieldConfig(testData)).not.toBe(first);
     });
 
-    it('should keep the cache when the changed variable is only referenced in the title', async () => {
+    it('should clear the cache when a variable referenced in the title changes', async () => {
       const { panel, variable } = await setup({ title: 'Panel $server' });
       const forceRenderSpy = jest.spyOn(panel, 'forceRender');
 
@@ -1269,6 +1269,18 @@ describe('VizPanel', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(forceRenderSpy).toHaveBeenCalled();
+      expect(panel.applyFieldConfig(testData)).not.toBe(first);
+    });
+
+    it('should keep the cache when the changed variable is not referenced by the panel', async () => {
+      const { panel, variable } = await setup({ title: 'Panel with no variables' });
+
+      const testData = getTestData();
+      const first = panel.applyFieldConfig(testData);
+
+      variable.changeValueTo('B');
+      await new Promise((r) => setTimeout(r, 1));
+
       expect(panel.applyFieldConfig(testData)).toBe(first);
     });
   });

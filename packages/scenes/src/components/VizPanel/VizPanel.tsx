@@ -132,17 +132,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   protected _variableDependency = new VariableDependencyConfig(this, {
     statePaths: ['title', 'options', 'fieldConfig'],
-    onReferencedVariableValueChanged: (variable) => {
-      if (this._fieldConfigDependency.hasDependencyOn(variable.state.name)) {
-        this.clearFieldConfigCache();
-      }
+    onReferencedVariableValueChanged: () => {
+      this.clearFieldConfigCache();
       this.forceRender();
     },
-  });
-
-  // Passive scan of fieldConfig only, so title/options-only variable changes skip the cache clear
-  private _fieldConfigDependency = new VariableDependencyConfig(this, {
-    statePaths: ['fieldConfig'],
   });
 
   // Not part of state as this is not serializable
