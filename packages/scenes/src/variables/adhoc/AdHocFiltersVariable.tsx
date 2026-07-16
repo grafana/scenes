@@ -4,7 +4,6 @@ import {
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
-  // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
   Scope,
   SelectableValue,
@@ -1052,12 +1051,14 @@ export class AdHocFiltersVariable
     groupByKeys?: string[]
   ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getDrilldownsApplicability) {
       return;
     }
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
 
+    // @ts-expect-error (temporary till we update grafana/data)
     return await ds.getDrilldownsApplicability({
       filters,
       queries,
@@ -1229,6 +1230,7 @@ export class AdHocFiltersVariable
     }
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     if (!ds || !ds.getGroupByKeys) {
       return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
     }
@@ -1239,6 +1241,7 @@ export class AdHocFiltersVariable
     const queriesForKeys =
       queries ?? (this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined);
 
+    // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     const response = await ds.getGroupByKeys({
       filters: [],
       queries: queriesForKeys,
