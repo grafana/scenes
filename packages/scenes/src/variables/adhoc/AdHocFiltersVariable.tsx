@@ -4,6 +4,7 @@ import {
   GetTagResponse,
   GrafanaTheme2,
   MetricFindValue,
+  // @ts-expect-error (temporary till we update grafana/data)
   DrilldownsApplicability,
   Scope,
   SelectableValue,
