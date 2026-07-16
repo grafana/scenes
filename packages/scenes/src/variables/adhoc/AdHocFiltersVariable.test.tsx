@@ -60,6 +60,14 @@ function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariabl
   return filters;
 }
 
+/** CI @grafana/data still requires type/description/category; newer Grafana dropped them. */
+function testScope(name: string, filters: ScopeSpecFilter[]): Scope {
+  return {
+    metadata: { name },
+    spec: { title: name, filters },
+  } as Scope;
+}
+
 const getKeyComboboxElement = () => getAllByRole(screen.getByTestId('AdHocFilter-'), 'combobox')[0];
 const getAdHocInputElement = () => screen.getByPlaceholderText('+ label = value');
 
@@ -1785,13 +1793,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const scopes: Scope[] = [];
 
       for (let i = 0; i < scopeFilters.length; i++) {
-        scopes.push({
-          metadata: { name: `Scope ${i}` },
-          spec: {
-            title: `Scope ${i}`,
-            filters: scopeFilters[i] as ScopeSpecFilter[],
-          },
-        });
+        scopes.push(testScope(`Scope ${i}`, scopeFilters[i] as ScopeSpecFilter[]));
       }
       const scopesVar = new ScopesVariable({});
 
@@ -1815,15 +1817,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   );
 
   it('injects already-selected scopes into originFilters on activation', () => {
-    const scopes: Scope[] = [
-      {
-        metadata: { name: 'Scope' },
-        spec: {
-          title: 'Scope',
-          filters: [{ key: 'cluster', operator: 'equals', value: 'prod' }],
-        },
-      },
-    ];
+    const scopes: Scope[] = [testScope('Scope', [{ key: 'cluster', operator: 'equals', value: 'prod' }])];
 
     const scopesVar = new ScopesVariable({
       scopes,
@@ -1843,15 +1837,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('preserves edited scope originFilters across deactivate/reactivate when parent stays active', () => {
-    const scopes: Scope[] = [
-      {
-        metadata: { name: 'Scope' },
-        spec: {
-          title: 'Scope',
-          filters: [{ key: 'cluster', operator: 'equals', value: 'prod' }],
-        },
-      },
-    ];
+    const scopes: Scope[] = [testScope('Scope', [{ key: 'cluster', operator: 'equals', value: 'prod' }])];
 
     const scopesVar = new ScopesVariable({
       scopes,
@@ -1908,15 +1894,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('does not inject scopes into originFilters for nested (section) AdHoc variables', () => {
-    const scopes: Scope[] = [
-      {
-        metadata: { name: 'Scope' },
-        spec: {
-          title: 'Scope',
-          filters: [{ key: 'service', operator: 'equals', value: 'workers' }],
-        },
-      },
-    ];
+    const scopes: Scope[] = [testScope('Scope', [{ key: 'service', operator: 'equals', value: 'workers' }])];
 
     const scopesVar = new ScopesVariable({
       scopes,
@@ -1948,15 +1926,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
   });
 
   it('Removes scope originated filters when scopes themselves are removed', () => {
-    const scopes: Scope[] = [
-      {
-        metadata: { name: `Scope` },
-        spec: {
-          title: `Scope`,
-          filters: [{ key: 'scopeOriginFilter', operator: 'equals', value: 'val' }],
-        },
-      },
-    ];
+    const scopes: Scope[] = [testScope('Scope', [{ key: 'scopeOriginFilter', operator: 'equals', value: 'val' }])];
 
     const scopesVar = new ScopesVariable({ scopes });
     const { filtersVar } = setup(
@@ -3974,15 +3944,7 @@ function setup(
 }
 
 function newScopesVariableFromScopeFilters(filters: ScopeSpecFilter[]) {
-  const scopes: Scope[] = [
-    {
-      metadata: { name: `Scope 1` },
-      spec: {
-        title: `Scope 1`,
-        filters,
-      },
-    },
-  ];
+  const scopes: Scope[] = [testScope('Scope 1', filters)];
 
   const scopesVar = new ScopesVariable({});
 
