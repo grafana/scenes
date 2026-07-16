@@ -1848,6 +1848,71 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     ]);
   });
 
+  it('preserves edited scope originFilters across deactivate/reactivate when parent stays active', () => {
+    const scopes: Scope[] = [
+      {
+        metadata: { name: 'Scope' },
+        spec: {
+          title: 'Scope',
+          filters: [{ key: 'cluster', operator: 'equals', value: 'prod' }],
+        },
+      },
+    ];
+
+    const scopesVar = new ScopesVariable({
+      scopes,
+      loading: false,
+    });
+
+    const filtersVar = new AdHocFiltersVariable({
+      name: 'filters',
+      datasource: { uid: 'Prometheus' },
+      filters: [],
+      originFilters: [],
+    });
+
+    const scene = new EmbeddedScene({
+      $variables: new SceneVariableSet({ variables: [scopesVar, filtersVar] }),
+      body: new SceneFlexLayout({ children: [] }),
+    });
+
+    // Activate scene (and variable set) separately from the AdHoc so we can
+    // simulate panel-edit: AdHoc unmounts while the set stays active.
+    scene.activate();
+    scopesVar.activate();
+    const deactivateFilters = filtersVar.activate();
+
+    expect(filtersVar.state.originFilters).toEqual([
+      expect.objectContaining({ key: 'cluster', value: 'prod', origin: 'scope' }),
+    ]);
+
+    act(() => {
+      filtersVar._updateFilter(filtersVar.state.originFilters![0], {
+        value: 'staging',
+        valueLabels: ['staging'],
+      });
+    });
+
+    expect(filtersVar.state.originFilters![0]).toEqual(
+      expect.objectContaining({ key: 'cluster', value: 'staging', origin: 'scope', restorable: true })
+    );
+
+    expect(filtersVar.parent?.isActive).toBe(true);
+    deactivateFilters();
+
+    expect(filtersVar.isActive).toBe(false);
+    expect(filtersVar.parent?.isActive).toBe(true);
+    expect(filtersVar.state.originFilters![0].value).toBe('staging');
+
+    act(() => {
+      filtersVar.activate();
+    });
+
+    expect(filtersVar.state.originFilters![0]).toEqual(
+      expect.objectContaining({ key: 'cluster', value: 'staging', origin: 'scope', restorable: true })
+    );
+  });
+
   it('does not inject scopes into originFilters for nested (section) AdHoc variables', () => {
     const scopes: Scope[] = [
       {

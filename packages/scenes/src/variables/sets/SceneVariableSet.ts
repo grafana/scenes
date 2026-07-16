@@ -344,7 +344,14 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
         // AdHoc filters merge across hierarchy at query time (section + dashboard + scopes).
         // Continue notifying dependents so parent AdHoc changes still re-run section queries
         // even when the section defines an AdHoc with the same name (e.g. filter0).
-        if (!(variable instanceof AdHocFiltersVariable && localVar instanceof AdHocFiltersVariable)) {
+        // Only pierce the shadow when datasources match — different-DS AdHocs do not merge,
+        // and continuing notify would needlessly re-run section queries on name collision.
+        if (
+          !(variable instanceof AdHocFiltersVariable) ||
+          !(localVar instanceof AdHocFiltersVariable) ||
+          sceneGraph.interpolate(variable, variable.state.datasource?.uid) !==
+            sceneGraph.interpolate(localVar, localVar.state.datasource?.uid)
+        ) {
           return;
         }
       }

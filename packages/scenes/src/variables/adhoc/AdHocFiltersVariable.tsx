@@ -361,10 +361,14 @@ export class AdHocFiltersVariable
     // (same as dashboard filters: background merge, not shown in the section UI).
     if (isNestedVariableSetMember(this)) {
       this._clearScopeOriginFilters();
-    } else if (sceneGraph.getScopes(this)?.length) {
-      // If scopes are already selected (activated after scopes), inject them now.
-      // Skip when scopes are empty so we do not clear pre-seeded / edited scope
-      // originFilters before scopes load.
+    } else if (
+      sceneGraph.getScopes(this)?.length &&
+      !this.state.originFilters?.some((filter) => filter.origin === 'scope')
+    ) {
+      // Late activation: scopes already selected but UI never got pills yet.
+      // Do not re-run when scope originFilters already exist — otherwise panel-edit
+      // deactivate/reactivate hits the _prevScopes path and clobbers edited values.
+      // Ongoing scope changes are handled by onReferencedVariableValueChanged.
       this._updateScopesFilters();
     }
     this._debouncedVerifyApplicability();
@@ -1048,14 +1052,12 @@ export class AdHocFiltersVariable
     groupByKeys?: string[]
   ): Promise<DrilldownsApplicability[] | undefined> {
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
-    // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getDrilldownsApplicability) {
       return;
     }
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
 
-    // @ts-expect-error (temporary till we update grafana/data)
     return await ds.getDrilldownsApplicability({
       filters,
       queries,
@@ -1227,7 +1229,6 @@ export class AdHocFiltersVariable
     }
 
     const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
-    // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     if (!ds || !ds.getGroupByKeys) {
       return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
     }
@@ -1238,7 +1239,6 @@ export class AdHocFiltersVariable
     const queriesForKeys =
       queries ?? (this.state.useQueriesAsFilterForOptions ? getQueriesForVariables(this) : undefined);
 
-    // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     const response = await ds.getGroupByKeys({
       filters: [],
       queries: queriesForKeys,
