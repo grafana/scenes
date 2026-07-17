@@ -1,3 +1,15 @@
+# v8.13.2 (Fri Jul 17 2026)
+
+#### 🐛 Bug Fix
+
+- feat: add data-testid to viz panel renderer [#1557](https://github.com/grafana/scenes/pull/1557) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
 # v8.13.1 (Fri Jul 17 2026)
 
 #### 🐛 Bug Fix
