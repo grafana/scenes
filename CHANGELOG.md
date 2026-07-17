@@ -1,3 +1,20 @@
+# v8.13.1 (Fri Jul 17 2026)
+
+#### 🐛 Bug Fix
+
+- fix(security/low/): update dependency esbuild to v0.28.1 [security] [#1543](https://github.com/grafana/scenes/pull/1543) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency lint-staged to ^17.0.7 [#1574](https://github.com/grafana/scenes/pull/1574) ([@ivanortegaalba](https://github.com/ivanortegaalba) [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- `@grafana/scenes`
+  - Filters: propagate scopes and dashboard level filters to section vars [#1582](https://github.com/grafana/scenes/pull/1582) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 3
+
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v8.13.0 (Mon Jul 13 2026)
 
 #### 🚀 Enhancement

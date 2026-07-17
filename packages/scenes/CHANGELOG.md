@@ -1,3 +1,15 @@
+# v8.13.1 (Fri Jul 17 2026)
+
+#### 🐛 Bug Fix
+
+- Filters: propagate scopes and dashboard level filters to section vars [#1582](https://github.com/grafana/scenes/pull/1582) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 1
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+
+---
+
 # v8.13.0 (Mon Jul 13 2026)
 
 #### 🚀 Enhancement
