@@ -263,6 +263,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         className={absoluteWrapper}
         data-viz-panel-key={model.state.key}
         data-viz-panel-id={model.getPathId()}
+        data-testid={`${plugin.meta.id}-${model.state.key}`}
       >
         <PanelChrome
           title={titleInterpolated}
