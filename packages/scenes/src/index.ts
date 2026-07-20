@@ -197,5 +197,7 @@ export const sceneUtils = {
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
 export { getExploreURL } from './utils/explore';
+export { getCompareSeriesRefId } from './utils/getCompareSeriesRefId';
+export { timeShiftAlignmentProcessor } from './utils/timeShiftAlignmentProcessor';
 export { loadResources } from './utils/loadResources';
 export { PATH_ID_SEPARATOR } from './utils/pathId';

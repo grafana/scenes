@@ -6,6 +6,24 @@ import { NO_COMPARE_OPTION, PREVIOUS_PERIOD_COMPARE_OPTION, SceneTimeRangeCompar
 import userEvent from '@testing-library/user-event';
 import { render } from '@testing-library/react';
 import React from 'react';
+import { lastValueFrom } from 'rxjs';
+import { DataQueryRequest, LoadingState, PanelData, dateTime, toDataFrame } from '@grafana/data';
+
+const makeRequest = (range: SceneTimeRange): DataQueryRequest =>
+  ({
+    range: range.state.value,
+    targets: [{ refId: 'A' }],
+  } as unknown as DataQueryRequest);
+
+const makePanelData = (from: string, to: string, series: PanelData['series'] = []): PanelData => {
+  const fromTime = dateTime(from);
+  const toTime = dateTime(to);
+  return {
+    state: LoadingState.Done,
+    series,
+    timeRange: { from: fromTime, to: toTime, raw: { from: fromTime, to: toTime } },
+  };
+};
 
 describe('SceneTimeRangeCompare', () => {
   describe('given a time range', () => {
@@ -461,6 +479,59 @@ describe('SceneTimeRangeCompare', () => {
       // Should clear comparison when NO_PERIOD_VALUE is passed
       comparer.onCompareWithChanged('__noPeriod');
       expect(comparer.state.compareWith).toBeUndefined();
+    });
+  });
+
+  describe('timeShiftAlignmentProcessor (via getExtraQueries)', () => {
+    // The processor isn't exported directly - grab it off the ExtraQueryDescriptor, same as the
+    // query runner does.
+    function getProcessor(comparer: SceneTimeRangeCompare, timeRange: SceneTimeRange) {
+      const [{ processor }] = comparer.getExtraQueries(makeRequest(timeRange));
+      if (!processor) {
+        throw new Error('expected a processor');
+      }
+      return processor;
+    }
+
+    it('should not mutate the secondary PanelData, its series, or their frame objects', async () => {
+      // The frames here may be owned by a datasource's streaming/split-chunk response accumulator and
+      // re-processed on every chunk - mutating them in place caused duplicate compare series to
+      // accumulate instead of being replaced. The processor must return new objects instead.
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+      const comparer = new SceneTimeRangeCompare({ compareWith: '24h' });
+      const processor = getProcessor(comparer, timeRange);
+
+      const frame = toDataFrame({ refId: 'A', fields: [] });
+      const primary = makePanelData('2024-01-10T00:00:00.000Z', '2024-01-10T01:00:00.000Z');
+      const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [frame]);
+
+      const result = await lastValueFrom(processor(primary, secondary));
+
+      expect(result).not.toBe(secondary);
+      expect(secondary.series).toEqual([frame]);
+      expect(frame.refId).toBe('A');
+      expect(frame.meta).toBeUndefined();
+    });
+
+    it('should not accumulate duplicate compare series when re-processing the same shared input frame', async () => {
+      // Simulates the split-query accumulator pattern: the same frame object is passed through the
+      // processor repeatedly (e.g. once per streamed chunk). Each pass must produce exactly one
+      // compare series, never more.
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+      const comparer = new SceneTimeRangeCompare({ compareWith: '24h' });
+      const processor = getProcessor(comparer, timeRange);
+
+      const sharedFrame = toDataFrame({ refId: 'A', fields: [] });
+      const primary = makePanelData('2024-01-10T00:00:00.000Z', '2024-01-10T01:00:00.000Z');
+      const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [sharedFrame]);
+
+      await lastValueFrom(processor(primary, secondary));
+      await lastValueFrom(processor(primary, secondary));
+      const result = await lastValueFrom(processor(primary, secondary));
+
+      expect(sharedFrame.refId).toBe('A');
+      expect(result.series).toHaveLength(1);
+      expect(result.series[0].refId).toBe('A-compare');
     });
   });
 });
