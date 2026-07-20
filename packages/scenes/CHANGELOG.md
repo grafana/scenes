@@ -1,3 +1,15 @@
+# v8.13.3 (Mon Jul 20 2026)
+
+#### 🐛 Bug Fix
+
+- Dashboards: Invalidate fieldConfig cache on variable change when vars are used [#1579](https://github.com/grafana/scenes/pull/1579) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.13.2 (Fri Jul 17 2026)
 
 #### 🐛 Bug Fix
