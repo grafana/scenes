@@ -1,3 +1,46 @@
+# v8.13.3 (Mon Jul 20 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Dashboards: Invalidate fieldConfig cache on variable change when vars are used [#1579](https://github.com/grafana/scenes/pull/1579) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.13.2 (Fri Jul 17 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - feat: add data-testid to viz panel renderer [#1557](https://github.com/grafana/scenes/pull/1557) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v8.13.1 (Fri Jul 17 2026)
+
+#### 🐛 Bug Fix
+
+- fix(security/low/): update dependency esbuild to v0.28.1 [security] [#1543](https://github.com/grafana/scenes/pull/1543) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- chore(deps): update dependency lint-staged to ^17.0.7 [#1574](https://github.com/grafana/scenes/pull/1574) ([@ivanortegaalba](https://github.com/ivanortegaalba) [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- `@grafana/scenes`
+  - Filters: propagate scopes and dashboard level filters to section vars [#1582](https://github.com/grafana/scenes/pull/1582) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 3
+
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+
+---
+
 # v8.13.0 (Mon Jul 13 2026)
 
 #### 🚀 Enhancement

@@ -679,6 +679,289 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall[1].filters).toEqual([...filtersVar.state.originFilters!, ...filtersVar.state.filters]);
     });
 
+    it('should merge dashboard and section adhoc filters for the same datasource', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const dashboardFilters = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'job', operator: '=', value: 'prom-a', condition: '' }],
+      });
+
+      const sectionFilters = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'instance', operator: '=', value: 'localhost:9090', condition: '' }],
+      });
+
+      const innerScene = new TestScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [sectionFilters] }),
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [dashboardFilters] }),
+        $timeRange: new SceneTimeRange(),
+        nested: innerScene,
+      });
+
+      deactivationHandlers.push(scene.activate());
+      deactivationHandlers.push(innerScene.activate());
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+      expect(runRequestCall[1].filters).toEqual([...dashboardFilters.state.filters, ...sectionFilters.state.filters]);
+    });
+
+    it('should apply scope filters when only a section adhoc variable exists', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const scopesVariable = new ScopesVariable({
+        scopes: [
+          {
+            metadata: { name: 'Scope 1' },
+            spec: {
+              title: 'Scope 1',
+              type: 'test',
+              description: 'Test scope',
+              category: 'test',
+              filters: [{ key: 'cluster', operator: 'equals', value: 'prod' }],
+            },
+          },
+        ],
+        loading: false,
+      });
+
+      const sectionFilters = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'instance', operator: '=', value: 'localhost:9090', condition: '' }],
+      });
+
+      const innerScene = new TestScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [sectionFilters] }),
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [scopesVariable] }),
+        $timeRange: new SceneTimeRange(),
+        nested: innerScene,
+      });
+
+      deactivationHandlers.push(scene.activate());
+      deactivationHandlers.push(innerScene.activate());
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+      expect(runRequestCall[1].filters).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ key: 'cluster', operator: '=', value: 'prod', origin: 'scope' }),
+          expect.objectContaining({ key: 'instance', operator: '=', value: 'localhost:9090' }),
+        ])
+      );
+    });
+
+    it('should not duplicate scope filters when both getScopes and originFilters provide them', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const scopesVariable = new ScopesVariable({
+        scopes: [
+          {
+            metadata: { name: 'Scope 1' },
+            spec: {
+              title: 'Scope 1',
+              type: 'test',
+              description: 'Test scope',
+              category: 'test',
+              filters: [{ key: 'cluster', operator: 'equals', value: 'prod' }],
+            },
+          },
+        ],
+        loading: false,
+      });
+
+      const sectionFilters = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'instance', operator: '=', value: 'localhost:9090', condition: '' }],
+        originFilters: [
+          { key: 'cluster', operator: '=', value: 'prod', values: ['prod'], origin: 'scope', condition: '' },
+        ],
+      });
+
+      const innerScene = new TestScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [sectionFilters] }),
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [scopesVariable] }),
+        $timeRange: new SceneTimeRange(),
+        nested: innerScene,
+      });
+
+      deactivationHandlers.push(scene.activate());
+      deactivationHandlers.push(innerScene.activate());
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const filters = runRequestMock.mock.calls[0][1].filters as Array<{ key: string; origin?: string }>;
+      expect(filters.filter((f) => f.key === 'cluster' && f.origin === 'scope')).toHaveLength(1);
+    });
+
+    it('should re-run queries when a parent adhoc filter changes', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const dashboardFilters = new AdHocFiltersVariable({
+        name: 'dashFilter',
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'job', operator: '=', value: 'prom-a', condition: '' }],
+      });
+
+      const sectionFilters = new AdHocFiltersVariable({
+        name: 'sectionFilter',
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'instance', operator: '=', value: 'localhost:9090', condition: '' }],
+      });
+
+      const innerScene = new TestScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [sectionFilters] }),
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [dashboardFilters] }),
+        $timeRange: new SceneTimeRange(),
+        nested: innerScene,
+      });
+
+      deactivationHandlers.push(scene.activate());
+      deactivationHandlers.push(innerScene.activate());
+
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls.length).toBe(1);
+
+      dashboardFilters._updateFilter(dashboardFilters.state.filters[0], { value: 'prom-b' });
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(2);
+      expect(runRequestMock.mock.calls[1][1].filters).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ key: 'job', value: 'prom-b' }),
+          expect.objectContaining({ key: 'instance', value: 'localhost:9090' }),
+        ])
+      );
+    });
+
+    it('should re-run queries when parent and section adhoc share the same name', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const dashboardFilters = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'job', operator: '=', value: 'prom-a', condition: '' }],
+      });
+
+      const sectionFilters = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'instance', operator: '=', value: 'localhost:9090', condition: '' }],
+      });
+
+      const innerScene = new TestScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [sectionFilters] }),
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [dashboardFilters] }),
+        $timeRange: new SceneTimeRange(),
+        nested: innerScene,
+      });
+
+      deactivationHandlers.push(scene.activate());
+      deactivationHandlers.push(innerScene.activate());
+
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls.length).toBe(1);
+
+      dashboardFilters._updateFilter(dashboardFilters.state.filters[0], { value: 'prom-b' });
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toBe(2);
+      expect(runRequestMock.mock.calls[1][1].filters).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ key: 'job', value: 'prom-b' }),
+          expect.objectContaining({ key: 'instance', value: 'localhost:9090' }),
+        ])
+      );
+    });
+
+    it('should not merge adhoc filters from a different datasource', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const otherDsFilters = new AdHocFiltersVariable({
+        name: 'otherFilter',
+        datasource: { uid: 'other-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'job', operator: '=', value: 'other', condition: '' }],
+      });
+
+      const sectionFilters = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'instance', operator: '=', value: 'localhost:9090', condition: '' }],
+      });
+
+      const innerScene = new TestScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [sectionFilters] }),
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [otherDsFilters] }),
+        $timeRange: new SceneTimeRange(),
+        nested: innerScene,
+      });
+
+      deactivationHandlers.push(scene.activate());
+      deactivationHandlers.push(innerScene.activate());
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls[0][1].filters).toEqual(sectionFilters.state.filters);
+    });
+
     it('only passes fully completed adhoc filters', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },

@@ -1,3 +1,39 @@
+# v8.13.3 (Mon Jul 20 2026)
+
+#### 🐛 Bug Fix
+
+- Dashboards: Invalidate fieldConfig cache on variable change when vars are used [#1579](https://github.com/grafana/scenes/pull/1579) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.13.2 (Fri Jul 17 2026)
+
+#### 🐛 Bug Fix
+
+- feat: add data-testid to viz panel renderer [#1557](https://github.com/grafana/scenes/pull/1557) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v8.13.1 (Fri Jul 17 2026)
+
+#### 🐛 Bug Fix
+
+- Filters: propagate scopes and dashboard level filters to section vars [#1582](https://github.com/grafana/scenes/pull/1582) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 1
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+
+---
+
 # v8.13.0 (Mon Jul 13 2026)
 
 #### 🚀 Enhancement

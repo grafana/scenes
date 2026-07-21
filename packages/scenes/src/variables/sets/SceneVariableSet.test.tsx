@@ -18,6 +18,7 @@ import { TestObjectWithVariableDependency, TestScene } from '../TestScene';
 import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 import { SceneVariable, SceneVariableState, VariableValue } from '../types';
 import { ObjectVariable } from '../variants/ObjectVariable';
+import { AdHocFiltersVariable } from '../adhoc/AdHocFiltersVariable';
 
 interface SceneTextItemState extends SceneObjectState {
   text: string;
@@ -1003,6 +1004,82 @@ describe('SceneVariableList', () => {
 
       // Change B while C is loading (They are on different levels but should behave the same as with A & B)
       expect(C.state.value).toBe('ABBA');
+    });
+  });
+
+  describe('When nested AdHoc shares name with parent AdHoc', () => {
+    it('notifies section dependents when parent AdHoc has the same datasource', () => {
+      const parentAdHoc = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'prom' },
+        filters: [{ key: 'env', operator: '=', value: 'prod', condition: '' }],
+      });
+      const sectionAdHoc = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'prom' },
+        filters: [{ key: 'cluster', operator: '=', value: 'us-east', condition: '' }],
+      });
+      const nestedObj = new TestObjectWithVariableDependency({
+        title: '$filter0',
+        variableValueChanged: 0,
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [parentAdHoc] }),
+        nested: new TestScene({
+          $variables: new SceneVariableSet({ variables: [sectionAdHoc] }),
+          nested: nestedObj,
+        }),
+      });
+
+      scene.activate();
+      scene.state.nested!.activate();
+      nestedObj.activate();
+
+      act(() => {
+        parentAdHoc.setState({
+          filters: [{ key: 'env', operator: '=', value: 'staging', condition: '' }],
+        });
+      });
+
+      expect(nestedObj.state.variableValueChanged).toBe(1);
+    });
+
+    it('does not notify section dependents when parent AdHoc has a different datasource', () => {
+      const parentAdHoc = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'prom' },
+        filters: [{ key: 'env', operator: '=', value: 'prod', condition: '' }],
+      });
+      const sectionAdHoc = new AdHocFiltersVariable({
+        name: 'filter0',
+        datasource: { uid: 'loki' },
+        filters: [{ key: 'cluster', operator: '=', value: 'us-east', condition: '' }],
+      });
+      const nestedObj = new TestObjectWithVariableDependency({
+        title: '$filter0',
+        variableValueChanged: 0,
+      });
+
+      const scene = new TestScene({
+        $variables: new SceneVariableSet({ variables: [parentAdHoc] }),
+        nested: new TestScene({
+          $variables: new SceneVariableSet({ variables: [sectionAdHoc] }),
+          nested: nestedObj,
+        }),
+      });
+
+      scene.activate();
+      scene.state.nested!.activate();
+      nestedObj.activate();
+
+      act(() => {
+        parentAdHoc.setState({
+          filters: [{ key: 'env', operator: '=', value: 'staging', condition: '' }],
+        });
+      });
+
+      expect(nestedObj.state.variableValueChanged).toBe(0);
     });
   });
 });
