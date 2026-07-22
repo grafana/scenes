@@ -533,5 +533,22 @@ describe('SceneTimeRangeCompare', () => {
       expect(result.series).toHaveLength(1);
       expect(result.series[0].refId).toBe('A-compare');
     });
+
+    it('should not double-suffix frames whose refId already carries -compare', async () => {
+      // Consumers may pre-suffix the compare request's target refIds at request time (for cache
+      // identity), so response frames arrive already carrying -compare. Re-applying the suffix
+      // here must be idempotent.
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+      const comparer = new SceneTimeRangeCompare({ compareWith: '24h' });
+      const processor = getProcessor(comparer, timeRange);
+
+      const frame = toDataFrame({ refId: 'A-compare', fields: [] });
+      const primary = makePanelData('2024-01-10T00:00:00.000Z', '2024-01-10T01:00:00.000Z');
+      const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [frame]);
+
+      const result = await lastValueFrom(processor(primary, secondary));
+
+      expect(result.series[0].refId).toBe('A-compare');
+    });
   });
 });
