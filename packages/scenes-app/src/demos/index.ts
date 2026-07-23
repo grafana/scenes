@@ -20,6 +20,7 @@ import { getRuntimeDataSourceDemo } from './runtimeDataSourceDemo';
 import { getDocsExamples } from './docs-examples';
 import { getTimeRangeComparisonTest } from './timeRangeComparison';
 import { getTimeCompareManyPanels } from './timeCompareManyPanels';
+import { getTimeCompareStreamingDemo } from './timeCompareStreamingDemo';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
 import { getAdhocFiltersDemo } from './adhocFiltersDemo';
@@ -204,6 +205,13 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Performance test with per panel time compare and many panels ',
       getPage: getTimeCompareManyPanels,
       getSourceCodeModule: () => import('!!raw-loader!../demos/timeCompareManyPanels'),
+    },
+    {
+      title: 'Time compare + streaming duplicate series (regression demo)',
+      description:
+        'Reproduces the timeCompare duplicate-series bug on streaming/split-chunk queries (e.g. Loki). See grafana/scenes#1554.',
+      getPage: getTimeCompareStreamingDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/timeCompareStreamingDemo'),
     },
     {
       title: 'Data layers',

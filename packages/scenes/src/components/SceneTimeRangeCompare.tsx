@@ -6,12 +6,11 @@ import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneComponentProps, SceneDataQuery, SceneObjectState, SceneObjectUrlValues } from '../core/types';
 import { DataQueryExtended } from '../querying/SceneQueryRunner';
-import { ExtraQueryDescriptor, ExtraQueryDataProcessor, ExtraQueryProvider } from '../querying/ExtraQueryProvider';
+import { ExtraQueryDescriptor, ExtraQueryProvider } from '../querying/ExtraQueryProvider';
 import { SceneObjectUrlSyncConfig } from '../services/SceneObjectUrlSyncConfig';
-import { getCompareSeriesRefId } from '../utils/getCompareSeriesRefId';
 import { parseUrlParam } from '../utils/parseUrlParam';
+import { timeShiftAlignmentProcessor } from '../utils/timeShiftAlignmentProcessor';
 import { css } from '@emotion/css';
-import { of } from 'rxjs';
 
 interface SceneTimeRangeCompareState extends SceneObjectState {
   compareWith?: string;
@@ -183,26 +182,6 @@ export class SceneTimeRangeCompare
     }
   }
 }
-
-// Processor function for use with time shifted comparison series.
-// This aligns the secondary series with the primary and adds custom
-// metadata and config to the secondary series' fields so that it is
-// rendered appropriately.
-const timeShiftAlignmentProcessor: ExtraQueryDataProcessor = (primary, secondary) => {
-  const diff = secondary.timeRange.from.diff(primary.timeRange.from);
-  secondary.series.forEach((series) => {
-    series.refId = getCompareSeriesRefId(series.refId || '');
-    series.meta = {
-      ...series.meta,
-      // @ts-ignore Remove when https://github.com/grafana/grafana/pull/71129 is released
-      timeCompare: {
-        diffMs: diff,
-        isTimeShiftQuery: true,
-      },
-    };
-  });
-  return of(secondary);
-};
 
 function SceneTimeRangeCompareRenderer({ model }: SceneComponentProps<SceneTimeRangeCompare>) {
   const styles = useStyles2(getStyles);
