@@ -21,14 +21,14 @@ jobs:
           persist-credentials: false
       - name: 'Get vault secrets'
         id: vault-secrets
-        uses: grafana/shared-workflows/actions/get-vault-secrets@main
+        uses: grafana/shared-workflows/actions/get-vault-secrets@2e256ff444af97dce690c88ac422ce974b392e56 # main
         with:
             # Vault secret paths:
             # - ci/repo/grafana/scenes/grafana-frontend-crowdin-token
             repo_secrets: |
                 CROWDIN_TOKEN=grafana-frontend-crowdin-token:access_token
       - name: Upload to Crowdin
-        uses: grafana/grafana-github-actions/crowdin-upload@main
+        uses: grafana/grafana-github-actions/crowdin-upload@a03e5209a3c3225a95bdf938a690d8bb79bac44b # main
         with:
           crowdin_token: ${{ env.CROWDIN_TOKEN }}
           crowdin_project_id: 34

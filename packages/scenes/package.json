@@ -75,7 +75,7 @@
   "devDependencies": {
     "@grafana/i18n": "12.4.5",
     "@rollup/plugin-dynamic-import-vars": "2.1.5",
-    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-json": "6.1.0",
     "@types/history": "4.7.11",
     "@types/lodash": "4.17.24",
     "@types/node": "20.19.41",
@@ -83,16 +83,16 @@
     "@types/react-dom": "18.3.7",
     "@types/react-grid-layout": "1.3.6",
     "@types/react-virtualized-auto-sizer": "1.0.8",
-    "@types/systemjs": "^6.15.1",
-    "eslint": "^9.28.0",
+    "@types/systemjs": "6.15.1",
+    "eslint": "9.28.0",
     "i18next-parser": "9.4.0",
     "jest": "30.4.2",
-    "jest-canvas-mock": "^2.5.2",
-    "react-router-dom": "^6.30.3",
-    "rimraf": "^6.0.0",
-    "rollup": "^4.36.0",
+    "jest-canvas-mock": "2.5.2",
+    "react-router-dom": "6.30.4",
+    "rimraf": "6.1.3",
+    "rollup": "4.60.4",
     "rxjs": "7.8.2",
-    "typescript": "^5.4.3"
+    "typescript": "5.9.3"
   },
   "lint-staged": {
     "*.{js,ts,tsx}": [
