@@ -4599,7 +4599,7 @@ __metadata:
     jest-canvas-mock: "npm:^2.5.2"
     lodash: "npm:^4.17.21"
     react-grid-layout: "npm:^1.3.4"
-    react-router-dom: "npm:^6.30.3"
+    react-router-dom: "npm:^7.0.0"
     react-select: "npm:^5.10.2"
     react-use: "npm:^17.5.0"
     react-virtualized-auto-sizer: "npm:^1.0.24"
@@ -4617,7 +4617,7 @@ __metadata:
     "@grafana/ui": ">=11.6"
     react: ^18.0.0
     react-dom: ^18.0.0
-    react-router-dom: ^6.28.0
+    react-router-dom: ^7.0.0
     rxjs: ^7.8.1
   languageName: unknown
   linkType: soft
@@ -12180,6 +12180,13 @@ __metadata:
   version: 1.0.7
   resolution: "cookie-signature@npm:1.0.7"
   checksum: 10/1a62808cd30d15fb43b70e19829b64d04b0802d8ef00275b57d152de4ae6a3208ca05c197b6668d104c4d9de389e53ccc2d3bc6bcaaffd9602461417d8c40710
+  languageName: node
+  linkType: hard
+
+"cookie@npm:^1.0.1":
+  version: 1.1.1
+  resolution: "cookie@npm:1.1.1"
+  checksum: 10/85538153054791155cf4d38d2e807e3b9382d71bf71d92fc46fca348515ea574049d0d9ef8eb84d2d54a681ad1d7a7316b1989b901dace50a6c0f4c3858dbdb2
   languageName: node
   linkType: hard
 
@@ -24993,7 +25000,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:^6.28.0, react-router-dom@npm:^6.30.3":
+"react-router-dom@npm:^6.28.0":
   version: 6.30.4
   resolution: "react-router-dom@npm:6.30.4"
   dependencies:
@@ -25003,6 +25010,18 @@ __metadata:
     react: ">=16.8"
     react-dom: ">=16.8"
   checksum: 10/e220abac766bb9bcc56a99b78d30d99745cae3618f84baa92bd6ec481eccb6afb12c724d49dc68e6f870b70ff449f751f20f4aa33f1896d3f7d3bda8e47a6ce1
+  languageName: node
+  linkType: hard
+
+"react-router-dom@npm:^7.0.0":
+  version: 7.18.1
+  resolution: "react-router-dom@npm:7.18.1"
+  dependencies:
+    react-router: "npm:7.18.1"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  checksum: 10/4afbab4fb0f355429ad9905d48c17cdebe264d55bff824d409998d03c8548f86a64ec484cdab54b956cd3de2ceed1b87aa8837e631f47d63f71d490a0f7add00
   languageName: node
   linkType: hard
 
@@ -25044,6 +25063,22 @@ __metadata:
   peerDependencies:
     react: ">=16.8"
   checksum: 10/59c1b64a210cde2f1d069ffc47dce2d58991bd4d81bb0743e22ba7c6b742e63ebbdc976c42c3a3ebd90bf38a2f05258bd0efa82c162b259be000d39787716043
+  languageName: node
+  linkType: hard
+
+"react-router@npm:7.18.1":
+  version: 7.18.1
+  resolution: "react-router@npm:7.18.1"
+  dependencies:
+    cookie: "npm:^1.0.1"
+    set-cookie-parser: "npm:^2.6.0"
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+  checksum: 10/f507876822281499759abc53b3230375f706aa45c66b9ba271308f7420501ff1e5430443c560028299210efe1797141d2297c3bb6d09f3ef175220c1ae67a368
   languageName: node
   linkType: hard
 
@@ -26577,6 +26612,13 @@ __metadata:
   version: 2.0.0
   resolution: "set-blocking@npm:2.0.0"
   checksum: 10/8980ebf7ae9eb945bb036b6e283c547ee783a1ad557a82babf758a065e2fb6ea337fd82cac30dd565c1e606e423f30024a19fff7afbf4977d784720c4026a8ef
+  languageName: node
+  linkType: hard
+
+"set-cookie-parser@npm:^2.6.0":
+  version: 2.7.2
+  resolution: "set-cookie-parser@npm:2.7.2"
+  checksum: 10/4b6f5ec4e3fa1aef471d9207117704d217ba6bb6443400b41f5ea945c4a7f6fc08e405a122c1a32b4ebde41f06dea75e02c2af87cee9abb27f3e3fe911e5839b
   languageName: node
   linkType: hard
 
