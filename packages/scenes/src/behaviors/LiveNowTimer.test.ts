@@ -44,6 +44,37 @@ describe('LiveNowTimer', () => {
 
     expect(VizPanel.prototype.forceRender).toHaveBeenCalledTimes(2);
   });
+
+  it('should restart the interval with the new rate when enabled', () => {
+    const { timer } = setup({ enabled: false });
+    timer.enable();
+
+    expect(setInterval).toHaveBeenLastCalledWith(expect.any(Function), LiveNowTimer.DEFAULT_REFRESH_RATE);
+
+    timer.setRefreshRate(500);
+
+    expect(clearInterval).toHaveBeenCalledTimes(2);
+    expect(setInterval).toHaveBeenLastCalledWith(expect.any(Function), 500);
+    expect(timer.isEnabled).toBe(true);
+  });
+
+  it('should not enable a disabled timer when setRefreshRate is called', () => {
+    const { timer } = setup({ enabled: false });
+
+    timer.setRefreshRate(500);
+
+    expect(setInterval).not.toHaveBeenCalled();
+    expect(timer.isEnabled).toBe(false);
+  });
+
+  it('should use the updated refresh rate the next time enable is called', () => {
+    const { timer } = setup({ enabled: false });
+
+    timer.setRefreshRate(500);
+    timer.enable();
+
+    expect(setInterval).toHaveBeenLastCalledWith(expect.any(Function), 500);
+  });
 });
 
 function setup({ enabled = true } = {}) {
