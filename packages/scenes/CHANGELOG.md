@@ -1,3 +1,15 @@
+# v8.13.4 (Thu Jul 23 2026)
+
+#### 🐛 Bug Fix
+
+- SceneTimeRangeCompare: make timeShiftAlignmentProcessor non-mutating and export it [#1583](https://github.com/grafana/scenes/pull/1583) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v8.13.3 (Mon Jul 20 2026)
 
 #### 🐛 Bug Fix
