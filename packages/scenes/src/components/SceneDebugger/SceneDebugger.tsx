@@ -26,7 +26,12 @@ export function SceneDebugger({ scene }: Props) {
 
   return (
     <>
-      <ToolbarButton variant="canvas" icon="bug" onClick={() => setIsOpen(true)} />
+      <ToolbarButton
+        variant="canvas"
+        icon="bug"
+        onClick={() => setIsOpen(true)}
+        aria-label={t('grafana-scenes.components.scene-debugger.title-scene-debugger', 'Scene debugger')}
+      />
       {isOpen && (
         <Drawer
           title={t('grafana-scenes.components.scene-debugger.title-scene-debugger', 'Scene debugger')}

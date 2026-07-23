@@ -52,15 +52,13 @@ export function getHttpHandlerListScene(): EmbeddedScene {
   const httpHandlersTable = PanelBuilders.table()
     .setTitle('Handlers')
     .setData(httpHandlerQueriesFiltered)
-    .setOption('footer', {
-      enablePagination: true,
-    })
+    .setOption('enablePagination', true)
     .setOverrides((b) =>
       b
         .matchFieldsWithNameByRegex('.*')
         .overrideFilterable(false)
         .matchFieldsWithName('Time')
-        .overrideCustomFieldConfig('hidden', true)
+        .overrideCustomFieldConfig('hideFrom', { legend: true, tooltip: true, viz: true })
         .matchFieldsWithName('Value')
         .overrideDisplayName('Duration (Avg)')
         .matchFieldsWithName('handler')
