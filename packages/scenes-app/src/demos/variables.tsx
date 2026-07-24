@@ -241,14 +241,17 @@ export function getVariablesDemo(defaults: SceneAppPageState) {
                       {
                         value: 'a',
                         text: 'A',
+                        description: 'Alpha',
                       },
                       {
                         value: 'b',
                         text: 'B',
+                        description: 'Bravo',
                       },
                       {
                         value: 'c',
                         text: 'C',
+                        description: 'Charlie',
                       },
                     ],
                   }),
