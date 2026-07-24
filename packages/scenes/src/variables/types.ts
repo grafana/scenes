@@ -91,6 +91,19 @@ export interface VariableValueOption {
 
 export interface SceneVariableSetState extends SceneObjectState {
   variables: SceneVariable[];
+  /**
+   * When true, a variable that fails to update (enters an error state) will block its dependent
+   * (chained) variables from updating, and any scene object (eg. query runner) that depends on the
+   * failed variable or any of its dependents will not run. This prevents running queries against the
+   * backend with empty/null interpolated values when a variable fails.
+   */
+  blockDependentsOnError?: boolean;
+  /**
+   * Only relevant together with `blockDependentsOnError`. When true a variable that resolves to an
+   * empty value (no options / null) is treated the same as a failed variable for the purpose of
+   * blocking dependent variables and panels.
+   */
+  treatEmptyAsError?: boolean;
 }
 
 export interface SceneVariables extends SceneObject<SceneVariableSetState> {
@@ -102,6 +115,11 @@ export interface SceneVariables extends SceneObject<SceneVariableSetState> {
    * Will return true if the variable is loading or waiting for an update to complete.
    */
   isVariableLoadingOrWaitingToUpdate(variable: SceneVariable): boolean;
+  /**
+   * Will return true if the variable is in an error state, or depends on a variable that is in an
+   * error state, while `blockDependentsOnError` is enabled on the owning set.
+   */
+  isVariableInErrorState?(variable: SceneVariable): boolean;
 }
 
 export class SceneVariableValueChangedEvent extends BusEventWithPayload<SceneVariable> {
