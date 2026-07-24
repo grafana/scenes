@@ -169,6 +169,10 @@
       "options-error-placeholder": {
         "error-occurred-fetching-labels-click-retry": "An error has occurred fetching labels. Click to retry"
       },
+      "origin-filter-value-control": {
+        "placeholder-all": "All",
+        "restore-tooltip": "Restore the filter set by this dashboard."
+      },
       "test-object-with-variable-dependency": {
         "title": {
           "hello": "Hello"
