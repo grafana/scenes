@@ -14,6 +14,7 @@ import { Configuration } from 'webpack';
 
 import { getPackageJson, getPluginId, hasReadme } from './utils';
 import { SOURCE_DIR, DIST_DIR, ENTRY_FILE } from './constants';
+import { externals } from '../bundler/externals';
 
 const config = (env): Configuration => ({
   cache: {
@@ -31,42 +32,7 @@ const config = (env): Configuration => ({
     module: path.resolve(process.cwd(), ENTRY_FILE),
   },
 
-  externals: [
-    'lodash',
-    'jquery',
-    'moment',
-    'slate',
-    'emotion',
-    '@emotion/react',
-    '@emotion/css',
-    'prismjs',
-    'slate-plain-serializer',
-    '@grafana/slate-react',
-    'react',
-    'react-dom',
-    'react-redux',
-    'redux',
-    'rxjs',
-    'react-router',
-    'd3',
-    'angular',
-    '@grafana/ui',
-    '@grafana/runtime',
-    '@grafana/data',
-
-    // Mark legacy SDK imports as external if their name starts with the "grafana/" prefix
-    ({ request }, callback) => {
-      const prefix = 'grafana/';
-      const hasPrefix = (request) => request.indexOf(prefix) === 0;
-      const stripPrefix = (request) => request.substr(prefix.length);
-
-      if (hasPrefix(request)) {
-        return callback(null, stripPrefix(request));
-      }
-
-      callback();
-    },
-  ],
+  externals,
 
   mode: env.production ? 'production' : 'development',
 
