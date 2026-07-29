@@ -1,3 +1,19 @@
+# v8.13.5 (Wed Jul 29 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Scenes: add data-plugin-id to render boundary [#1590](https://github.com/grafana/scenes/pull/1590) ([@jackw](https://github.com/jackw))
+- `scenes-app`
+  - GrafanaCompatability: Make scene demo app work with react 19 [#1587](https://github.com/grafana/scenes/pull/1587) ([@torkelo](https://github.com/torkelo))
+
+#### Authors: 2
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v8.13.4 (Thu Jul 23 2026)
 
 #### 🐛 Bug Fix

@@ -1,3 +1,15 @@
+# v8.13.5 (Wed Jul 29 2026)
+
+#### 🐛 Bug Fix
+
+- Scenes: add data-plugin-id to render boundary [#1590](https://github.com/grafana/scenes/pull/1590) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
 # v8.13.4 (Thu Jul 23 2026)
 
 #### 🐛 Bug Fix
