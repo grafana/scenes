@@ -886,6 +886,144 @@ describe('SceneDataTransformer', () => {
     });
   });
 
+  describe('skipTransformations', () => {
+    it('passes source data through untouched while still storing the transformations', () => {
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [transformer1config, annotationTransformerConfig],
+        skipTransformations: true,
+      });
+
+      transformationNode.activate();
+
+      const data = transformationNode.state.data;
+
+      expect(transformerSpy).not.toHaveBeenCalled();
+      expect(annotationTransformerSpy).not.toHaveBeenCalled();
+      expect(data?.series).toBe(sourceDataNode.state.data!.series);
+      expect(data?.annotations).toBe(sourceDataNode.state.data!.annotations);
+      expect(transformationNode.state.transformations).toEqual([transformer1config, annotationTransformerConfig]);
+    });
+
+    it('emits on the results stream once per source emission', () => {
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [transformer1config],
+        skipTransformations: true,
+      });
+
+      const results: PanelData[] = [];
+      transformationNode.getResultsStream().subscribe((result) => results.push(result.data));
+
+      transformationNode.activate();
+
+      expect(results).toHaveLength(1);
+
+      sourceDataNode.setState({
+        data: { ...sourceDataNode.state.data!, state: LoadingState.Done },
+      });
+
+      expect(results).toHaveLength(2);
+      expect(results[1].state).toBe(LoadingState.Done);
+    });
+
+    it('produces a new state object on every source emission so useState subscribers re-render', () => {
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [transformer1config],
+        skipTransformations: true,
+      });
+
+      transformationNode.activate();
+
+      const stateUpdates = subscribeToStateUpdates(transformationNode);
+      const prevState = transformationNode.state;
+
+      sourceDataNode.setState({
+        data: { ...sourceDataNode.state.data!, state: LoadingState.Done },
+      });
+
+      expect(stateUpdates).toHaveLength(1);
+      expect(transformationNode.state).not.toBe(prevState);
+    });
+
+    it('re-transforms in both directions when the flag flips', () => {
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [transformer1config],
+      });
+
+      transformationNode.activate();
+
+      expect(transformationNode.state.data?.series[0].fields[0].values).toEqual([200, 400, 600]);
+
+      transformationNode.setState({ skipTransformations: true });
+
+      expect(transformationNode.state.data?.series).toBe(sourceDataNode.state.data!.series);
+
+      transformationNode.setState({ skipTransformations: false });
+
+      expect(transformationNode.state.data?.series[0].fields[0].values).toEqual([200, 400, 600]);
+      expect(transformerSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('re-emits source data when reprocessTransformations is called while skipping', () => {
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [transformer1config],
+        skipTransformations: true,
+      });
+
+      const results: PanelData[] = [];
+      transformationNode.getResultsStream().subscribe((result) => results.push(result.data));
+
+      transformationNode.activate();
+
+      transformationNode.reprocessTransformations();
+
+      expect(results).toHaveLength(2);
+      expect(results[1].series).toBe(sourceDataNode.state.data!.series);
+      expect(transformerSpy).not.toHaveBeenCalled();
+    });
+
+    it('emits once without transforming when a referenced variable changes while skipping', () => {
+      const transformationNode = new SceneDataTransformer({
+        transformations: [{ ...transformer1config, options: { option: '$myVariable' } }],
+        skipTransformations: true,
+      });
+
+      const results: PanelData[] = [];
+      transformationNode.getResultsStream().subscribe((result) => results.push(result.data));
+
+      const consumer = new TestSceneObject({ $data: transformationNode });
+      const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        $variables: new SceneVariableSet({ variables: [textVar] }),
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      activateFullSceneTree(scene);
+
+      expect(results).toHaveLength(1);
+
+      textVar.setValue('New Text Variable Value');
+
+      expect(results).toHaveLength(2);
+      expect(transformerSpy).not.toHaveBeenCalled();
+    });
+
+    it('preserves the flag when cloned', () => {
+      const transformationNode = new SceneDataTransformer({
+        transformations: [transformer1config],
+        skipTransformations: true,
+      });
+
+      expect(transformationNode.clone().state.skipTransformations).toBe(true);
+      expect(transformationNode.clone({ skipTransformations: false }).state.skipTransformations).toBe(false);
+    });
+  });
+
   describe('Series <-> Annotations conversion', () => {
     it('should convert series frames to annotation frames', () => {
       // Custom transformer that converts series frames to annotation frames
