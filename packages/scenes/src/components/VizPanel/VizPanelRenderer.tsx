@@ -264,6 +264,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         data-viz-panel-key={model.state.key}
         data-viz-panel-id={model.getPathId()}
         data-testid={`${plugin.meta.id}-${model.state.key}`}
+        data-plugin-id={plugin.meta.id}
       >
         <PanelChrome
           title={titleInterpolated}
