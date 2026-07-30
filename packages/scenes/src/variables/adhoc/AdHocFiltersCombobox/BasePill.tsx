@@ -140,6 +140,9 @@ export const getBasePillStyles = (theme: GrafanaTheme2) => ({
     overflow: 'hidden',
   }),
   tooltipText: css({
+    // Match pillText's maxWidth: a wider tooltip gets pushed off-centre by the
+    // viewport-edge shift logic when the pill is near the edge of the screen
+    maxWidth: '280px',
     textAlign: 'center',
   }),
   disabledPillIcon: css({
