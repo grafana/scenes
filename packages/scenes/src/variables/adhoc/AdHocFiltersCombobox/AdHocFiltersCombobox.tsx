@@ -15,6 +15,7 @@ import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
 import { AdHocFilterWithLabels, isMultiValueOperator, OPERATORS } from '../AdHocFiltersVariable';
+import { ALL_VARIABLE_VALUE } from '../../constants';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -188,10 +189,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleLocalMultiValueChange = useCallback((selectedItem: SelectableValue<string>) => {
     setFilterMultiValues((items) => {
-      if (items.some((item) => item.value === selectedItem.value)) {
-        return items.filter((item) => item.value !== selectedItem.value);
+      // "All" is exclusive: selecting it clears other values, selecting a value clears "All"
+      if (selectedItem.value === ALL_VARIABLE_VALUE) {
+        return items.some((item) => item.value === ALL_VARIABLE_VALUE) ? [] : [selectedItem];
       }
-      return [...items, selectedItem];
+      const itemsWithoutAll = items.filter((item) => item.value !== ALL_VARIABLE_VALUE);
+      if (itemsWithoutAll.some((item) => item.value === selectedItem.value)) {
+        return itemsWithoutAll.filter((item) => item.value !== selectedItem.value);
+      }
+      return [...itemsWithoutAll, selectedItem];
     });
   }, []);
 
@@ -312,6 +318,17 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     } else {
       filteredDropDownItems.push(customOptionValue);
     }
+  }
+
+  // Origin (default) filters with the "one of" operator offer an explicit "All" option,
+  // like query variables. Selecting it commits the special $__all value, which lifts the
+  // filter's restriction from queries. Not offered for "not one of" where "All" would read
+  // as excluding everything.
+  if (isMultiValueEdit && filter?.origin && filter?.operator === '=|' && !inputValue) {
+    filteredDropDownItems.unshift({
+      label: t('grafana-scenes.components.adhoc-filters-combobox.all-values', 'All'),
+      value: ALL_VARIABLE_VALUE,
+    });
   }
 
   // calculate width and populate listRef and disabledIndicesRef for arrow key navigation
@@ -683,7 +700,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           (acc, value, i) => [
             ...acc,
             {
-              label: filter.valueLabels?.[i] || value,
+              label:
+                value === ALL_VARIABLE_VALUE
+                  ? t('grafana-scenes.components.adhoc-filters-combobox.all-values', 'All')
+                  : filter.valueLabels?.[i] || value,
               value: value,
             },
           ],

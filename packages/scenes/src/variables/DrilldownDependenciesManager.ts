@@ -10,6 +10,7 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import {
   AdHocFilterWithLabels,
   AdHocFiltersVariable,
+  isAllValueFilter,
   isFilterApplicable,
   isFilterComplete,
   isGroupByFilter,
@@ -180,7 +181,9 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return undefined;
     }
 
-    return this._getMergedFilters().filter((f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f));
+    return this._getMergedFilters().filter(
+      (f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f) && !isAllValueFilter(f)
+    );
   }
 
   /**

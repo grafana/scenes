@@ -39,6 +39,7 @@ import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
 import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
 import { AdHocFiltersRecommendations } from './AdHocFiltersRecommendations';
+import { ALL_VARIABLE_VALUE } from '../constants';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -1178,9 +1179,14 @@ export class AdHocFiltersVariable
     await this._waitForVariables();
 
     const applicableOriginFilters =
-      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
+      this.state.originFilters?.filter(
+        (f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f) && !isAllValueFilter(f)
+      ) ?? [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f))
+      .filter(
+        (f) =>
+          f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f) && !isAllValueFilter(f)
+      )
       .concat(this.state.baseFilters ?? [])
       .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
@@ -1287,10 +1293,11 @@ export class AdHocFiltersVariable
     await this._waitForVariables();
 
     const originFilters =
-      this.state.originFilters?.filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f)) ??
-      [];
+      this.state.originFilters?.filter(
+        (f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f) && !isAllValueFilter(f)
+      ) ?? [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f))
+      .filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f) && !isAllValueFilter(f))
       .concat(originFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
@@ -1363,7 +1370,7 @@ function renderExpression(
   filters: AdHocFilterWithLabels[] | undefined
 ) {
   return (builder ?? renderPrometheusLabelFilters)(
-    filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f)) ?? []
+    filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f) && !isAllValueFilter(f)) ?? []
   );
 }
 
@@ -1446,6 +1453,15 @@ export function toSelectableValue(input: MetricFindValue): SelectableValue<strin
 
 export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
   return filter.operator === '=~' && filter.value === '.*';
+}
+
+/**
+ * True when the filter has the special "All" value selected, meaning it should not
+ * restrict queries. Origin (default) filters offer "All" in the multi-value combobox
+ * so dashboard authors can pre-select a key without restricting its values.
+ */
+export function isAllValueFilter(filter: AdHocFilterWithLabels): boolean {
+  return filter.values ? filter.values.includes(ALL_VARIABLE_VALUE) : filter.value === ALL_VARIABLE_VALUE;
 }
 
 export const GROUP_BY_OPERATOR = 'groupBy';

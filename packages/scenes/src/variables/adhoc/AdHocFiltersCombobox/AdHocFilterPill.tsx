@@ -4,6 +4,7 @@ import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
 import { AdHocFilterWithLabels, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { ALL_VARIABLE_VALUE } from '../../constants';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { t } from '@grafana/i18n';
 import { BasePill } from './BasePill';
@@ -24,7 +25,13 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
     useEditablePill({ filter, controller, readOnly, focusOnWipInputRef, isFilterEmpty: isAdhocFilterEmpty });
 
   const keyLabel = filter.keyLabel ?? filter.key;
-  const valueLabel = filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
+  // The special $__all value always displays as "All", even when no valueLabels were stored
+  const valueLabel =
+    (filter.valueLabels?.length ? filter.valueLabels : filter.values ?? [filter.value])
+      .map((label) =>
+        label === ALL_VARIABLE_VALUE ? t('grafana-scenes.components.adhoc-filter-pill.all-values', 'All') : label
+      )
+      .join(', ') || filter.value;
 
   const getOriginFilterTooltips = (origin: FilterOrigin): { info: string; restore: string } => {
     if (origin === 'dashboard') {
