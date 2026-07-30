@@ -1185,7 +1185,11 @@ export class AdHocFiltersVariable
     const otherFilters = this.state.filters
       .filter(
         (f) =>
-          f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f) && !isAllValueFilter(f)
+          f.key !== currentKey &&
+          !f.nonApplicable &&
+          !isGroupByFilter(f) &&
+          !isMatchAllFilter(f) &&
+          !isAllValueFilter(f)
       )
       .concat(this.state.baseFilters ?? [])
       .concat(applicableOriginFilters);
