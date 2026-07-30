@@ -5,7 +5,8 @@ import React, { forwardRef, ReactNode } from 'react';
 import { t } from '@grafana/i18n';
 import { getNonApplicablePillStyles } from '../../utils';
 
-const LABEL_MAX_VISIBLE_LENGTH = 20;
+// Tooltip threshold, roughly matching how many characters fit in pillText's maxWidth
+const LABEL_MAX_VISIBLE_LENGTH = 28;
 
 export interface BasePillProps {
   label: string;
@@ -133,7 +134,7 @@ export const getBasePillStyles = (theme: GrafanaTheme2) => ({
     },
   }),
   pillText: css({
-    maxWidth: '200px',
+    maxWidth: '280px',
     width: '100%',
     textOverflow: 'ellipsis',
     overflow: 'hidden',
