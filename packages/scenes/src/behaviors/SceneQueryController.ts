@@ -2,7 +2,12 @@ import { SceneObjectBase } from '../core/SceneObjectBase';
 import { SceneObject, SceneStatelessBehavior } from '../core/types';
 import { writeSceneLog } from '../utils/writeSceneLog';
 import { SceneRenderProfiler } from '../performance/SceneRenderProfiler';
-import { SceneQueryControllerEntry, SceneQueryControllerLike, SceneQueryStateControllerState } from './types';
+import {
+  SceneQueryControllerEntry,
+  SceneQueryControllerEntryType,
+  SceneQueryControllerLike,
+  SceneQueryStateControllerState,
+} from './types';
 
 export function isQueryController(s: SceneObject | SceneStatelessBehavior): s is SceneQueryControllerLike {
   return 'isQueryController' in s;
@@ -75,6 +80,17 @@ export class SceneQueryController
     if (this.#running.size === 0) {
       this.setState({ isRunning: false });
     }
+  }
+
+  /**
+   * Registers non-query pending work (e.g. repeat clone mounting) so that profile completion
+   * and readiness checks based on runningQueriesCount cannot fire while the work is pending.
+   * Returns a release function. Releasing more than once is a no-op.
+   */
+  public registerPendingWork(type: SceneQueryControllerEntryType, origin: SceneObject): () => void {
+    const entry: SceneQueryControllerEntry = { type, origin };
+    this.queryStarted(entry);
+    return () => this.queryCompleted(entry);
   }
 
   private changeRunningQueryCount(dir: 1 | -1, entry?: SceneQueryControllerEntry) {

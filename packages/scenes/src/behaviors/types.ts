@@ -42,6 +42,12 @@ export interface SceneQueryControllerLike extends SceneObject<SceneQueryStateCon
 
   queryStarted(entry: SceneQueryControllerEntry): void;
   queryCompleted(entry: SceneQueryControllerEntry): void;
+  /**
+   * Registers non-query pending work (e.g. repeat clone mounting) that should hold
+   * runningQueriesCount above zero until the returned release function is called.
+   * Optional to stay backwards compatible with existing implementations.
+   */
+  registerPendingWork?(type: SceneQueryControllerEntryType, origin: SceneObject): () => void;
   startProfile(name: string): void;
   cancelProfile(): void;
   runningQueriesCount(): number;
