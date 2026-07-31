@@ -15,7 +15,7 @@ export const passthroughProcessor: ExtraQueryDataProcessor = (_, secondary) => o
  * @param responseState
  */
 export function combineLoadingStates(responseState: LoadingState[]): LoadingState {
-  const primaryState = responseState[0];
+  const primaryState = responseState[0] ?? LoadingState.Done;
 
   if (primaryState === LoadingState.Error) {
     return LoadingState.Error;
