@@ -2028,6 +2028,21 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(variable.getValue('["env"]')).toEqual(['prod', 'staging']);
     });
 
+    it('skips All-value filters', () => {
+      const variable = makeVariable({
+        originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+      });
+      expect(variable.getValue('["env"]')).toBe('');
+    });
+
+    it('returns only concrete values when an All-value filter shares the key', () => {
+      const variable = makeVariable({
+        originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+        filters: [{ key: 'env', operator: '=', value: 'prod' }],
+      });
+      expect(variable.getValue('["env"]')).toBe('prod');
+    });
+
     it('flattens multiple filters sharing a key into one array', () => {
       const variable = makeVariable({
         filters: [
@@ -3314,6 +3329,63 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const valuesCallFilters = getTagValuesSpy.mock.calls[0][0].filters;
       expect(valuesCallFilters.some((f: AdHocFilterWithLabels) => f.key === 'cluster')).toBe(true);
       expect(valuesCallFilters.some((f: AdHocFilterWithLabels) => f.key === 'pod')).toBe(false);
+    });
+
+    it('treats the sentinel as a literal value for operators other than one-of', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [
+          { key: 'key1', operator: '=', value: '$__all' },
+          { key: 'key2', operator: '!=|', value: '$__all', values: ['$__all'] },
+        ],
+      });
+
+      variable.activate();
+
+      const expression = String(variable.getValue());
+      expect(expression).toContain('key1="$__all"');
+      expect(expression).toContain('key2');
+    });
+
+    it('keeps Enter on the All row when options are grouped', async () => {
+      setup({
+        getTagValuesProvider: async () => ({
+          replace: true,
+          values: [
+            { text: 'v1', value: 'v1', group: 'Group 1' },
+            { text: 'v2', value: 'v2', group: 'Group 1' },
+          ],
+        }),
+        originFilters: [{ key: 'pod', operator: '=|', value: 'test1', values: ['test1'], origin: 'dashboard' }],
+        layout: 'combobox',
+      });
+
+      await userEvent.click(await screen.findByText('pod =| test1'));
+      await screen.findByTestId(allOptionTestId);
+
+      // The initial highlight sits on the prepended All row, not the group header
+      await userEvent.keyboard('{Enter}');
+
+      expect(within(screen.getByTestId(allOptionTestId)).getByRole('checkbox')).toBeChecked();
+    });
+
+    it('renders the current All label even when a stale label was persisted', async () => {
+      setup({
+        originFilters: [
+          {
+            key: 'pod',
+            operator: '=|',
+            value: '$__all',
+            values: ['$__all'],
+            valueLabels: ['Alle'],
+            origin: 'dashboard',
+          },
+        ],
+        layout: 'combobox',
+      });
+
+      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
     });
   });
 

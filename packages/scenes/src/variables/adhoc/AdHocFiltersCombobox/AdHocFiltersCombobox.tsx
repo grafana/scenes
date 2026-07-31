@@ -103,6 +103,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const hasMultiValueOperator = isMultiValueOperator(filter?.operator || '');
   const isMultiValueEdit = hasMultiValueOperator && filterInputType === 'value';
+  // Origin (default) filters with the "one of" operator offer an explicit "All" option
+  const offersAllOption = Boolean(filter?.origin) && filter?.operator === '=|';
 
   // used to identify operator element and prevent dismiss because it registers as outside click
   const operatorIdentifier = useId();
@@ -276,6 +278,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       setActiveIndex(null);
     } else if (!nextFilteredItems.length && allowCustomValue) {
       setActiveIndex(0);
+    } else if (isMultiValueEdit && offersAllOption && !value) {
+      // An empty input re-prepends the All row, which shifts every index by one
+      setActiveIndex(0);
     } else {
       setActiveIndex(getFirstSelectableIndex(nextFilteredItems));
     }
@@ -320,11 +325,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     }
   }
 
-  // Origin (default) filters with the "one of" operator offer an explicit "All" option,
-  // like query variables. Selecting it commits the special $__all value, which lifts the
-  // filter's restriction from queries. Not offered for "not one of" where "All" would read
-  // as excluding everything.
-  if (isMultiValueEdit && filter?.origin && filter?.operator === '=|' && !inputValue) {
+  // Selecting All commits the special $__all value, which lifts the filter's restriction
+  // from queries. Not offered for "not one of" where "All" would read as excluding everything.
+  if (isMultiValueEdit && offersAllOption && !inputValue) {
     filteredDropDownItems.unshift({
       label: t('grafana-scenes.components.adhoc-filters-combobox.all-values', 'All'),
       value: ALL_VARIABLE_VALUE,
@@ -369,7 +372,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           return;
         }
         setOptions(options);
-        if (options[0]?.group) {
+        if (inputType === 'value' && offersAllOption) {
+          // The prepended All row takes the initial highlight, keeping the index valid
+          // when the first fetched option is a group header
+          setActiveIndex(0);
+        } else if (options[0]?.group) {
           setActiveIndex(1);
         } else {
           setActiveIndex(0);
@@ -382,7 +389,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       controller.stopInteraction?.();
     },
-    [filter, controller, isGroupBy]
+    [filter, controller, isGroupBy, offersAllOption]
   );
 
   const rowVirtualizer = useVirtualizer({

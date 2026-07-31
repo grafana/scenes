@@ -25,11 +25,14 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
     useEditablePill({ filter, controller, readOnly, focusOnWipInputRef, isFilterEmpty: isAdhocFilterEmpty });
 
   const keyLabel = filter.keyLabel ?? filter.key;
-  // The special $__all value always displays as "All", even when no valueLabels were stored
+  // Labels are paired with values so the special $__all value always displays with the
+  // current All translation, even when a stale label was persisted for it
   const valueLabel =
-    (filter.valueLabels?.length ? filter.valueLabels : filter.values ?? [filter.value])
-      .map((label) =>
-        label === ALL_VARIABLE_VALUE ? t('grafana-scenes.components.adhoc-filter-pill.all-values', 'All') : label
+    (filter.values ?? (filter.value ? [filter.value] : []))
+      .map((value, i) =>
+        value === ALL_VARIABLE_VALUE
+          ? t('grafana-scenes.components.adhoc-filter-pill.all-values', 'All')
+          : filter.valueLabels?.[i] || value
       )
       .join(', ') || filter.value;
 

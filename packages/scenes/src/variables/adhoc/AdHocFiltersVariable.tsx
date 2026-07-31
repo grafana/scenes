@@ -801,7 +801,7 @@ export class AdHocFiltersVariable
     const { originFilters, filters, _wip } = this.state;
 
     const matches = [...(originFilters ?? []), ...filters].filter(
-      (f) => f !== _wip && !isGroupByFilter(f) && f.key === key
+      (f) => f !== _wip && !isGroupByFilter(f) && !isAllValueFilter(f) && f.key === key
     );
 
     if (matches.length === 0) {
@@ -1463,8 +1463,13 @@ export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
  * True when the filter has the special "All" value selected, meaning it should not
  * restrict queries. Origin (default) filters offer "All" in the multi-value combobox
  * so dashboard authors can pre-select a key without restricting its values.
+ * Only the "one of" operator supports the All value - for any other operator a
+ * $__all value is treated as a literal so legitimate filters are not dropped.
  */
 export function isAllValueFilter(filter: AdHocFilterWithLabels): boolean {
+  if (filter.operator !== '=|') {
+    return false;
+  }
   return filter.values ? filter.values.includes(ALL_VARIABLE_VALUE) : filter.value === ALL_VARIABLE_VALUE;
 }
 
