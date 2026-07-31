@@ -57,10 +57,15 @@ export const extraQueryProcessingOperator =
       map(([processedPrimary, ...processedSecondaries]) => {
         const allResponses = [processedPrimary, ...processedSecondaries];
         const allResponseErrors = allResponses.flatMap((d) => d.errors ?? []);
+        // Hold secondary series until primary is no longer loading:
+        // A time shifted frame rendered alone currently breaks the panel and shows the unwanted "Data outside time range" message.
+        // Annotations are deliberately not held back: no processor time shifts a secondary's annotations
+        const secondarySeries =
+          processedPrimary.state === LoadingState.Loading ? [] : processedSecondaries.flatMap((s) => s.series);
         return {
           ...processedPrimary,
           state: combineLoadingStates(allResponses.map((d) => d.state)),
-          series: [...processedPrimary.series, ...processedSecondaries.flatMap((s) => s.series)],
+          series: [...processedPrimary.series, ...secondarySeries],
           annotations: [
             ...(processedPrimary.annotations ?? []),
             ...processedSecondaries.flatMap((s) => s.annotations ?? []),

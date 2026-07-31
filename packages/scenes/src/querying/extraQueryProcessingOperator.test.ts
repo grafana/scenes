@@ -107,6 +107,68 @@ describe('extraQueryProcessingOperator', () => {
     expect(emissions[1].state).toBe(LoadingState.Done);
   });
 
+  it('withholds secondary series until the primary responds', () => {
+    const primarySubject = new Subject<PanelData>();
+    const secondarySubject = new Subject<PanelData>();
+    const processors = new Map<string, ExtraQueryDataProcessor>([['B', passthroughProcessor]]);
+
+    const { emissions } = collect(
+      combineLatest([primarySubject, secondarySubject]).pipe(extraQueryProcessingOperator(processors))
+    );
+
+    // The secondary finishes first. Its frames must not reach the panel on their own - a time shifted
+    // frame with no primary alongside it renders as data outside the panel's time range.
+    primarySubject.next(makePanelData(LoadingState.Loading, { requestId: 'A' }));
+    secondarySubject.next(
+      makePanelData(LoadingState.Done, { requestId: 'B', series: [toDataFrame({ refId: 'B', fields: [] })] })
+    );
+
+    expect(emissions).toHaveLength(1);
+    expect(emissions[0].series).toEqual([]);
+    // The secondary is done, but the primary still gates the combined state.
+    expect(emissions[0].state).toBe(LoadingState.Loading);
+
+    // Once the primary responds, both are merged.
+    primarySubject.next(
+      makePanelData(LoadingState.Done, { requestId: 'A', series: [toDataFrame({ refId: 'A', fields: [] })] })
+    );
+
+    expect(emissions[emissions.length - 1].series.map((s) => s.refId)).toEqual(['A', 'B']);
+    expect(emissions[emissions.length - 1].state).toBe(LoadingState.Done);
+  });
+
+  it('still merges secondary annotations while the primary is loading', () => {
+    const secondaryAnnotation = toDataFrame({ refId: 'secondary-annotation', fields: [] });
+
+    const { emissions } = collect(
+      of([
+        makePanelData(LoadingState.Loading, { requestId: 'A' }),
+        makePanelData(LoadingState.Done, { requestId: 'B', annotations: [secondaryAnnotation] }),
+      ] as [PanelData, PanelData]).pipe(extraQueryProcessingOperator(new Map([['B', passthroughProcessor]])))
+    );
+
+    // Only series are held back. Nothing time shifts or renders a secondary's annotations, so holding
+    // them back would change annotation behaviour without fixing anything.
+    expect(emissions[0].series).toEqual([]);
+    expect(emissions[0].annotations?.map((a) => a.refId)).toEqual(['secondary-annotation']);
+  });
+
+  it('still reports a secondary error while the primary is loading', () => {
+    const secondaryError: DataQueryError = { message: 'secondary boom', refId: 'B' };
+
+    const { emissions } = collect(
+      of([
+        makePanelData(LoadingState.Loading, { requestId: 'A' }),
+        makePanelData(LoadingState.Error, { requestId: 'B', errors: [secondaryError] }),
+      ] as [PanelData, PanelData]).pipe(extraQueryProcessingOperator(new Map([['B', passthroughProcessor]])))
+    );
+
+    // Held-back series must not mean a held-back error - the failure still has to reach the panel header.
+    expect(emissions[0].series).toEqual([]);
+    expect(emissions[0].errors).toEqual([secondaryError]);
+    expect(emissions[0].error).toEqual(secondaryError);
+  });
+
   it('emits and aggregates errors', () => {
     const primaryError: DataQueryError = { message: 'primary boom', refId: 'A' };
     const secondaryError: DataQueryError = { message: 'secondary boom', refId: 'B' };
