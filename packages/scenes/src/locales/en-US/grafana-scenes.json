@@ -85,6 +85,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "Cancel query"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": "No data returned for time comparison"
       }
     },
     "variables": {
