@@ -24,7 +24,6 @@ import { getTimeCompareStreamingDemo } from './timeCompareStreamingDemo';
 import { getCursorSyncTest } from './cursorSync';
 import { getAnnotationsDemo } from './annotations';
 import { getAdhocFiltersDemo } from './adhocFiltersDemo';
-import { getAdhocFiltersAllOptionDemo } from './adhocFiltersAllOptionDemo';
 import { getGroupByStatic } from './groupByStatic';
 import { getGroupByDatasource } from './groupByDatasource';
 import { getTransformationsTest } from './transformations';
@@ -121,12 +120,6 @@ export function getDemos(): DemoDescriptor[] {
       description: `Adhoc filters variable can be used in auto mode. By default datasources will apply the filters automatically to all queries of the same data source. In manual mode you can use it as a normal variable in queries or use it programmtically.`,
       getPage: getAdhocFiltersDemo,
       getSourceCodeModule: () => import('!!raw-loader!../demos/adhocFiltersDemo'),
-    },
-    {
-      title: 'Adhoc filters all option',
-      description: `Dashboard default (origin) filters with the "one of" operator offer an All option that keeps the filter pinned without restricting queries.`,
-      getPage: getAdhocFiltersAllOptionDemo,
-      getSourceCodeModule: () => import('!!raw-loader!../demos/adhocFiltersAllOptionDemo'),
     },
     {
       title: 'Group by (static)',
