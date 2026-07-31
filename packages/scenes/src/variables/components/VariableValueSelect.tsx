@@ -1,6 +1,7 @@
 import { t } from '@grafana/i18n';
 import { isArray } from 'lodash';
 import React, { RefCallback, useEffect, useMemo, useState } from 'react';
+import { type ActionMeta } from 'react-select';
 import {
   Checkbox,
   InputActionMeta,
@@ -13,6 +14,7 @@ import {
 } from '@grafana/ui';
 
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
+import { ALL_VARIABLE_VALUE } from '../constants';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
@@ -24,7 +26,28 @@ import { getVariableControlId } from '../utils';
 
 const filterNoOp = () => true;
 
-const filterAll = (v: SelectableValue<VariableValueSingle>) => v.value !== '$__all';
+const filterAll = (v: SelectableValue<VariableValueSingle>) => v.value !== ALL_VARIABLE_VALUE;
+
+/**
+ * Mirrors changeValueTo's commit-time normalisation so the open dropdown reflects what will
+ * actually be committed: selecting All deselects the other values, and selecting another
+ * value deselects All. Without this the dropdown can show mixed selections that are
+ * silently rewritten on blur.
+ */
+const enforceAllExclusivity = (
+  values: VariableValueSingle[],
+  action: ActionMeta<SelectableValue<VariableValueSingle>>
+): VariableValueSingle[] => {
+  if (action.action === 'select-option' && action.option?.value === ALL_VARIABLE_VALUE) {
+    return [ALL_VARIABLE_VALUE];
+  }
+
+  if (values.length > 1) {
+    return values.filter((v) => v !== ALL_VARIABLE_VALUE);
+  }
+
+  return values;
+};
 
 const determineToggleAllState = (
   selectedValues: Array<SelectableValue<VariableValueSingle>>,
@@ -34,7 +57,7 @@ const determineToggleAllState = (
     return ToggleAllState.allSelected;
   } else if (
     selectedValues.length === 0 ||
-    (selectedValues.length === 1 && selectedValues[0] && selectedValues[0].value === '$__all')
+    (selectedValues.length === 1 && selectedValues[0] && selectedValues[0].value === ALL_VARIABLE_VALUE)
   ) {
     return ToggleAllState.noneSelected;
   } else {
@@ -198,7 +221,12 @@ export function VariableValueSelectMulti({
           model.changeValueTo([], undefined, true);
         }
 
-        setUncommittedValue(newValue.map((x) => x.value!));
+        setUncommittedValue(
+          enforceAllExclusivity(
+            newValue.map((x) => x.value!),
+            action
+          )
+        );
       }}
     />
   );

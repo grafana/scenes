@@ -415,7 +415,9 @@ function customFormatQueryParameter(name: string, value: VariableValueSingle, va
 }
 
 export function isAllValue(value: VariableValueSingle) {
-  return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value[0] === ALL_VARIABLE_VALUE);
+  // Match hasAllValue: the All value counts wherever it sits, so a mixed selection is
+  // never interpolated as a literal $__all
+  return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value.includes(ALL_VARIABLE_VALUE));
 }
 
 const SQL_ESCAPE_MAP: Record<string, string> = {
