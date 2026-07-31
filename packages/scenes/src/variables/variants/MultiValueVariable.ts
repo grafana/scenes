@@ -331,20 +331,9 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         text = state.text;
       }
 
-      // If the last (most recently added) value is the All value it replaces the rest
-      if (value[value.length - 1] === ALL_VARIABLE_VALUE) {
-        value = [ALL_VARIABLE_VALUE];
-        text = [ALL_VARIABLE_TEXT];
-      }
-      // Otherwise a value was added after the All value, so the All value is
-      // deselected wherever it sits in the selection
-      else if (value.length > 1 && value.includes(ALL_VARIABLE_VALUE)) {
-        const allIndex = value.indexOf(ALL_VARIABLE_VALUE);
-        value.splice(allIndex, 1);
-        if (Array.isArray(text)) {
-          text.splice(allIndex, 1);
-        }
-      }
+      const exclusive = applyAllValueExclusivity(value, text);
+      value = exclusive.value;
+      text = exclusive.text;
     }
 
     // Do nothing if value and text are the same
@@ -420,6 +409,40 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * Can be used by subclasses to do custom handling of option search based on search input
    */
   public onSearchChange?(searchFilter: string): void;
+}
+
+/**
+ * The All value is exclusive: it cannot be selected together with concrete values. Selection order
+ * decides which wins, as the most recently added value sits last in the array, so selecting All
+ * collapses the selection to All and selecting anything else drops All from it.
+ *
+ * Both the commit path (changeValueTo) and the picker's uncommitted selection go through this, so
+ * the open dropdown always shows what will be committed.
+ */
+export function applyAllValueExclusivity(
+  value: VariableValueSingle[],
+  text?: VariableValue
+): { value: VariableValueSingle[]; text?: VariableValue } {
+  if (value[value.length - 1] === ALL_VARIABLE_VALUE) {
+    return { value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] };
+  }
+
+  const allIndex = value.indexOf(ALL_VARIABLE_VALUE);
+
+  if (value.length > 1 && allIndex >= 0) {
+    const newValue = [...value];
+    newValue.splice(allIndex, 1);
+
+    let newText = text;
+    if (Array.isArray(text)) {
+      newText = [...text];
+      newText.splice(allIndex, 1);
+    }
+
+    return { value: newValue, text: newText };
+  }
+
+  return { value, text };
 }
 
 /**

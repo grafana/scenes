@@ -4,7 +4,7 @@ import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { VariableFormatID } from '@grafana/schema';
 
 import { SceneVariableValueChangedEvent } from '../types';
-import { CustomAllValue } from '../variants/MultiValueVariable';
+import { applyAllValueExclusivity, CustomAllValue } from '../variants/MultiValueVariable';
 import { TestVariable } from './TestVariable';
 import { subscribeToStateUpdates } from '../../../utils/test/utils';
 import { CustomVariable } from './CustomVariable';
@@ -1078,5 +1078,49 @@ describe('MultiValueVariable', () => {
         });
       });
     });
+  });
+});
+
+describe('applyAllValueExclusivity', () => {
+  it('collapses the selection when the all value was added last', () => {
+    expect(applyAllValueExclusivity(['1', '2', ALL_VARIABLE_VALUE], ['A', 'B', ALL_VARIABLE_TEXT])).toEqual({
+      value: [ALL_VARIABLE_VALUE],
+      text: [ALL_VARIABLE_TEXT],
+    });
+  });
+
+  it('removes the all value wherever it sits when another value was added after it', () => {
+    expect(applyAllValueExclusivity(['1', ALL_VARIABLE_VALUE, '2'], ['A', ALL_VARIABLE_TEXT, 'B'])).toEqual({
+      value: ['1', '2'],
+      text: ['A', 'B'],
+    });
+
+    expect(applyAllValueExclusivity([ALL_VARIABLE_VALUE, '1'], [ALL_VARIABLE_TEXT, 'A'])).toEqual({
+      value: ['1'],
+      text: ['A'],
+    });
+  });
+
+  it('leaves selections that do not mix the all value untouched', () => {
+    expect(applyAllValueExclusivity(['1', '2'], ['A', 'B'])).toEqual({ value: ['1', '2'], text: ['A', 'B'] });
+    expect(applyAllValueExclusivity([], [])).toEqual({ value: [], text: [] });
+  });
+
+  it('handles a missing or non array text', () => {
+    expect(applyAllValueExclusivity(['1', ALL_VARIABLE_VALUE, '2'])).toEqual({ value: ['1', '2'], text: undefined });
+    expect(applyAllValueExclusivity(['1', ALL_VARIABLE_VALUE, '2'], 'A + All + B')).toEqual({
+      value: ['1', '2'],
+      text: 'A + All + B',
+    });
+  });
+
+  it('does not mutate the value and text it is given', () => {
+    const value = ['1', ALL_VARIABLE_VALUE, '2'];
+    const text = ['A', ALL_VARIABLE_TEXT, 'B'];
+
+    applyAllValueExclusivity(value, text);
+
+    expect(value).toEqual(['1', ALL_VARIABLE_VALUE, '2']);
+    expect(text).toEqual(['A', ALL_VARIABLE_TEXT, 'B']);
   });
 });
