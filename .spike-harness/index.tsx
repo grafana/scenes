@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createTheme, SelectableValue } from '@grafana/data';
-import { ThemeContext } from '@grafana/ui';
+import { GlobalStyles, ThemeContext } from '@grafana/ui';
 import { AdHocFiltersComboboxRenderer } from '../packages/scenes/src/variables/adhoc/AdHocFiltersCombobox/AdHocFiltersComboboxRenderer';
 import {
   AdHocFiltersController,
@@ -93,6 +93,7 @@ function App() {
 
   return (
     <ThemeContext.Provider value={theme}>
+      <GlobalStyles />
       <div
         style={{
           background: theme.colors.background.canvas,
