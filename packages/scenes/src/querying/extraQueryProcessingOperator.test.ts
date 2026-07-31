@@ -58,17 +58,21 @@ function collect(source: Observable<PanelData>): { emissions: PanelData[]; unsub
 }
 
 describe('combineLoadingStates', () => {
-  it('returns Error when any response is in the Error state', () => {
-    expect(combineLoadingStates([LoadingState.Loading, LoadingState.Error])).toBe(LoadingState.Error);
+  it('returns Error only when the primary response is in the Error state', () => {
     expect(combineLoadingStates([LoadingState.Error, LoadingState.Streaming])).toBe(LoadingState.Error);
+    expect(combineLoadingStates([LoadingState.Error, LoadingState.Error])).toBe(LoadingState.Error);
+
+    // A secondary error must not blank a panel whose primary data is fine.
+    expect(combineLoadingStates([LoadingState.Loading, LoadingState.Error])).toBe(LoadingState.Loading);
+    expect(combineLoadingStates([LoadingState.Done, LoadingState.Error])).toBe(LoadingState.Done);
   });
 
-  it('returns Loading when any response is loading (and none errored)', () => {
+  it('returns Loading when any response is loading (and the primary has not errored)', () => {
     expect(combineLoadingStates([LoadingState.Done, LoadingState.Loading])).toBe(LoadingState.Loading);
     expect(combineLoadingStates([LoadingState.Loading, LoadingState.Streaming])).toBe(LoadingState.Loading);
   });
 
-  it('returns Streaming when any response is streaming (and none errored or loading)', () => {
+  it('returns Streaming when any response is streaming (and nothing is errored or loading)', () => {
     expect(combineLoadingStates([LoadingState.Done, LoadingState.Streaming])).toBe(LoadingState.Streaming);
   });
 
