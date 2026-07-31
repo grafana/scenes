@@ -237,5 +237,28 @@ describe('VariableValueSelect', () => {
       await userEvent.tab();
       expect(model.state.value).toEqual(['C']);
     });
+
+    // The toggle-all header calls onChange with a synthetic action ({ option: {} }),
+    // exercising enforceAllExclusivity's fallback path rather than the option branch
+    it('toggle-all header explodes All into the concrete values and collapses back', async () => {
+      const model = setupWithAll(['$__all'], ['All']);
+      await openMenu(model);
+
+      // From only-All selected the header selects every concrete value
+      await userEvent.click(screen.getByTestId(selectors.components.Select.toggleAllOptions));
+      expect(optionCheckbox('A')).toBeChecked();
+      expect(optionCheckbox('B')).toBeChecked();
+      expect(optionCheckbox('C')).toBeChecked();
+      expect(optionCheckbox('All')).not.toBeChecked();
+
+      // From all-selected the header collapses the selection back to All
+      // (re-query: the menu re-renders after the first toggle)
+      await userEvent.click(screen.getByTestId(selectors.components.Select.toggleAllOptions));
+      expect(optionCheckbox('All')).toBeChecked();
+      expect(optionCheckbox('A')).not.toBeChecked();
+
+      await userEvent.tab();
+      expect(model.state.value).toEqual(['$__all']);
+    });
   });
 });
