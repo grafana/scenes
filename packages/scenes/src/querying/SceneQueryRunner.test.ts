@@ -679,6 +679,40 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall[1].filters).toEqual([...filtersVar.state.originFilters!, ...filtersVar.state.filters]);
     });
 
+    it('should apply requestFilterBuilder to exclude filters from the request object', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [
+          { key: '__name__', operator: '=', value: 'my_metric', condition: '' },
+          { key: 'instance', operator: '=', value: 'localhost:9090', condition: '' },
+        ],
+        requestFilterBuilder: (filters) => filters.filter((f) => f.key !== '__name__'),
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      expect(runRequestCall[1].filters).toEqual([
+        { key: 'instance', operator: '=', value: 'localhost:9090', condition: '' },
+      ]);
+    });
+
     it('should merge dashboard and section adhoc filters for the same datasource', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },

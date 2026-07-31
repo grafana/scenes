@@ -180,7 +180,15 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return undefined;
     }
 
-    return this._getMergedFilters().filter((f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f));
+    const filters = this._getMergedFilters().filter(
+      (f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f)
+    );
+
+    // The closest ad-hoc variable owns how its filters map onto the query. When it customizes
+    // the query expression it can also adjust the request filters here, so keys that are already
+    // encoded in the expression (like __name__) are not injected a second time by the datasource.
+    const requestFilterBuilder = this._adhocFiltersVar?.state.requestFilterBuilder;
+    return requestFilterBuilder ? requestFilterBuilder(filters) : filters;
   }
 
   /**
