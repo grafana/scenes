@@ -1,3 +1,19 @@
+# v8.13.6 (Fri Jul 31 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - AdHocFiltersCombobox: Show more pill text before truncating [#1592](https://github.com/grafana/scenes/pull/1592) ([@samjewell](https://github.com/samjewell))
+- `scenes-app`
+  - chore(deps): update dependency eslint-plugin-jsdoc to v63.3.0 [#1546](https://github.com/grafana/scenes/pull/1546) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+
+#### Authors: 2
+
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+
+---
+
 # v8.13.5 (Wed Jul 29 2026)
 
 #### 🐛 Bug Fix

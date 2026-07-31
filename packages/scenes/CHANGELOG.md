@@ -1,3 +1,15 @@
+# v8.13.6 (Fri Jul 31 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersCombobox: Show more pill text before truncating [#1592](https://github.com/grafana/scenes/pull/1592) ([@samjewell](https://github.com/samjewell))
+
+#### Authors: 1
+
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+
+---
+
 # v8.13.5 (Wed Jul 29 2026)
 
 #### 🐛 Bug Fix
