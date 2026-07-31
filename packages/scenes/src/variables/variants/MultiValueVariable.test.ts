@@ -917,6 +917,29 @@ describe('MultiValueVariable', () => {
       expect(variable.getValue()).toEqual(['1', '2']);
     });
 
+    it('updateFromUrl with the all value mixed into the array should remove the all value', () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        optionsToReturn: [],
+        includeAll: true,
+        isMulti: true,
+        value: [],
+        text: [],
+        delayMs: 0,
+      });
+
+      variable.urlSync?.updateFromUrl({ ['var-test']: ['1', ALL_VARIABLE_VALUE, '2'] });
+
+      expect(variable.state.value).toEqual(['1', '2']);
+      expect(variable.state.text).toEqual(['A', 'B']);
+      // Without normalisation the literal all value would be interpolated into queries
+      expect(variable.getValue()).toEqual(['1', '2']);
+    });
+
     it('updateFromUrl with the custom all value should set value to ALL_VARIABLE_VALUE', () => {
       const variable = new TestVariable({
         name: 'test',
