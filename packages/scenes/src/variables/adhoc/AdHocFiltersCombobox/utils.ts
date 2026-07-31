@@ -57,6 +57,7 @@ export const setupDropdownAccessibility = (
 
 const nextInputTypeMap = {
   key: 'operator',
+  label: 'operator',
   operator: 'value',
   value: 'key',
 } as const;
@@ -165,6 +166,7 @@ export const generateFilterUpdatePayload = ({
 
 export const INPUT_PLACEHOLDER_DEFAULT = '+ label = value';
 export const GROUP_BY_PLACEHOLDER_DEFAULT = '+ key';
+export const KEY_LABEL_PLACEHOLDER = 'display name (optional)';
 
 export const generatePlaceholder = (
   filter: AdHocFilterWithLabels,
@@ -182,6 +184,9 @@ export const generatePlaceholder = (
 
   if (filterInputType === 'key') {
     return inputPlaceholder || defaultPlaceholder;
+  }
+  if (filterInputType === 'label') {
+    return KEY_LABEL_PLACEHOLDER;
   }
   if (filterInputType === 'value') {
     if (isMultiValueEdit) {
