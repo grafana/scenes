@@ -19,7 +19,11 @@
 !.vscode/launch.json
 .vs/
 .eslintcache
-.cursor/
+.cursor/*
+# Keep the Cursor Cloud environment definition tracked so agents share one setup
+!.cursor/environment.json
+!.cursor/install.sh
+!.cursor/start.sh
 
 # Build
 compiled
