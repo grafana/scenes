@@ -23,6 +23,13 @@ export interface SceneDataTransformerState extends SceneDataState {
    * Array of standard transformation configs and custom transform operators
    */
   transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  /**
+   * When true the pipeline is not executed and source data passes straight through.
+   * `transformations` is still stored, serialised and scanned for variable usage, so
+   * consumers that own the pipeline themselves (for example a panel plugin that renders
+   * its own transformation UI) still see it.
+   */
+  skipTransformations?: boolean;
 }
 
 /**
@@ -59,6 +66,16 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     const sourceData = this.getSourceData();
 
     this._subs.add(sourceData.subscribeToState((state) => this.transform(state.data)));
+
+    // The flag can flip while active (a panel switching to or from a visualization that owns
+    // its own pipeline), and the already emitted data has to be recomputed for the new mode.
+    this._subs.add(
+      this.subscribeToState((newState, prevState) => {
+        if (newState.skipTransformations !== prevState.skipTransformations) {
+          this.reprocessTransformations();
+        }
+      })
+    );
 
     if (sourceData.state.data) {
       this.transform(sourceData.state.data);
@@ -224,7 +241,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         ) => void)
       | null = null;
 
-    if (this.state.transformations.length === 0 || !data) {
+    if (this.state.skipTransformations || this.state.transformations.length === 0 || !data) {
       this._prevDataFromSource = data;
       this.setState({ data });
 
