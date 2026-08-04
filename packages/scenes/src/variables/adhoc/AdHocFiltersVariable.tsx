@@ -142,6 +142,15 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
   expressionBuilder?: AdHocVariableExpressionBuilderFn;
 
   /**
+   * Optionally transforms the filters that are attached to a query request (request.filters).
+   * The default behavior forwards every applied filter. Consumers that customize the query
+   * expression via expressionBuilder can use this to keep the request filters in sync, for
+   * example by excluding keys like __name__ that are already encoded in the expression and
+   * would otherwise be injected twice.
+   */
+  requestFilterBuilder?: AdHocVariableRequestFilterBuilderFn;
+
+  /**
    * Whether the filter supports new multi-value operators like =| and !=|
    */
   supportsMultiValueOperators?: boolean;
@@ -190,6 +199,7 @@ export interface AdHocFiltersVariableState extends SceneVariableState {
 }
 
 export type AdHocVariableExpressionBuilderFn = (filters: AdHocFilterWithLabels[]) => string;
+export type AdHocVariableRequestFilterBuilderFn = (filters: AdHocFilterWithLabels[]) => AdHocFilterWithLabels[];
 export type OnAddCustomValueFn = (
   item: SelectableValue<string> & { isCustom?: boolean },
   filter: AdHocFilterWithLabels
