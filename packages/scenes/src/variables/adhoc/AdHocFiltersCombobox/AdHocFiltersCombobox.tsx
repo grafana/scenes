@@ -14,7 +14,7 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, isMultiValueOperator, OPERATORS } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, isMultiValueOperator, ONE_OF_OPERATOR, OPERATORS } from '../AdHocFiltersVariable';
 import { ALL_VARIABLE_VALUE } from '../../constants';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { useVirtualizer } from '@tanstack/react-virtual';
@@ -104,7 +104,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const hasMultiValueOperator = isMultiValueOperator(filter?.operator || '');
   const isMultiValueEdit = hasMultiValueOperator && filterInputType === 'value';
   // Origin (default) filters with the "one of" operator offer an explicit "All" option
-  const offersAllOption = Boolean(filter?.origin) && filter?.operator === '=|';
+  const offersAllOption = Boolean(filter?.origin) && filter?.operator === ONE_OF_OPERATOR;
 
   // used to identify operator element and prevent dismiss because it registers as outside click
   const operatorIdentifier = useId();
@@ -159,6 +159,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         controller.updateToMatchAll(filter);
       }
 
+      // Selecting All commits as a regular value update: the variable derives the match all
+      // flags from the value itself. Hosts are free to map updateToMatchAll to something else
+      // (the default filters editor maps it to a removal), so it must not be used to author All.
       if (filterMultiValues.length) {
         const valueLabels: string[] = [];
         const values: string[] = [];

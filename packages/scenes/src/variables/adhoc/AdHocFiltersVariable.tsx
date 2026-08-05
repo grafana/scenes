@@ -512,7 +512,7 @@ export class AdHocFiltersVariable
     singleValue: string
   ): { restorable: boolean; matchAllFilter: boolean } {
     const original = this._originalValues.get(originalValueKey({ key, origin, operator }));
-    const isMatchAll = operator === '=~' && singleValue === '.*';
+    const isMatchAll = isMatchAllFilter({ key, operator, value: singleValue, values });
     const isRestorable = !isEqual(values, original?.value) || operator !== original?.operator;
 
     return {
@@ -535,10 +535,7 @@ export class AdHocFiltersVariable
       if (!updateValues) {
         return {
           ...filter,
-          operator: '=~',
-          value: '.*',
-          values: ['.*'],
-          valueLabels: ['All'],
+          ...getMatchAllUpdate(filter.operator),
           matchAllFilter: true,
           nonApplicable: false,
           restorable: true,
@@ -801,7 +798,7 @@ export class AdHocFiltersVariable
     const { originFilters, filters, _wip } = this.state;
 
     const matches = [...(originFilters ?? []), ...filters].filter(
-      (f) => f !== _wip && !isGroupByFilter(f) && !isAllValueFilter(f) && f.key === key
+      (f) => f !== _wip && !isGroupByFilter(f) && !isMatchAllFilter(f) && f.key === key
     );
 
     if (matches.length === 0) {
@@ -940,10 +937,7 @@ export class AdHocFiltersVariable
       getAdHocFilterInteractionHandler(this)?.onGroupByRemoved?.({ key: filter.key, origin: filter.origin });
     } else {
       this._updateFilter(filter, {
-        operator: '=~',
-        value: '.*',
-        values: ['.*'],
-        valueLabels: ['All'],
+        ...getMatchAllUpdate(filter.operator),
         matchAllFilter: true,
         nonApplicable: false,
         restorable: true,
@@ -1112,7 +1106,7 @@ export class AdHocFiltersVariable
       const filter = responseMap.get(`${f.key}-${f.origin}`);
 
       if (filter) {
-        if (!f.matchAllFilter) {
+        if (!isMatchAllFilter(f)) {
           f.nonApplicable = !filter.applicable;
           f.nonApplicableReason = filter.reason;
         }
@@ -1179,18 +1173,9 @@ export class AdHocFiltersVariable
     await this._waitForVariables();
 
     const applicableOriginFilters =
-      this.state.originFilters?.filter(
-        (f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f) && !isAllValueFilter(f)
-      ) ?? [];
+      this.state.originFilters?.filter((f) => !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? [];
     const otherFilters = this.state.filters
-      .filter(
-        (f) =>
-          f.key !== currentKey &&
-          !f.nonApplicable &&
-          !isGroupByFilter(f) &&
-          !isMatchAllFilter(f) &&
-          !isAllValueFilter(f)
-      )
+      .filter((f) => f.key !== currentKey && !f.nonApplicable && !isGroupByFilter(f) && !isMatchAllFilter(f))
       .concat(this.state.baseFilters ?? [])
       .concat(applicableOriginFilters);
     const timeRange = sceneGraph.getTimeRange(this).state.value;
@@ -1297,11 +1282,10 @@ export class AdHocFiltersVariable
     await this._waitForVariables();
 
     const originFilters =
-      this.state.originFilters?.filter(
-        (f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f) && !isAllValueFilter(f)
-      ) ?? [];
+      this.state.originFilters?.filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f)) ??
+      [];
     const otherFilters = this.state.filters
-      .filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f) && !isAllValueFilter(f))
+      .filter((f) => f.key !== filter.key && !isGroupByFilter(f) && !isMatchAllFilter(f))
       .concat(originFilters);
 
     const timeRange = sceneGraph.getTimeRange(this).state.value;
@@ -1374,7 +1358,7 @@ function renderExpression(
   filters: AdHocFilterWithLabels[] | undefined
 ) {
   return (builder ?? renderPrometheusLabelFilters)(
-    filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f) && !isAllValueFilter(f)) ?? []
+    filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? []
   );
 }
 
@@ -1455,25 +1439,39 @@ export function toSelectableValue(input: MetricFindValue): SelectableValue<strin
   return result;
 }
 
+/**
+ * True when a filter no longer restricts anything: either the `=~ .*` form, or the
+ * "one of" operator carrying the All value. Both are excluded from the rendered
+ * expression, from `request.filters` and from key/value option lookups.
+ */
 export function isMatchAllFilter(filter: AdHocFilterWithLabels): boolean {
+  if (filter.operator === ONE_OF_OPERATOR) {
+    return (filter.values ?? (filter.value ? [filter.value] : [])).includes(ALL_VARIABLE_VALUE);
+  }
+
   return filter.operator === '=~' && filter.value === '.*';
 }
 
 /**
- * True when the filter has the special "All" value selected, meaning it should not
- * restrict queries. Origin (default) filters offer "All" in the multi-value combobox
- * so dashboard authors can pre-select a key without restricting its values.
- * Only the "one of" operator supports the All value - for any other operator a
- * $__all value is treated as a literal so legitimate filters are not dropped.
+ * The value patch that turns a filter into a match all one. "One of" filters keep their
+ * operator and carry the All value instead, so the multi-value checkbox editing UX survives
+ * and a viewer can narrow the filter back down. Every other operator falls back to `=~ .*`.
  */
-export function isAllValueFilter(filter: AdHocFilterWithLabels): boolean {
-  if (filter.operator !== '=|') {
-    return false;
+function getMatchAllUpdate(operator: string): Partial<AdHocFilterWithLabels> {
+  if (operator === ONE_OF_OPERATOR) {
+    return {
+      operator,
+      value: ALL_VARIABLE_VALUE,
+      values: [ALL_VARIABLE_VALUE],
+      valueLabels: ['All'],
+    };
   }
-  return filter.values ? filter.values.includes(ALL_VARIABLE_VALUE) : filter.value === ALL_VARIABLE_VALUE;
+
+  return { operator: '=~', value: '.*', values: ['.*'], valueLabels: ['All'] };
 }
 
 export const GROUP_BY_OPERATOR = 'groupBy';
+export const ONE_OF_OPERATOR = '=|';
 export const VALUE_KEY_DELIMITER = '::';
 
 export function isGroupByFilter(filter: AdHocFilterWithLabels): boolean {

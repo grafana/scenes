@@ -10,10 +10,10 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import {
   AdHocFilterWithLabels,
   AdHocFiltersVariable,
-  isAllValueFilter,
   isFilterApplicable,
   isFilterComplete,
   isGroupByFilter,
+  isMatchAllFilter,
 } from '../variables/adhoc/AdHocFiltersVariable';
 import { getAdHocFiltersFromScopes } from '../variables/adhoc/getAdHocFiltersFromScopes';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
@@ -182,7 +182,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     }
 
     return this._getMergedFilters().filter(
-      (f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f) && !isAllValueFilter(f)
+      (f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f) && !isMatchAllFilter(f)
     );
   }
 

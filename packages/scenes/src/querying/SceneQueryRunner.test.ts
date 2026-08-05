@@ -679,7 +679,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall[1].filters).toEqual([...filtersVar.state.originFilters!, ...filtersVar.state.filters]);
     });
 
-    it('should not pass All-value origin filters via request object', async () => {
+    it('should not pass match-all origin filters via request object', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
         queries: [{ refId: 'A' }],
@@ -691,6 +691,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
         originFilters: [
           { key: 'C', operator: '=|', value: '$__all', values: ['$__all'], condition: '', origin: 'dashboard' },
+          { key: 'D', operator: '=~', value: '.*', values: ['.*'], condition: '', origin: 'dashboard' },
         ],
       });
 
@@ -707,7 +708,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       const runRequestCall = runRequestMock.mock.calls[0];
 
-      // the All-value origin filter lifts its restriction, so only the user filter is passed
+      // match-all origin filters (All value and regex form) restrict nothing, so only the user filter is passed
       expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
     });
 

@@ -3146,7 +3146,8 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await userEvent.keyboard('{Escape}');
 
-      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
+      // one-of filters keep their operator and carry the All value instead of the regex form
+      expect(screen.getByText('pod =| All')).toBeInTheDocument();
     });
   });
 
@@ -3226,6 +3227,10 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         layout: 'combobox',
       });
 
+      // hosts may implement updateToMatchAll as a removal (the default filters editor does),
+      // so authoring All has to go through the regular value update path
+      const updateToMatchAllSpy = jest.spyOn(filtersVar, 'updateToMatchAll');
+
       await userEvent.click(await screen.findByText('pod =| test1, test2'));
       await userEvent.click(await screen.findByTestId(allOptionTestId));
 
@@ -3234,14 +3239,19 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await userEvent.click(screen.getByRole('button', { name: 'Apply' }));
 
+      expect(updateToMatchAllSpy).not.toHaveBeenCalled();
+
       expect(await screen.findByText('pod =| All')).toBeInTheDocument();
       expect(filtersVar.state.originFilters?.[0]).toMatchObject({
         operator: '=|',
         value: '$__all',
         values: ['$__all'],
         valueLabels: ['All'],
+        matchAllFilter: true,
         restorable: true,
       });
+      // an All filter is a match-all one, so it can no longer be removed, only restored
+      expect(screen.queryByRole('button', { name: 'Remove filter with key pod' })).not.toBeInTheDocument();
     });
 
     it('selecting a value after All replaces the All selection', async () => {
@@ -3275,6 +3285,28 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(filtersVar.state.originFilters?.[0].restorable).toBeFalsy();
     });
 
+    it('keeps removal for a user-added filter that matches everything', async () => {
+      // removing a user filter deletes it, so there is still somewhere for the X to go
+      setup({
+        filters: [{ key: 'job', operator: '=~', value: '.*' }],
+        layout: 'combobox',
+      });
+
+      expect(await screen.findByText('job =~ .*')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove filter with key job' })).toBeInTheDocument();
+    });
+
+    it('does not offer removal for a default authored as All', async () => {
+      // no matchAllFilter flag, mirroring what the default filters editor commits
+      setup({
+        originFilters: [{ key: 'pod', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+        layout: 'combobox',
+      });
+
+      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Remove filter with key pod' })).not.toBeInTheDocument();
+    });
+
     it('restores the dashboard default from All', async () => {
       setup({
         originFilters: [
@@ -3301,6 +3333,21 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         filters: [
           { key: 'key1', operator: '=', value: 'val1' },
           { key: 'key2', operator: '=|', value: '$__all', values: ['$__all'] },
+        ],
+      });
+
+      variable.activate();
+
+      expect(variable.getValue()).toBe(`key1="val1"`);
+    });
+
+    it('excludes regex match-all filters from the filter expression', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=~', value: '.*' },
         ],
       });
 
