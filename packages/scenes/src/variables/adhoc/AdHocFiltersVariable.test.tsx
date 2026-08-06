@@ -1443,6 +1443,45 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     expect(filtersVar.state.originFilters![0].restorable).toBe(false);
   });
 
+  it('should clear dashboard filter to the =| All sentinel when multi-value operators are supported (issue #1602)', () => {
+    const { filtersVar } = setup({
+      supportsMultiValueOperators: true,
+      originFilters: [
+        {
+          key: 'dbFilter1',
+          operator: '=|',
+          value: 'dbValue1',
+          values: ['dbValue1', 'dbValue2'],
+          origin: 'dashboard',
+        },
+      ],
+    });
+
+    act(() => {
+      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+    });
+
+    // Cleared state is the same one selecting "All" in the combobox produces:
+    // stripped from queries (neutral by construction), never the regex
+    // match-all that non-Prometheus datasources misinterpret.
+    const cleared = filtersVar.state.originFilters![0];
+    expect(cleared.key).toBe('dbFilter1');
+    expect(cleared.operator).toBe('=|');
+    expect(cleared.value).toBe('$__all');
+    expect(cleared.values).toEqual(['$__all']);
+    expect(cleared.valueLabels).toEqual(['All']);
+    expect(cleared.matchAllFilter).toBe(false);
+    expect(cleared.restorable).toBe(true);
+
+    act(() => {
+      filtersVar.restoreOriginalFilter(filtersVar.state.originFilters![0]);
+    });
+
+    expect(filtersVar.state.originFilters![0].operator).toBe('=|');
+    expect(filtersVar.state.originFilters![0].values).toEqual(['dbValue1', 'dbValue2']);
+    expect(filtersVar.state.originFilters![0].restorable).toBe(false);
+  });
+
   it('will save the original value and set filter as restorable if it has an origin', () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
       {

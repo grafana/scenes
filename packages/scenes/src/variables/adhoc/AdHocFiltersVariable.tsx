@@ -938,6 +938,22 @@ export class AdHocFiltersVariable
 
       this.setState({ originFilters: updatedOrigins });
       getAdHocFilterInteractionHandler(this)?.onGroupByRemoved?.({ key: filter.key, origin: filter.origin });
+    } else if (this.state.supportsMultiValueOperators) {
+      // Clear to the all-value sentinel (`=| $__all`) — the same state selecting
+      // "All" in the combobox produces. It is stripped from queries before any
+      // datasource sees it, so it is neutral by construction. The legacy `=~ .*`
+      // match-all below IS passed to queries, which is only neutral for
+      // datasources with Prometheus-style regex semantics (issue #1602).
+      this._updateFilter(filter, {
+        operator: '=|',
+        value: ALL_VARIABLE_VALUE,
+        values: [ALL_VARIABLE_VALUE],
+        valueLabels: ['All'],
+        matchAllFilter: false,
+        nonApplicable: false,
+        restorable: true,
+      });
+      getAdHocFilterInteractionHandler(this)?.onFilterMatchAll?.({ key: filter.key, origin: filter.origin });
     } else {
       this._updateFilter(filter, {
         operator: '=~',
