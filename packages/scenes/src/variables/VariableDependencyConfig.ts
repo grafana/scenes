@@ -113,6 +113,15 @@ export class VariableDependencyConfig<TState extends SceneObjectState> implement
     return this._isWaitingForVariables;
   }
 
+  /**
+   * Returns true if any dependency (direct or transitive) is in an error state while the owning
+   * variable set has `blockDependentsOnError` enabled. Used to skip running queries that would
+   * otherwise interpolate failed/empty variable values.
+   */
+  public hasDependencyInErrorState() {
+    return sceneGraph.hasVariableDependencyInErrorState(this._sceneObject);
+  }
+
   public getNames(): Set<string> {
     const prevState = this._state;
     const newState = (this._state = this._sceneObject.state);
