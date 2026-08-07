@@ -315,6 +315,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _isInView = true;
   private _bypassIsInView = false;
   private _queryNotExecutedWhenOutOfView = false;
+  private _isQueryInFlight = false;
 
   public getResultsStream() {
     return this._results;
@@ -463,6 +464,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
    * Check if value changed is an adhoc filter or group by variable that did not exist when we issued the last query
    */
   private onAnyVariableChanged(variable: SceneVariable) {
+    // If this variable was already detected as a dependency, onVariableUpdatesCompleted will handle value changes
     if (
       (variable instanceof AdHocFiltersVariable &&
         this._drilldownDependenciesManager.isSubscribedAdHocFiltersVar(variable)) ||
@@ -529,6 +531,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       this._querySub.unsubscribe();
       this._querySub = undefined;
     }
+    this._isQueryInFlight = false;
 
     if (this._dataLayersSub) {
       this._dataLayersSub.unsubscribe();
@@ -612,6 +615,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
   public cancelQuery() {
     this._querySub?.unsubscribe();
+    this._isQueryInFlight = false;
 
     if (this._dataLayersSub) {
       this._dataLayersSub.unsubscribe();
@@ -635,6 +639,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     this._queryNotExecutedWhenOutOfView = false;
+    this._isQueryInFlight = true;
 
     // If data layers subscription doesn't exist, create one
     if (!this._dataLayersSub) {
@@ -667,6 +672,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         ? MIXED_DATASOURCE_REF
         : datasource;
       const ds = await getDataSource(runtimeDatasource, this._scopedVars);
+
+      // Re-check viewport after async getDataSource: the panel may have scrolled out of view during the await.
+      if (this.isQueryModeAuto() && !this._isInView && !this._bypassIsInView) {
+        this._isQueryInFlight = false;
+        this._queryNotExecutedWhenOutOfView = true;
+        return;
+      }
 
       this._drilldownDependenciesManager.findAndSubscribeToDrilldowns(ds.uid, this);
 
@@ -705,6 +717,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       );
 
       this._querySub = stream.subscribe(this.onDataReceived);
+
+      // Re-check viewport after subscribe: the panel may have scrolled out of view while we were setting up the stream.
+      if (this.isQueryModeAuto() && !this._isInView && !this._bypassIsInView) {
+        this._querySub.unsubscribe();
+        this._querySub = undefined;
+        this._isQueryInFlight = false;
+        this._queryNotExecutedWhenOutOfView = true;
+      }
     } catch (err) {
       console.error('PanelQueryRunner Error', err);
 
@@ -865,6 +885,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       hasFetchedData = true;
     }
 
+    if (preProcessedData.state !== LoadingState.Loading) {
+      this._isQueryInFlight = false;
+    }
+
     this.setState({ data: dataWithLayersApplied, _hasFetchedData: hasFetchedData });
     this._results.next({ origin: this, data: dataWithLayersApplied });
   };
@@ -926,6 +950,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     if (isInView && this._queryNotExecutedWhenOutOfView) {
       this.runQueries();
+    }
+
+    // Cancel running query when panel leaves the viewport
+    if (!isInView && this._isQueryInFlight) {
+      writeSceneLog('SceneQueryRunner', 'Cancelling query for out-of-view panel', this.state.key);
+      this._querySub?.unsubscribe();
+      this._querySub = undefined;
+      this._isQueryInFlight = false;
+      this._queryNotExecutedWhenOutOfView = true;
     }
   }
 
