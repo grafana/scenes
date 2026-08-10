@@ -1,8 +1,8 @@
 import { getDataSourceSrv, getTemplateSrv } from '@grafana/runtime';
 import { AdHocVariableFilter } from '@grafana/data';
 import { AdHocFiltersVariable, isGroupByFilter } from './AdHocFiltersVariable';
+import { interpolate } from '../../core/sceneGraph/sceneGraph';
 import { SceneObject } from '../../core/types';
-import { appliesAutomaticallyToDatasource } from '../appliesAutomaticallyToDatasource';
 
 let originalGetAdhocFilters: any = undefined;
 export const allActiveFilterSets = new Set<AdHocFiltersVariable>();
@@ -61,7 +61,7 @@ export function findClosestAdHocFilterInHierarchy(
 
 /**
  * Walk up the scene graph from sceneObject and collect every AdHocFiltersVariable
- * that applies to queries for dsUid.
+ * whose interpolated datasource UID matches dsUid.
  *
  * Returns variables in root → leaf order (dashboard first, then section). Use this
  * when query-time filter merge should apply parent filters alongside section filters.
@@ -76,7 +76,7 @@ export function findAllAdHocFiltersInHierarchy(
   while (current) {
     const variables = current.state.$variables?.state.variables ?? [];
     for (const variable of variables) {
-      if (variable instanceof AdHocFiltersVariable && appliesAutomaticallyToDatasource(variable, dsUid)) {
+      if (variable instanceof AdHocFiltersVariable && interpolate(variable, variable.state.datasource?.uid) === dsUid) {
         found.push(variable);
       }
     }
@@ -88,12 +88,12 @@ export function findAllAdHocFiltersInHierarchy(
 }
 
 /**
- * Search the global set of active AdHocFiltersVariables for one that applies to queries for dsUid.
- * Use this when no scene hierarchy context is available.
+ * Search the global set of active AdHocFiltersVariables for one whose interpolated
+ * datasource UID matches dsUid. Use this when no scene hierarchy context is available.
  */
 export function findGlobalAdHocFilterVariableByUid(dsUid: string | undefined): AdHocFiltersVariable | undefined {
   for (const filter of allActiveFilterSets.values()) {
-    if (appliesAutomaticallyToDatasource(filter, dsUid)) {
+    if (interpolate(filter, filter.state.datasource?.uid) === dsUid) {
       return filter;
     }
   }

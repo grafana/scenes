@@ -12,7 +12,9 @@ import type { GroupByVariable } from './groupby/GroupByVariable';
  *   `${var}` in a query expression or programmatically — so applying it here as well would
  *   double-apply it, onto queries that may not even carry the filtered labels.
  *
- * Use this for every lookup that feeds a query request, so the two conditions cannot drift apart.
+ * Applied once, where every discovery path converges in DrilldownDependenciesManager, rather than in
+ * each finder. The finders are free to match on datasource alone; nothing they return reaches a query
+ * request without passing through here.
  */
 export function appliesAutomaticallyToDatasource(
   variable: AdHocFiltersVariable | GroupByVariable,

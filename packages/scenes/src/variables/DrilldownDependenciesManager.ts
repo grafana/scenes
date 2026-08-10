@@ -15,6 +15,7 @@ import {
   isGroupByFilter,
 } from '../variables/adhoc/AdHocFiltersVariable';
 import { getAdHocFiltersFromScopes } from '../variables/adhoc/getAdHocFiltersFromScopes';
+import { appliesAutomaticallyToDatasource } from './appliesAutomaticallyToDatasource';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneObject, SceneObjectState } from '../core/types';
 import { getScopes } from '../core/sceneGraph/sceneGraph';
@@ -53,23 +54,34 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   public findAndSubscribeToDrilldowns(interpolatedUid: string | undefined, sceneObject?: SceneObject) {
     this._sceneObject = sceneObject;
 
-    const filtersVars = sceneObject
-      ? findAllAdHocFiltersInHierarchy(interpolatedUid, sceneObject)
-      : (() => {
-          const globalVar = findGlobalAdHocFilterVariableByUid(interpolatedUid);
-          return globalVar ? [globalVar] : [];
-        })();
+    // Every discovery path converges here, so this is the one place the applyMode rule is enforced —
+    // the finders below deliberately match on datasource alone. Enforcing it here means a new finder,
+    // or a new kind of drilldown variable, cannot reintroduce manual-mode variables into query requests
+    // by omission. That is how this bug reached users twice: the rule used to be implied by which
+    // collection was iterated, so swapping the collection silently dropped it.
+    const filtersVars = (
+      sceneObject
+        ? findAllAdHocFiltersInHierarchy(interpolatedUid, sceneObject)
+        : (() => {
+            const globalVar = findGlobalAdHocFilterVariableByUid(interpolatedUid);
+            return globalVar ? [globalVar] : [];
+          })()
+    ).filter((variable) => appliesAutomaticallyToDatasource(variable, interpolatedUid));
 
     // Closest is last in root → leaf order
     const filtersVar = filtersVars.length > 0 ? filtersVars[filtersVars.length - 1] : undefined;
 
     // Only look for a legacy GroupByVariable when the closest adhoc var doesn't handle groupBy natively
     const useAdhocGroupBy = filtersVar?.state.enableGroupBy === true;
-    const groupByVar = useAdhocGroupBy
+    const groupByCandidate = useAdhocGroupBy
       ? undefined
       : sceneObject
       ? findClosestGroupByInHierarchy(interpolatedUid, sceneObject)
       : findGlobalGroupByVariableByUid(interpolatedUid);
+    const groupByVar =
+      groupByCandidate && appliesAutomaticallyToDatasource(groupByCandidate, interpolatedUid)
+        ? groupByCandidate
+        : undefined;
 
     let hasChanges = false;
 
