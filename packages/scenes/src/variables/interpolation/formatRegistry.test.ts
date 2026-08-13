@@ -159,6 +159,66 @@ describe('formatRegistry', () => {
     });
   });
 
+  describe('xxhash', () => {
+    // Well-known xxhash64 reference vector for the empty string with seed=0.
+    it('hashes the empty string to the reference xxhash64 vector (seed=0)', () => {
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      expect(formatValue('xxhash', '')).toBe('ef46db3751d8e999');
+    });
+
+    it('produces zero-padded 16-char lowercase hex', () => {
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const out = formatValue('xxhash', 'serial-12345');
+      expect(out).toMatch(/^[0-9a-f]{16}$/);
+    });
+
+    it('is deterministic for the same input and seed', () => {
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const first = formatValue('xxhash', 'SN-42');
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const second = formatValue('xxhash', 'SN-42');
+      expect(first).toBe(second);
+    });
+
+    it('changes when the seed changes', () => {
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const withoutSeed = formatValue('xxhash', 'SN-42');
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const withDecimalSeed = formatValue('xxhash', 'SN-42', 'text', ['1']);
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const withHexSeed = formatValue('xxhash', 'SN-42', 'text', ['0x1']);
+      expect(withoutSeed).not.toBe(withDecimalSeed);
+      expect(withDecimalSeed).toBe(withHexSeed);
+    });
+
+    it('coerces non-string values before hashing', () => {
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const numeric = formatValue('xxhash', 12345);
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const stringified = formatValue('xxhash', '12345');
+      expect(numeric).toBe(stringified);
+      expect(numeric).toMatch(/^[0-9a-f]{16}$/);
+    });
+
+    it('joins array elements as comma-separated hashes', () => {
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const out = formatValue('xxhash', ['SN-1', 'SN-2']);
+      const parts = out.split(',');
+      expect(parts).toHaveLength(2);
+      expect(parts[0]).toMatch(/^[0-9a-f]{16}$/);
+      expect(parts[1]).toMatch(/^[0-9a-f]{16}$/);
+      expect(parts[0]).not.toBe(parts[1]);
+    });
+
+    it('falls back to seed=0 when the seed argument is invalid', () => {
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const explicit = formatValue('xxhash', 'SN-42', 'text', ['0']);
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const invalid = formatValue('xxhash', 'SN-42', 'text', ['not-a-number']);
+      expect(invalid).toBe(explicit);
+    });
+  });
+
   describe('queryparam', () => {
     it('should url encode value', () => {
       const result = formatValue(VariableFormatID.QueryParam, 'helloAZ%=');

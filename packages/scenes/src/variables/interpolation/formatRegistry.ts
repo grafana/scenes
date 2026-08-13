@@ -1,5 +1,6 @@
 import { t } from '@grafana/i18n';
 import { isArray, map, replace } from 'lodash';
+import { h64 as xxhashH64 } from 'xxhashjs';
 
 import { dateTime, Registry, RegistryItem, textUtil, escapeRegex, urlUtil } from '@grafana/data';
 import { VariableType, VariableFormatID } from '@grafana/schema';
@@ -373,6 +374,21 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
         return encodeURIStrict(value);
       },
     },
+    {
+      id: 'xxhash', // not yet available in depended @grafana/schema version
+      name: 'xxhash',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.xxhash',
+        'Hash value with xxhash64 as zero-padded hex. Useful when a datasource stores hashed identifiers.'
+      ),
+      formatter: (value, args) => {
+        const seed = parseXxhashSeed(args[0]);
+        if (isArray(value)) {
+          return value.map((v) => xxhash64Hex(v, seed)).join(',');
+        }
+        return xxhash64Hex(value, seed);
+      },
+    },
   ];
 
   return formats;
@@ -433,4 +449,18 @@ function sqlStringFormatter(value: VariableValue) {
 
   let strVal = typeof value === 'string' ? value : String(value);
   return `'${replace(strVal, regExp, (match) => SQL_ESCAPE_MAP[match] ?? '')}'`;
+}
+
+function xxhash64Hex(value: VariableValueSingle, seed: number): string {
+  const input = typeof value === 'string' ? value : String(value);
+  // xxhashjs returns a UINT64 whose toString(16) is unpadded; pad to a stable 16 hex chars.
+  return xxhashH64(input, seed).toString(16).padStart(16, '0');
+}
+
+function parseXxhashSeed(arg: string | undefined): number {
+  if (arg === undefined || arg === '') {
+    return 0;
+  }
+  const parsed = arg.startsWith('0x') || arg.startsWith('0X') ? parseInt(arg.slice(2), 16) : parseInt(arg, 10);
+  return Number.isFinite(parsed) ? parsed : 0;
 }
