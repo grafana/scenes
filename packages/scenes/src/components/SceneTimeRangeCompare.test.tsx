@@ -550,5 +550,105 @@ describe('SceneTimeRangeCompare', () => {
 
       expect(result.series[0].refId).toBe('A-compare');
     });
+
+    describe('empty comparison notice', () => {
+      // When the primary query returns data but the comparison query does not, the processor surfaces
+      // an informational notice so users understand the empty comparison was expected.
+      const NO_DATA_NOTICE = { severity: 'info', text: 'No data returned for time comparison' };
+
+      const primaryWithData = () =>
+        makePanelData('2024-01-10T00:00:00.000Z', '2024-01-10T01:00:00.000Z', [
+          toDataFrame({ refId: 'A', fields: [{ name: 'value', values: [1] }] }),
+        ]);
+
+      const getEmptyComparisonProcessor = () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+        const comparer = new SceneTimeRangeCompare({ compareWith: '24h' });
+        return getProcessor(comparer, timeRange);
+      };
+
+      it('should emit a notice frame from the request targets when the compare query returns no frames', async () => {
+        const processor = getEmptyComparisonProcessor();
+        const secondary: PanelData = {
+          ...makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', []),
+          request: { targets: [{ refId: 'A' }] } as DataQueryRequest,
+        };
+
+        const result = await lastValueFrom(processor(primaryWithData(), secondary));
+
+        expect(result.series[0]).toMatchObject({
+          refId: 'A-compare',
+          length: 0,
+          fields: [],
+          meta: { notices: [NO_DATA_NOTICE] },
+        });
+      });
+
+      it('should emit a notice when the compare query returns empty (fieldless) frames', async () => {
+        // Prometheus and other data sources return a frame without fields rather than no frames at all.
+        const processor = getEmptyComparisonProcessor();
+        const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [
+          toDataFrame({ refId: 'A', fields: [] }),
+        ]);
+
+        const result = await lastValueFrom(processor(primaryWithData(), secondary));
+
+        expect(result.series[0]).toMatchObject({
+          refId: 'A-compare',
+          meta: { notices: [NO_DATA_NOTICE] },
+        });
+      });
+
+      it('should fall back to a single empty frame when there are no frames and no request targets', async () => {
+        const processor = getEmptyComparisonProcessor();
+        const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', []);
+
+        const result = await lastValueFrom(processor(primaryWithData(), secondary));
+
+        expect(result.series).toHaveLength(1);
+        expect(result.series[0]).toMatchObject({
+          refId: '-compare',
+          length: 0,
+          fields: [],
+          meta: { notices: [NO_DATA_NOTICE] },
+        });
+      });
+
+      it('should not emit a notice when the comparison query returns data', async () => {
+        const processor = getEmptyComparisonProcessor();
+        const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [
+          toDataFrame({ refId: 'A', fields: [{ name: 'value', values: [2] }] }),
+        ]);
+
+        const result = await lastValueFrom(processor(primaryWithData(), secondary));
+
+        expect(result.series[0].meta?.notices).toBeUndefined();
+      });
+
+      it('should not emit a notice when the primary query also returned no data', async () => {
+        const processor = getEmptyComparisonProcessor();
+        const primary = makePanelData('2024-01-10T00:00:00.000Z', '2024-01-10T01:00:00.000Z', [
+          toDataFrame({ refId: 'A', fields: [] }),
+        ]);
+        const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [
+          toDataFrame({ refId: 'A', fields: [] }),
+        ]);
+
+        const result = await lastValueFrom(processor(primary, secondary));
+
+        expect(result.series[0].meta?.notices).toBeUndefined();
+      });
+
+      it('should preserve existing notices when adding the no-data notice', async () => {
+        const processor = getEmptyComparisonProcessor();
+        const frame = toDataFrame({ refId: 'A', fields: [] });
+        frame.meta = { notices: [{ severity: 'warning', text: 'existing' }] };
+        const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [frame]);
+
+        const result = await lastValueFrom(processor(primaryWithData(), secondary));
+
+        expect(result.series[0].meta?.notices).toEqual([{ severity: 'warning', text: 'existing' }, NO_DATA_NOTICE]);
+      });
+    });
   });
 });
