@@ -2,7 +2,7 @@ import { AdHocFiltersVariable } from '../adhoc/AdHocFiltersVariable';
 import { VariableValue } from '../types';
 import { TestVariable } from '../variants/TestVariable';
 
-import { formatRegistry } from './formatRegistry';
+import { _xxh3Ready, formatRegistry } from './formatRegistry';
 import { VariableFormatID } from '@grafana/schema';
 
 jest.mock('@grafana/runtime', () => ({
@@ -156,6 +156,61 @@ describe('formatRegistry', () => {
       const result = formatter('10', [], variable, 'username');
       expect(getValueText).toHaveBeenCalledWith('username');
       expect(result).toBe('alice');
+    });
+  });
+
+  describe('xxh3', () => {
+    // hash-wasm's createXXHash3 is async. formatRegistry fires this at module
+    // load; tests explicitly wait for that promise before asserting.
+    beforeAll(async () => {
+      await _xxh3Ready();
+    });
+
+    // Well-known xxh3-64 reference vector for the empty string with seed=0.
+    it('hashes the empty string to the reference xxh3-64 vector (seed=0)', () => {
+      // @ts-expect-error xxh3 not in depended @grafana/schema yet
+      expect(formatValue('xxh3', '')).toBe('2d06800538d394c2');
+    });
+
+    it('produces 16-char lowercase hex', () => {
+      // @ts-expect-error xxh3 not in depended @grafana/schema yet
+      const out = formatValue('xxh3', 'serial-12345');
+      expect(out).toMatch(/^[0-9a-f]{16}$/);
+    });
+
+    it('is deterministic for the same input', () => {
+      // @ts-expect-error xxh3 not in depended @grafana/schema yet
+      const first = formatValue('xxh3', 'SN-42');
+      // @ts-expect-error xxh3 not in depended @grafana/schema yet
+      const second = formatValue('xxh3', 'SN-42');
+      expect(first).toBe(second);
+    });
+
+    it('coerces non-string values before hashing', () => {
+      // @ts-expect-error xxh3 not in depended @grafana/schema yet
+      const numeric = formatValue('xxh3', 12345);
+      // @ts-expect-error xxh3 not in depended @grafana/schema yet
+      const stringified = formatValue('xxh3', '12345');
+      expect(numeric).toBe(stringified);
+      expect(numeric).toMatch(/^[0-9a-f]{16}$/);
+    });
+
+    it('joins array elements as comma-separated hashes', () => {
+      // @ts-expect-error xxh3 not in depended @grafana/schema yet
+      const out = formatValue('xxh3', ['SN-1', 'SN-2']);
+      const parts = out.split(',');
+      expect(parts).toHaveLength(2);
+      expect(parts[0]).toMatch(/^[0-9a-f]{16}$/);
+      expect(parts[1]).toMatch(/^[0-9a-f]{16}$/);
+      expect(parts[0]).not.toBe(parts[1]);
+    });
+
+    it('produces a different digest than xxhash64 for the same input', () => {
+      // @ts-expect-error xxh3 not in depended @grafana/schema yet
+      const xxh3Out = formatValue('xxh3', 'SN-42');
+      // @ts-expect-error xxhash not in depended @grafana/schema yet
+      const xxhashOut = formatValue('xxhash', 'SN-42');
+      expect(xxh3Out).not.toBe(xxhashOut);
     });
   });
 

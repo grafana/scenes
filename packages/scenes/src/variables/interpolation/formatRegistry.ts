@@ -1,4 +1,5 @@
 import { t } from '@grafana/i18n';
+import { createXXHash3, IHasher } from 'hash-wasm';
 import { isArray, map, replace } from 'lodash';
 import { h64 as xxhashH64 } from 'xxhashjs';
 
@@ -389,6 +390,20 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
         return xxhash64Hex(value, seed);
       },
     },
+    {
+      id: 'xxh3', // not yet available in depended @grafana/schema version
+      name: 'xxh3',
+      description: t(
+        'grafana-scenes.variables.format-registry.formats.description.xxh3',
+        'Hash value with xxh3 (64-bit) as zero-padded hex. Seeds are not supported; seed is always 0.'
+      ),
+      formatter: (value) => {
+        if (isArray(value)) {
+          return value.map((v) => xxh3Hex(v)).join(',');
+        }
+        return xxh3Hex(value);
+      },
+    },
   ];
 
   return formats;
@@ -463,4 +478,34 @@ function parseXxhashSeed(arg: string | undefined): number {
   }
   const parsed = arg.startsWith('0x') || arg.startsWith('0X') ? parseInt(arg.slice(2), 16) : parseInt(arg, 10);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+// hash-wasm's xxh3 requires an async WASM init. The format registry API is
+// synchronous, so we kick off init once at module load and cache the resolved
+// hasher. If a formatter call arrives before init completes we return the raw
+// input value with a console warning so the query still fires; a subsequent
+// dashboard refresh will interpolate the correct hash.
+let xxh3Hasher: IHasher | null = null;
+const xxh3HasherPromise: Promise<void> = createXXHash3(0, 0)
+  .then((h) => {
+    xxh3Hasher = h;
+  })
+  .catch(() => {
+    // Leaving xxh3Hasher null keeps the graceful-degradation path active.
+  });
+
+// Exported for tests only. Consumers should not depend on this being a
+// documented API surface.
+export const _xxh3Ready = (): Promise<void> => xxh3HasherPromise;
+
+function xxh3Hex(value: VariableValueSingle): string {
+  const input = typeof value === 'string' ? value : String(value);
+  if (xxh3Hasher === null) {
+    // eslint-disable-next-line no-console
+    console.warn('[scenes] xxh3 WASM not yet initialized; returning unhashed value for ${var:xxh3}');
+    return input;
+  }
+  xxh3Hasher.init();
+  xxh3Hasher.update(input);
+  return xxh3Hasher.digest('hex');
 }
