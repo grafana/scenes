@@ -650,6 +650,41 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall2[1].filters).toEqual(filtersVar.state.filters);
     });
 
+    it('should not pass adhoc filters via request object when applyMode is manual', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      // The variable's owner builds the query's label matchers itself, so applying these filters here
+      // too would duplicate them onto an expression that may not even carry those labels.
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'manual',
+        filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls[0][1].filters).toBeUndefined();
+
+      // A manual variable is not a query dependency either, so changing it must not re-run the query
+      filtersVar._updateFilter(filtersVar.state.filters[0], { value: 'newValue' });
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+    });
+
     it('should pass adhoc origin filter via request object if they have a source defined', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
@@ -1216,6 +1251,32 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
       expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
+    });
+
+    it('should not pass group by dimensions from a legacy GroupByVariable when applyMode is manual', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const groupByVariable = new GroupByVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'manual',
+        defaultOptions: [{ text: 'A' }, { text: 'B' }],
+        value: ['A', 'B'],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [groupByVariable] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls[0][1].groupByKeys).toBeUndefined();
     });
   });
 
