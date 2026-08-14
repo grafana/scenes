@@ -544,12 +544,20 @@ const absoluteWrapper = css({
 });
 
 /**
- * Fit-content wrapper: in normal flow with auto height so the panel content
- * defines the height. Width is still 100% of the (layout-constrained) cell.
+ * Fit-content wrapper: in normal flow so the panel content defines the height.
+ * Width is still 100% of the (layout-constrained) cell.
+ *
+ * The single-cell grid + minHeight combo makes the chrome fill the cell when
+ * the layout stretches it (e.g. matched row heights, where a sibling made the
+ * row taller) while staying content-sized when the cell is auto: percentage
+ * min-height resolves to nothing against an indefinite parent, and a grid's
+ * lone auto row absorbs any extra height the min-height creates.
  */
 const fitContentWrapper = css({
   position: 'relative',
   width: '100%',
+  display: 'grid',
+  minHeight: '100%',
 });
 
 const getAlertStateStyles = (theme: GrafanaTheme2) => {
