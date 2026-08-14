@@ -557,6 +557,12 @@ const fitContentWrapper = css({
   width: '100%',
   display: 'grid',
   minHeight: '100%',
+  // PanelChrome gets a measured pixel width; without inline-size containment
+  // that becomes the subtree's min-content width and flex/grid ancestors with
+  // `min-width: auto` can never shrink again (the absolute wrapper provides
+  // this decoupling in the default path). Containment zeroes the wrapper's
+  // intrinsic inline size while keeping the block axis content-driven.
+  contain: 'inline-size',
 });
 
 const getAlertStateStyles = (theme: GrafanaTheme2) => {
