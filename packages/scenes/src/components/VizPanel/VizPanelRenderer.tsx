@@ -330,6 +330,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                     transparent={displayMode === 'transparent'}
                     width={innerWidth}
                     height={innerHeight || 0}
+                    // @ts-expect-error remove on next @grafana/data update (adds PanelProps.fitContent)
                     fitContent={fitContent || undefined}
                     renderCounter={_renderCounter}
                     replaceVariables={model.interpolate}
