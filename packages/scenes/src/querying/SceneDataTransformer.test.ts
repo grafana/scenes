@@ -26,6 +26,7 @@ import { subscribeToStateUpdates } from '../../utils/test/utils';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TextBoxVariable } from '../variables/variants/TextBoxVariable';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
+import { setWindowGrafanaSceneContext } from '../utils/compatibility/setWindowGrafanaSceneContext';
 
 class TestSceneObject extends SceneObjectBase<{}> {}
 
@@ -40,6 +41,14 @@ const transformer2config = {
   id: 'transformer2',
   options: {
     option: 'value2',
+  },
+};
+
+// Adds instead of multiplying, so ordering against transformer1/transformer2 is observable
+const transformer3config = {
+  id: 'transformer3',
+  options: {
+    option: 'value3',
   },
 };
 
@@ -180,6 +189,27 @@ describe('SceneDataTransformer', () => {
                     return {
                       ...field,
                       values: field.values.map((v) => v * 3),
+                    };
+                  }),
+                };
+              });
+            })
+          );
+        },
+      },
+      {
+        id: 'transformer3',
+        name: 'Custom Transformer3',
+        operator: (options) => (source) => {
+          return source.pipe(
+            map((data) => {
+              return data.map((frame) => {
+                return {
+                  ...frame,
+                  fields: frame.fields.map((field) => {
+                    return {
+                      ...field,
+                      values: field.values.map((v) => v + 10),
                     };
                   }),
                 };
@@ -1243,6 +1273,280 @@ describe('SceneDataTransformer', () => {
           },
         ],
       });
+    });
+  });
+
+  describe('systemTransformations', () => {
+    // Each transformer needs its own source node, as $data is re-parented to its owner
+    const buildSourceDataNode = () =>
+      new SceneDataNode({
+        data: {
+          state: LoadingState.Done,
+          timeRange: getDefaultTimeRange(),
+          series: [
+            toDataFrame([
+              [100, 1],
+              [200, 2],
+              [300, 3],
+            ]),
+          ],
+          annotations: toAnnotationDataFrame([
+            toDataFrame([
+              [400, 1],
+              [500, 2],
+              [600, 3],
+            ]),
+          ]),
+        },
+      });
+
+    it('applies system transformations before user transformations', () => {
+      const systemFirst = new SceneDataTransformer({
+        $data: buildSourceDataNode(),
+        transformations: [transformer3config],
+        systemTransformations: { prepend: [transformer1config] },
+      });
+
+      systemFirst.activate();
+
+      // system (* 2) then user (+ 10)
+      expect(systemFirst.state.data?.series[0].fields[0].values).toEqual([210, 410, 610]);
+
+      // Swapping which list each config sits in swaps the result, so the order is the
+      // prepend/user split and not the order the configs were written in
+      const userFirst = new SceneDataTransformer({
+        $data: buildSourceDataNode(),
+        transformations: [transformer1config],
+        systemTransformations: { prepend: [transformer3config] },
+      });
+
+      userFirst.activate();
+
+      // system (+ 10) then user (* 2)
+      expect(userFirst.state.data?.series[0].fields[0].values).toEqual([220, 420, 620]);
+    });
+
+    it('applies system transformations when the user transformations list is empty', () => {
+      const transformer = new SceneDataTransformer({
+        $data: buildSourceDataNode(),
+        transformations: [],
+        systemTransformations: { prepend: [transformer1config] },
+      });
+
+      transformer.activate();
+
+      expect(transformer.state.data?.series[0].fields[0].values).toEqual([200, 400, 600]);
+    });
+
+    it('does not add system transformations to state.transformations', () => {
+      const transformer = new SceneDataTransformer({
+        $data: buildSourceDataNode(),
+        transformations: [transformer2config],
+        systemTransformations: { prepend: [transformer1config] },
+      });
+
+      transformer.activate();
+
+      expect(transformer.state.transformations).toEqual([transformer2config]);
+      expect(transformer.getEffectiveTransformations()).toEqual([transformer1config, transformer2config]);
+    });
+
+    it('getEffectiveTransformations preserves array identity when there are no system transformations', () => {
+      const transformer = new SceneDataTransformer({
+        $data: buildSourceDataNode(),
+        transformations: [transformer1config],
+      });
+
+      expect(transformer.getEffectiveTransformations()).toBe(transformer.state.transformations);
+
+      transformer.setState({ systemTransformations: { prepend: [] } });
+
+      expect(transformer.getEffectiveTransformations()).toBe(transformer.state.transformations);
+    });
+
+    it('applies a system transformation with the annotations topic to annotation frames only', () => {
+      const annotationSpy = jest.fn();
+
+      const transformer = new SceneDataTransformer({
+        $data: buildSourceDataNode(),
+        transformations: [],
+        systemTransformations: { prepend: [getCustomAnnotationTransformOperator(annotationSpy)] },
+      });
+
+      transformer.activate();
+
+      const data = transformer.state.data;
+
+      expect(annotationSpy).toHaveBeenCalledTimes(1);
+      // annotations divided by 10
+      expect(data?.annotations?.[0].fields[0].values).toEqual([40, 50, 60]);
+      expect(data?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
+      // series untouched, and not reclassified as annotations
+      expect(data?.annotations).toHaveLength(1);
+      expect(data?.series).toHaveLength(1);
+      expect(data?.series[0].fields[0].values).toEqual([100, 200, 300]);
+    });
+
+    it('interpolates variables in user transformations but not in system transformations', () => {
+      const transformationNode = new SceneDataTransformer({
+        transformations: [
+          {
+            ...annotationTransformerConfig,
+            options: {
+              options: '$myVariable',
+            },
+          },
+        ],
+        systemTransformations: {
+          prepend: [
+            {
+              ...transformer1config,
+              options: {
+                options: '$myVariable',
+              },
+            },
+          ],
+        },
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        $variables: new SceneVariableSet({ variables: [textVar] }),
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      // Inside a scene context @grafana/data leaves transformation options alone and lets scenes
+      // interpolate them. Outside one it interpolates option strings itself via ctx.interpolate,
+      // which would interpolate the system config too and mask what this test measures.
+      const restoreSceneContext = setWindowGrafanaSceneContext(scene);
+
+      activateFullSceneTree(scene);
+
+      expect(annotationTransformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: '$myVariable' });
+
+      textVar.setValue('New Text Variable Value');
+
+      expect(annotationTransformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: '$myVariable' });
+
+      restoreSceneContext();
+    });
+
+    it('does not become variable dependent through a system transformation', () => {
+      const transformationNode = new SceneDataTransformer({
+        transformations: [],
+        systemTransformations: {
+          prepend: [
+            {
+              ...transformer1config,
+              options: {
+                options: '$myVariable',
+              },
+            },
+          ],
+        },
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        $variables: new SceneVariableSet({ variables: [textVar] }),
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      activateFullSceneTree(scene);
+
+      expect(transformerSpy).toHaveBeenCalledTimes(1);
+
+      // systemTransformations is deliberately not in _variableDependency.statePaths, so a variable
+      // referenced only from there does not re-run the pipeline
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('clone keeps a callable operator in systemTransformations', () => {
+      const systemSpy = jest.fn();
+
+      const transformer = new SceneDataTransformer({
+        $data: buildSourceDataNode(),
+        transformations: [],
+        systemTransformations: { prepend: [getCustomTransformOperator(systemSpy)] },
+      });
+
+      const clone = transformer.clone();
+
+      // cloneSceneObjectState cloneDeeps plain-object state props and lodash passes nested
+      // functions through by reference. Anything relying on a cloned operator staying callable
+      // depends on that undocumented behaviour, so pin it.
+      expect(typeof clone.state.systemTransformations?.prepend?.[0]).toBe('function');
+
+      clone.activate();
+
+      expect(systemSpy).toHaveBeenCalledTimes(1);
+      expect(clone.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
+    });
+
+    it('reprocessTransformations re-runs system and user transformations', () => {
+      const systemSpy = jest.fn();
+
+      const transformer = new SceneDataTransformer({
+        $data: buildSourceDataNode(),
+        transformations: [transformer1config],
+        systemTransformations: { prepend: [getCustomTransformOperator(systemSpy)] },
+      });
+
+      transformer.activate();
+
+      expect(systemSpy).toHaveBeenCalledTimes(1);
+      expect(transformerSpy).toHaveBeenCalledTimes(1);
+      // system (/ 100) then user (* 2)
+      expect(transformer.state.data?.series[0].fields[0].values).toEqual([2, 4, 6]);
+
+      // The source data is unchanged, so this only re-runs because reprocessTransformations forces it
+      transformer.reprocessTransformations();
+
+      expect(systemSpy).toHaveBeenCalledTimes(2);
+      expect(transformerSpy).toHaveBeenCalledTimes(2);
+      expect(transformer.state.data?.series[0].fields[0].values).toEqual([2, 4, 6]);
+    });
+
+    it('reports an error from a system transformation and keeps the source data', () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+      const throwingOperator: CustomTransformOperator = () => (source) =>
+        source.pipe(
+          map(() => {
+            throw new Error('system transformation failed');
+          })
+        );
+
+      const transformer = new SceneDataTransformer({
+        $data: buildSourceDataNode(),
+        transformations: [transformer1config],
+        systemTransformations: { prepend: [throwingOperator] },
+      });
+
+      transformer.activate();
+
+      const data = transformer.state.data;
+
+      expect(data?.state).toBe(LoadingState.Error);
+      expect(data?.errors?.[0].message).toBe('Error transforming data: system transformation failed');
+      // One pipeline means one error boundary, so the user's transformation does not run either
+      expect(data?.series[0].fields[0].values).toEqual([100, 200, 300]);
+
+      consoleError.mockRestore();
     });
   });
 });

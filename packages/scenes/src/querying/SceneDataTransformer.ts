@@ -23,6 +23,19 @@ export interface SceneDataTransformerState extends SceneDataState {
    * Array of standard transformation configs and custom transform operators
    */
   transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
+
+  /**
+   * Transformations contributed by this object's owner rather than by the user.
+   *
+   * Spliced ahead of `transformations` at transform time, after variable interpolation —
+   * so entries here are NOT interpolated.
+   *
+   * Not part of the object's user-editable or persisted configuration. Owners are
+   * responsible for excluding this field from serialization and from any dirty-state
+   * tracking. Write-once at construction is the supported pattern: changing it does not
+   * by itself re-run the pipeline — call `reprocessTransformations()`.
+   */
+  systemTransformations?: { prepend?: Array<DataTransformerConfig | CustomTransformerDefinition> };
 }
 
 /**
@@ -103,6 +116,16 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   public reprocessTransformations() {
     this.transform(this.getSourceData().state.data, true);
+  }
+
+  /**
+   * The transformations that will actually run: `systemTransformations.prepend` followed by
+   * the user's `transformations`. Returns the `transformations` array itself when there are
+   * no system transformations, so array identity is preserved for consumers that memoize on it.
+   */
+  public getEffectiveTransformations(): Array<DataTransformerConfig | CustomTransformerDefinition> {
+    const prepend = this.state.systemTransformations?.prepend;
+    return prepend?.length ? [...prepend, ...this.state.transformations] : this.state.transformations;
   }
 
   /**
@@ -224,7 +247,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         ) => void)
       | null = null;
 
-    if (this.state.transformations.length === 0 || !data) {
+    if (this.getEffectiveTransformations().length === 0 || !data) {
       this._prevDataFromSource = data;
       this.setState({ data });
 
@@ -242,7 +265,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     // S3.1: Start transformation tracking
     if (profiler) {
       // Create meaningful transformation identifier from actual transformations
-      const transformationTypes = this.state.transformations
+      const transformationTypes = this.getEffectiveTransformations()
         .map((t) => {
           if ('id' in t) {
             // Standard DataTransformerConfig
@@ -256,7 +279,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       transformationId = transformationTypes || 'no-transforms';
 
       // Calculate transformation complexity metrics
-      const metrics = this._calculateTransformationMetrics(data, this.state.transformations);
+      const metrics = this._calculateTransformationMetrics(data, this.getEffectiveTransformations());
 
       // Start the DataProcessing phase with centralized logging - get end callback
       endTransformCallback = profiler.onDataTransformStart(timestamp, transformationId, metrics);
@@ -264,8 +287,14 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     const interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
 
+    // Splice after interpolation so system transformations are not interpolated
+    const prepend = this.state.systemTransformations?.prepend ?? [];
+    const effectiveTransformations = prepend.length
+      ? [...prepend, ...interpolatedTransformations]
+      : interpolatedTransformations;
+
     const seriesTransformations = this._filterAndPrepareTransformationsByTopic(
-      interpolatedTransformations,
+      effectiveTransformations,
       (transformation) => {
         if ('options' in transformation || 'topic' in transformation) {
           return transformation.topic == null || transformation.topic === DataTopic.Series;
@@ -274,7 +303,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       }
     );
     const annotationsTransformations = this._filterAndPrepareTransformationsByTopic(
-      interpolatedTransformations,
+      effectiveTransformations,
       (transformation) => {
         if ('options' in transformation || 'topic' in transformation) {
           return transformation.topic === DataTopic.Annotations;
