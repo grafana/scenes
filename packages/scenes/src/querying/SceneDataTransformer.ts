@@ -27,8 +27,11 @@ export interface SceneDataTransformerState extends SceneDataState {
   /**
    * Transformations contributed by this object's owner rather than by the user.
    *
-   * Spliced ahead of `transformations` at transform time, after variable interpolation —
-   * so entries here are NOT interpolated.
+   * Spliced ahead of `transformations` at transform time, after variable interpolation, so
+   * scenes never interpolates these entries. Note that `@grafana/data` still interpolates the
+   * option strings of series-topic configs when no scene is registered in
+   * `window.__grafanaSceneContext` — that is, outside an `EmbeddedScene` or `SceneApp` — so
+   * treat variable syntax here as unsupported rather than reliably literal.
    *
    * Not part of the object's user-editable or persisted configuration. Owners are
    * responsible for excluding this field from serialization and from any dirty-state
@@ -287,7 +290,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     const interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
 
-    // Splice after interpolation so system transformations are not interpolated
+    // Splice after interpolation so system configs skip it, and so the user array stays
+    // function-free for the single-stringify fast path in the call above
     const prepend = this.state.systemTransformations?.prepend ?? [];
     const effectiveTransformations = prepend.length
       ? [...prepend, ...interpolatedTransformations]
