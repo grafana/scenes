@@ -3,7 +3,7 @@ import { GrafanaTheme2 } from '@grafana/data';
 import { useStyles2, IconButton, Tooltip, Icon } from '@grafana/ui';
 import React from 'react';
 import { AdHocCombobox } from './AdHocFiltersCombobox';
-import { AdHocFilterWithLabels, FilterOrigin, isMatchAllFilter } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, FilterOrigin, isMatchAllFilter, ONE_OF_OPERATOR } from '../AdHocFiltersVariable';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { t } from '@grafana/i18n';
 import { BasePill } from './BasePill';
@@ -24,7 +24,11 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
     useEditablePill({ filter, controller, readOnly, focusOnWipInputRef, isFilterEmpty: isAdhocFilterEmpty });
 
   const keyLabel = filter.keyLabel ?? filter.key;
-  const valueLabel = filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
+  // A saved All default can arrive without valueLabels, so the sentinel always renders as All
+  const isAllValueSelected = filter.operator === ONE_OF_OPERATOR && isMatchAllFilter(filter);
+  const valueLabel = isAllValueSelected
+    ? t('grafana-scenes.components.adhoc-filter-pill.all-values', 'All')
+    : filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
 
   const getOriginFilterTooltips = (origin: FilterOrigin): { info: string; restore: string } => {
     if (origin === 'dashboard') {
@@ -59,7 +63,11 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
       setTimeout(() => focusOnWipInputRef?.());
     };
 
-    const showRemove = !readOnly && !filter.matchAllFilter && (!filter.origin || filter.origin === 'dashboard');
+    // Removing a user filter deletes it, so it stays removable even when it matches everything.
+    // Removing a dashboard default turns it into a match all one, so there is nowhere left to go
+    // once it already is. Derived rather than read off filter.matchAllFilter, because a default
+    // authored as All in the editor arrives without the flag.
+    const showRemove = !readOnly && (!filter.origin || (filter.origin === 'dashboard' && !isMatchAllFilter(filter)));
 
     return (
       <BasePill

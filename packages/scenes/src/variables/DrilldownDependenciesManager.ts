@@ -13,6 +13,7 @@ import {
   isFilterApplicable,
   isFilterComplete,
   isGroupByFilter,
+  isMatchAllFilter,
 } from '../variables/adhoc/AdHocFiltersVariable';
 import { getAdHocFiltersFromScopes } from '../variables/adhoc/getAdHocFiltersFromScopes';
 import { appliesAutomaticallyToDatasource } from './appliesAutomaticallyToDatasource';
@@ -192,7 +193,9 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
       return undefined;
     }
 
-    return this._getMergedFilters().filter((f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f));
+    return this._getMergedFilters().filter(
+      (f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f) && !isMatchAllFilter(f)
+    );
   }
 
   /**

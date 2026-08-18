@@ -714,6 +714,39 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall[1].filters).toEqual([...filtersVar.state.originFilters!, ...filtersVar.state.filters]);
     });
 
+    it('should not pass match-all origin filters via request object', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
+        originFilters: [
+          { key: 'C', operator: '=|', value: '$__all', values: ['$__all'], condition: '', origin: 'dashboard' },
+          { key: 'D', operator: '=~', value: '.*', values: ['.*'], condition: '', origin: 'dashboard' },
+        ],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[0];
+
+      // match-all origin filters (All value and regex form) restrict nothing, so only the user filter is passed
+      expect(runRequestCall[1].filters).toEqual(filtersVar.state.filters);
+    });
+
     it('should merge dashboard and section adhoc filters for the same datasource', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
