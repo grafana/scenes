@@ -162,7 +162,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
     origin?: TransformationOrigin;
   }) {
-    const groups: Record<TransformationOrigin, { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }> = {
+    const groups: Record<
+      TransformationOrigin,
+      { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }
+    > = {
       system: { prepend: [], append: [] },
       url: { prepend: [], append: [] },
     };
