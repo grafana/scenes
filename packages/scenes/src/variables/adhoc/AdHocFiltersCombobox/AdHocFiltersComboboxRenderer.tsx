@@ -1,6 +1,6 @@
 import { css, cx } from '@emotion/css';
 import { GrafanaTheme2 } from '@grafana/data';
-import { Button, IconButton, Icon, useStyles2, useTheme2 } from '@grafana/ui';
+import { Button, IconButton, Icon, useStyles2, useTheme2, styleMixins } from '@grafana/ui';
 import { t } from '@grafana/i18n';
 import React, { memo, useRef, useState, useEffect } from 'react';
 import { useMeasure } from 'react-use';
@@ -268,12 +268,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
   }),
   comboboxFocusOutline: css({
     '&:focus-within': {
-      outline: '2px dotted transparent',
-      outlineOffset: '2px',
-      boxShadow: `0 0 0 2px ${theme.colors.background.canvas}, 0 0 0px 4px ${theme.colors.primary.main}`,
-      transitionTimingFunction: `cubic-bezier(0.19, 1, 0.22, 1)`,
-      transitionDuration: '0.2s',
-      transitionProperty: 'outline, outline-offset, box-shadow',
+      ...styleMixins.getFocusStyles(theme),
       zIndex: 2,
     },
   }),
