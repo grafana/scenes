@@ -1,3 +1,22 @@
+# v8.14.0 (Tue Aug 18 2026)
+
+#### 🚀 Enhancement
+
+- AdhocFilters: Fixes focus state when visual refresh is enabled [#1610](https://github.com/grafana/scenes/pull/1610) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Adhoc/GroupBy: don't apply variables to queries when applyMode is manual [#1604](https://github.com/grafana/scenes/pull/1604) ([@gillesdemey](https://github.com/gillesdemey))
+- TimeComparison: Warning when comparison is empty [#1595](https://github.com/grafana/scenes/pull/1595) ([@drew08t](https://github.com/drew08t))
+
+#### Authors: 3
+
+- Drew Slobodnjak ([@drew08t](https://github.com/drew08t))
+- Gilles De Mey ([@gillesdemey](https://github.com/gillesdemey))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
 # v8.13.6 (Fri Jul 31 2026)
 
 #### 🐛 Bug Fix
