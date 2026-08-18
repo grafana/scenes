@@ -1,3 +1,18 @@
+# v8.15.0 (Tue Aug 18 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: Add All value option for dashboard default filters [#1591](https://github.com/grafana/scenes/pull/1591) ([@samjewell](https://github.com/samjewell) [@cursoragent](https://github.com/cursoragent) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 3
+
+- Cursor Agent ([@cursoragent](https://github.com/cursoragent))
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.14.0 (Tue Aug 18 2026)
 
 #### 🚀 Enhancement
