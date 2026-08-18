@@ -25,9 +25,20 @@ import { VariableDependencyConfig } from '../variables/VariableDependencyConfig'
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 
-export type SceneDataTransformation =
-  | (DataTransformerConfig & { origin?: TransformationOrigin; position?: SystemTransformationPosition })
-  | CustomTransformerDefinition;
+/**
+ * A transformation that setSystemTransformations has tagged with where it came from. The tag is stamped on
+ * by this class, which is why origin and position are not part of the definition types callers pass in - a
+ * hand written tag would be dropped by the next setSystemTransformations call for that origin.
+ */
+export type SystemTransformation = (
+  | DataTransformerConfig
+  | Exclude<CustomTransformerDefinition, CustomTransformOperator>
+) & {
+  origin: TransformationOrigin;
+  position: SystemTransformationPosition;
+};
+
+export type SceneDataTransformation = DataTransformerConfig | CustomTransformerDefinition | SystemTransformation;
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
@@ -46,7 +57,7 @@ export interface SceneDataTransformerState extends SceneDataState {
  */
 export function isSystemTransformation(
   transformation: SceneDataTransformation
-): transformation is Exclude<SceneDataTransformation, CustomTransformOperator> {
+): transformation is SystemTransformation {
   return typeof transformation === 'object' && 'origin' in transformation && transformation.origin != null;
 }
 
@@ -54,7 +65,7 @@ function toSystemTransformation(
   transformation: DataTransformerConfig | CustomTransformerDefinition,
   position: SystemTransformationPosition,
   origin: TransformationOrigin
-): SceneDataTransformation {
+): SystemTransformation {
   if (typeof transformation === 'function') {
     return { operator: transformation, topic: DataTopic.Series, origin, position };
   }
@@ -222,7 +233,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     for (const transformation of this.state.transformations) {
       if (isSystemTransformation(transformation)) {
-        const group = system[transformation.origin ?? 'system'];
+        const group = system[transformation.origin];
         (transformation.position === 'append' ? group.append : group.prepend).push(transformation);
       } else {
         user.push(transformation);

@@ -245,8 +245,6 @@ export type CustomTransformerDefinition =
   | {
       operator: CustomTransformOperator;
       topic: DataTopic;
-      origin?: TransformationOrigin;
-      position?: SystemTransformationPosition;
       /**
        * Stable identity for the operator. Operators are functions and so compare by reference, which makes
        * one that is rebuilt inline on every call look like a change. Two entries carrying the same key are
