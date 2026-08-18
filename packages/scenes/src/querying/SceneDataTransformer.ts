@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash';
+import { isEqual, isEqualWith } from 'lodash';
 import {
   CustomTransformOperator,
   DataFrame,
@@ -60,6 +60,22 @@ function toSystemTransformation(
   }
 
   return { ...transformation, origin, position };
+}
+
+/**
+ * Custom transform operators are functions, so a deep comparison falls back to reference equality and an
+ * operator that a caller rebuilds inline always looks like a change. Where both sides carry the same `key`
+ * the reference is ignored, since the key is the caller's declaration that the operator is unchanged. Every
+ * other field still compares structurally, so a changed topic or position is still picked up.
+ */
+function haveEqualTransformations(a: SceneDataTransformation[], b: SceneDataTransformation[]) {
+  return isEqualWith(a, b, (_, __, prop, aParent, bParent) => {
+    if (prop === 'operator' && typeof aParent?.key === 'string' && aParent.key === bParent?.key) {
+      return true;
+    }
+
+    return undefined;
+  });
 }
 
 /**
@@ -146,8 +162,14 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    * Sets the system (runtime) transformations for the given origin and combines them with the user
    * configured ones. Prepended transformations run before the user transformations, appended ones after.
    * Each provided transformation is tagged with the origin (default 'system'). Previous transformations
-   * with the same origin are replaced, so repeated calls (e.g. on every data render from a panel) are
-   * idempotent; transformations from other origins are preserved.
+   * with the same origin are replaced rather than appended, so repeated calls never accumulate
+   * duplicates; transformations from other origins are preserved.
+   *
+   * Repeated calls only skip re-running the pipeline when the resulting transformations are equal to the
+   * current ones. Custom transform operators are functions and so compare by reference: a caller that
+   * builds them inline would re-run the pipeline and emit new data on every call, which loops if it
+   * re-applies on data change. Give such operators a stable `key` to declare identity instead - matching
+   * keys make the operator reference irrelevant, and changing the key signals a real change.
    *
    * Resulting pipeline order: system prepend, url prepend, user, url append, system append -
    * panel provided (system) transformations wrap everything, url provided ones sit closest
@@ -193,7 +215,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       ...groups.system.append,
     ];
 
-    if (isEqual(transformations, this.state.transformations)) {
+    if (haveEqualTransformations(transformations, this.state.transformations)) {
       return;
     }
 
