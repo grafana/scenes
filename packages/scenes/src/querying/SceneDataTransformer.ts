@@ -184,37 +184,62 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
     origin?: TransformationOrigin;
   }) {
-    const groups: Record<
+    const { system, user } = this._partitionTransformations();
+
+    system[origin] = {
+      prepend: prepend.map((t) => toSystemTransformation(t, 'prepend', origin)),
+      append: append.map((t) => toSystemTransformation(t, 'append', origin)),
+    };
+
+    this._applyTransformations(this._combineTransformations(system, user));
+  }
+
+  /**
+   * Replaces the user configured transformations, keeping any system transformations in place around them.
+   * Use this instead of setState({ transformations }) from a transformations editor or a React binding:
+   * writing the array directly would drop the runtime transformations added via setSystemTransformations,
+   * since they live in the same array.
+   */
+  public setUserTransformations(transformations: SceneDataTransformation[]) {
+    const { system } = this._partitionTransformations();
+
+    this._applyTransformations(this._combineTransformations(system, transformations));
+  }
+
+  /**
+   * Splits the current transformations into the system ones, grouped by origin and position, and the user
+   * configured ones.
+   */
+  private _partitionTransformations() {
+    const system: Record<
       TransformationOrigin,
       { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }
     > = {
       system: { prepend: [], append: [] },
       url: { prepend: [], append: [] },
     };
-    const userTransformations: SceneDataTransformation[] = [];
+    const user: SceneDataTransformation[] = [];
 
     for (const transformation of this.state.transformations) {
-      if (isSystemTransformation(transformation) && transformation.origin !== origin) {
-        const group = groups[transformation.origin ?? 'system'];
+      if (isSystemTransformation(transformation)) {
+        const group = system[transformation.origin ?? 'system'];
         (transformation.position === 'append' ? group.append : group.prepend).push(transformation);
-      } else if (!isSystemTransformation(transformation)) {
-        userTransformations.push(transformation);
+      } else {
+        user.push(transformation);
       }
     }
 
-    groups[origin] = {
-      prepend: prepend.map((t) => toSystemTransformation(t, 'prepend', origin)),
-      append: append.map((t) => toSystemTransformation(t, 'append', origin)),
-    };
+    return { system, user };
+  }
 
-    const transformations = [
-      ...groups.system.prepend,
-      ...groups.url.prepend,
-      ...userTransformations,
-      ...groups.url.append,
-      ...groups.system.append,
-    ];
+  private _combineTransformations(
+    system: Record<TransformationOrigin, { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }>,
+    user: SceneDataTransformation[]
+  ): SceneDataTransformation[] {
+    return [...system.system.prepend, ...system.url.prepend, ...user, ...system.url.append, ...system.system.append];
+  }
 
+  private _applyTransformations(transformations: SceneDataTransformation[]) {
     if (haveEqualTransformations(transformations, this.state.transformations)) {
       return;
     }

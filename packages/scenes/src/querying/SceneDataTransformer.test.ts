@@ -1231,6 +1231,63 @@ describe('SceneDataTransformer', () => {
       const data = sceneGraph.getData(consumer).state.data;
       expect(data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
     });
+    describe('setUserTransformations', () => {
+      it('replaces the user transformations while keeping system ones in place', () => {
+        const { transformationNode, consumer } = buildScene();
+
+        // +4 (system prepend), *3 (url append)
+        transformationNode.setSystemTransformations({ prepend: [{ id: 'annotationTransformer', options: {} }] });
+        transformationNode.setSystemTransformations({ append: [transformer2config], origin: 'url' });
+
+        // Swap the user transformation from *2 to *3
+        transformationNode.setUserTransformations([transformer2config]);
+
+        expect(transformationNode.state.transformations).toEqual([
+          { id: 'annotationTransformer', options: {}, origin: 'system', position: 'prepend' },
+          transformer2config,
+          { ...transformer2config, origin: 'url', position: 'append' },
+        ]);
+
+        // (value + 4) * 3 * 3
+        const data = sceneGraph.getData(consumer).state.data;
+        expect(data?.series[0].fields[1].values).toEqual([45, 54, 63]);
+      });
+
+      it('does not update state when the user transformations are unchanged', () => {
+        const { transformationNode } = buildScene();
+
+        transformationNode.setSystemTransformations({ append: [transformer2config] });
+        const transformations = transformationNode.state.transformations;
+
+        transformationNode.setUserTransformations([transformer1config]);
+
+        expect(transformationNode.state.transformations).toBe(transformations);
+      });
+
+      it('replaces rather than appends on repeated calls', () => {
+        const { transformationNode } = buildScene();
+
+        transformationNode.setUserTransformations([transformer2config]);
+        transformationNode.setUserTransformations([transformer2config]);
+
+        expect(transformationNode.state.transformations).toEqual([transformer2config]);
+      });
+
+      it('clears the user transformations without touching system ones', () => {
+        const { transformationNode, consumer } = buildScene();
+
+        transformationNode.setSystemTransformations({ append: [transformer2config] });
+        transformationNode.setUserTransformations([]);
+
+        expect(transformationNode.state.transformations).toEqual([
+          { ...transformer2config, origin: 'system', position: 'append' },
+        ]);
+
+        // value * 3, the user *2 is gone
+        const data = sceneGraph.getData(consumer).state.data;
+        expect(data?.series[0].fields[1].values).toEqual([3, 6, 9]);
+      });
+    });
   });
 
   describe('Series <-> Annotations conversion', () => {
