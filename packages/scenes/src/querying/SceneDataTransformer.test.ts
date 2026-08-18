@@ -1330,6 +1330,28 @@ describe('SceneDataTransformer', () => {
         expect(transformationNode.state.transformations).toEqual([transformer2config]);
       });
 
+      it('drops system transformations passed in with the user ones', () => {
+        const { transformationNode, consumer } = buildScene();
+
+        // +4 (system prepend), *3 (url append)
+        transformationNode.setSystemTransformations({ prepend: [{ id: 'annotationTransformer', options: {} }] });
+        transformationNode.setSystemTransformations({ append: [transformer2config], origin: 'url' });
+
+        // Callers migrating off setState({ transformations }) may hand back the whole array
+        transformationNode.setUserTransformations(transformationNode.state.transformations);
+        transformationNode.setUserTransformations(transformationNode.state.transformations);
+
+        expect(transformationNode.state.transformations).toEqual([
+          { id: 'annotationTransformer', options: {}, origin: 'system', position: 'prepend' },
+          transformer1config,
+          { ...transformer2config, origin: 'url', position: 'append' },
+        ]);
+
+        // (value + 4) * 2 * 3 - the runtime transforms ran once, not once per call
+        const data = sceneGraph.getData(consumer).state.data;
+        expect(data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+      });
+
       it('clears the user transformations without touching system ones', () => {
         const { transformationNode, consumer } = buildScene();
 

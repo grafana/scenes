@@ -214,7 +214,12 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   public setUserTransformations(transformations: SceneDataTransformation[]) {
     const { system } = this._partitionTransformations();
 
-    this._applyTransformations(this._combineTransformations(system, transformations));
+    // Callers migrating off setState({ transformations }) may hand back the whole array, tagged entries
+    // included. Those are owned by setSystemTransformations and get re-added from `system`, so drop them
+    // instead of letting them sit in the user slot where the next partition would collect them again.
+    const user = transformations.filter((transformation) => !isSystemTransformation(transformation));
+
+    this._applyTransformations(this._combineTransformations(system, user));
   }
 
   /**
