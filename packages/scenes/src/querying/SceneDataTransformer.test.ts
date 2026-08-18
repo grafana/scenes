@@ -15,7 +15,7 @@ import {
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
-import { isSystemTransformation, SceneDataTransformer } from './SceneDataTransformer';
+import { isSystemTransformation, SceneDataTransformer, SceneDataTransformation } from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState } from '../core/types';
@@ -885,41 +885,98 @@ describe('SceneDataTransformer', () => {
       options: 'annotation-transformation-New Text Variable Value',
     });
   });
-  it('interpolates config transformations without dropping object form custom transformer operators', () => {
-    const transformationNode = new SceneDataTransformer({
-      transformations: [
-        {
-          ...transformer1config,
-          options: {
-            options: '$myVariable',
-          },
-        },
-        // Object form custom transformer: JSON stringifying this alongside the configs would drop `operator`
-        customAnnotationTransformOperator,
-      ],
+  describe('variable interpolation with custom transform operators', () => {
+    function buildScene(transformations: SceneDataTransformation[]) {
+      const transformationNode = new SceneDataTransformer({ transformations });
+      const consumer = new TestSceneObject({ $data: transformationNode });
+      const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
+
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        $variables: new SceneVariableSet({ variables: [textVar] }),
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      activateFullSceneTree(scene);
+
+      return { transformationNode, consumer, textVar };
+    }
+
+    const configWithVariable = { ...transformer1config, options: { options: '$myVariable' } };
+
+    it('does not drop object form custom transformer operators', () => {
+      // JSON stringifying the object form alongside the configs would drop `operator`
+      const { consumer, textVar } = buildScene([configWithVariable, customAnnotationTransformOperator]);
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+
+      const data = sceneGraph.getData(consumer).state.data;
+      // series: value * 2 (interpolated config still applied)
+      expect(data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      // annotations: value / 10 (custom operator survived interpolation)
+      expect(data?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
+
+      // The operator has to survive every re-interpolation, not just the first
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+
+      const updated = sceneGraph.getData(consumer).state.data;
+      expect(updated?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      expect(updated?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
     });
 
-    const consumer = new TestSceneObject({
-      $data: transformationNode,
+    it('does not drop bare custom transform operators', () => {
+      const { consumer, textVar } = buildScene([configWithVariable, customTransformOperator]);
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+
+      // value * 2 / 100
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
     });
 
-    const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
-    const scene = new SceneFlexLayout({
-      $data: sourceDataNode,
-      $variables: new SceneVariableSet({ variables: [textVar] }),
-      children: [new SceneFlexItem({ body: consumer })],
+    it('interpolates variables inside system transformations', () => {
+      const { transformationNode, textVar } = buildScene([]);
+
+      transformationNode.setSystemTransformations({ append: [configWithVariable] });
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+
+      // The origin tag has to survive alongside the interpolated options
+      expect(transformationNode.state.transformations.filter(isSystemTransformation)).toHaveLength(1);
+
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
     });
 
-    activateFullSceneTree(scene);
+    it('keeps system custom transform operators when interpolating variables', () => {
+      const { transformationNode, consumer, textVar } = buildScene([configWithVariable]);
 
-    expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
-    expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+      // setSystemTransformations wraps the bare operator into the object form a JSON round trip drops
+      transformationNode.setSystemTransformations({ append: [customTransformOperator] });
 
-    const data = sceneGraph.getData(consumer).state.data;
-    // series: value * 2 (interpolated config still applied)
-    expect(data?.series[0].fields[1].values).toEqual([2, 4, 6]);
-    // annotations: value / 10 (custom operator survived interpolation)
-    expect(data?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+
+      // value * 2 / 100
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+    });
   });
 
   describe('system transformations', () => {
