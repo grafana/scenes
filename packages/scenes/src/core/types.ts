@@ -225,8 +225,29 @@ export type SceneObjectUrlValue = string | string[] | undefined | null;
 export type SceneObjectUrlValues = Record<string, SceneObjectUrlValue>;
 
 export type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
+
+/**
+ * Identifies where a transformation comes from. Transformations without an origin are user configured.
+ * Transformations with an origin are runtime transformations added programmatically via
+ * SceneDataTransformer.setSystemTransformations - 'system' for panel provided ones, 'url' for ones
+ * provided through the URL. They are not meant to be persisted or edited in the transformations editor.
+ */
+export type TransformationOrigin = 'system' | 'url';
+
+/**
+ * Whether a system transformation runs before ('prepend') or after ('append') the user configured
+ * transformations. Stored on the transformation because the placement can not be derived from the
+ * array position when there are no user transformations.
+ */
+export type SystemTransformationPosition = 'prepend' | 'append';
+
 export type CustomTransformerDefinition =
-  | { operator: CustomTransformOperator; topic: DataTopic }
+  | {
+      operator: CustomTransformOperator;
+      topic: DataTopic;
+      origin?: TransformationOrigin;
+      position?: SystemTransformationPosition;
+    }
   | CustomTransformOperator;
 export type SceneStateChangedHandler<TState> = (newState: TState, prevState: TState) => void;
 

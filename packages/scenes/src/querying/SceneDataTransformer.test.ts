@@ -15,7 +15,7 @@ import {
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
-import { SceneDataTransformer } from './SceneDataTransformer';
+import { isSystemTransformation, SceneDataTransformer } from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState } from '../core/types';
@@ -883,6 +883,123 @@ describe('SceneDataTransformer', () => {
     expect(annotationTransformerSpy).toHaveBeenCalledTimes(2);
     expect(annotationTransformerSpy).toHaveBeenLastCalledWith({
       options: 'annotation-transformation-New Text Variable Value',
+    });
+  });
+
+  describe('system transformations', () => {
+    function buildScene() {
+      const transformationNode = new SceneDataTransformer({
+        transformations: [transformer1config],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      return { transformationNode, consumer };
+    }
+
+    it('combines prepended and appended transformations with user configured ones', () => {
+      const { transformationNode, consumer } = buildScene();
+
+      transformationNode.setSystemTransformations({
+        // +4 (registry operator, no topic so it applies to series)
+        prepend: [{ id: 'annotationTransformer', options: {} }],
+        // *3
+        append: [transformer2config],
+      });
+
+      expect(transformationNode.state.transformations).toEqual([
+        { id: 'annotationTransformer', options: {}, origin: 'system', position: 'prepend' },
+        transformer1config,
+        { ...transformer2config, origin: 'system', position: 'append' },
+      ]);
+
+      // (value + 4) * 2 * 3 - proves prepend runs before and append after the user transformation
+      const data = sceneGraph.getData(consumer).state.data;
+      expect(data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+    });
+
+    it('replaces previous system transformations on subsequent calls', () => {
+      const { transformationNode, consumer } = buildScene();
+
+      transformationNode.setSystemTransformations({
+        prepend: [{ id: 'annotationTransformer', options: {} }],
+        append: [transformer2config],
+      });
+
+      transformationNode.setSystemTransformations({ append: [transformer2config] });
+
+      expect(transformationNode.state.transformations).toEqual([
+        transformer1config,
+        { ...transformer2config, origin: 'system', position: 'append' },
+      ]);
+
+      // value * 2 * 3
+      const data = sceneGraph.getData(consumer).state.data;
+      expect(data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('keeps transformations from other origins when updating one origin', () => {
+      const { transformationNode, consumer } = buildScene();
+
+      // +4 (system), *3 (url)
+      transformationNode.setSystemTransformations({ prepend: [{ id: 'annotationTransformer', options: {} }] });
+      transformationNode.setSystemTransformations({ append: [transformer2config], origin: 'url' });
+
+      expect(transformationNode.state.transformations).toEqual([
+        { id: 'annotationTransformer', options: {}, origin: 'system', position: 'prepend' },
+        transformer1config,
+        { ...transformer2config, origin: 'url', position: 'append' },
+      ]);
+
+      // (value + 4) * 2 * 3
+      const data = sceneGraph.getData(consumer).state.data;
+      expect(data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+
+      // Clearing system transformations does not touch url ones
+      transformationNode.setSystemTransformations({});
+
+      expect(transformationNode.state.transformations).toEqual([
+        transformer1config,
+        { ...transformer2config, origin: 'url', position: 'append' },
+      ]);
+    });
+
+    it('does not update state when called again with equal transformations', () => {
+      const { transformationNode } = buildScene();
+
+      transformationNode.setSystemTransformations({ prepend: [transformer2config] });
+      const transformations = transformationNode.state.transformations;
+
+      transformationNode.setSystemTransformations({ prepend: [transformer2config] });
+
+      expect(transformationNode.state.transformations).toBe(transformations);
+    });
+
+    it('wraps bare custom transform operators so they carry the system origin', () => {
+      const { transformationNode, consumer } = buildScene();
+
+      transformationNode.setSystemTransformations({ append: [customTransformOperator] });
+
+      expect(transformationNode.state.transformations).toEqual([
+        transformer1config,
+        { operator: customTransformOperator, topic: DataTopic.Series, origin: 'system', position: 'append' },
+      ]);
+      expect(transformationNode.state.transformations.filter(isSystemTransformation)).toHaveLength(1);
+
+      // value * 2 / 100
+      const data = sceneGraph.getData(consumer).state.data;
+      expect(data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
     });
   });
 

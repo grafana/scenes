@@ -13,16 +13,53 @@ import { toDataQueryError } from '@grafana/runtime';
 import { catchError, forkJoin, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
+import {
+  CustomTransformerDefinition,
+  SceneDataProvider,
+  SceneDataProviderResult,
+  SceneDataState,
+  SystemTransformationPosition,
+  TransformationOrigin,
+} from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 
+export type SceneDataTransformation =
+  | (DataTransformerConfig & { origin?: TransformationOrigin; position?: SystemTransformationPosition })
+  | CustomTransformerDefinition;
+
 export interface SceneDataTransformerState extends SceneDataState {
   /**
-   * Array of standard transformation configs and custom transform operators
+   * Array of standard transformation configs and custom transform operators.
+   * Entries with origin 'system' are runtime transformations added programmatically via
+   * setSystemTransformations. They are combined with the user configured ones but should not be
+   * persisted or shown in the transformations editor (filter them out with isSystemTransformation).
    */
-  transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  transformations: SceneDataTransformation[];
+}
+
+/**
+ * Returns true for transformations added via SceneDataTransformer.setSystemTransformations,
+ * regardless of their origin ('system', 'url', ...).
+ * Use this to filter out runtime transformations when persisting or editing user transformations.
+ */
+export function isSystemTransformation(
+  transformation: SceneDataTransformation
+): transformation is Exclude<SceneDataTransformation, CustomTransformOperator> {
+  return typeof transformation === 'object' && 'origin' in transformation && transformation.origin != null;
+}
+
+function toSystemTransformation(
+  transformation: DataTransformerConfig | CustomTransformerDefinition,
+  position: SystemTransformationPosition,
+  origin: TransformationOrigin
+): SceneDataTransformation {
+  if (typeof transformation === 'function') {
+    return { operator: transformation, topic: DataTopic.Series, origin, position };
+  }
+
+  return { ...transformation, origin, position };
 }
 
 /**
@@ -103,6 +140,66 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   public reprocessTransformations() {
     this.transform(this.getSourceData().state.data, true);
+  }
+
+  /**
+   * Sets the system (runtime) transformations for the given origin and combines them with the user
+   * configured ones. Prepended transformations run before the user transformations, appended ones after.
+   * Each provided transformation is tagged with the origin (default 'system'). Previous transformations
+   * with the same origin are replaced, so repeated calls (e.g. on every data render from a panel) are
+   * idempotent; transformations from other origins are preserved.
+   *
+   * Resulting pipeline order: system prepend, url prepend, user, url append, system append -
+   * panel provided (system) transformations wrap everything, url provided ones sit closest
+   * to the user configured transformations.
+   */
+  public setSystemTransformations({
+    prepend = [],
+    append = [],
+    origin = 'system',
+  }: {
+    prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    origin?: TransformationOrigin;
+  }) {
+    const groups: Record<TransformationOrigin, { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }> = {
+      system: { prepend: [], append: [] },
+      url: { prepend: [], append: [] },
+    };
+    const userTransformations: SceneDataTransformation[] = [];
+
+    for (const transformation of this.state.transformations) {
+      if (isSystemTransformation(transformation) && transformation.origin !== origin) {
+        const group = groups[transformation.origin ?? 'system'];
+        (transformation.position === 'append' ? group.append : group.prepend).push(transformation);
+      } else if (!isSystemTransformation(transformation)) {
+        userTransformations.push(transformation);
+      }
+    }
+
+    groups[origin] = {
+      prepend: prepend.map((t) => toSystemTransformation(t, 'prepend', origin)),
+      append: append.map((t) => toSystemTransformation(t, 'append', origin)),
+    };
+
+    const transformations = [
+      ...groups.system.prepend,
+      ...groups.url.prepend,
+      ...userTransformations,
+      ...groups.url.append,
+      ...groups.system.append,
+    ];
+
+    if (isEqual(transformations, this.state.transformations)) {
+      return;
+    }
+
+    this.setState({ transformations });
+
+    // If not active yet the activation handler will run the transformations
+    if (this.isActive) {
+      this.reprocessTransformations();
+    }
   }
 
   /**
@@ -369,15 +466,17 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       return transformations;
     }
 
-    const onlyObjects = transformations.every((t) => typeof t === 'object');
+    // Custom transform operators (bare or in object form) hold functions that a JSON round-trip would drop
+    const isInterpolatable = (t: DataTransformerConfig | CustomTransformerDefinition) =>
+      typeof t === 'object' && !('operator' in t);
 
-    // If all transformations are config object we can interpolate them all at once
-    if (onlyObjects) {
+    // If all transformations are config objects we can interpolate them all at once
+    if (transformations.every(isInterpolatable)) {
       return JSON.parse(sceneGraph.interpolate(this, JSON.stringify(transformations), data.request?.scopedVars));
     }
 
     return transformations.map((t) => {
-      return typeof t === 'object'
+      return isInterpolatable(t)
         ? JSON.parse(sceneGraph.interpolate(this, JSON.stringify(t), data.request?.scopedVars))
         : t;
     });
