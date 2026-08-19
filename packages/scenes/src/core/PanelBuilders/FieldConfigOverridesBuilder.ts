@@ -1,6 +1,6 @@
 import { FieldMatcherID, FieldType, FieldValueMatcherConfig } from '@grafana/data';
 import { MatcherConfig } from '@grafana/schema';
-import { getCompareSeriesRefId } from '../../utils/getCompareSeriesRefId';
+import { getCompareSeriesRefId } from '../../utils/timeCompare';
 import { StandardFieldConfigOverridesBuilder } from './StandardFieldConfigBuilders';
 
 export class FieldConfigOverridesBuilder<TFieldConfig> extends StandardFieldConfigOverridesBuilder<
