@@ -1,3 +1,27 @@
+# v8.16.0 (Wed Aug 19 2026)
+
+#### 🚀 Enhancement
+
+- VizPanel: Add content-fit rendering mode via `VizPanelFitScope` [#1608](https://github.com/grafana/scenes/pull/1608) ([@bfmatei](https://github.com/bfmatei))
+- AdHocFilters: forward value meta to filter [#1613](https://github.com/grafana/scenes/pull/1613) ([@hugohaggmark](https://github.com/hugohaggmark))
+- AdHocFiltersVariable: Add All value option for dashboard default filters [#1591](https://github.com/grafana/scenes/pull/1591) ([@samjewell](https://github.com/samjewell) [@cursoragent](https://github.com/cursoragent) [@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- Bump version to: v8.15.0 \[skip ci\] ([@scenes-repo-bot-access-token[bot]](https://github.com/scenes-repo-bot-access-token[bot]))
+- Update CHANGELOG.md \[skip ci\] ([@scenes-repo-bot-access-token[bot]](https://github.com/scenes-repo-bot-access-token[bot]))
+
+#### Authors: 6
+
+- [@scenes-repo-bot-access-token[bot]](https://github.com/scenes-repo-bot-access-token[bot])
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Cursor Agent ([@cursoragent](https://github.com/cursoragent))
+- Hugo Häggmark ([@hugohaggmark](https://github.com/hugohaggmark))
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.15.0 (Tue Aug 18 2026)
 
 #### 🚀 Enhancement
