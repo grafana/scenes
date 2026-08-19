@@ -117,6 +117,7 @@ export const generateFilterUpdatePayload = ({
     return {
       value: item.value,
       valueLabels: [item.label ? item.label : item.value!],
+      meta: item?.meta ?? filter?.meta,
     };
   }
 

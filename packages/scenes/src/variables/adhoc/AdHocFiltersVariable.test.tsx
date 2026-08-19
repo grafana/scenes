@@ -2187,6 +2187,85 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
+  it('Can define custom meta in getTagValuesProvider which will have precedence over any meta passed from getTagKeysProvider', async () => {
+    type FilterMeta = Record<string, string>;
+
+    const { filtersVar } = setup({
+      getTagKeysProvider: () => {
+        // getTagKeysProvider API call returns metadata needed in the value
+        return Promise.resolve({
+          replace: true,
+          values: [{ text: 'keyLabel', value: 'keyValue', meta: { parser: 'parserValue' } }],
+        });
+      },
+      getTagValuesProvider: (variable, filter: AdHocFilterWithLabels<FilterMeta>) => {
+        // getTagValuesProvider can receive this metadata, add it to the value and define its own metadata
+        expect(filter.meta).toEqual({ parser: 'parserValue' });
+        return Promise.resolve({
+          replace: true,
+          values: [
+            {
+              text: 'valueLabel',
+              value: JSON.stringify({ value: 'v', parser: filter.meta?.parser }),
+              meta: { valueType: 'string' },
+            },
+          ],
+        });
+      },
+    });
+
+    const keys = await filtersVar._getKeys(null);
+    expect(keys).toEqual([{ label: 'keyLabel', value: 'keyValue', meta: { parser: 'parserValue' } }]);
+
+    // Simulate the update of the filter key after the user selects a particular key
+    act(() =>
+      filtersVar._updateFilter(
+        filtersVar.state.filters[0],
+        generateFilterUpdatePayload({
+          filterInputType: 'key',
+          item: keys[0],
+          filter: filtersVar.state.filters[0],
+          setFilterMultiValues: jest.fn(),
+        })
+      )
+    );
+
+    // Get the values for the ad-hoc variable
+    const values = await filtersVar._getValuesFor(filtersVar.state.filters[0]);
+
+    // The value keeps its own meta from getTagValuesProvider, ignoring the key meta
+    expect(values).toEqual([
+      {
+        label: 'valueLabel',
+        value: JSON.stringify({ value: 'v', parser: 'parserValue' }),
+        meta: { valueType: 'string' },
+      },
+    ]);
+
+    // Simulate the update of the filter value after the user selects a particular value
+    act(() =>
+      filtersVar._updateFilter(
+        filtersVar.state.filters[0],
+        generateFilterUpdatePayload({
+          filterInputType: 'value',
+          item: values[0],
+          filter: filtersVar.state.filters[0],
+          setFilterMultiValues: jest.fn(),
+        })
+      )
+    );
+
+    // Assert that the saved filter contains the expected meta and value
+    expect(filtersVar.state.filters[0]).toEqual({
+      operator: '=',
+      keyLabel: 'keyLabel',
+      key: 'keyValue',
+      meta: { valueType: 'string' },
+      value: JSON.stringify({ value: 'v', parser: 'parserValue' }),
+      valueLabels: ['valueLabel'],
+    });
+  });
+
   it('Can encode a custom value', async () => {
     const { filtersVar, runRequest } = setup({
       layout: 'horizontal',
