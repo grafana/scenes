@@ -17,7 +17,13 @@ import {
   SceneFlexItem,
   PanelBuilders,
 } from '@grafana/scenes';
-import { BigValueGraphMode, BigValueTextMode, LogsDedupStrategy, LogsSortOrder } from '@grafana/schema';
+import {
+  BigValueGraphMode,
+  BigValueTextMode,
+  LogsDedupStrategy,
+  LogsSortOrder,
+  TableFieldOptions,
+} from '@grafana/schema';
 import { LinkButton } from '@grafana/ui';
 
 import { SceneRadioToggle } from './SceneRadioToggle';
@@ -58,7 +64,7 @@ export function getHttpHandlerListScene(): EmbeddedScene {
         .matchFieldsWithNameByRegex('.*')
         .overrideFilterable(false)
         .matchFieldsWithName('Time')
-        .overrideCustomFieldConfig('hideFrom', { legend: true, tooltip: true, viz: true })
+        .overrideCustomFieldConfig('hideFrom.viz' as keyof TableFieldOptions, true)
         .matchFieldsWithName('Value')
         .overrideDisplayName('Duration (Avg)')
         .matchFieldsWithName('handler')

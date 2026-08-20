@@ -15,6 +15,7 @@ import {
   SceneObjectUrlValues,
   PanelBuilders,
 } from '@grafana/scenes';
+import { TableFieldOptions } from '@grafana/schema';
 import { Button } from '@grafana/ui';
 
 import { getVariablesDefinitions } from './utils';
@@ -35,7 +36,7 @@ export function getTrafficScene(): EmbeddedScene {
         .matchFieldsWithNameByRegex('.*')
         .overrideFilterable(false)
         .matchFieldsWithName('Time')
-        .overrideCustomFieldConfig('hideFrom', { legend: true, tooltip: true, viz: true })
+        .overrideCustomFieldConfig('hideFrom.viz' as keyof TableFieldOptions, true)
         .matchFieldsWithName('Value')
         .overrideDisplayName('Duration (Avg)')
         .matchFieldsWithName('handler')
