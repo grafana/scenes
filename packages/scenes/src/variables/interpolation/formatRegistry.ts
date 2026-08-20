@@ -5,7 +5,6 @@ import { dateTime, Registry, RegistryItem, textUtil, escapeRegex, urlUtil } from
 import { VariableType, VariableFormatID } from '@grafana/schema';
 
 import { VariableValue, VariableValueSingle } from '../types';
-import { ALL_VARIABLE_VALUE } from '../constants';
 import { SceneObjectUrlSyncHandler } from '../../core/types';
 
 export interface FormatRegistryItem extends RegistryItem {
@@ -412,10 +411,6 @@ function formatQueryParameter(name: string, value: VariableValueSingle): string 
 
 function customFormatQueryParameter(name: string, value: VariableValueSingle, valuePrefix = ''): string {
   return `${name}=${valuePrefix}${encodeURIComponentStrict(value)}`;
-}
-
-export function isAllValue(value: VariableValueSingle) {
-  return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value[0] === ALL_VARIABLE_VALUE);
 }
 
 const SQL_ESCAPE_MAP: Record<string, string> = {
