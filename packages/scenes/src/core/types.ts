@@ -227,12 +227,16 @@ export type SceneObjectUrlValues = Record<string, SceneObjectUrlValue>;
 export type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
 
 /**
- * Identifies where a transformation comes from. Transformations without an origin are user configured.
- * Transformations with an origin are runtime transformations added programmatically via
- * SceneDataTransformer.setSystemTransformations - 'system' for panel provided ones, 'url' for ones
- * provided through the URL. They are not meant to be persisted or edited in the transformations editor.
+ * Identifies which provider injected a transformation and may replace it. Transformations without an origin
+ * are user configured; ones with an origin are added programmatically via
+ * SceneDataTransformer.setSystemTransformations and are not meant to be persisted or edited in the
+ * transformations editor.
+ *
+ * The origin is runtime ownership only, so it never survives into a save model. A transformation promoted
+ * into the dashboard spec has to drop its origin - otherwise the next setSystemTransformations call for that
+ * origin would delete it - which is why provenance that outlives promotion needs its own persisted field.
  */
-export type TransformationOrigin = 'system' | 'url';
+export type TransformationOrigin = 'plugin';
 
 /**
  * Whether a system transformation runs before ('prepend') or after ('append') the user configured

@@ -53,6 +53,7 @@ export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls
 export {
   SceneDataTransformer,
   isSystemTransformation,
+  isTransformationFrom,
   type SceneDataTransformerState,
   type SceneDataTransformation,
   type SystemTransformation,

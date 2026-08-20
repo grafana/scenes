@@ -15,7 +15,12 @@ import {
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
-import { isSystemTransformation, SceneDataTransformer, SceneDataTransformation } from './SceneDataTransformer';
+import {
+  isSystemTransformation,
+  isTransformationFrom,
+  SceneDataTransformer,
+  SceneDataTransformation,
+} from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState } from '../core/types';
@@ -1012,9 +1017,9 @@ describe('SceneDataTransformer', () => {
       });
 
       expect(transformationNode.state.transformations).toEqual([
-        { id: 'annotationTransformer', options: {}, origin: 'system', position: 'prepend' },
+        { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
         transformer1config,
-        { ...transformer2config, origin: 'system', position: 'append' },
+        { ...transformer2config, origin: 'plugin', position: 'append' },
       ]);
 
       // (value + 4) * 2 * 3 - proves prepend runs before and append after the user transformation
@@ -1034,7 +1039,7 @@ describe('SceneDataTransformer', () => {
 
       expect(transformationNode.state.transformations).toEqual([
         transformer1config,
-        { ...transformer2config, origin: 'system', position: 'append' },
+        { ...transformer2config, origin: 'plugin', position: 'append' },
       ]);
 
       // value * 2 * 3
@@ -1042,30 +1047,31 @@ describe('SceneDataTransformer', () => {
       expect(data?.series[0].fields[1].values).toEqual([6, 12, 18]);
     });
 
-    it('keeps transformations from other origins when updating one origin', () => {
+    it('clears its own transformations without touching the user configured ones', () => {
       const { transformationNode, consumer } = buildScene();
 
-      // +4 (system), *3 (url)
-      transformationNode.setSystemTransformations({ prepend: [{ id: 'annotationTransformer', options: {} }] });
-      transformationNode.setSystemTransformations({ append: [transformer2config], origin: 'url' });
+      // +4 (prepend), *3 (append)
+      transformationNode.setSystemTransformations({
+        prepend: [{ id: 'annotationTransformer', options: {} }],
+        append: [transformer2config],
+      });
 
       expect(transformationNode.state.transformations).toEqual([
-        { id: 'annotationTransformer', options: {}, origin: 'system', position: 'prepend' },
+        { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
         transformer1config,
-        { ...transformer2config, origin: 'url', position: 'append' },
+        { ...transformer2config, origin: 'plugin', position: 'append' },
       ]);
 
       // (value + 4) * 2 * 3
-      const data = sceneGraph.getData(consumer).state.data;
-      expect(data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([30, 36, 42]);
 
-      // Clearing system transformations does not touch url ones
+      // Passing no groups clears this origin
       transformationNode.setSystemTransformations({});
 
-      expect(transformationNode.state.transformations).toEqual([
-        transformer1config,
-        { ...transformer2config, origin: 'url', position: 'append' },
-      ]);
+      expect(transformationNode.state.transformations).toEqual([transformer1config]);
+
+      // value * 2
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
     });
 
     it('does not update state when called again with equal transformations', () => {
@@ -1231,7 +1237,7 @@ describe('SceneDataTransformer', () => {
 
       expect(transformationNode.state.transformations).toEqual([
         transformer1config,
-        { operator, topic: DataTopic.Annotations, origin: 'system', position: 'append', key: 'v1' },
+        { operator, topic: DataTopic.Annotations, origin: 'plugin', position: 'append', key: 'v1' },
       ]);
     });
 
@@ -1252,35 +1258,33 @@ describe('SceneDataTransformer', () => {
 
       expect(transformationNode.state.transformations).toEqual([
         transformer1config,
-        { operator, topic: DataTopic.Series, origin: 'system', position: 'append', key: 'v1' },
+        { operator, topic: DataTopic.Series, origin: 'plugin', position: 'append', key: 'v1' },
       ]);
     });
 
-    it('does not let a key collide across origins', () => {
+    it('matches an origin scoped guard only for that origin', () => {
       const { transformationNode } = buildScene();
-      const operator = scaleOperator(10);
 
-      transformationNode.setSystemTransformations({ append: [{ operator, topic: DataTopic.Series, key: 'shared' }] });
-      transformationNode.setSystemTransformations({
-        prepend: [{ operator, topic: DataTopic.Series, key: 'shared' }],
-        origin: 'url',
-      });
+      transformationNode.setSystemTransformations({ append: [transformer2config] });
 
-      expect(transformationNode.state.transformations).toEqual([
-        { operator, topic: DataTopic.Series, origin: 'url', position: 'prepend', key: 'shared' },
-        transformer1config,
-        { operator, topic: DataTopic.Series, origin: 'system', position: 'append', key: 'shared' },
-      ]);
+      const [user, system] = transformationNode.state.transformations;
+
+      expect(isSystemTransformation(system)).toBe(true);
+      expect(isSystemTransformation(user)).toBe(false);
+
+      // Usable as a predicate, which is why it is curried rather than a second argument
+      expect(transformationNode.state.transformations.filter(isTransformationFrom('plugin'))).toEqual([system]);
+      expect(transformationNode.state.transformations.filter(isSystemTransformation)).toEqual([system]);
     });
 
-    it('wraps bare custom transform operators so they carry the system origin', () => {
+    it('wraps bare custom transform operators so they carry the plugin origin', () => {
       const { transformationNode, consumer } = buildScene();
 
       transformationNode.setSystemTransformations({ append: [customTransformOperator] });
 
       expect(transformationNode.state.transformations).toEqual([
         transformer1config,
-        { operator: customTransformOperator, topic: DataTopic.Series, origin: 'system', position: 'append' },
+        { operator: customTransformOperator, topic: DataTopic.Series, origin: 'plugin', position: 'append' },
       ]);
       expect(transformationNode.state.transformations.filter(isSystemTransformation)).toHaveLength(1);
 
@@ -1292,17 +1296,19 @@ describe('SceneDataTransformer', () => {
       it('replaces the user transformations while keeping system ones in place', () => {
         const { transformationNode, consumer } = buildScene();
 
-        // +4 (system prepend), *3 (url append)
-        transformationNode.setSystemTransformations({ prepend: [{ id: 'annotationTransformer', options: {} }] });
-        transformationNode.setSystemTransformations({ append: [transformer2config], origin: 'url' });
+        // +4 (prepend), *3 (append)
+        transformationNode.setSystemTransformations({
+          prepend: [{ id: 'annotationTransformer', options: {} }],
+          append: [transformer2config],
+        });
 
         // Swap the user transformation from *2 to *3
         transformationNode.setUserTransformations([transformer2config]);
 
         expect(transformationNode.state.transformations).toEqual([
-          { id: 'annotationTransformer', options: {}, origin: 'system', position: 'prepend' },
+          { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
           transformer2config,
-          { ...transformer2config, origin: 'url', position: 'append' },
+          { ...transformer2config, origin: 'plugin', position: 'append' },
         ]);
 
         // (value + 4) * 3 * 3
@@ -1333,18 +1339,20 @@ describe('SceneDataTransformer', () => {
       it('drops system transformations passed in with the user ones', () => {
         const { transformationNode, consumer } = buildScene();
 
-        // +4 (system prepend), *3 (url append)
-        transformationNode.setSystemTransformations({ prepend: [{ id: 'annotationTransformer', options: {} }] });
-        transformationNode.setSystemTransformations({ append: [transformer2config], origin: 'url' });
+        // +4 (prepend), *3 (append)
+        transformationNode.setSystemTransformations({
+          prepend: [{ id: 'annotationTransformer', options: {} }],
+          append: [transformer2config],
+        });
 
         // Callers migrating off setState({ transformations }) may hand back the whole array
         transformationNode.setUserTransformations(transformationNode.state.transformations);
         transformationNode.setUserTransformations(transformationNode.state.transformations);
 
         expect(transformationNode.state.transformations).toEqual([
-          { id: 'annotationTransformer', options: {}, origin: 'system', position: 'prepend' },
+          { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
           transformer1config,
-          { ...transformer2config, origin: 'url', position: 'append' },
+          { ...transformer2config, origin: 'plugin', position: 'append' },
         ]);
 
         // (value + 4) * 2 * 3 - the runtime transforms ran once, not once per call
@@ -1359,7 +1367,7 @@ describe('SceneDataTransformer', () => {
         transformationNode.setUserTransformations([]);
 
         expect(transformationNode.state.transformations).toEqual([
-          { ...transformer2config, origin: 'system', position: 'append' },
+          { ...transformer2config, origin: 'plugin', position: 'append' },
         ]);
 
         // value * 3, the user *2 is gone

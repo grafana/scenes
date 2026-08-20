@@ -51,14 +51,25 @@ export interface SceneDataTransformerState extends SceneDataState {
 }
 
 /**
- * Returns true for transformations added via SceneDataTransformer.setSystemTransformations,
- * regardless of their origin ('system', 'url', ...).
- * Use this to filter out runtime transformations when persisting or editing user transformations.
+ * Returns true for transformations added via SceneDataTransformer.setSystemTransformations, whichever origin
+ * injected them. That is the question persisting and editing want to ask; use isTransformationFrom when a
+ * provider needs to reason about only the entries it owns.
  */
 export function isSystemTransformation(
   transformation: SceneDataTransformation
 ): transformation is SystemTransformation {
   return typeof transformation === 'object' && 'origin' in transformation && transformation.origin != null;
+}
+
+/**
+ * Builds the origin scoped version of isSystemTransformation, for the narrower question a provider needs:
+ * whether the entries it owns are installed, ignoring the ones it neither adds nor removes. Returns a
+ * predicate rather than taking the origin alongside the transformation so that it stays usable with
+ * filter and some, which would otherwise pass their index argument into the origin slot.
+ */
+export function isTransformationFrom(origin: TransformationOrigin) {
+  return (transformation: SceneDataTransformation): transformation is SystemTransformation =>
+    isSystemTransformation(transformation) && transformation.origin === origin;
 }
 
 function toSystemTransformation(
@@ -182,14 +193,14 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    * re-applies on data change. Give such operators a stable `key` to declare identity instead - matching
    * keys make the operator reference irrelevant, and changing the key signals a real change.
    *
-   * Resulting pipeline order: system prepend, url prepend, user, url append, system append -
-   * panel provided (system) transformations wrap everything, url provided ones sit closest
-   * to the user configured transformations.
+   * Resulting pipeline order: prepended system transformations, the user configured ones, then appended
+   * system transformations. Origins are replaced independently, so once a second provider exists its
+   * entries slot into the same prepend and append tiers without disturbing this one's.
    */
   public setSystemTransformations({
     prepend = [],
     append = [],
-    origin = 'system',
+    origin = 'plugin',
   }: {
     prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
     append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
@@ -231,8 +242,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       TransformationOrigin,
       { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }
     > = {
-      system: { prepend: [], append: [] },
-      url: { prepend: [], append: [] },
+      plugin: { prepend: [], append: [] },
     };
     const user: SceneDataTransformation[] = [];
 
@@ -252,7 +262,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     system: Record<TransformationOrigin, { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }>,
     user: SceneDataTransformation[]
   ): SceneDataTransformation[] {
-    return [...system.system.prepend, ...system.url.prepend, ...user, ...system.url.append, ...system.system.append];
+    return [...system.plugin.prepend, ...user, ...system.plugin.append];
   }
 
   private _applyTransformations(transformations: SceneDataTransformation[]) {
