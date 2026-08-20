@@ -11,6 +11,7 @@ import {
   toDataFrame,
   PanelPluginDataSupport,
   AlertState,
+  type AlertStateInfo,
   PanelData,
   PanelProps,
   toUtc,
@@ -968,6 +969,51 @@ describe('VizPanel', () => {
         });
 
         expect(panelRenderCount).toBe(2);
+      });
+    });
+
+    describe('alert state icon', () => {
+      function setup(alertState: AlertStateInfo & { ruleUID?: string }) {
+        const panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          pluginId: 'custom-plugin-id',
+          $timeRange: new SceneTimeRange(),
+          $data: new SceneDataNode({ data: { ...getTestData(), alertState } }),
+        });
+
+        pluginToLoad = getTestPlugin1({ alertStates: true, annotations: false });
+
+        return render(<panel.Component model={panel} />);
+      }
+
+      it('links to the alert rule when a ruleUID is present', async () => {
+        const { container } = setup({
+          dashboardId: 1,
+          panelId: 1,
+          id: 1,
+          state: AlertState.Alerting,
+          ruleUID: 'rule-abc',
+        });
+
+        await screen.findByText('My custom panel');
+
+        const icon = container.querySelector('.panel-alert-icon');
+        const link = icon?.closest('a');
+        expect(link).toHaveAttribute('href', '/alerting/grafana/rule-abc/view');
+      });
+
+      it('renders a non-interactive icon when there is no ruleUID', async () => {
+        const { container } = setup({
+          dashboardId: 1,
+          panelId: 1,
+          id: 1,
+          state: AlertState.OK,
+        });
+
+        await screen.findByText('My custom panel');
+
+        const icon = container.querySelector('.panel-alert-icon');
+        expect(icon).toBeInTheDocument();
+        expect(icon?.closest('a')).toBeNull();
       });
     });
   });

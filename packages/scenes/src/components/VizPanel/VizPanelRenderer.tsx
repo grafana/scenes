@@ -5,6 +5,7 @@ import { useMeasure, usePrevious } from 'react-use';
 // @ts-ignore
 import {
   AlertState,
+  type AlertStateInfo,
   DataFrame,
   GrafanaTheme2,
   PanelData,
@@ -17,7 +18,7 @@ import {
   SetPanelAttentionEvent,
 } from '@grafana/data';
 
-import { getAppEvents } from '@grafana/runtime';
+import { config, getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
@@ -196,17 +197,25 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   }
 
   if (dataWithFieldConfig.alertState) {
+    // ruleUID isn't in the @grafana/data types installed here until a new version is published,
+    // but the app's alert states data layer already populates it on the underlying data frame.
+    const alertState = dataWithFieldConfig.alertState as AlertStateInfo & { ruleUID?: string };
+    const alertRuleHref = alertState.ruleUID
+      ? `${config.appSubUrl ?? ''}/alerting/grafana/${alertState.ruleUID}/view`
+      : undefined;
+
     titleItemsElement.push(
-      <Tooltip content={dataWithFieldConfig.alertState.state ?? 'unknown'} key={`alert-states-icon-${model.state.key}`}>
+      <Tooltip content={alertState.state ?? 'unknown'} key={`alert-states-icon-${model.state.key}`}>
         <PanelChrome.TitleItem
+          href={alertRuleHref}
           className={cx({
-            [alertStateStyles.ok]: dataWithFieldConfig.alertState.state === AlertState.OK,
-            [alertStateStyles.pending]: dataWithFieldConfig.alertState.state === AlertState.Pending,
-            [alertStateStyles.alerting]: dataWithFieldConfig.alertState.state === AlertState.Alerting,
+            [alertStateStyles.ok]: alertState.state === AlertState.OK,
+            [alertStateStyles.pending]: alertState.state === AlertState.Pending,
+            [alertStateStyles.alerting]: alertState.state === AlertState.Alerting,
           })}
         >
           <Icon
-            name={dataWithFieldConfig.alertState.state === 'alerting' ? 'heart-break' : 'heart'}
+            name={alertState.state === 'alerting' ? 'heart-break' : 'heart'}
             className="panel-alert-icon"
             size="md"
           />
