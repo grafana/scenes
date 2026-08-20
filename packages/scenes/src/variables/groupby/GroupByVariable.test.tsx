@@ -573,7 +573,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       ]);
 
       const { variable } = setupTest({ applicabilityEnabled: true, value: ['key1', 'key2'] }, undefined, undefined, {
-        // @ts-expect-error (temporary till we update grafana/data)
         getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
       });
 
@@ -613,7 +612,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue(null);
 
       const { variable } = setupTest({ applicabilityEnabled: true, value: ['key1'] }, undefined, undefined, {
-        // @ts-expect-error (temporary till we update grafana/data)
         getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
       });
 
@@ -629,7 +627,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
       const getDrilldownsApplicabilitySpy = jest.fn().mockResolvedValue([{ key: 'key1', applicable: true }]);
 
       const { variable } = setupTest({ applicabilityEnabled: true, value: ['key1'] }, undefined, undefined, {
-        // @ts-expect-error (temporary till we update grafana/data)
         getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
       });
 
@@ -661,7 +658,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         undefined,
         undefined,
         {
-          // @ts-expect-error (temporary till we update grafana/data)
           getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
         }
       );
@@ -826,7 +822,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         undefined,
         undefined,
         {
-          // @ts-expect-error (temporary till we update grafana/data)
           getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
         }
       );
@@ -856,7 +851,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         undefined,
         undefined,
         {
-          // @ts-expect-error (temporary till we update grafana/data)
           getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
         }
       );
@@ -888,7 +882,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         undefined,
         undefined,
         {
-          // @ts-expect-error (temporary till we update grafana/data)
           getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
         }
       );
@@ -929,7 +922,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         undefined,
         undefined,
         {
-          // @ts-expect-error (temporary till we update grafana/data)
           getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
         }
       );
@@ -959,7 +951,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         undefined,
         undefined,
         {
-          // @ts-expect-error (temporary till we update grafana/data)
           getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
         }
       );
@@ -984,7 +975,6 @@ describe.each(['11.1.2', '11.1.1'])('GroupByVariable', (v) => {
         undefined,
         undefined,
         {
-          // @ts-expect-error (temporary till we update grafana/data)
           getDrilldownsApplicability: getDrilldownsApplicabilitySpy,
         }
       );
