@@ -5,7 +5,6 @@ import { useMeasure, usePrevious } from 'react-use';
 // @ts-ignore
 import {
   AlertState,
-  type AlertStateInfo,
   DataFrame,
   GrafanaTheme2,
   PanelData,
@@ -197,12 +196,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   }
 
   if (dataWithFieldConfig.alertState) {
-    // ruleUID isn't in the @grafana/data types installed here until a new version is published,
-    // but the app's alert states data layer already populates it on the underlying data frame.
-    const alertState = dataWithFieldConfig.alertState as AlertStateInfo & { ruleUID?: string };
-    const alertRuleHref = alertState.ruleUID
-      ? `${config.appSubUrl ?? ''}/alerting/grafana/${alertState.ruleUID}/view`
-      : undefined;
+    const alertState = dataWithFieldConfig.alertState;
+    // @ts-expect-error ruleUID is added in a newer @grafana/data version
+    const ruleUID: string | undefined = alertState.ruleUID;
+    const alertRuleHref = ruleUID ? `${config.appSubUrl ?? ''}/alerting/grafana/${ruleUID}/view` : undefined;
 
     titleItemsElement.push(
       <Tooltip content={alertState.state ?? 'unknown'} key={`alert-states-icon-${model.state.key}`}>
