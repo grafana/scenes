@@ -208,9 +208,9 @@ interface SelectMenuOptionProps<T> {
   isDisabled: boolean;
   isFocused: boolean;
   isSelected: boolean;
-  innerProps: JSX.IntrinsicElements['div'];
+  innerProps: React.JSX.IntrinsicElements['div'];
   innerRef: RefCallback<HTMLDivElement>;
-  renderOptionLabel?: (value: SelectableValue<T>) => JSX.Element;
+  renderOptionLabel?: (value: SelectableValue<T>) => React.JSX.Element;
   data: SelectableValue<T>;
   indeterminate: boolean;
 }

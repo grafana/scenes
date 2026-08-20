@@ -33,8 +33,8 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
 
   // ref that focuses on the always wip filter input
   // defined in the combobox component via useImperativeHandle
-  const focusOnWipInputRef = useRef<() => void>();
-  const focusOnGroupByWipInputRef = useRef<() => void>();
+  const focusOnWipInputRef = useRef<(() => void) | null>(null);
+  const focusOnGroupByWipInputRef = useRef<(() => void) | null>(null);
 
   // Single line height is approximately minHeight (4 spacing units) + small buffer
   const singleLineThreshold = theme.spacing.gridSize * 5;
@@ -110,7 +110,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
           filter={filter}
           controller={controller}
           readOnly={readOnly || filter.readOnly}
-          focusOnWipInputRef={focusOnWipInputRef.current}
+          focusOnWipInputRef={focusOnWipInputRef.current ?? undefined}
         />
       ))}
 
@@ -152,7 +152,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
               filter={filter}
               controller={controller}
               readOnly={readOnly || filter.readOnly}
-              focusOnWipInputRef={focusOnGroupByWipInputRef.current}
+              focusOnWipInputRef={focusOnGroupByWipInputRef.current ?? undefined}
             />
           ))}
 

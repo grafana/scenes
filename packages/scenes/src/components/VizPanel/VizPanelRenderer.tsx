@@ -386,8 +386,8 @@ function useClearPreviousData(data?: DataFrame[]) {
   // this holds all value arrays from all series or anno frames
   // so we can empty any previous ones that no longer appear in current data
   // why? because React fiber: https://github.com/facebook/react/issues/36176
-  const prevVals = useRef<Set<any[]>>();
-  const currVals = useRef<Set<any[]>>();
+  const prevVals = useRef<Set<any[]> | undefined>(undefined);
+  const currVals = useRef<Set<any[]> | undefined>(undefined);
   prevVals.current ??= new Set();
   currVals.current ??= new Set();
 
