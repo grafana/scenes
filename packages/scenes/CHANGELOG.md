@@ -1,3 +1,15 @@
+# v8.16.1 (Thu Aug 20 2026)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Link the alert icon to its alert rule [#1619](https://github.com/grafana/scenes/pull/1619) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v8.16.0 (Wed Aug 19 2026)
 
 #### 🚀 Enhancement
