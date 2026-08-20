@@ -17,7 +17,7 @@ import {
   SetPanelAttentionEvent,
 } from '@grafana/data';
 
-import { getAppEvents } from '@grafana/runtime';
+import { config, getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
@@ -198,17 +198,23 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   }
 
   if (dataWithFieldConfig.alertState) {
+    const alertState = dataWithFieldConfig.alertState;
+    // @ts-expect-error ruleUID is added in a newer @grafana/data version
+    const ruleUID: string | undefined = alertState.ruleUID;
+    const alertRuleHref = ruleUID ? `${config.appSubUrl ?? ''}/alerting/grafana/${ruleUID}/view` : undefined;
+
     titleItemsElement.push(
-      <Tooltip content={dataWithFieldConfig.alertState.state ?? 'unknown'} key={`alert-states-icon-${model.state.key}`}>
+      <Tooltip content={alertState.state ?? 'unknown'} key={`alert-states-icon-${model.state.key}`}>
         <PanelChrome.TitleItem
+          href={alertRuleHref}
           className={cx({
-            [alertStateStyles.ok]: dataWithFieldConfig.alertState.state === AlertState.OK,
-            [alertStateStyles.pending]: dataWithFieldConfig.alertState.state === AlertState.Pending,
-            [alertStateStyles.alerting]: dataWithFieldConfig.alertState.state === AlertState.Alerting,
+            [alertStateStyles.ok]: alertState.state === AlertState.OK,
+            [alertStateStyles.pending]: alertState.state === AlertState.Pending,
+            [alertStateStyles.alerting]: alertState.state === AlertState.Alerting,
           })}
         >
           <Icon
-            name={dataWithFieldConfig.alertState.state === 'alerting' ? 'heart-break' : 'heart'}
+            name={alertState.state === 'alerting' ? 'heart-break' : 'heart'}
             className="panel-alert-icon"
             size="md"
           />
