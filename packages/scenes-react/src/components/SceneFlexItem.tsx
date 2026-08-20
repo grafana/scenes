@@ -21,7 +21,7 @@ export function SceneFlexItem(props: SceneFlexItemProps) {
     throw new Error('SceneFlexItem must be a child of SceneFlexLayout');
   }
 
-  const itemRef = useRef<SceneFlexItemObject>();
+  const itemRef = useRef<SceneFlexItemObject | undefined>(undefined);
 
   if (!itemRef.current) {
     itemRef.current = new SceneFlexItemObject({
