@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "All",
         "edit-filter-with-key": "Edit filter with key {{keyLabel}}",
         "managed-filter": "{{origin}} managed filter",
         "non-applicable": "Filter is not applicable",
         "remove-filter-with-key": "Remove filter with key {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
+        "all-values": "All",
         "remove-filter-value": "Remove filter value - {{itemLabel}}",
         "use-custom-value": "Use custom value: {{itemLabel}}"
       },
@@ -85,6 +87,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "Cancel query"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": "No data returned for time comparison"
       }
     },
     "variables": {

@@ -6,6 +6,24 @@ import { NO_COMPARE_OPTION, PREVIOUS_PERIOD_COMPARE_OPTION, SceneTimeRangeCompar
 import userEvent from '@testing-library/user-event';
 import { render } from '@testing-library/react';
 import React from 'react';
+import { lastValueFrom } from 'rxjs';
+import { DataQueryRequest, LoadingState, PanelData, dateTime, toDataFrame } from '@grafana/data';
+
+const makeRequest = (range: SceneTimeRange): DataQueryRequest =>
+  ({
+    range: range.state.value,
+    targets: [{ refId: 'A' }],
+  } as unknown as DataQueryRequest);
+
+const makePanelData = (from: string, to: string, series: PanelData['series'] = []): PanelData => {
+  const fromTime = dateTime(from);
+  const toTime = dateTime(to);
+  return {
+    state: LoadingState.Done,
+    series,
+    timeRange: { from: fromTime, to: toTime, raw: { from: fromTime, to: toTime } },
+  };
+};
 
 describe('SceneTimeRangeCompare', () => {
   describe('given a time range', () => {
@@ -461,6 +479,176 @@ describe('SceneTimeRangeCompare', () => {
       // Should clear comparison when NO_PERIOD_VALUE is passed
       comparer.onCompareWithChanged('__noPeriod');
       expect(comparer.state.compareWith).toBeUndefined();
+    });
+  });
+
+  describe('timeShiftAlignmentProcessor (via getExtraQueries)', () => {
+    // The processor isn't exported directly - grab it off the ExtraQueryDescriptor, same as the
+    // query runner does.
+    function getProcessor(comparer: SceneTimeRangeCompare, timeRange: SceneTimeRange) {
+      const [{ processor }] = comparer.getExtraQueries(makeRequest(timeRange));
+      if (!processor) {
+        throw new Error('expected a processor');
+      }
+      return processor;
+    }
+
+    it('should not mutate the secondary PanelData, its series, or their frame objects', async () => {
+      // The frames here may be owned by a datasource's streaming/split-chunk response accumulator and
+      // re-processed on every chunk - mutating them in place caused duplicate compare series to
+      // accumulate instead of being replaced. The processor must return new objects instead.
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+      const comparer = new SceneTimeRangeCompare({ compareWith: '24h' });
+      const processor = getProcessor(comparer, timeRange);
+
+      const frame = toDataFrame({ refId: 'A', fields: [] });
+      const primary = makePanelData('2024-01-10T00:00:00.000Z', '2024-01-10T01:00:00.000Z');
+      const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [frame]);
+
+      const result = await lastValueFrom(processor(primary, secondary));
+
+      expect(result).not.toBe(secondary);
+      expect(secondary.series).toEqual([frame]);
+      expect(frame.refId).toBe('A');
+      expect(frame.meta).toBeUndefined();
+    });
+
+    it('should not accumulate duplicate compare series when re-processing the same shared input frame', async () => {
+      // Simulates the split-query accumulator pattern: the same frame object is passed through the
+      // processor repeatedly (e.g. once per streamed chunk). Each pass must produce exactly one
+      // compare series, never more.
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+      const comparer = new SceneTimeRangeCompare({ compareWith: '24h' });
+      const processor = getProcessor(comparer, timeRange);
+
+      const sharedFrame = toDataFrame({ refId: 'A', fields: [] });
+      const primary = makePanelData('2024-01-10T00:00:00.000Z', '2024-01-10T01:00:00.000Z');
+      const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [sharedFrame]);
+
+      await lastValueFrom(processor(primary, secondary));
+      await lastValueFrom(processor(primary, secondary));
+      const result = await lastValueFrom(processor(primary, secondary));
+
+      expect(sharedFrame.refId).toBe('A');
+      expect(result.series).toHaveLength(1);
+      expect(result.series[0].refId).toBe('A-compare');
+    });
+
+    it('should not double-suffix frames whose refId already carries -compare', async () => {
+      // Consumers may pre-suffix the compare request's target refIds at request time (for cache
+      // identity), so response frames arrive already carrying -compare. Re-applying the suffix
+      // here must be idempotent.
+      const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+      const comparer = new SceneTimeRangeCompare({ compareWith: '24h' });
+      const processor = getProcessor(comparer, timeRange);
+
+      const frame = toDataFrame({ refId: 'A-compare', fields: [] });
+      const primary = makePanelData('2024-01-10T00:00:00.000Z', '2024-01-10T01:00:00.000Z');
+      const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [frame]);
+
+      const result = await lastValueFrom(processor(primary, secondary));
+
+      expect(result.series[0].refId).toBe('A-compare');
+    });
+
+    describe('empty comparison notice', () => {
+      // When the primary query returns data but the comparison query does not, the processor surfaces
+      // an informational notice so users understand the empty comparison was expected.
+      const NO_DATA_NOTICE = { severity: 'info', text: 'No data returned for time comparison' };
+
+      const primaryWithData = () =>
+        makePanelData('2024-01-10T00:00:00.000Z', '2024-01-10T01:00:00.000Z', [
+          toDataFrame({ refId: 'A', fields: [{ name: 'value', values: [1] }] }),
+        ]);
+
+      const getEmptyComparisonProcessor = () => {
+        const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now' });
+        const comparer = new SceneTimeRangeCompare({ compareWith: '24h' });
+        return getProcessor(comparer, timeRange);
+      };
+
+      it('should emit a notice frame from the request targets when the compare query returns no frames', async () => {
+        const processor = getEmptyComparisonProcessor();
+        const secondary: PanelData = {
+          ...makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', []),
+          request: { targets: [{ refId: 'A' }] } as DataQueryRequest,
+        };
+
+        const result = await lastValueFrom(processor(primaryWithData(), secondary));
+
+        expect(result.series[0]).toMatchObject({
+          refId: 'A-compare',
+          length: 0,
+          fields: [],
+          meta: { notices: [NO_DATA_NOTICE] },
+        });
+      });
+
+      it('should emit a notice when the compare query returns empty (fieldless) frames', async () => {
+        // Prometheus and other data sources return a frame without fields rather than no frames at all.
+        const processor = getEmptyComparisonProcessor();
+        const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [
+          toDataFrame({ refId: 'A', fields: [] }),
+        ]);
+
+        const result = await lastValueFrom(processor(primaryWithData(), secondary));
+
+        expect(result.series[0]).toMatchObject({
+          refId: 'A-compare',
+          meta: { notices: [NO_DATA_NOTICE] },
+        });
+      });
+
+      it('should fall back to a single empty frame when there are no frames and no request targets', async () => {
+        const processor = getEmptyComparisonProcessor();
+        const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', []);
+
+        const result = await lastValueFrom(processor(primaryWithData(), secondary));
+
+        expect(result.series).toHaveLength(1);
+        expect(result.series[0]).toMatchObject({
+          refId: '-compare',
+          length: 0,
+          fields: [],
+          meta: { notices: [NO_DATA_NOTICE] },
+        });
+      });
+
+      it('should not emit a notice when the comparison query returns data', async () => {
+        const processor = getEmptyComparisonProcessor();
+        const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [
+          toDataFrame({ refId: 'A', fields: [{ name: 'value', values: [2] }] }),
+        ]);
+
+        const result = await lastValueFrom(processor(primaryWithData(), secondary));
+
+        expect(result.series[0].meta?.notices).toBeUndefined();
+      });
+
+      it('should not emit a notice when the primary query also returned no data', async () => {
+        const processor = getEmptyComparisonProcessor();
+        const primary = makePanelData('2024-01-10T00:00:00.000Z', '2024-01-10T01:00:00.000Z', [
+          toDataFrame({ refId: 'A', fields: [] }),
+        ]);
+        const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [
+          toDataFrame({ refId: 'A', fields: [] }),
+        ]);
+
+        const result = await lastValueFrom(processor(primary, secondary));
+
+        expect(result.series[0].meta?.notices).toBeUndefined();
+      });
+
+      it('should preserve existing notices when adding the no-data notice', async () => {
+        const processor = getEmptyComparisonProcessor();
+        const frame = toDataFrame({ refId: 'A', fields: [] });
+        frame.meta = { notices: [{ severity: 'warning', text: 'existing' }] };
+        const secondary = makePanelData('2024-01-09T00:00:00.000Z', '2024-01-09T01:00:00.000Z', [frame]);
+
+        const result = await lastValueFrom(processor(primaryWithData(), secondary));
+
+        expect(result.series[0].meta?.notices).toEqual([{ severity: 'warning', text: 'existing' }, NO_DATA_NOTICE]);
+      });
     });
   });
 });

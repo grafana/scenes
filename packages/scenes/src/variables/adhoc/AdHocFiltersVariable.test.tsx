@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, getAllByRole, render, waitFor, screen } from '@testing-library/react';
+import { act, getAllByRole, render, waitFor, screen, within } from '@testing-library/react';
 import { SceneVariable, SceneVariableValueChangedEvent } from '../types';
 import {
   AdHocFiltersVariable,
@@ -2028,6 +2028,21 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(variable.getValue('["env"]')).toEqual(['prod', 'staging']);
     });
 
+    it('skips All-value filters', () => {
+      const variable = makeVariable({
+        originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+      });
+      expect(variable.getValue('["env"]')).toBe('');
+    });
+
+    it('returns only concrete values when an All-value filter shares the key', () => {
+      const variable = makeVariable({
+        originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+        filters: [{ key: 'env', operator: '=', value: 'prod' }],
+      });
+      expect(variable.getValue('["env"]')).toBe('prod');
+    });
+
     it('flattens multiple filters sharing a key into one array', () => {
       const variable = makeVariable({
         filters: [
@@ -2167,6 +2182,85 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       keyLabel: 'keyLabel',
       key: 'keyValue',
       meta: { parser: 'parserValue' },
+      value: JSON.stringify({ value: 'v', parser: 'parserValue' }),
+      valueLabels: ['valueLabel'],
+    });
+  });
+
+  it('Can define custom meta in getTagValuesProvider which will have precedence over any meta passed from getTagKeysProvider', async () => {
+    type FilterMeta = Record<string, string>;
+
+    const { filtersVar } = setup({
+      getTagKeysProvider: () => {
+        // getTagKeysProvider API call returns metadata needed in the value
+        return Promise.resolve({
+          replace: true,
+          values: [{ text: 'keyLabel', value: 'keyValue', meta: { parser: 'parserValue' } }],
+        });
+      },
+      getTagValuesProvider: (variable, filter: AdHocFilterWithLabels<FilterMeta>) => {
+        // getTagValuesProvider can receive this metadata, add it to the value and define its own metadata
+        expect(filter.meta).toEqual({ parser: 'parserValue' });
+        return Promise.resolve({
+          replace: true,
+          values: [
+            {
+              text: 'valueLabel',
+              value: JSON.stringify({ value: 'v', parser: filter.meta?.parser }),
+              meta: { valueType: 'string' },
+            },
+          ],
+        });
+      },
+    });
+
+    const keys = await filtersVar._getKeys(null);
+    expect(keys).toEqual([{ label: 'keyLabel', value: 'keyValue', meta: { parser: 'parserValue' } }]);
+
+    // Simulate the update of the filter key after the user selects a particular key
+    act(() =>
+      filtersVar._updateFilter(
+        filtersVar.state.filters[0],
+        generateFilterUpdatePayload({
+          filterInputType: 'key',
+          item: keys[0],
+          filter: filtersVar.state.filters[0],
+          setFilterMultiValues: jest.fn(),
+        })
+      )
+    );
+
+    // Get the values for the ad-hoc variable
+    const values = await filtersVar._getValuesFor(filtersVar.state.filters[0]);
+
+    // The value keeps its own meta from getTagValuesProvider, ignoring the key meta
+    expect(values).toEqual([
+      {
+        label: 'valueLabel',
+        value: JSON.stringify({ value: 'v', parser: 'parserValue' }),
+        meta: { valueType: 'string' },
+      },
+    ]);
+
+    // Simulate the update of the filter value after the user selects a particular value
+    act(() =>
+      filtersVar._updateFilter(
+        filtersVar.state.filters[0],
+        generateFilterUpdatePayload({
+          filterInputType: 'value',
+          item: values[0],
+          filter: filtersVar.state.filters[0],
+          setFilterMultiValues: jest.fn(),
+        })
+      )
+    );
+
+    // Assert that the saved filter contains the expected meta and value
+    expect(filtersVar.state.filters[0]).toEqual({
+      operator: '=',
+      keyLabel: 'keyLabel',
+      key: 'keyValue',
+      meta: { valueType: 'string' },
       value: JSON.stringify({ value: 'v', parser: 'parserValue' }),
       valueLabels: ['valueLabel'],
     });
@@ -3131,7 +3225,293 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await userEvent.keyboard('{Escape}');
 
-      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
+      // one-of filters keep their operator and carry the All value instead of the regex form
+      expect(screen.getByText('pod =| All')).toBeInTheDocument();
+    });
+  });
+
+  describe('origin filter "All" value option', () => {
+    // jsdom layout mocks for floating-ui positioning and @tanstack/react-virtual measurement
+    beforeAll(() => {
+      Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
+        configurable: true,
+        value: () => ({
+          width: 200,
+          height: 32,
+          top: 0,
+          left: 0,
+          bottom: 32,
+          right: 200,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        }),
+      });
+      Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get: () => 480 });
+      Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, get: () => 200 });
+      globalThis.ResizeObserver ??= class {
+        public observe() {}
+        public unobserve() {}
+        public disconnect() {}
+      } as unknown as typeof ResizeObserver;
+    });
+
+    const allOptionTestId = 'data-testid ad hoc filter option value All';
+
+    it('offers All as the first option when editing a one-of origin filter', async () => {
+      setup({
+        originFilters: [
+          { key: 'pod', operator: '=|', value: 'test1', values: ['test1', 'test2'], origin: 'dashboard' },
+        ],
+        layout: 'combobox',
+      });
+
+      await userEvent.click(await screen.findByText('pod =| test1, test2'));
+
+      expect(await screen.findByTestId(allOptionTestId)).toBeInTheDocument();
+      expect(screen.getAllByRole('option')[0]).toHaveTextContent('All');
+    });
+
+    it('does not offer All for user-added filters', async () => {
+      setup({
+        filters: setTemplateSrvWithFilters([
+          { key: 'key1', operator: '=|', value: 'val3', values: ['val3'] } as AdHocVariableFilter,
+        ]),
+        layout: 'combobox',
+      });
+
+      await userEvent.click(await screen.findByText('key1 =| val3'));
+
+      expect(await screen.findByTestId('data-testid ad hoc filter option value val3')).toBeInTheDocument();
+      expect(screen.queryByTestId(allOptionTestId)).not.toBeInTheDocument();
+    });
+
+    it('does not offer All for not-one-of origin filters', async () => {
+      setup({
+        originFilters: [{ key: 'pod', operator: '!=|', value: 'test1', values: ['test1'], origin: 'dashboard' }],
+        layout: 'combobox',
+      });
+
+      await userEvent.click(await screen.findByText('pod !=| test1'));
+
+      expect(await screen.findByTestId('data-testid ad hoc filter option value val3')).toBeInTheDocument();
+      expect(screen.queryByTestId(allOptionTestId)).not.toBeInTheDocument();
+    });
+
+    it('selecting All clears other selections and applies the special $__all value', async () => {
+      const { filtersVar } = setup({
+        originFilters: [
+          { key: 'pod', operator: '=|', value: 'test1', values: ['test1', 'test2'], origin: 'dashboard' },
+        ],
+        layout: 'combobox',
+      });
+
+      // hosts may implement updateToMatchAll as a removal (the default filters editor does),
+      // so authoring All has to go through the regular value update path
+      const updateToMatchAllSpy = jest.spyOn(filtersVar, 'updateToMatchAll');
+
+      await userEvent.click(await screen.findByText('pod =| test1, test2'));
+      await userEvent.click(await screen.findByTestId(allOptionTestId));
+
+      // selecting All clears the test1/test2 multi-value pills
+      expect(screen.queryByText('test1')).not.toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Apply' }));
+
+      expect(updateToMatchAllSpy).not.toHaveBeenCalled();
+
+      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(filtersVar.state.originFilters?.[0]).toMatchObject({
+        operator: '=|',
+        value: '$__all',
+        values: ['$__all'],
+        valueLabels: ['All'],
+        matchAllFilter: true,
+        restorable: true,
+      });
+      // an All filter is a match-all one, so it can no longer be removed, only restored
+      expect(screen.queryByRole('button', { name: 'Remove filter with key pod' })).not.toBeInTheDocument();
+    });
+
+    it('selecting a value after All replaces the All selection', async () => {
+      const { filtersVar } = setup({
+        originFilters: [
+          { key: 'pod', operator: '=|', value: 'test1', values: ['test1', 'test2'], origin: 'dashboard' },
+        ],
+        layout: 'combobox',
+      });
+
+      await userEvent.click(await screen.findByText('pod =| test1, test2'));
+      await userEvent.click(await screen.findByTestId(allOptionTestId));
+      await userEvent.click(screen.getByTestId('data-testid ad hoc filter option value val3'));
+      await userEvent.click(screen.getByRole('button', { name: 'Apply' }));
+
+      expect(await screen.findByText('pod =| val3')).toBeInTheDocument();
+      expect(filtersVar.state.originFilters?.[0]).toMatchObject({ values: ['val3'] });
+    });
+
+    it('shows All as checked and restorable=false when All is the dashboard default', async () => {
+      const { filtersVar } = setup({
+        originFilters: [{ key: 'pod', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+        layout: 'combobox',
+      });
+
+      // pill label falls back to "All" from the sentinel even without valueLabels
+      await userEvent.click(await screen.findByText('pod =| All'));
+
+      const allOption = await screen.findByTestId(allOptionTestId);
+      expect(within(allOption).getByRole('checkbox')).toBeChecked();
+      expect(filtersVar.state.originFilters?.[0].restorable).toBeFalsy();
+    });
+
+    it('keeps removal for a user-added filter that matches everything', async () => {
+      // removing a user filter deletes it, so there is still somewhere for the X to go
+      setup({
+        filters: [{ key: 'job', operator: '=~', value: '.*' }],
+        layout: 'combobox',
+      });
+
+      expect(await screen.findByText('job =~ .*')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Remove filter with key job' })).toBeInTheDocument();
+    });
+
+    it('does not offer removal for a default authored as All', async () => {
+      // no matchAllFilter flag, mirroring what the default filters editor commits
+      setup({
+        originFilters: [{ key: 'pod', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+        layout: 'combobox',
+      });
+
+      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Remove filter with key pod' })).not.toBeInTheDocument();
+    });
+
+    it('restores the dashboard default from All', async () => {
+      setup({
+        originFilters: [
+          { key: 'pod', operator: '=|', value: 'test1', values: ['test1', 'test2'], origin: 'dashboard' },
+        ],
+        layout: 'combobox',
+      });
+
+      await userEvent.click(await screen.findByText('pod =| test1, test2'));
+      await userEvent.click(await screen.findByTestId(allOptionTestId));
+      await userEvent.click(screen.getByRole('button', { name: 'Apply' }));
+
+      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Restore the value set by this dashboard.' }));
+
+      expect(await screen.findByText('pod =| test1, test2')).toBeInTheDocument();
+    });
+
+    it('excludes All-value filters from the filter expression', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=|', value: '$__all', values: ['$__all'] },
+        ],
+      });
+
+      variable.activate();
+
+      expect(variable.getValue()).toBe(`key1="val1"`);
+    });
+
+    it('excludes regex match-all filters from the filter expression', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'key2', operator: '=~', value: '.*' },
+        ],
+      });
+
+      variable.activate();
+
+      expect(variable.getValue()).toBe(`key1="val1"`);
+    });
+
+    it('excludes All-value origin filters from getTagKeys and getTagValues calls', async () => {
+      const { filtersVar, getTagKeysSpy, getTagValuesSpy } = setup({
+        originFilters: [
+          { key: 'pod', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' },
+          { key: 'cluster', operator: '=', value: 'us-east', origin: 'dashboard' },
+        ],
+        layout: 'combobox',
+      });
+
+      await filtersVar._getKeys(null);
+
+      const keysCallFilters = getTagKeysSpy.mock.calls[0][0].filters;
+      expect(keysCallFilters.some((f: AdHocFilterWithLabels) => f.key === 'cluster')).toBe(true);
+      expect(keysCallFilters.some((f: AdHocFilterWithLabels) => f.key === 'pod')).toBe(false);
+
+      await filtersVar._getValuesFor(filtersVar.state.filters[0]);
+
+      const valuesCallFilters = getTagValuesSpy.mock.calls[0][0].filters;
+      expect(valuesCallFilters.some((f: AdHocFilterWithLabels) => f.key === 'cluster')).toBe(true);
+      expect(valuesCallFilters.some((f: AdHocFilterWithLabels) => f.key === 'pod')).toBe(false);
+    });
+
+    it('treats the sentinel as a literal value for operators other than one-of', () => {
+      const variable = new AdHocFiltersVariable({
+        datasource: { uid: 'hello' },
+        applyMode: 'manual',
+        filters: [
+          { key: 'key1', operator: '=', value: '$__all' },
+          { key: 'key2', operator: '!=|', value: '$__all', values: ['$__all'] },
+        ],
+      });
+
+      variable.activate();
+
+      const expression = String(variable.getValue());
+      expect(expression).toContain('key1="$__all"');
+      expect(expression).toContain('key2');
+    });
+
+    it('keeps Enter on the All row when options are grouped', async () => {
+      setup({
+        getTagValuesProvider: async () => ({
+          replace: true,
+          values: [
+            { text: 'v1', value: 'v1', group: 'Group 1' },
+            { text: 'v2', value: 'v2', group: 'Group 1' },
+          ],
+        }),
+        originFilters: [{ key: 'pod', operator: '=|', value: 'test1', values: ['test1'], origin: 'dashboard' }],
+        layout: 'combobox',
+      });
+
+      await userEvent.click(await screen.findByText('pod =| test1'));
+      await screen.findByTestId(allOptionTestId);
+
+      // The initial highlight sits on the prepended All row, not the group header
+      await userEvent.keyboard('{Enter}');
+
+      expect(within(screen.getByTestId(allOptionTestId)).getByRole('checkbox')).toBeChecked();
+    });
+
+    it('renders the current All label even when a stale label was persisted', async () => {
+      setup({
+        originFilters: [
+          {
+            key: 'pod',
+            operator: '=|',
+            value: '$__all',
+            values: ['$__all'],
+            valueLabels: ['Alle'],
+            origin: 'dashboard',
+          },
+        ],
+        layout: 'combobox',
+      });
+
+      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
     });
   });
 

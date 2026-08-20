@@ -1,5 +1,5 @@
 import { Trans, t } from '@grafana/i18n';
-import React, { memo, RefCallback, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import React, { memo, RefCallback, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useMeasure, usePrevious } from 'react-use';
 
 // @ts-ignore
@@ -24,6 +24,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '../../core/types';
 
 import { VizPanel } from './VizPanel';
+import { VizPanelFitContext } from './VizPanelFitContext';
 import { css, cx } from '@emotion/css';
 import { debounce } from 'lodash';
 import { VizPanelSeriesLimit } from './VizPanelSeriesLimit';
@@ -53,6 +54,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     _UNSAFE_clearPreviousFieldValues = false,
   } = model.useState();
   let [ref, { width, height }] = useMeasure();
+  const { enabled: fitContent, minHeight: fitMinHeight } = useContext(VizPanelFitContext);
   const appEvents = useMemo(() => getAppEvents(), []);
 
   const setPanelAttention = useCallback(() => {
@@ -256,6 +258,114 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     { pluginName: plugin.meta.name }
   );
 
+  const panelChrome = (
+    <PanelChrome
+      title={titleInterpolated}
+      description={description?.trim() ? model.getDescription : undefined}
+      // @ts-expect-error remove this on next grafana/ui update
+      subtitle={subtitleContent}
+      loadingState={data.state}
+      statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
+      statusItems={showNewPanelErrorsUI ? getChromeStatusItems(data, _pluginLoadError) : undefined}
+      statusMessageOnClick={() => {
+        // Report the interaction for analytics, then let the container (e.g. dashboard) open the inspector.
+        model.onStatusMessageClick();
+        // @ts-expect-error onOpenInspector is added in a newer @grafana/ui version
+        context.onOpenInspector?.();
+      }}
+      width={width === 0 ? undefined : width}
+      // In fit-content mode the height is content-driven: leave it undefined so
+      // PanelChrome flows. A min-height floor keeps the chrome filled when
+      // content is short; the layout's CSS caps the max.
+      height={fitContent ? undefined : height === 0 ? undefined : height}
+      minHeight={fitContent ? fitMinHeight : undefined}
+      selectionId={model.state.key}
+      displayMode={displayMode}
+      titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
+      dragClass={dragClass}
+      actions={actionsElement}
+      dragClassCancel={dragClassCancel}
+      padding={plugin.noPadding ? 'none' : 'md'}
+      menu={panelMenu}
+      onCancelQuery={model.onCancelQuery}
+      onFocus={setPanelAttention}
+      onMouseEnter={setPanelAttention}
+      onMouseMove={debouncedMouseMove}
+      subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
+      onDragStart={(e: React.PointerEvent) => {
+        dragHooks.onDragStart?.(e, model);
+      }}
+      showMenuAlways={showMenuAlways}
+      {...(collapsible
+        ? {
+            collapsible: Boolean(collapsible),
+            collapsed,
+            onToggleCollapse: model.onToggleCollapse,
+          }
+        : { hoverHeader, hoverHeaderOffset })}
+    >
+      {(innerWidth, innerHeight) => {
+        // In fit-content mode height is auto (innerHeight is 0/undefined by
+        // design), so only width gates rendering.
+        if (innerWidth === 0 || (!fitContent && innerHeight === 0)) {
+          return null;
+        }
+
+        return (
+          <ErrorBoundaryAlert
+            title={plugin.meta.hasUpdate ? outdatedPluginError : undefined}
+            dependencies={[plugin, data]}
+          >
+            <PluginContextProvider meta={plugin.meta}>
+              <PanelContextProvider value={context}>
+                {isReadyToRender && (
+                  <PanelComponent
+                    id={panelId}
+                    data={data}
+                    title={title}
+                    timeRange={timeRange}
+                    timeZone={timeZone}
+                    options={options}
+                    fieldConfig={fieldConfig}
+                    transparent={displayMode === 'transparent'}
+                    width={innerWidth}
+                    height={innerHeight || 0}
+                    // @ts-expect-error remove on next @grafana/data update (adds PanelProps.fitContent)
+                    fitContent={fitContent || undefined}
+                    renderCounter={_renderCounter}
+                    replaceVariables={model.interpolate}
+                    onOptionsChange={model.onOptionsChange}
+                    onFieldConfigChange={model.onFieldConfigChange}
+                    onChangeTimeRange={model.onTimeRangeChange}
+                    eventBus={context.eventBus}
+                  />
+                )}
+              </PanelContextProvider>
+            </PluginContextProvider>
+          </ErrorBoundaryAlert>
+        );
+      }}
+    </PanelChrome>
+  );
+
+  // Fit-content: render the panel in normal flow (no absolute positioning) so
+  // its content drives the height. `useMeasure` still tracks width; height is
+  // ignored. The cell's CSS min/max bounds the final size.
+  if (fitContent) {
+    return (
+      <div
+        ref={ref as RefCallback<HTMLDivElement>}
+        className={fitContentWrapper}
+        data-viz-panel-key={model.state.key}
+        data-viz-panel-id={model.getPathId()}
+        data-testid={`${plugin.meta.id}-${model.state.key}`}
+        data-plugin-id={plugin.meta.id}
+      >
+        {panelChrome}
+      </div>
+    );
+  }
+
   return (
     <div className={relativeWrapper}>
       <div
@@ -264,86 +374,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         data-viz-panel-key={model.state.key}
         data-viz-panel-id={model.getPathId()}
         data-testid={`${plugin.meta.id}-${model.state.key}`}
+        data-plugin-id={plugin.meta.id}
       >
-        <PanelChrome
-          title={titleInterpolated}
-          description={description?.trim() ? model.getDescription : undefined}
-          // @ts-expect-error remove this on next grafana/ui update
-          subtitle={subtitleContent}
-          loadingState={data.state}
-          statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
-          statusItems={showNewPanelErrorsUI ? getChromeStatusItems(data, _pluginLoadError) : undefined}
-          statusMessageOnClick={() => {
-            // Report the interaction for analytics, then let the container (e.g. dashboard) open the inspector.
-            model.onStatusMessageClick();
-            // @ts-expect-error onOpenInspector is added in a newer @grafana/ui version
-            context.onOpenInspector?.();
-          }}
-          width={width === 0 ? undefined : width}
-          height={height === 0 ? undefined : height}
-          selectionId={model.state.key}
-          displayMode={displayMode}
-          titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
-          dragClass={dragClass}
-          actions={actionsElement}
-          dragClassCancel={dragClassCancel}
-          padding={plugin.noPadding ? 'none' : 'md'}
-          menu={panelMenu}
-          onCancelQuery={model.onCancelQuery}
-          onFocus={setPanelAttention}
-          onMouseEnter={setPanelAttention}
-          onMouseMove={debouncedMouseMove}
-          subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
-          onDragStart={(e: React.PointerEvent) => {
-            dragHooks.onDragStart?.(e, model);
-          }}
-          showMenuAlways={showMenuAlways}
-          {...(collapsible
-            ? {
-                collapsible: Boolean(collapsible),
-                collapsed,
-                onToggleCollapse: model.onToggleCollapse,
-              }
-            : { hoverHeader, hoverHeaderOffset })}
-        >
-          {(innerWidth, innerHeight) => {
-            if (innerWidth === 0 || innerHeight === 0) {
-              return null;
-            }
-
-            return (
-              <ErrorBoundaryAlert
-                title={plugin.meta.hasUpdate ? outdatedPluginError : undefined}
-                dependencies={[plugin, data]}
-              >
-                <PluginContextProvider meta={plugin.meta}>
-                  <PanelContextProvider value={context}>
-                    {isReadyToRender && (
-                      <PanelComponent
-                        id={panelId}
-                        data={data}
-                        title={title}
-                        timeRange={timeRange}
-                        timeZone={timeZone}
-                        options={options}
-                        fieldConfig={fieldConfig}
-                        transparent={displayMode === 'transparent'}
-                        width={innerWidth}
-                        height={innerHeight}
-                        renderCounter={_renderCounter}
-                        replaceVariables={model.interpolate}
-                        onOptionsChange={model.onOptionsChange}
-                        onFieldConfigChange={model.onFieldConfigChange}
-                        onChangeTimeRange={model.onTimeRangeChange}
-                        eventBus={context.eventBus}
-                      />
-                    )}
-                  </PanelContextProvider>
-                </PluginContextProvider>
-              </ErrorBoundaryAlert>
-            );
-          }}
-        </PanelChrome>
+        {panelChrome}
       </div>
     </div>
   );
@@ -508,6 +541,29 @@ const absoluteWrapper = css({
   position: 'absolute',
   width: '100%',
   height: '100%',
+});
+
+/**
+ * Fit-content wrapper: in normal flow so the panel content defines the height.
+ * Width is still 100% of the (layout-constrained) cell.
+ *
+ * The single-cell grid + minHeight combo makes the chrome fill the cell when
+ * the layout stretches it (e.g. matched row heights, where a sibling made the
+ * row taller) while staying content-sized when the cell is auto: percentage
+ * min-height resolves to nothing against an indefinite parent, and a grid's
+ * lone auto row absorbs any extra height the min-height creates.
+ */
+const fitContentWrapper = css({
+  position: 'relative',
+  width: '100%',
+  display: 'grid',
+  minHeight: '100%',
+  // PanelChrome gets a measured pixel width; without inline-size containment
+  // that becomes the subtree's min-content width and flex/grid ancestors with
+  // `min-width: auto` can never shrink again (the absolute wrapper provides
+  // this decoupling in the default path). Containment zeroes the wrapper's
+  // intrinsic inline size while keeping the block axis content-driven.
+  contain: 'inline-size',
 });
 
 const getAlertStateStyles = (theme: GrafanaTheme2) => {

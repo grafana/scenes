@@ -1,3 +1,96 @@
+# v8.16.0 (Wed Aug 19 2026)
+
+#### 🚀 Enhancement
+
+- VizPanel: Add content-fit rendering mode via `VizPanelFitScope` [#1608](https://github.com/grafana/scenes/pull/1608) ([@bfmatei](https://github.com/bfmatei))
+- AdHocFilters: forward value meta to filter [#1613](https://github.com/grafana/scenes/pull/1613) ([@hugohaggmark](https://github.com/hugohaggmark))
+- AdHocFiltersVariable: Add All value option for dashboard default filters [#1591](https://github.com/grafana/scenes/pull/1591) ([@samjewell](https://github.com/samjewell) [@cursoragent](https://github.com/cursoragent) [@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- Bump version to: v8.15.0 \[skip ci\] ([@scenes-repo-bot-access-token[bot]](https://github.com/scenes-repo-bot-access-token[bot]))
+- Update CHANGELOG.md \[skip ci\] ([@scenes-repo-bot-access-token[bot]](https://github.com/scenes-repo-bot-access-token[bot]))
+
+#### Authors: 6
+
+- [@scenes-repo-bot-access-token[bot]](https://github.com/scenes-repo-bot-access-token[bot])
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Cursor Agent ([@cursoragent](https://github.com/cursoragent))
+- Hugo Häggmark ([@hugohaggmark](https://github.com/hugohaggmark))
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.15.0 (Tue Aug 18 2026)
+
+#### 🚀 Enhancement
+
+- AdHocFiltersVariable: Add All value option for dashboard default filters [#1591](https://github.com/grafana/scenes/pull/1591) ([@samjewell](https://github.com/samjewell) [@cursoragent](https://github.com/cursoragent) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 3
+
+- Cursor Agent ([@cursoragent](https://github.com/cursoragent))
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.14.0 (Tue Aug 18 2026)
+
+#### 🚀 Enhancement
+
+- AdhocFilters: Fixes focus state when visual refresh is enabled [#1610](https://github.com/grafana/scenes/pull/1610) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Adhoc/GroupBy: don't apply variables to queries when applyMode is manual [#1604](https://github.com/grafana/scenes/pull/1604) ([@gillesdemey](https://github.com/gillesdemey))
+- TimeComparison: Warning when comparison is empty [#1595](https://github.com/grafana/scenes/pull/1595) ([@drew08t](https://github.com/drew08t))
+
+#### Authors: 3
+
+- Drew Slobodnjak ([@drew08t](https://github.com/drew08t))
+- Gilles De Mey ([@gillesdemey](https://github.com/gillesdemey))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+
+---
+
+# v8.13.6 (Fri Jul 31 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFiltersCombobox: Show more pill text before truncating [#1592](https://github.com/grafana/scenes/pull/1592) ([@samjewell](https://github.com/samjewell))
+
+#### Authors: 1
+
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+
+---
+
+# v8.13.5 (Wed Jul 29 2026)
+
+#### 🐛 Bug Fix
+
+- Scenes: add data-plugin-id to render boundary [#1590](https://github.com/grafana/scenes/pull/1590) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
+# v8.13.4 (Thu Jul 23 2026)
+
+#### 🐛 Bug Fix
+
+- SceneTimeRangeCompare: make timeShiftAlignmentProcessor non-mutating and export it [#1583](https://github.com/grafana/scenes/pull/1583) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v8.13.3 (Mon Jul 20 2026)
 
 #### 🐛 Bug Fix

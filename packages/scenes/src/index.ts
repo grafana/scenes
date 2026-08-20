@@ -112,6 +112,7 @@ export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
 export { VizPanel, type VizPanelState } from './components/VizPanel/VizPanel';
+export { VizPanelFitScope, type VizPanelFitScopeProps } from './components/VizPanel/VizPanelFitContext';
 export { VizPanelMenu } from './components/VizPanel/VizPanelMenu';
 export { VizPanelExploreButton } from './components/VizPanel/VizPanelExploreButton';
 export { NestedScene } from './components/NestedScene';
@@ -197,5 +198,7 @@ export const sceneUtils = {
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
 export { getExploreURL } from './utils/explore';
+export { getCompareSeriesRefId } from './utils/getCompareSeriesRefId';
+export { timeShiftAlignmentProcessor } from './utils/timeShiftAlignmentProcessor';
 export { loadResources } from './utils/loadResources';
 export { PATH_ID_SEPARATOR } from './utils/pathId';

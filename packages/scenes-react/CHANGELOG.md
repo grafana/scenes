@@ -1,3 +1,15 @@
+# v8.16.0 (Wed Aug 19 2026)
+
+#### 🐛 Bug Fix
+
+- Bump version to: v8.15.0 \[skip ci\] ([@scenes-repo-bot-access-token[bot]](https://github.com/scenes-repo-bot-access-token[bot]))
+
+#### Authors: 1
+
+- [@scenes-repo-bot-access-token[bot]](https://github.com/scenes-repo-bot-access-token[bot])
+
+---
+
 # v8.10.2 (Wed Jul 08 2026)
 
 #### 🐛 Bug Fix
