@@ -1,4 +1,4 @@
-import { isEqual } from 'lodash';
+import { isEqual, isEqualWith } from 'lodash';
 import {
   CustomTransformOperator,
   DataFrame,
@@ -13,16 +13,96 @@ import { toDataQueryError } from '@grafana/runtime';
 import { catchError, forkJoin, map, of, ReplaySubject, Unsubscribable } from 'rxjs';
 import { sceneGraph } from '../core/sceneGraph';
 import { SceneObjectBase } from '../core/SceneObjectBase';
-import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult, SceneDataState } from '../core/types';
+import {
+  CustomTransformerDefinition,
+  SceneDataProvider,
+  SceneDataProviderResult,
+  SceneDataState,
+  SystemTransformationPosition,
+  TransformationOrigin,
+} from '../core/types';
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 
+/**
+ * A transformation that setSystemTransformations has tagged with where it came from. The tag is stamped on
+ * by this class, which is why origin and position are not part of the definition types callers pass in - a
+ * hand written tag would be dropped by the next setSystemTransformations call for that origin.
+ */
+export type SystemTransformation = (
+  | DataTransformerConfig
+  | Exclude<CustomTransformerDefinition, CustomTransformOperator>
+) & {
+  origin: TransformationOrigin;
+  position: SystemTransformationPosition;
+};
+
+export type SceneDataTransformation = DataTransformerConfig | CustomTransformerDefinition | SystemTransformation;
+
 export interface SceneDataTransformerState extends SceneDataState {
   /**
-   * Array of standard transformation configs and custom transform operators
+   * Array of standard transformation configs and custom transform operators.
+   * Entries with origin 'system' are runtime transformations added programmatically via
+   * setSystemTransformations. They are combined with the user configured ones but should not be
+   * persisted or shown in the transformations editor (filter them out with isSystemTransformation).
    */
-  transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  transformations: SceneDataTransformation[];
+}
+
+/**
+ * Returns true for transformations added via SceneDataTransformer.setSystemTransformations, whichever origin
+ * injected them. That is the question persisting and editing want to ask; use isTransformationFrom when a
+ * provider needs to reason about only the entries it owns.
+ */
+export function isSystemTransformation(
+  transformation: SceneDataTransformation
+): transformation is SystemTransformation {
+  return (
+    typeof transformation === 'object' &&
+    transformation !== null &&
+    'origin' in transformation &&
+    transformation.origin != null
+  );
+}
+
+/**
+ * Builds the origin scoped version of isSystemTransformation, for the narrower question a provider needs:
+ * whether the entries it owns are installed, ignoring the ones it neither adds nor removes. Returns a
+ * predicate rather than taking the origin alongside the transformation so that it stays usable with
+ * filter and some, which would otherwise pass their index argument into the origin slot.
+ */
+export function isTransformationFrom(origin: TransformationOrigin) {
+  return (transformation: SceneDataTransformation): transformation is SystemTransformation =>
+    isSystemTransformation(transformation) && transformation.origin === origin;
+}
+
+function toSystemTransformation(
+  transformation: DataTransformerConfig | CustomTransformerDefinition,
+  position: SystemTransformationPosition,
+  origin: TransformationOrigin
+): SystemTransformation {
+  if (typeof transformation === 'function') {
+    return { operator: transformation, topic: DataTopic.Series, origin, position };
+  }
+
+  return { ...transformation, origin, position };
+}
+
+/**
+ * Custom transform operators are functions, so a deep comparison falls back to reference equality and an
+ * operator that a caller rebuilds inline always looks like a change. Where both sides carry the same `key`
+ * the reference is ignored, since the key is the caller's declaration that the operator is unchanged. Every
+ * other field still compares structurally, so a changed topic or position is still picked up.
+ */
+function haveEqualTransformations(a: SceneDataTransformation[], b: SceneDataTransformation[]) {
+  return isEqualWith(a, b, (_, __, prop, aParent, bParent) => {
+    if (prop === 'operator' && typeof aParent?.key === 'string' && aParent.key === bParent?.key) {
+      return true;
+    }
+
+    return undefined;
+  });
 }
 
 /**
@@ -103,6 +183,104 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   public reprocessTransformations() {
     this.transform(this.getSourceData().state.data, true);
+  }
+
+  /**
+   * Sets the system (runtime) transformations for the given origin and combines them with the user
+   * configured ones. Prepended transformations run before the user transformations, appended ones after.
+   * Each provided transformation is tagged with the origin (default 'system'). Previous transformations
+   * with the same origin are replaced rather than appended, so repeated calls never accumulate
+   * duplicates; transformations from other origins are preserved.
+   *
+   * Repeated calls only skip re-running the pipeline when the resulting transformations are equal to the
+   * current ones. Custom transform operators are functions and so compare by reference: a caller that
+   * builds them inline would re-run the pipeline and emit new data on every call, which loops if it
+   * re-applies on data change. Give such operators a stable `key` to declare identity instead - matching
+   * keys make the operator reference irrelevant, and changing the key signals a real change.
+   *
+   * Resulting pipeline order: prepended system transformations, the user configured ones, then appended
+   * system transformations. Origins are replaced independently, so once a second provider exists its
+   * entries slot into the same prepend and append tiers without disturbing this one's.
+   */
+  public setSystemTransformations({
+    prepend = [],
+    append = [],
+    origin = 'plugin',
+  }: {
+    prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    origin?: TransformationOrigin;
+  }) {
+    const { system, user } = this._partitionTransformations();
+
+    system[origin] = {
+      prepend: prepend.map((t) => toSystemTransformation(t, 'prepend', origin)),
+      append: append.map((t) => toSystemTransformation(t, 'append', origin)),
+    };
+
+    this._applyTransformations(this._combineTransformations(system, user));
+  }
+
+  /**
+   * Replaces the user configured transformations, keeping any system transformations in place around them.
+   * Use this instead of setState({ transformations }) from a transformations editor or a React binding:
+   * writing the array directly would drop the runtime transformations added via setSystemTransformations,
+   * since they live in the same array.
+   */
+  public setUserTransformations(transformations: SceneDataTransformation[]) {
+    const { system } = this._partitionTransformations();
+
+    // Callers migrating off setState({ transformations }) may hand back the whole array, tagged entries
+    // included. Those are owned by setSystemTransformations and get re-added from `system`, so drop them
+    // instead of letting them sit in the user slot where the next partition would collect them again.
+    const user = transformations.filter((transformation) => !isSystemTransformation(transformation));
+
+    this._applyTransformations(this._combineTransformations(system, user));
+  }
+
+  /**
+   * Splits the current transformations into the system ones, grouped by origin and position, and the user
+   * configured ones.
+   */
+  private _partitionTransformations() {
+    const system: Record<
+      TransformationOrigin,
+      { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }
+    > = {
+      plugin: { prepend: [], append: [] },
+    };
+    const user: SceneDataTransformation[] = [];
+
+    for (const transformation of this.state.transformations) {
+      if (isSystemTransformation(transformation)) {
+        const group = system[transformation.origin];
+        (transformation.position === 'append' ? group.append : group.prepend).push(transformation);
+      } else {
+        user.push(transformation);
+      }
+    }
+
+    return { system, user };
+  }
+
+  private _combineTransformations(
+    system: Record<TransformationOrigin, { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }>,
+    user: SceneDataTransformation[]
+  ): SceneDataTransformation[] {
+    return [...system.plugin.prepend, ...user, ...system.plugin.append];
+  }
+
+  private _applyTransformations(transformations: SceneDataTransformation[]) {
+    if (haveEqualTransformations(transformations, this.state.transformations)) {
+      return;
+    }
+
+    this.setState({ transformations });
+
+    // If not active yet the activation handler will run the transformations
+    if (this.isActive) {
+      this.reprocessTransformations();
+    }
   }
 
   /**
@@ -369,15 +547,17 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       return transformations;
     }
 
-    const onlyObjects = transformations.every((t) => typeof t === 'object');
+    // Custom transform operators (bare or in object form) hold functions that a JSON round-trip would drop
+    const isInterpolatable = (t: DataTransformerConfig | CustomTransformerDefinition) =>
+      typeof t === 'object' && !('operator' in t);
 
-    // If all transformations are config object we can interpolate them all at once
-    if (onlyObjects) {
+    // If all transformations are config objects we can interpolate them all at once
+    if (transformations.every(isInterpolatable)) {
       return JSON.parse(sceneGraph.interpolate(this, JSON.stringify(transformations), data.request?.scopedVars));
     }
 
     return transformations.map((t) => {
-      return typeof t === 'object'
+      return isInterpolatable(t)
         ? JSON.parse(sceneGraph.interpolate(this, JSON.stringify(t), data.request?.scopedVars))
         : t;
     });

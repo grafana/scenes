@@ -15,7 +15,12 @@ import {
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
-import { SceneDataTransformer } from './SceneDataTransformer';
+import {
+  isSystemTransformation,
+  isTransformationFrom,
+  SceneDataTransformer,
+  SceneDataTransformation,
+} from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState } from '../core/types';
@@ -883,6 +888,492 @@ describe('SceneDataTransformer', () => {
     expect(annotationTransformerSpy).toHaveBeenCalledTimes(2);
     expect(annotationTransformerSpy).toHaveBeenLastCalledWith({
       options: 'annotation-transformation-New Text Variable Value',
+    });
+  });
+  describe('variable interpolation with custom transform operators', () => {
+    function buildScene(transformations: SceneDataTransformation[]) {
+      const transformationNode = new SceneDataTransformer({ transformations });
+      const consumer = new TestSceneObject({ $data: transformationNode });
+      const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
+
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        $variables: new SceneVariableSet({ variables: [textVar] }),
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      activateFullSceneTree(scene);
+
+      return { transformationNode, consumer, textVar };
+    }
+
+    const configWithVariable = { ...transformer1config, options: { options: '$myVariable' } };
+
+    it('does not drop object form custom transformer operators', () => {
+      // JSON stringifying the object form alongside the configs would drop `operator`
+      const { consumer, textVar } = buildScene([configWithVariable, customAnnotationTransformOperator]);
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+
+      const data = sceneGraph.getData(consumer).state.data;
+      // series: value * 2 (interpolated config still applied)
+      expect(data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      // annotations: value / 10 (custom operator survived interpolation)
+      expect(data?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
+
+      // The operator has to survive every re-interpolation, not just the first
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+
+      const updated = sceneGraph.getData(consumer).state.data;
+      expect(updated?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      expect(updated?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
+    });
+
+    it('does not drop bare custom transform operators', () => {
+      const { consumer, textVar } = buildScene([configWithVariable, customTransformOperator]);
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+
+      // value * 2 / 100
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+    });
+
+    it('interpolates variables inside system transformations', () => {
+      const { transformationNode, textVar } = buildScene([]);
+
+      transformationNode.setSystemTransformations({ append: [configWithVariable] });
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+
+      // The origin tag has to survive alongside the interpolated options
+      expect(transformationNode.state.transformations.filter(isSystemTransformation)).toHaveLength(1);
+
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+    });
+
+    it('keeps system custom transform operators when interpolating variables', () => {
+      const { transformationNode, consumer, textVar } = buildScene([configWithVariable]);
+
+      // setSystemTransformations wraps the bare operator into the object form a JSON round trip drops
+      transformationNode.setSystemTransformations({ append: [customTransformOperator] });
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+
+      // value * 2 / 100
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+    });
+  });
+
+  describe('system transformations', () => {
+    function buildScene() {
+      const transformationNode = new SceneDataTransformer({
+        transformations: [transformer1config],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      return { transformationNode, consumer };
+    }
+
+    it('combines prepended and appended transformations with user configured ones', () => {
+      const { transformationNode, consumer } = buildScene();
+
+      transformationNode.setSystemTransformations({
+        // +4 (registry operator, no topic so it applies to series)
+        prepend: [{ id: 'annotationTransformer', options: {} }],
+        // *3
+        append: [transformer2config],
+      });
+
+      expect(transformationNode.state.transformations).toEqual([
+        { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
+        transformer1config,
+        { ...transformer2config, origin: 'plugin', position: 'append' },
+      ]);
+
+      // (value + 4) * 2 * 3 - proves prepend runs before and append after the user transformation
+      const data = sceneGraph.getData(consumer).state.data;
+      expect(data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+    });
+
+    it('replaces previous system transformations on subsequent calls', () => {
+      const { transformationNode, consumer } = buildScene();
+
+      transformationNode.setSystemTransformations({
+        prepend: [{ id: 'annotationTransformer', options: {} }],
+        append: [transformer2config],
+      });
+
+      transformationNode.setSystemTransformations({ append: [transformer2config] });
+
+      expect(transformationNode.state.transformations).toEqual([
+        transformer1config,
+        { ...transformer2config, origin: 'plugin', position: 'append' },
+      ]);
+
+      // value * 2 * 3
+      const data = sceneGraph.getData(consumer).state.data;
+      expect(data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('clears its own transformations without touching the user configured ones', () => {
+      const { transformationNode, consumer } = buildScene();
+
+      // +4 (prepend), *3 (append)
+      transformationNode.setSystemTransformations({
+        prepend: [{ id: 'annotationTransformer', options: {} }],
+        append: [transformer2config],
+      });
+
+      expect(transformationNode.state.transformations).toEqual([
+        { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
+        transformer1config,
+        { ...transformer2config, origin: 'plugin', position: 'append' },
+      ]);
+
+      // (value + 4) * 2 * 3
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+
+      // Passing no groups clears this origin
+      transformationNode.setSystemTransformations({});
+
+      expect(transformationNode.state.transformations).toEqual([transformer1config]);
+
+      // value * 2
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+    });
+
+    it('does not update state when called again with equal transformations', () => {
+      const { transformationNode } = buildScene();
+
+      transformationNode.setSystemTransformations({ prepend: [transformer2config] });
+      const transformations = transformationNode.state.transformations;
+
+      transformationNode.setSystemTransformations({ prepend: [transformer2config] });
+
+      expect(transformationNode.state.transformations).toBe(transformations);
+    });
+    it('does not update state when called again with the same custom transform operator reference', () => {
+      const { transformationNode } = buildScene();
+
+      transformationNode.setSystemTransformations({ append: [customTransformOperator] });
+      const transformations = transformationNode.state.transformations;
+
+      transformationNode.setSystemTransformations({ append: [customTransformOperator] });
+
+      expect(transformationNode.state.transformations).toBe(transformations);
+    });
+
+    it('applies system transformations set before activation', () => {
+      const transformationNode = new SceneDataTransformer({
+        transformations: [transformer1config],
+      });
+
+      const consumer = new TestSceneObject({
+        $data: transformationNode,
+      });
+
+      // @ts-expect-error
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      transformationNode.setSystemTransformations({ append: [transformer2config] });
+
+      expect(transformationNode.state.data).toBeUndefined();
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      // value * 2 * 3 - the activation handler picks up the transformations set while inactive
+      const data = sceneGraph.getData(consumer).state.data;
+      expect(data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+    // Scales every value by `factor`, so a changed closure is observable in the output
+    const scaleOperator =
+      (factor: number): CustomTransformOperator =>
+      () =>
+      (source) =>
+        source.pipe(
+          map((data) =>
+            data.map((frame) => ({
+              ...frame,
+              fields: frame.fields.map((field) => ({ ...field, values: field.values.map((v) => v * factor) })),
+            }))
+          )
+        );
+
+    it('does not re-run the pipeline when an inline operator is re-applied under an unchanged key', () => {
+      const { transformationNode } = buildScene();
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator: scaleOperator(10), topic: DataTopic.Series, key: 'panel-transformation' }],
+      });
+      const transformations = transformationNode.state.transformations;
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator: scaleOperator(10), topic: DataTopic.Series, key: 'panel-transformation' }],
+      });
+
+      expect(transformationNode.state.transformations).toBe(transformations);
+    });
+
+    it('settles instead of looping when a caller re-applies inline operators on every data change', () => {
+      const { transformationNode } = buildScene();
+      const limit = 50;
+      let applies = 0;
+
+      transformationNode.subscribeToState((state, prev) => {
+        if (state.data !== prev.data && applies < limit) {
+          applies++;
+          // Built inline on every data change, as a panel would
+          transformationNode.setSystemTransformations({
+            append: [{ operator: scaleOperator(10), topic: DataTopic.Series, key: 'panel-transformation' }],
+          });
+        }
+      });
+
+      transformationNode.reprocessTransformations();
+
+      // One apply, then the unchanged key makes the follow-up call a no-op. Without the key the new
+      // operator reference makes every call re-process and emit, and this never terminates.
+      expect(applies).toBe(2);
+    });
+
+    it('still re-applies inline operators that carry no key', () => {
+      const { transformationNode } = buildScene();
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator: scaleOperator(10), topic: DataTopic.Series }],
+      });
+      const transformations = transformationNode.state.transformations;
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator: scaleOperator(10), topic: DataTopic.Series }],
+      });
+
+      expect(transformationNode.state.transformations).not.toBe(transformations);
+    });
+
+    it('ignores a changed operator under an unchanged key', () => {
+      const { transformationNode, consumer } = buildScene();
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator: scaleOperator(10), topic: DataTopic.Series, key: 'v1' }],
+      });
+
+      // value * 2 * 10
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([20, 40, 60]);
+
+      // The key is the caller's declaration of identity, so it has to change for a new operator to apply
+      transformationNode.setSystemTransformations({
+        append: [{ operator: scaleOperator(100), topic: DataTopic.Series, key: 'v1' }],
+      });
+
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([20, 40, 60]);
+    });
+
+    it('re-applies when the key changes', () => {
+      const { transformationNode, consumer } = buildScene();
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator: scaleOperator(10), topic: DataTopic.Series, key: 'v1' }],
+      });
+
+      // value * 2 * 10
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([20, 40, 60]);
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator: scaleOperator(100), topic: DataTopic.Series, key: 'v2' }],
+      });
+
+      // value * 2 * 100
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([200, 400, 600]);
+    });
+
+    it('still detects a changed topic under an unchanged key', () => {
+      const { transformationNode } = buildScene();
+      const operator = scaleOperator(10);
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator, topic: DataTopic.Series, key: 'v1' }],
+      });
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator, topic: DataTopic.Annotations, key: 'v1' }],
+      });
+
+      expect(transformationNode.state.transformations).toEqual([
+        transformer1config,
+        { operator, topic: DataTopic.Annotations, origin: 'plugin', position: 'append', key: 'v1' },
+      ]);
+    });
+
+    it('re-applies under an unchanged key when another writer replaced the transformations', () => {
+      const { transformationNode } = buildScene();
+      const operator = scaleOperator(10);
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator, topic: DataTopic.Series, key: 'v1' }],
+      });
+
+      // e.g. a transformations editor writing back only the user configured transformations
+      transformationNode.setState({ transformations: [transformer1config] });
+
+      transformationNode.setSystemTransformations({
+        append: [{ operator, topic: DataTopic.Series, key: 'v1' }],
+      });
+
+      expect(transformationNode.state.transformations).toEqual([
+        transformer1config,
+        { operator, topic: DataTopic.Series, origin: 'plugin', position: 'append', key: 'v1' },
+      ]);
+    });
+
+    it('matches an origin scoped guard only for that origin', () => {
+      const { transformationNode } = buildScene();
+
+      transformationNode.setSystemTransformations({ append: [transformer2config] });
+
+      const [user, system] = transformationNode.state.transformations;
+
+      expect(isSystemTransformation(system)).toBe(true);
+      expect(isSystemTransformation(user)).toBe(false);
+
+      // Usable as a predicate, which is why it is curried rather than a second argument
+      expect(transformationNode.state.transformations.filter(isTransformationFrom('plugin'))).toEqual([system]);
+      expect(transformationNode.state.transformations.filter(isSystemTransformation)).toEqual([system]);
+    });
+
+    it('wraps bare custom transform operators so they carry the plugin origin', () => {
+      const { transformationNode, consumer } = buildScene();
+
+      transformationNode.setSystemTransformations({ append: [customTransformOperator] });
+
+      expect(transformationNode.state.transformations).toEqual([
+        transformer1config,
+        { operator: customTransformOperator, topic: DataTopic.Series, origin: 'plugin', position: 'append' },
+      ]);
+      expect(transformationNode.state.transformations.filter(isSystemTransformation)).toHaveLength(1);
+
+      // value * 2 / 100
+      const data = sceneGraph.getData(consumer).state.data;
+      expect(data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+    });
+    describe('setUserTransformations', () => {
+      it('replaces the user transformations while keeping system ones in place', () => {
+        const { transformationNode, consumer } = buildScene();
+
+        // +4 (prepend), *3 (append)
+        transformationNode.setSystemTransformations({
+          prepend: [{ id: 'annotationTransformer', options: {} }],
+          append: [transformer2config],
+        });
+
+        // Swap the user transformation from *2 to *3
+        transformationNode.setUserTransformations([transformer2config]);
+
+        expect(transformationNode.state.transformations).toEqual([
+          { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
+          transformer2config,
+          { ...transformer2config, origin: 'plugin', position: 'append' },
+        ]);
+
+        // (value + 4) * 3 * 3
+        const data = sceneGraph.getData(consumer).state.data;
+        expect(data?.series[0].fields[1].values).toEqual([45, 54, 63]);
+      });
+
+      it('does not update state when the user transformations are unchanged', () => {
+        const { transformationNode } = buildScene();
+
+        transformationNode.setSystemTransformations({ append: [transformer2config] });
+        const transformations = transformationNode.state.transformations;
+
+        transformationNode.setUserTransformations([transformer1config]);
+
+        expect(transformationNode.state.transformations).toBe(transformations);
+      });
+
+      it('replaces rather than appends on repeated calls', () => {
+        const { transformationNode } = buildScene();
+
+        transformationNode.setUserTransformations([transformer2config]);
+        transformationNode.setUserTransformations([transformer2config]);
+
+        expect(transformationNode.state.transformations).toEqual([transformer2config]);
+      });
+
+      it('drops system transformations passed in with the user ones', () => {
+        const { transformationNode, consumer } = buildScene();
+
+        // +4 (prepend), *3 (append)
+        transformationNode.setSystemTransformations({
+          prepend: [{ id: 'annotationTransformer', options: {} }],
+          append: [transformer2config],
+        });
+
+        // Callers migrating off setState({ transformations }) may hand back the whole array
+        transformationNode.setUserTransformations(transformationNode.state.transformations);
+        transformationNode.setUserTransformations(transformationNode.state.transformations);
+
+        expect(transformationNode.state.transformations).toEqual([
+          { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
+          transformer1config,
+          { ...transformer2config, origin: 'plugin', position: 'append' },
+        ]);
+
+        // (value + 4) * 2 * 3 - the runtime transforms ran once, not once per call
+        const data = sceneGraph.getData(consumer).state.data;
+        expect(data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+      });
+
+      it('clears the user transformations without touching system ones', () => {
+        const { transformationNode, consumer } = buildScene();
+
+        transformationNode.setSystemTransformations({ append: [transformer2config] });
+        transformationNode.setUserTransformations([]);
+
+        expect(transformationNode.state.transformations).toEqual([
+          { ...transformer2config, origin: 'plugin', position: 'append' },
+        ]);
+
+        // value * 3, the user *2 is gone
+        const data = sceneGraph.getData(consumer).state.data;
+        expect(data?.series[0].fields[1].values).toEqual([3, 6, 9]);
+      });
     });
   });
 
