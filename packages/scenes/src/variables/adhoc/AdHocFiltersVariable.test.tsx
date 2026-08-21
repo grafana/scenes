@@ -3199,7 +3199,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await userEvent.keyboard('{Escape}');
 
-      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
+      expect(screen.getByLabelText('Edit filter with key pod')).toHaveTextContent('pod =~ All');
     });
 
     it('should turn multi value origin filter to match-all when value is removed', async () => {
@@ -3226,7 +3226,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await userEvent.keyboard('{Escape}');
 
       // one-of filters keep their operator and carry the All value instead of the regex form
-      expect(screen.getByText('pod =| All')).toBeInTheDocument();
+      expect(screen.getByLabelText('Edit filter with key pod')).toHaveTextContent('pod =| All');
     });
   });
 
@@ -3320,7 +3320,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       expect(updateToMatchAllSpy).not.toHaveBeenCalled();
 
-      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Edit filter with key pod')).toHaveTextContent('pod =| All');
       expect(filtersVar.state.originFilters?.[0]).toMatchObject({
         operator: '=|',
         value: '$__all',
@@ -3357,7 +3357,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
 
       // pill label falls back to "All" from the sentinel even without valueLabels
-      await userEvent.click(await screen.findByText('pod =| All'));
+      await userEvent.click(await screen.findByLabelText('Edit filter with key pod'));
 
       const allOption = await screen.findByTestId(allOptionTestId);
       expect(within(allOption).getByRole('checkbox')).toBeChecked();
@@ -3371,8 +3371,37 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         layout: 'combobox',
       });
 
-      expect(await screen.findByText('job =~ .*')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Edit filter with key job')).toHaveTextContent('job =~ .*');
       expect(screen.getByRole('button', { name: 'Remove filter with key job' })).toBeInTheDocument();
+    });
+
+    it('mutes only the value, leaving the pill interactive rather than disabled', async () => {
+      setup({
+        originFilters: [{ key: 'pod', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+        layout: 'combobox',
+      });
+
+      const pill = await screen.findByLabelText('Edit filter with key pod');
+      expect(pill).toHaveTextContent('pod =| All');
+
+      // The value sits in its own node so it alone can be muted. The pill keeps its primary
+      // text colour, border and hover, because a match all filter is still fully interactive -
+      // it must not get the disabled treatment.
+      const value = within(pill).getByText('All');
+      expect(value).not.toBe(pill);
+      expect(value.textContent?.trim()).toBe('All');
+      expect(pill).toHaveAttribute('role', 'button');
+    });
+
+    it('mutes the value of the regex match-all form too', async () => {
+      setup({
+        filters: [{ key: 'job', operator: '=~', value: '.*' }],
+        layout: 'combobox',
+      });
+
+      const pill = await screen.findByLabelText('Edit filter with key job');
+      expect(pill).toHaveTextContent('job =~ .*');
+      expect(within(pill).getByText('.*').textContent?.trim()).toBe('.*');
     });
 
     it('does not offer removal for a default authored as All', async () => {
@@ -3382,7 +3411,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         layout: 'combobox',
       });
 
-      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Edit filter with key pod')).toHaveTextContent('pod =| All');
       expect(screen.queryByRole('button', { name: 'Remove filter with key pod' })).not.toBeInTheDocument();
     });
 
@@ -3398,7 +3427,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await userEvent.click(await screen.findByTestId(allOptionTestId));
       await userEvent.click(screen.getByRole('button', { name: 'Apply' }));
 
-      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Edit filter with key pod')).toHaveTextContent('pod =| All');
 
       await userEvent.click(screen.getByRole('button', { name: 'Restore the value set by this dashboard.' }));
 
@@ -3511,7 +3540,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         layout: 'combobox',
       });
 
-      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Edit filter with key pod')).toHaveTextContent('pod =| All');
     });
   });
 
