@@ -58,7 +58,12 @@ export interface SceneDataTransformerState extends SceneDataState {
 export function isSystemTransformation(
   transformation: SceneDataTransformation
 ): transformation is SystemTransformation {
-  return typeof transformation === 'object' && transformation !== null && 'origin' in transformation && transformation.origin != null;
+  return (
+    typeof transformation === 'object' &&
+    transformation !== null &&
+    'origin' in transformation &&
+    transformation.origin != null
+  );
 }
 
 /**
