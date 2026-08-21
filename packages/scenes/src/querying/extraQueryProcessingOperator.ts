@@ -8,7 +8,7 @@ export const passthroughProcessor: ExtraQueryDataProcessor = (_, secondary) => o
 /**
  * Combines loading state across the primary response and any secondary (extra query) responses.
  *
- * If primary response is error => Error (set series warning meta instead?)
+ * If primary response is error => Error
  * Else if any response is loading => Loading
  * Else if any response is streaming => Streaming
  * Else => primary state
