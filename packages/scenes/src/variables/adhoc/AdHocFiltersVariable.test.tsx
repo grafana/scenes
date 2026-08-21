@@ -3391,6 +3391,11 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(value).not.toBe(pill);
       expect(value.textContent?.trim()).toBe('All');
       expect(pill).toHaveAttribute('role', 'button');
+
+      await userEvent.click(pill);
+
+      expect(screen.queryByLabelText('Edit filter with key pod')).not.toBeInTheDocument();
+      expect(await screen.findByTestId(allOptionTestId)).toBeInTheDocument();
     });
 
     it('mutes the value of the regex match-all form too', async () => {
@@ -3401,7 +3406,16 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       const pill = await screen.findByLabelText('Edit filter with key job');
       expect(pill).toHaveTextContent('job =~ .*');
-      expect(within(pill).getByText('.*').textContent?.trim()).toBe('.*');
+
+      const value = within(pill).getByText('.*');
+      expect(value).not.toBe(pill);
+      expect(value.textContent?.trim()).toBe('.*');
+      expect(pill).toHaveAttribute('role', 'button');
+
+      await userEvent.click(pill);
+
+      expect(screen.queryByLabelText('Edit filter with key job')).not.toBeInTheDocument();
+      expect(await screen.findByTestId('data-testid ad hoc filter option value val3')).toBeInTheDocument();
     });
 
     it('does not offer removal for a default authored as All', async () => {
