@@ -259,7 +259,7 @@ const getStyles = (theme: GrafanaTheme2) => ({
     rowGap: theme.spacing(0.5),
     minHeight: theme.spacing(4),
     backgroundColor: theme.components.input.background,
-    border: `1px solid ${theme.colors.border.strong}`,
+    border: `1px solid ${theme.components.input.borderColor}`,
     borderRadius: theme.shape.radius.default,
     paddingInline: theme.spacing(1),
     paddingBlock: theme.spacing(0.5),
