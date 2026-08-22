@@ -197,9 +197,56 @@ interface TimePickerHistoryItem {
 }
 
 function deserializeHistory(value: string): TimeRange[] {
-  const values: TimePickerHistoryItem[] = JSON.parse(value);
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    return [];
+  }
+
+  const values = getValidHistory(parsed);
   // The history is saved in UTC and with the default date format, so we need to pass those values to the convertRawToRange
   return values.map((item) => rangeUtil.convertRawToRange(item, 'utc', undefined, 'YYYY-MM-DD HH:mm:ss'));
+}
+
+function getValidHistory(values: unknown): TimePickerHistoryItem[] {
+  const result: TimePickerHistoryItem[] = [];
+
+  if (!Array.isArray(values)) {
+    return result;
+  }
+
+  for (const item of values) {
+    const parsed = getValidHistoryItem(item);
+    if (parsed) {
+      result.push(parsed);
+    }
+  }
+
+  return result;
+}
+
+function getValidHistoryItem(value: unknown): TimePickerHistoryItem | null {
+  if (typeof value !== 'object' || value === null) {
+    return null;
+  }
+
+  // Extra keys like raw do not match the stored { from, to } shape and can crash convertRawToRange
+  if (Object.keys(value).length !== 2) {
+    return null;
+  }
+
+  if (!('from' in value) || !('to' in value)) {
+    return null;
+  }
+
+  const { from, to } = value;
+  if (typeof from === 'string' && typeof to === 'string') {
+    return { from, to };
+  }
+
+  return null;
 }
 
 function serializeHistory(values: TimeRange[]) {
