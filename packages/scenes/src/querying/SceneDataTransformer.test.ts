@@ -1774,6 +1774,79 @@ describe('SceneDataTransformer', () => {
         expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
       });
 
+      it('does not re-emit when a newly registered supplier resolves to nothing', () => {
+        const { transformationNode, activate } = buildSupplierScene([]);
+
+        const emissions: PanelData[] = [];
+        transformationNode.getResultsStream().subscribe((result) => emissions.push(result.data));
+
+        activate();
+
+        expect(emissions).toHaveLength(1);
+
+        // What most panels look like: the plugin contributes no transformations, so registering its
+        // supplier changes nothing and must not cost a pass
+        transformationNode.setSystemTransformations({ supplier: () => ({}) });
+
+        expect(emissions).toHaveLength(1);
+      });
+
+      it('does not re-run when a swapped supplier resolves to the same thing', () => {
+        const { transformationNode, activate } = buildSupplierScene([]);
+
+        const emissions: PanelData[] = [];
+        transformationNode.getResultsStream().subscribe((result) => emissions.push(result.data));
+
+        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
+        activate();
+
+        // value * 3
+        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
+        expect(emissions).toHaveLength(1);
+
+        // A fresh closure resolving to the same config, which is what a registrar rebuilding its supplier
+        // on every activation looks like
+        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
+
+        expect(emissions).toHaveLength(1);
+      });
+
+      it('does not re-run when a swapped supplier spells the same operator differently', () => {
+        const { transformationNode, activate } = buildSupplierScene([]);
+
+        const emissions: PanelData[] = [];
+        transformationNode.getResultsStream().subscribe((result) => emissions.push(result.data));
+
+        transformationNode.setSystemTransformations({ supplier: () => ({ append: [customTransformOperator] }) });
+        activate();
+
+        expect(emissions).toHaveLength(1);
+
+        // Bare and object form are one entry once the pipeline normalizes them, so this is not a change
+        transformationNode.setSystemTransformations({
+          supplier: () => ({ append: [{ operator: customTransformOperator, topic: DataTopic.Series }] }),
+        });
+
+        expect(emissions).toHaveLength(1);
+      });
+
+      it('re-runs when a swapped supplier resolves to something else', () => {
+        const { transformationNode, activate } = buildSupplierScene([]);
+
+        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
+        activate();
+
+        // value * 3
+        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
+
+        transformationNode.setSystemTransformations({
+          supplier: () => ({ append: [annotationTransformerConfigNoTopic] }),
+        });
+
+        // value + 4
+        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([5, 6, 7]);
+      });
+
       it('picks up a supplier that resolves differently on reprocessTransformations', () => {
         const { transformationNode, consumer, activate } = buildSupplierScene();
         let ready = false;

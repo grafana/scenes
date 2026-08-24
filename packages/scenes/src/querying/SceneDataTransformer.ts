@@ -250,9 +250,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    *
    * Pass a `supplier` in place of concrete arrays when the configs have to be derived from the data. It is
    * called with the frames entering the pipeline on every pass, so its output tracks the query result and
-   * is never held in state; because of that, registering, swapping or dropping one always re-runs the
-   * pipeline, whether or not the concrete arrays changed alongside it. An origin can provide both, in
-   * which case the supplied entries follow the concrete ones within each tier.
+   * is never held in state; because of that, registering, swapping or dropping one re-runs the pipeline
+   * whenever it changes what resolves for the current frames, which the transformations comparison cannot
+   * see. An origin can provide both, in which case the supplied entries follow the concrete ones within
+   * each tier.
    *
    * Repeated calls only skip re-running the pipeline when the resulting transformations are equal to the
    * current ones. Custom transform operators are functions and so compare by reference: a caller that
@@ -281,15 +282,20 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     }
 
     // A supplier is resolved from the frames rather than stored in state, so nothing about swapping one
-    // shows up in the transformations comparison below - the pipeline has to be re-run on the strength of
-    // the registration change alone.
-    const supplierChanged = this._suppliers.get(origin) !== supplier;
+    // shows up in the transformations comparison below - re-running the pipeline has to be decided here.
+    const previousSupplier = this._suppliers.get(origin);
+    const supplierChanged = previousSupplier !== supplier;
 
     if (supplier) {
       this._suppliers.set(origin, supplier);
     } else {
       this._suppliers.delete(origin);
     }
+
+    // Guarded on isActive because _applyTransformations would not reprocess otherwise, so the resolution
+    // this costs would be spent to answer a question nobody asked.
+    const force =
+      supplierChanged && this.isActive && this._supplierSwapChangesResolution(previousSupplier, supplier, origin);
 
     this._resolvedSystem = undefined;
 
@@ -300,7 +306,46 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       append: append.map((t) => toSystemTransformation(t, 'append', origin)),
     });
 
-    this._applyTransformations(this._combineTransformations(system, user), supplierChanged);
+    this._applyTransformations(this._combineTransformations(system, user), force);
+  }
+
+  /**
+   * Whether swapping this origin's supplier changes what the pipeline would resolve to. A changed reference
+   * says nothing on its own, and the common case says nothing interesting: a panel whose plugin contributes
+   * no transformations resolves empty both before and after, and forcing a pass for that costs a redundant
+   * emission per panel on every dashboard load, since `$data` activates before whatever registers the
+   * supplier and the registration therefore always lands after the first pass.
+   *
+   * Answering it calls both suppliers once for the current frames, which is why the contract asks for them
+   * to be cheap and free of side effects. Comparing the two directly rather than against the last pass
+   * keeps the question narrow: does this swap change anything? A supplier whose own output has drifted for
+   * unrelated reasons is what reprocessTransformations is for.
+   */
+  private _supplierSwapChangesResolution(
+    previous: SystemTransformationsSupplier | undefined,
+    next: SystemTransformationsSupplier | undefined,
+    origin: TransformationOrigin
+  ): boolean {
+    const series = this.getSourceData().state.data?.series ?? NO_SERIES;
+
+    // Tagged the way the pipeline would see them, so the comparison answers "would it run the same
+    // entries" rather than "did the supplier spell them the same way" - a bare operator and its object
+    // form are one entry to the pipeline and must not count as a change
+    const resolve = (supplier: SystemTransformationsSupplier | undefined) => {
+      const { prepend = [], append = [] } = this._resolveSupplier(supplier, series, origin);
+
+      return {
+        prepend: prepend.map((t) => toSystemTransformation(t, 'prepend', origin)),
+        append: append.map((t) => toSystemTransformation(t, 'append', origin)),
+      };
+    };
+
+    const before = resolve(previous);
+    const after = resolve(next);
+
+    return (
+      !haveEqualTransformations(before.prepend, after.prepend) || !haveEqualTransformations(before.append, after.append)
+    );
   }
 
   /**
@@ -338,7 +383,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         append.push(...concrete.append);
       }
 
-      const supplied = this._resolveSupplier(origin, series);
+      const supplied = this._resolveSupplier(this._suppliers.get(origin), series, origin);
 
       prepend.push(...(supplied.prepend ?? []).map((t) => toSystemTransformation(t, 'prepend', origin)));
       append.push(...(supplied.append ?? []).map((t) => toSystemTransformation(t, 'append', origin)));
@@ -352,11 +397,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   private _resolveSupplier(
-    origin: TransformationOrigin,
-    series: DataFrame[]
+    supplier: SystemTransformationsSupplier | undefined,
+    series: DataFrame[],
+    origin: TransformationOrigin
   ): ReturnType<SystemTransformationsSupplier> {
-    const supplier = this._suppliers.get(origin);
-
     if (!supplier) {
       return {};
     }
