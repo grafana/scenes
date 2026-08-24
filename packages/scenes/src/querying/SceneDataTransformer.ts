@@ -149,9 +149,9 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   private _prevDataFromSource?: PanelData;
   private _suppliers = new Map<TransformationOrigin, SystemTransformationsSupplier>();
   /**
-   * Origins in the order they first called setSystemTransformations. It is what orders the contributions of
-   * several origins to the same tier, and it cannot be read back off state because an origin that only
-   * registered a supplier puts nothing there.
+   * Every origin that has called setSystemTransformations, in call order. This is the only record of an
+   * origin that registered nothing but a supplier, since such an origin puts nothing in state - drop this
+   * and its supplier stops being resolved at all, not just resolved out of order.
    */
   private _originOrder: TransformationOrigin[] = [];
   /**
@@ -516,6 +516,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     if (this._prevDataFromSource) {
       clone['_prevDataFromSource'] = this._prevDataFromSource;
     }
+
+    // Suppliers are runtime registrations rather than state, so cloning through the constructor leaves the
+    // clone with none. Its first transform would then find an empty pipeline and hand on the source data
+    // untransformed, overwriting the transformed data it was cloned with. Whoever registered them
+    // re-registers on the clone's own activation and replaces these.
+    clone['_suppliers'] = new Map(this._suppliers);
+    clone['_originOrder'] = [...this._originOrder];
 
     return clone;
   }

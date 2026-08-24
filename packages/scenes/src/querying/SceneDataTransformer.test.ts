@@ -1441,7 +1441,6 @@ describe('SceneDataTransformer', () => {
 
         const consumer = new TestSceneObject({ $data: transformationNode });
 
-        // @ts-expect-error
         const scene = new SceneFlexLayout({
           $data: sourceDataNode,
           children: [new SceneFlexItem({ body: consumer })],
@@ -1452,7 +1451,15 @@ describe('SceneDataTransformer', () => {
           transformationNode.activate();
         };
 
-        return { transformationNode, consumer, activate };
+        // Parents a clone under the same source instead of building a second scene around it, which would
+        // give sourceDataNode two parents
+        const attach = (node: SceneDataTransformer) => {
+          scene.setState({
+            children: [...scene.state.children, new SceneFlexItem({ body: new TestSceneObject({ $data: node }) })],
+          });
+        };
+
+        return { transformationNode, consumer, activate, attach };
       }
 
       it('runs supplied transformations around the user configured ones', () => {
@@ -1643,6 +1650,73 @@ describe('SceneDataTransformer', () => {
 
         // value * 2 * 3, same frames but a new resolution
         expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+      });
+
+      it('carries suppliers into a clone so the clone never emits untransformed data', () => {
+        const { transformationNode, activate, attach } = buildSupplierScene([]);
+
+        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
+        activate();
+
+        // value * 3
+        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
+
+        const clone = transformationNode.clone();
+        attach(clone);
+
+        const emissions: unknown[] = [];
+        clone.getResultsStream().subscribe((result) => emissions.push(result.data.series[0].fields[1].values));
+
+        clone.activate();
+
+        expect(clone.getResolvedSystemTransformations(sourceDataNode.state.data!.series).append).toEqual([
+          { ...transformer2config, origin: 'plugin', position: 'append' },
+        ]);
+
+        // The clone was cloned with transformed data; activating it must not replace that with the source
+        expect(clone.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
+        expect(emissions).not.toContainEqual([1, 2, 3]);
+      });
+
+      it('keeps resolving the carried supplier when the clone gets new data', () => {
+        const { transformationNode, activate, attach } = buildSupplierScene([]);
+
+        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
+        activate();
+
+        const clone = transformationNode.clone();
+        attach(clone);
+
+        clone.activate();
+
+        sourceDataNode.setState({
+          data: { ...sourceDataNode.state.data!, series: [toDataFrame([[100, 5]])] },
+        });
+
+        // value * 3 on the new frames, so the carried supplier is live rather than just present
+        expect(clone.state.data?.series[0].fields[1].values).toEqual([15]);
+      });
+
+      it('carries the origin order into a clone', () => {
+        const { transformationNode, activate } = buildSupplierScene([]);
+
+        transformationNode.setSystemTransformations({
+          origin: 'first',
+          supplier: () => ({ prepend: [transformer2config] }),
+        });
+        transformationNode.setSystemTransformations({
+          origin: 'second',
+          supplier: () => ({ prepend: [annotationTransformerConfigNoTopic] }),
+        });
+
+        activate();
+
+        const clone = transformationNode.clone();
+
+        expect(clone.getResolvedSystemTransformations(sourceDataNode.state.data!.series).prepend).toEqual([
+          { ...transformer2config, origin: 'first', position: 'prepend' },
+          { ...annotationTransformerConfigNoTopic, origin: 'second', position: 'prepend' },
+        ]);
       });
 
       it('degrades a throwing supplier to a no-op instead of erroring the stream', () => {
