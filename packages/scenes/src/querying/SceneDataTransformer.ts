@@ -662,7 +662,14 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       this._transformSub?.unsubscribe();
 
       this._prevDataFromSource = data;
-      this.setState({ data });
+
+      // Any source state change re-runs this, so without the guard a passthrough panel publishes a state
+      // change carrying data it already had - one no-op event per listener, DashboardSceneChangeTracker
+      // included. The results stream still emits: subscribers there are tracking source emissions, not
+      // state transitions.
+      if (data !== this.state.data) {
+        this.setState({ data });
+      }
 
       if (data) {
         this._results.next({ origin: this, data });

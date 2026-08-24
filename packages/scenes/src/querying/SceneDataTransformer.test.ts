@@ -851,6 +851,72 @@ describe('SceneDataTransformer', () => {
     });
   });
 
+  describe('passthrough state churn', () => {
+    it('does not publish a state change when the passthrough data is unchanged', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      transformationNode.activate();
+
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+
+      const stateChanges: PanelData[] = [];
+      transformationNode.subscribeToState((state) => stateChanges.push(state.data!));
+
+      // Any source state change re-runs transform, whether or not it touched the data
+      sourceDataNode.setState({ data: sourceDataNode.state.data });
+
+      expect(stateChanges).toHaveLength(0);
+    });
+
+    it('still publishes when the passthrough data actually changes', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      transformationNode.activate();
+
+      const stateChanges: PanelData[] = [];
+      transformationNode.subscribeToState((state) => stateChanges.push(state.data!));
+
+      const nextData = { ...sourceDataNode.state.data, series: [toDataFrame([[100, 5]])] };
+      sourceDataNode.setState({ data: nextData });
+
+      expect(stateChanges).toHaveLength(1);
+      expect(transformationNode.state.data).toBe(nextData);
+    });
+
+    it('publishes when the source hands over an equal but distinct data object', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      transformationNode.activate();
+
+      const stateChanges: PanelData[] = [];
+      transformationNode.subscribeToState((state) => stateChanges.push(state.data!));
+
+      // The guard is reference identity, not structural: deep comparing every frame on each source state
+      // change would cost more than the no-op event it saves, and state.data should track the object the
+      // source is actually holding
+      sourceDataNode.setState({ data: { ...sourceDataNode.state.data } });
+
+      expect(stateChanges).toHaveLength(1);
+    });
+
+    it('still emits on the results stream when the data is unchanged', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      const emissions: PanelData[] = [];
+      transformationNode.getResultsStream().subscribe((result) => emissions.push(result.data));
+
+      transformationNode.activate();
+
+      expect(emissions).toHaveLength(1);
+
+      // Subscribers there track source emissions rather than state transitions, so the guard on setState
+      // must not silence them
+      sourceDataNode.setState({ data: sourceDataNode.state.data });
+
+      expect(emissions).toHaveLength(2);
+    });
+  });
+
   describe('when the pipeline becomes empty while a pass is in flight', () => {
     // Passes the test decides when to finish. Transformations are asynchronous in general - a custom
     // operator can emit whenever it likes, and newer @grafana/data resolves standard transformations
