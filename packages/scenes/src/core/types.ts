@@ -236,10 +236,9 @@ export type CustomTransformOperator = (context: DataTransformContext) => MonoTyp
  * into the dashboard spec has to drop its origin - otherwise the next setSystemTransformations call for that
  * origin would delete it - which is why provenance that outlives promotion needs its own persisted field.
  *
- * Any string is a valid origin; 'plugin' is spelled out because it is the one scenes itself documents, and
- * so that it keeps completing in editors now that the union is open.
+ * Any string is a valid origin; 'plugin' is used by convention for panel plugin transformations.
  */
-export type TransformationOrigin = 'plugin' | (string & {});
+export type TransformationOrigin = string;
 
 /**
  * Whether a system transformation runs before ('prepend') or after ('append') the user configured
