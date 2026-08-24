@@ -40,12 +40,42 @@ export type SystemTransformation = (
 
 export type SceneDataTransformation = DataTransformerConfig | CustomTransformerDefinition | SystemTransformation;
 
+/**
+ * Resolves one origin's system transformations from the frames that are about to enter the pipeline. Pass
+ * this to setSystemTransformations instead of concrete arrays when the configs depend on the data: a
+ * supplier sees the source frames, which is what a caller holding only the pipeline output cannot.
+ *
+ * It runs inside transform(), so it has to be synchronous and must not write scene state. Throwing is
+ * treated as contributing nothing rather than failing the data stream. Its output is not scanned for
+ * variable dependencies, so a supplier whose configs reference variables has to resolve them itself.
+ */
+export type SystemTransformationsSupplier = (ctx: { series: DataFrame[] }) => {
+  prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+};
+
+/**
+ * The system transformations in effect for a given set of source frames: the concrete ones held in state
+ * merged with whatever the suppliers resolved to, in pipeline order.
+ */
+export interface ResolvedSystemTransformations {
+  prepend: SystemTransformation[];
+  append: SystemTransformation[];
+}
+
+interface SystemTransformationGroup {
+  prepend: SystemTransformation[];
+  append: SystemTransformation[];
+}
+
 export interface SceneDataTransformerState extends SceneDataState {
   /**
    * Array of standard transformation configs and custom transform operators.
-   * Entries with origin 'system' are runtime transformations added programmatically via
+   * Entries carrying an origin are runtime transformations added programmatically via
    * setSystemTransformations. They are combined with the user configured ones but should not be
    * persisted or shown in the transformations editor (filter them out with isSystemTransformation).
+   * Ones that setSystemTransformations resolves from a supplier never reach this array at all - read
+   * those with getResolvedSystemTransformations.
    */
   transformations: SceneDataTransformation[];
 }
@@ -117,6 +147,22 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   private _transformSub?: Unsubscribable;
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
   private _prevDataFromSource?: PanelData;
+  private _suppliers = new Map<TransformationOrigin, SystemTransformationsSupplier>();
+  /**
+   * Origins in the order they first called setSystemTransformations. It is what orders the contributions of
+   * several origins to the same tier, and it cannot be read back off state because an origin that only
+   * registered a supplier puts nothing there.
+   */
+  private _originOrder: TransformationOrigin[] = [];
+  /**
+   * One slot memo so that a pass resolves each supplier once and the editors reading
+   * getResolvedSystemTransformations see what the pipeline used rather than re-running the suppliers.
+   */
+  private _resolvedSystem?: {
+    series: DataFrame[];
+    state: SceneDataTransformation[];
+    resolved: ResolvedSystemTransformations;
+  };
 
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
@@ -182,15 +228,24 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public reprocessTransformations() {
+    // Suppliers can resolve differently for the same frames - a plugin that was not loaded on the last pass
+    // is the reason callers reach for this - so the memo cannot survive a forced re-run.
+    this._resolvedSystem = undefined;
     this.transform(this.getSourceData().state.data, true);
   }
 
   /**
    * Sets the system (runtime) transformations for the given origin and combines them with the user
    * configured ones. Prepended transformations run before the user transformations, appended ones after.
-   * Each provided transformation is tagged with the origin (default 'system'). Previous transformations
+   * Each provided transformation is tagged with the origin (default 'plugin'). Previous transformations
    * with the same origin are replaced rather than appended, so repeated calls never accumulate
    * duplicates; transformations from other origins are preserved.
+   *
+   * Pass a `supplier` in place of concrete arrays when the configs have to be derived from the data. It is
+   * called with the frames entering the pipeline on every pass, so its output tracks the query result and
+   * is never held in state; because of that, registering, swapping or dropping one always re-runs the
+   * pipeline, whether or not the concrete arrays changed alongside it. An origin can provide both, in
+   * which case the supplied entries follow the concrete ones within each tier.
    *
    * Repeated calls only skip re-running the pipeline when the resulting transformations are equal to the
    * current ones. Custom transform operators are functions and so compare by reference: a caller that
@@ -200,25 +255,121 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    *
    * Resulting pipeline order: prepended system transformations, the user configured ones, then appended
    * system transformations. Origins are replaced independently, so once a second provider exists its
-   * entries slot into the same prepend and append tiers without disturbing this one's.
+   * entries slot into the same prepend and append tiers without disturbing this one's, ordered by which
+   * origin called this first.
    */
   public setSystemTransformations({
     prepend = [],
     append = [],
+    supplier,
     origin = 'plugin',
   }: {
     prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
     append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    supplier?: SystemTransformationsSupplier;
     origin?: TransformationOrigin;
   }) {
+    if (!this._originOrder.includes(origin)) {
+      this._originOrder.push(origin);
+    }
+
+    // A supplier is resolved from the frames rather than stored in state, so nothing about swapping one
+    // shows up in the transformations comparison below - the pipeline has to be re-run on the strength of
+    // the registration change alone.
+    const supplierChanged = this._suppliers.get(origin) !== supplier;
+
+    if (supplier) {
+      this._suppliers.set(origin, supplier);
+    } else {
+      this._suppliers.delete(origin);
+    }
+
+    this._resolvedSystem = undefined;
+
     const { system, user } = this._partitionTransformations();
 
-    system[origin] = {
+    system.set(origin, {
       prepend: prepend.map((t) => toSystemTransformation(t, 'prepend', origin)),
       append: append.map((t) => toSystemTransformation(t, 'append', origin)),
-    };
+    });
 
-    this._applyTransformations(this._combineTransformations(system, user));
+    this._applyTransformations(this._combineTransformations(system, user), supplierChanged);
+  }
+
+  /**
+   * The system transformations in effect for the given source frames: the concrete ones held in state
+   * merged with whatever the suppliers resolve to, each tier in origin registration order.
+   *
+   * This is the single source of truth for anything that needs to know what the pipeline is running -
+   * a transformations editor listing the runtime entries as read only rows, say - since supplier output
+   * never reaches state. Pass the frames the pipeline is working on (the source data's series) to share
+   * its memo instead of resolving the suppliers a second time.
+   */
+  public getResolvedSystemTransformations(series: DataFrame[]): ResolvedSystemTransformations {
+    const memo = this._resolvedSystem;
+
+    if (memo && memo.series === series && memo.state === this.state.transformations) {
+      return memo.resolved;
+    }
+
+    const { system } = this._partitionTransformations();
+    const prepend: SystemTransformation[] = [];
+    const append: SystemTransformation[] = [];
+
+    for (const origin of this._orderedOrigins(system)) {
+      const concrete = system.get(origin);
+
+      if (concrete) {
+        prepend.push(...concrete.prepend);
+        append.push(...concrete.append);
+      }
+
+      const supplied = this._resolveSupplier(origin, series);
+
+      prepend.push(...(supplied.prepend ?? []).map((t) => toSystemTransformation(t, 'prepend', origin)));
+      append.push(...(supplied.append ?? []).map((t) => toSystemTransformation(t, 'append', origin)));
+    }
+
+    const resolved = { prepend, append };
+
+    this._resolvedSystem = { series, state: this.state.transformations, resolved };
+
+    return resolved;
+  }
+
+  private _resolveSupplier(
+    origin: TransformationOrigin,
+    series: DataFrame[]
+  ): ReturnType<SystemTransformationsSupplier> {
+    const supplier = this._suppliers.get(origin);
+
+    if (!supplier) {
+      return {};
+    }
+
+    try {
+      return supplier({ series }) ?? {};
+    } catch (err) {
+      // A supplier is someone else's code running inside our data pipeline; contributing nothing is a far
+      // better failure than erroring the stream and blanking the panel.
+      console.error(`Error resolving system transformations for origin '${origin}': `, err);
+      return {};
+    }
+  }
+
+  /**
+   * The transformations the pipeline should run for the given source frames, in prepend, user, append order.
+   */
+  private _effectiveTransformations(series: DataFrame[]): SceneDataTransformation[] {
+    if (this._suppliers.size === 0) {
+      // Without suppliers state already holds everything in pipeline order, so the common case stays free.
+      return this.state.transformations;
+    }
+
+    const { prepend, append } = this.getResolvedSystemTransformations(series);
+    const user = this.state.transformations.filter((transformation) => !isSystemTransformation(transformation));
+
+    return [...prepend, ...user, ...append];
   }
 
   /**
@@ -243,17 +394,18 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    * configured ones.
    */
   private _partitionTransformations() {
-    const system: Record<
-      TransformationOrigin,
-      { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }
-    > = {
-      plugin: { prepend: [], append: [] },
-    };
+    const system = new Map<TransformationOrigin, SystemTransformationGroup>();
     const user: SceneDataTransformation[] = [];
 
     for (const transformation of this.state.transformations) {
       if (isSystemTransformation(transformation)) {
-        const group = system[transformation.origin];
+        let group = system.get(transformation.origin);
+
+        if (!group) {
+          group = { prepend: [], append: [] };
+          system.set(transformation.origin, group);
+        }
+
         (transformation.position === 'append' ? group.append : group.prepend).push(transformation);
       } else {
         user.push(transformation);
@@ -263,19 +415,51 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     return { system, user };
   }
 
-  private _combineTransformations(
-    system: Record<TransformationOrigin, { prepend: SceneDataTransformation[]; append: SceneDataTransformation[] }>,
-    user: SceneDataTransformation[]
-  ): SceneDataTransformation[] {
-    return [...system.plugin.prepend, ...user, ...system.plugin.append];
+  /**
+   * Registration order, then any origin that only exists in state - rehydrated from a save model, or written
+   * by a setState that bypassed setSystemTransformations - in the order the array puts it.
+   */
+  private _orderedOrigins(system: Map<TransformationOrigin, SystemTransformationGroup>): TransformationOrigin[] {
+    const origins = [...this._originOrder];
+
+    for (const origin of system.keys()) {
+      if (!origins.includes(origin)) {
+        origins.push(origin);
+      }
+    }
+
+    return origins;
   }
 
-  private _applyTransformations(transformations: SceneDataTransformation[]) {
-    if (haveEqualTransformations(transformations, this.state.transformations)) {
+  private _combineTransformations(
+    system: Map<TransformationOrigin, SystemTransformationGroup>,
+    user: SceneDataTransformation[]
+  ): SceneDataTransformation[] {
+    const prepend: SceneDataTransformation[] = [];
+    const append: SceneDataTransformation[] = [];
+
+    for (const origin of this._orderedOrigins(system)) {
+      const group = system.get(origin);
+
+      if (group) {
+        prepend.push(...group.prepend);
+        append.push(...group.append);
+      }
+    }
+
+    return [...prepend, ...user, ...append];
+  }
+
+  private _applyTransformations(transformations: SceneDataTransformation[], force = false) {
+    const changed = !haveEqualTransformations(transformations, this.state.transformations);
+
+    if (!changed && !force) {
       return;
     }
 
-    this.setState({ transformations });
+    if (changed) {
+      this.setState({ transformations });
+    }
 
     // If not active yet the activation handler will run the transformations
     if (this.isActive) {
@@ -402,7 +586,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         ) => void)
       | null = null;
 
-    if (this.state.transformations.length === 0 || !data) {
+    // Resolved once for the whole pass and handed to both tiers, rather than re-derived per position.
+    const transformations = data ? this._effectiveTransformations(data.series) : [];
+
+    if (transformations.length === 0 || !data) {
       this._prevDataFromSource = data;
       this.setState({ data });
 
@@ -420,7 +607,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     // S3.1: Start transformation tracking
     if (profiler) {
       // Create meaningful transformation identifier from actual transformations
-      const transformationTypes = this.state.transformations
+      const transformationTypes = transformations
         .map((t) => {
           if ('id' in t) {
             // Standard DataTransformerConfig
@@ -434,13 +621,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       transformationId = transformationTypes || 'no-transforms';
 
       // Calculate transformation complexity metrics
-      const metrics = this._calculateTransformationMetrics(data, this.state.transformations);
+      const metrics = this._calculateTransformationMetrics(data, transformations);
 
       // Start the DataProcessing phase with centralized logging - get end callback
       endTransformCallback = profiler.onDataTransformStart(timestamp, transformationId, metrics);
     }
 
-    const interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
+    const interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data, transformations);
 
     const seriesTransformations = this._filterAndPrepareTransformationsByTopic(
       interpolatedTransformations,
@@ -539,10 +726,9 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   private _interpolateVariablesInTransformationConfigs(
-    data: PanelData
+    data: PanelData,
+    transformations: SceneDataTransformation[]
   ): Array<DataTransformerConfig | CustomTransformerDefinition> {
-    const transformations = this.state.transformations;
-
     if (this._variableDependency.getNames().size === 0) {
       return transformations;
     }

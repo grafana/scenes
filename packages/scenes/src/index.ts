@@ -54,9 +54,11 @@ export {
   SceneDataTransformer,
   isSystemTransformation,
   isTransformationFrom,
+  type ResolvedSystemTransformations,
   type SceneDataTransformerState,
   type SceneDataTransformation,
   type SystemTransformation,
+  type SystemTransformationsSupplier,
 } from './querying/SceneDataTransformer';
 export { registerQueryWithController } from './querying/registerQueryWithController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';

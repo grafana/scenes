@@ -56,6 +56,14 @@ const annotationTransformerConfig = {
   topic: DataTopic.Annotations,
 };
 
+// Same +4 registry transformation, left untopiced so that it applies to series
+const annotationTransformerConfigNoTopic = {
+  id: 'annotationTransformer',
+  options: {
+    option: 'value3',
+  },
+};
+
 export const getCustomTransformOperator = (spy: jest.Mock): CustomTransformOperator => {
   return () => (source) => {
     spy();
@@ -1373,6 +1381,291 @@ describe('SceneDataTransformer', () => {
         // value * 3, the user *2 is gone
         const data = sceneGraph.getData(consumer).state.data;
         expect(data?.series[0].fields[1].values).toEqual([3, 6, 9]);
+      });
+    });
+
+    describe('multiple origins', () => {
+      it('composes both origins into the same tiers, in registration order', () => {
+        const transformationNode = new SceneDataTransformer({ transformations: [] });
+
+        const consumer = new TestSceneObject({ $data: transformationNode });
+
+        // @ts-expect-error
+        const scene = new SceneFlexLayout({
+          $data: sourceDataNode,
+          children: [new SceneFlexItem({ body: consumer })],
+        });
+
+        sourceDataNode.activate();
+        transformationNode.activate();
+
+        // *3 then +4, so the order of the two origins is visible in the result
+        transformationNode.setSystemTransformations({ prepend: [transformer2config], origin: 'first' });
+        transformationNode.setSystemTransformations({
+          prepend: [annotationTransformerConfigNoTopic],
+          origin: 'second',
+        });
+
+        expect(transformationNode.state.transformations).toEqual([
+          { ...transformer2config, origin: 'first', position: 'prepend' },
+          { ...annotationTransformerConfigNoTopic, origin: 'second', position: 'prepend' },
+        ]);
+
+        // value * 3 + 4, not (value + 4) * 3
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([7, 10, 13]);
+      });
+
+      it('replaces one origin without disturbing the other', () => {
+        const { transformationNode, consumer } = buildScene();
+
+        transformationNode.setSystemTransformations({ prepend: [annotationTransformerConfigNoTopic], origin: 'first' });
+        transformationNode.setSystemTransformations({ append: [transformer2config], origin: 'second' });
+
+        // A second call for an origin that is already in state used to throw here
+        transformationNode.setSystemTransformations({ append: [transformer2config], origin: 'second' });
+        transformationNode.setSystemTransformations({ origin: 'first' });
+
+        expect(transformationNode.state.transformations).toEqual([
+          transformer1config,
+          { ...transformer2config, origin: 'second', position: 'append' },
+        ]);
+
+        // value * 2 * 3, the first origin's +4 is gone
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+      });
+    });
+
+    describe('supplier', () => {
+      function buildSupplierScene(transformations: SceneDataTransformation[] = [transformer1config]) {
+        const transformationNode = new SceneDataTransformer({ transformations });
+
+        const consumer = new TestSceneObject({ $data: transformationNode });
+
+        // @ts-expect-error
+        const scene = new SceneFlexLayout({
+          $data: sourceDataNode,
+          children: [new SceneFlexItem({ body: consumer })],
+        });
+
+        const activate = () => {
+          sourceDataNode.activate();
+          transformationNode.activate();
+        };
+
+        return { transformationNode, consumer, activate };
+      }
+
+      it('runs supplied transformations around the user configured ones', () => {
+        const { transformationNode, consumer, activate } = buildSupplierScene();
+
+        transformationNode.setSystemTransformations({
+          supplier: () => ({
+            // +4
+            prepend: [annotationTransformerConfigNoTopic],
+            // *3
+            append: [transformer2config],
+          }),
+        });
+
+        activate();
+
+        // (value + 4) * 2 * 3 - same pipeline order as concrete entries
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+      });
+
+      it('does not put supplied transformations in state', () => {
+        const { transformationNode, activate } = buildSupplierScene();
+
+        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
+        activate();
+
+        expect(transformationNode.state.transformations).toEqual([transformer1config]);
+      });
+
+      it('receives the source frames rather than the pipeline output', () => {
+        const { transformationNode, activate } = buildSupplierScene();
+        const seen: number[][] = [];
+
+        transformationNode.setSystemTransformations({
+          supplier: ({ series }) => {
+            seen.push(series[0].fields[1].values);
+            // Appended, so it runs after the user *2 but is still resolved from the source frames
+            return { append: [transformer2config] };
+          },
+        });
+
+        activate();
+
+        expect(seen).toEqual([[1, 2, 3]]);
+      });
+
+      it('resolves the supplier once per emission', () => {
+        const supplierSpy = jest.fn().mockReturnValue({ append: [transformer2config] });
+        const { transformationNode, activate } = buildSupplierScene();
+
+        transformationNode.setSystemTransformations({ supplier: supplierSpy });
+        activate();
+
+        expect(supplierSpy).toHaveBeenCalledTimes(1);
+
+        // An editor reading the resolution for the frames the pipeline used shares its memo
+        const series = sourceDataNode.state.data!.series;
+        expect(transformationNode.getResolvedSystemTransformations(series)).toEqual({
+          prepend: [],
+          append: [{ ...transformer2config, origin: 'plugin', position: 'append' }],
+        });
+        expect(supplierSpy).toHaveBeenCalledTimes(1);
+
+        // New frames are a new question
+        sourceDataNode.setState({
+          data: { ...sourceDataNode.state.data!, series: [toDataFrame([[100, 4]])] },
+        });
+
+        expect(supplierSpy).toHaveBeenCalledTimes(2);
+      });
+
+      it('merges supplied transformations with the concrete ones for the same origin', () => {
+        const { transformationNode, consumer, activate } = buildSupplierScene();
+
+        transformationNode.setSystemTransformations({
+          // +4
+          prepend: [annotationTransformerConfigNoTopic],
+          // *3
+          supplier: () => ({ append: [transformer2config] }),
+        });
+
+        activate();
+
+        const series = sourceDataNode.state.data!.series;
+        expect(transformationNode.getResolvedSystemTransformations(series)).toEqual({
+          prepend: [{ ...annotationTransformerConfigNoTopic, origin: 'plugin', position: 'prepend' }],
+          append: [{ ...transformer2config, origin: 'plugin', position: 'append' }],
+        });
+
+        // (value + 4) * 2 * 3
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+      });
+
+      it('composes suppliers from several origins in registration order', () => {
+        const { transformationNode, consumer, activate } = buildSupplierScene([]);
+
+        transformationNode.setSystemTransformations({
+          origin: 'first',
+          supplier: () => ({ prepend: [transformer2config] }),
+        });
+        transformationNode.setSystemTransformations({
+          origin: 'second',
+          supplier: () => ({ prepend: [annotationTransformerConfigNoTopic] }),
+        });
+
+        activate();
+
+        const series = sourceDataNode.state.data!.series;
+        expect(transformationNode.getResolvedSystemTransformations(series).prepend).toEqual([
+          { ...transformer2config, origin: 'first', position: 'prepend' },
+          { ...annotationTransformerConfigNoTopic, origin: 'second', position: 'prepend' },
+        ]);
+
+        // value * 3 + 4
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([7, 10, 13]);
+      });
+
+      it('honours the topic of supplied transformations', () => {
+        const { transformationNode, consumer, activate } = buildSupplierScene();
+
+        // +4, annotations only
+        transformationNode.setSystemTransformations({ supplier: () => ({ append: [annotationTransformerConfig] }) });
+        activate();
+
+        const data = sceneGraph.getData(consumer).state.data;
+
+        // value * 2 from the user transformation, untouched by the annotations only entry
+        expect(data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+        expect(data?.annotations?.[0].fields[1].values).toEqual([5, 6, 7]);
+      });
+
+      it('tags a bare custom transform operator with the series topic', () => {
+        const { transformationNode, consumer, activate } = buildSupplierScene();
+
+        transformationNode.setSystemTransformations({ supplier: () => ({ append: [customTransformOperator] }) });
+        activate();
+
+        const series = sourceDataNode.state.data!.series;
+        expect(transformationNode.getResolvedSystemTransformations(series).append).toEqual([
+          { operator: customTransformOperator, topic: DataTopic.Series, origin: 'plugin', position: 'append' },
+        ]);
+
+        // value * 2 / 100
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+      });
+
+      it('keeps the passthrough fast path when every supplier resolves to nothing', () => {
+        const { transformationNode, activate } = buildSupplierScene([]);
+
+        transformationNode.setSystemTransformations({ supplier: () => ({}) });
+        activate();
+
+        // Passthrough hands the source data straight on rather than rebuilding it
+        expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+      });
+
+      it('re-runs the pipeline when the supplier is registered or removed', () => {
+        const { transformationNode, consumer, activate } = buildSupplierScene();
+
+        activate();
+
+        // value * 2
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+
+        // Nothing about the supplier reaches state, so registering it has to force the re-run itself
+        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+
+        transformationNode.setSystemTransformations({});
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      });
+
+      it('picks up a supplier that resolves differently on reprocessTransformations', () => {
+        const { transformationNode, consumer, activate } = buildSupplierScene();
+        let ready = false;
+
+        transformationNode.setSystemTransformations({
+          supplier: () => (ready ? { append: [transformer2config] } : {}),
+        });
+
+        activate();
+
+        // value * 2 - the supplier had nothing to give yet
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+
+        ready = true;
+        transformationNode.reprocessTransformations();
+
+        // value * 2 * 3, same frames but a new resolution
+        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+      });
+
+      it('degrades a throwing supplier to a no-op instead of erroring the stream', () => {
+        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const { transformationNode, consumer, activate } = buildSupplierScene();
+
+        transformationNode.setSystemTransformations({
+          supplier: () => {
+            throw new Error('no frames to my liking');
+          },
+        });
+
+        activate();
+
+        const data = sceneGraph.getData(consumer).state.data;
+
+        // value * 2 - the user transformation still runs
+        expect(data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+        expect(data?.state).not.toEqual(LoadingState.Error);
+        expect(data?.errors).toBeUndefined();
+        expect(errorSpy).toHaveBeenCalled();
+
+        errorSpy.mockRestore();
       });
     });
   });
