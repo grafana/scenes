@@ -302,10 +302,17 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    *
    * This is the single source of truth for anything that needs to know what the pipeline is running -
    * a transformations editor listing the runtime entries as read only rows, say - since supplier output
-   * never reaches state. Pass the frames the pipeline is working on (the source data's series) to share
-   * its memo instead of resolving the suppliers a second time.
+   * never reaches state.
+   *
+   * Defaults to the frames the pipeline is working on, which is what a caller asking "what is running
+   * right now" wants, and shares the pipeline's memo instead of resolving the suppliers a second time.
+   * Do not reach for this object's own `state.data.series` to fill the argument: that is pipeline output,
+   * and resolving a supplier against it asks the question the supplier exists to avoid. Pass frames
+   * explicitly only to ask about a set this transformer is not currently running.
    */
-  public getResolvedSystemTransformations(series: DataFrame[]): ResolvedSystemTransformations {
+  public getResolvedSystemTransformations(
+    series: DataFrame[] = this.getSourceData().state.data?.series ?? []
+  ): ResolvedSystemTransformations {
     const memo = this._resolvedSystem;
 
     if (memo && memo.series === series && memo.state === this.state.transformations) {

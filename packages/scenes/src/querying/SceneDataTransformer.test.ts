@@ -1531,6 +1531,43 @@ describe('SceneDataTransformer', () => {
         expect(supplierSpy).toHaveBeenCalledTimes(2);
       });
 
+      it('resolves against the source frames, sharing the pipeline memo, when called with no arguments', () => {
+        const supplierSpy = jest.fn().mockReturnValue({ append: [transformer2config] });
+        // User transformation doubles, so pipeline output and source frames are distinguishable
+        const { transformationNode, activate } = buildSupplierScene();
+
+        transformationNode.setSystemTransformations({ supplier: supplierSpy });
+        activate();
+
+        expect(transformationNode.getResolvedSystemTransformations()).toEqual({
+          prepend: [],
+          append: [{ ...transformer2config, origin: 'plugin', position: 'append' }],
+        });
+
+        // One resolution total: the default argument is the frames the pipeline already resolved against,
+        // not this object's own transformed output
+        expect(supplierSpy).toHaveBeenCalledTimes(1);
+        expect(supplierSpy.mock.calls[0][0].series[0].fields[1].values).toEqual([1, 2, 3]);
+      });
+
+      it('resolves against empty frames when the source has no data yet', () => {
+        const transformationNode = new SceneDataTransformer({ transformations: [] });
+        const consumer = new TestSceneObject({ $data: transformationNode });
+        const emptySource = new SceneDataNode();
+
+        // @ts-expect-error
+        const scene = new SceneFlexLayout({
+          $data: emptySource,
+          children: [new SceneFlexItem({ body: consumer })],
+        });
+
+        const supplierSpy = jest.fn().mockReturnValue({});
+        transformationNode.setSystemTransformations({ supplier: supplierSpy });
+
+        expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+        expect(supplierSpy).toHaveBeenCalledWith({ series: [] });
+      });
+
       it('merges supplied transformations with the concrete ones for the same origin', () => {
         const { transformationNode, consumer, activate } = buildSupplierScene();
 
