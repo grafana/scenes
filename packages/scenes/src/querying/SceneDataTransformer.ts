@@ -68,6 +68,13 @@ interface SystemTransformationGroup {
   append: SystemTransformation[];
 }
 
+/**
+ * Stands in for the source frames before the first query result. Shared rather than allocated per call so
+ * that repeated no-argument getResolvedSystemTransformations reads keep hitting the memo, which compares
+ * frames by identity - a fresh [] each time would miss and re-run every supplier.
+ */
+const NO_SERIES: DataFrame[] = [];
+
 export interface SceneDataTransformerState extends SceneDataState {
   /**
    * Array of standard transformation configs and custom transform operators.
@@ -311,7 +318,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    * explicitly only to ask about a set this transformer is not currently running.
    */
   public getResolvedSystemTransformations(
-    series: DataFrame[] = this.getSourceData().state.data?.series ?? []
+    series: DataFrame[] = this.getSourceData().state.data?.series ?? NO_SERIES
   ): ResolvedSystemTransformations {
     const memo = this._resolvedSystem;
 

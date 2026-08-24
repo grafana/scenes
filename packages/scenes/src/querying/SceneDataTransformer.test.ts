@@ -1551,14 +1551,11 @@ describe('SceneDataTransformer', () => {
       });
 
       it('resolves against empty frames when the source has no data yet', () => {
-        const transformationNode = new SceneDataTransformer({ transformations: [] });
-        const consumer = new TestSceneObject({ $data: transformationNode });
-        const emptySource = new SceneDataNode();
-
-        // @ts-expect-error
-        const scene = new SceneFlexLayout({
-          $data: emptySource,
-          children: [new SceneFlexItem({ body: consumer })],
+        // A query runner has no data in state until it has run, which is the load time case an editor
+        // reading the resolution would hit
+        const transformationNode = new SceneDataTransformer({
+          transformations: [],
+          $data: new SceneQueryRunner({ queries: [{ refId: 'A' }] }),
         });
 
         const supplierSpy = jest.fn().mockReturnValue({});
@@ -1566,6 +1563,11 @@ describe('SceneDataTransformer', () => {
 
         expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
         expect(supplierSpy).toHaveBeenCalledWith({ series: [] });
+
+        // Repeated reads must still hit the memo, which they cannot if the empty default allocates a fresh
+        // array on every call
+        transformationNode.getResolvedSystemTransformations();
+        expect(supplierSpy).toHaveBeenCalledTimes(1);
       });
 
       it('merges supplied transformations with the concrete ones for the same origin', () => {
