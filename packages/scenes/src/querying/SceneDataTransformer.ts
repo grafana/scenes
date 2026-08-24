@@ -611,6 +611,12 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     const transformations = data ? this._effectiveTransformations(data.series) : [];
 
     if (transformations.length === 0 || !data) {
+      // Transformations are asynchronous, so a pass started when there were some is likely still running.
+      // Left subscribed it would complete after this and overwrite the passthrough with stale frames. Not
+      // hoisted above the haveAlreadyTransformedData return below: there the data is unchanged, so letting
+      // the in-flight pass finish is what we want.
+      this._transformSub?.unsubscribe();
+
       this._prevDataFromSource = data;
       this.setState({ data });
 

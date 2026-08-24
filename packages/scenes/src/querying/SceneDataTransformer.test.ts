@@ -1,4 +1,4 @@
-import { map, of } from 'rxjs';
+import { map, of, Subject, switchMap } from 'rxjs';
 
 import {
   getDefaultTimeRange,
@@ -848,6 +848,109 @@ describe('SceneDataTransformer', () => {
 
       expect(customTransformerSpy).toHaveBeenCalledTimes(1);
       expect(results).toHaveLength(1);
+    });
+  });
+
+  describe('when the pipeline becomes empty while a pass is in flight', () => {
+    // Passes the test decides when to finish. Transformations are asynchronous in general - a custom
+    // operator can emit whenever it likes, and newer @grafana/data resolves standard transformations
+    // through a dynamic import - so a pass can still be running when the next one starts.
+    function heldPasses() {
+      const gates: Array<Subject<DataFrame[]>> = [];
+
+      const operator: CustomTransformOperator = () => (source) =>
+        source.pipe(
+          switchMap(() => {
+            const gate = new Subject<DataFrame[]>();
+            gates.push(gate);
+            return gate;
+          })
+        );
+
+      // Finishes the oldest pass still waiting, emitting the given frames as its result
+      const finish = (series: DataFrame[]) => {
+        const gate = gates.shift()!;
+        gate.next(series);
+        gate.complete();
+      };
+
+      return { operator, finish };
+    }
+
+    it('abandons it when the last user transformation is removed', () => {
+      const { operator, finish } = heldPasses();
+
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [operator],
+      });
+
+      transformationNode.activate();
+
+      // Still running, so nothing has been emitted yet
+      expect(transformationNode.state.data).toBeUndefined();
+
+      transformationNode.setUserTransformations([]);
+
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+
+      finish([toDataFrame([[100, 999]])]);
+
+      // The abandoned pass must not overwrite the passthrough with its stale frames
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+    });
+
+    it('abandons it when a supplier stops contributing', () => {
+      const { operator, finish } = heldPasses();
+      let contributes = true;
+
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [],
+      });
+
+      transformationNode.setSystemTransformations({
+        supplier: () => (contributes ? { append: [operator] } : {}),
+      });
+
+      transformationNode.activate();
+
+      expect(transformationNode.state.data).toBeUndefined();
+
+      // Switching to a plugin that registers nothing is exactly this transition
+      contributes = false;
+      transformationNode.reprocessTransformations();
+
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+
+      finish([toDataFrame([[100, 999]])]);
+
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+    });
+
+    it('leaves it running when a source state change repeats data already transformed', () => {
+      const { operator, finish } = heldPasses();
+
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [operator],
+      });
+
+      transformationNode.activate();
+      finish([toDataFrame([[100, 7]])]);
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([7]);
+
+      // A forced pass, mid flight
+      transformationNode.reprocessTransformations();
+
+      // Any source state change re-runs transform with the same data, which returns early because it has
+      // already been transformed. Cancelling the forced pass there would silently drop it.
+      sourceDataNode.setState({ data: sourceDataNode.state.data });
+
+      finish([toDataFrame([[100, 8]])]);
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([8]);
     });
   });
 
