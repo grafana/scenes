@@ -2303,7 +2303,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
       });
 
-      it('emits error when secondary reports an error', async () => {
+      it('surfaces a secondary error without failing the panel', async () => {
         const primarySubject = new Subject<PanelData>();
         const secondarySubject = new Subject<PanelData>();
         runRequestMock.mockImplementationOnce(() => primarySubject).mockImplementationOnce(() => secondarySubject);
@@ -2327,9 +2327,9 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         secondarySubject.complete();
         await tick();
 
-        // The merged state is taken from the primary, so the secondary error is masked,
-        // but its series are still merged in.
-        expect(queryRunner.state.data?.state).toBe(LoadingState.Error);
+        // The merged state follows the primary, so the secondary error does not fail the panel,
+        // but its series are still merged in and the error is still reported.
+        expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
         expect(queryRunner.state.data?.series.map((s) => s.refId)).toEqual(['A', 'secCtrl']);
         expect(queryRunner.state.data?.errors ?? []).toEqual([{ message: 'secondary boom' }]);
       });
@@ -2622,6 +2622,66 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
     });
 
+    it('renders primary results while the secondary query is still in flight', async () => {
+      const { primarySubject, secondarySubject } = mockPrimaryAndSecondaryStreams();
+
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }] });
+      const provider = new TestExtraQueryProvider({ foo: 1 }, true);
+      const scene = new EmbeddedScene({
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        controls: [provider],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      scene.activate();
+      await tick();
+
+      expect(queryRunner.isDataReadyToDisplay()).toBe(false);
+
+      // The primary resolving is enough to paint the panel, even though the merged state stays
+      // Loading (so the panel keeps its loading bar) until the secondary settles.
+      primarySubject.next({ state: LoadingState.Done, series: [toDataFrame({ refId: 'A', fields: [] })] });
+      secondarySubject.next({ state: LoadingState.Loading });
+      await tick();
+
+      expect(queryRunner.isDataReadyToDisplay()).toBe(true);
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Loading);
+      expect(queryRunner.state.data?.series.map((s) => s.refId)).toEqual(['A']);
+
+      // The secondary series join the primary's once it lands.
+      secondarySubject.next({ state: LoadingState.Done, series: [toDataFrame({ refId: 'B', fields: [] })] });
+      await tick();
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
+      expect(queryRunner.state.data?.series.map((s) => s.refId)).toEqual(['A', 'B']);
+    });
+
+    it('does not render before the primary resolves when the secondary finishes first', async () => {
+      const { primarySubject, secondarySubject } = mockPrimaryAndSecondaryStreams();
+
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }] });
+      const provider = new TestExtraQueryProvider({ foo: 1 }, true);
+      const scene = new EmbeddedScene({
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        controls: [provider],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      scene.activate();
+      await tick();
+
+      // Secondary results are meaningless on their own - a time shifted frame can only be aligned
+      // against the primary frame - so a fast secondary must not paint the panel.
+      secondarySubject.next({ state: LoadingState.Done, series: [toDataFrame({ refId: 'B', fields: [] })] });
+      primarySubject.next({ state: LoadingState.Loading });
+      await tick();
+
+      expect(queryRunner.isDataReadyToDisplay()).toBe(false);
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Loading);
+    });
+
     it('emits errors when the secondary query fails', async () => {
       const { primarySubject, secondarySubject } = mockPrimaryAndSecondaryStreams();
 
@@ -2637,12 +2697,39 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       scene.activate();
       await tick();
 
-      primarySubject.next({ state: LoadingState.Done });
+      primarySubject.next({ state: LoadingState.Done, series: [toDataFrame({ refId: 'A', fields: [] })] });
       secondarySubject.next({ state: LoadingState.Error, errors: [{ message: 'secondary failed' }] });
       await tick();
 
-      expect(queryRunner.state.data?.state).toBe(LoadingState.Error);
+      // The error is surfaced, but the panel keeps rendering the primary results rather than
+      // going blank because of a failure in an extra query.
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Done);
       expect(queryRunner.state.data?.errors).toEqual([{ message: 'secondary failed' }]);
+      expect(queryRunner.isDataReadyToDisplay()).toBe(true);
+      expect(queryRunner.state.data?.series.map((s) => s.refId)).toEqual(['A']);
+    });
+
+    it('keeps the panel in an error state when the primary query fails', async () => {
+      const { primarySubject, secondarySubject } = mockPrimaryAndSecondaryStreams();
+
+      const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A' }] });
+      const provider = new TestExtraQueryProvider({ foo: 1 }, true);
+      const scene = new EmbeddedScene({
+        $timeRange: new SceneTimeRange(),
+        $data: queryRunner,
+        controls: [provider],
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      scene.activate();
+      await tick();
+
+      primarySubject.next({ state: LoadingState.Error, errors: [{ message: 'primary failed' }] });
+      secondarySubject.next({ state: LoadingState.Done });
+      await tick();
+
+      expect(queryRunner.state.data?.state).toBe(LoadingState.Error);
+      expect(queryRunner.state.data?.errors).toContainEqual({ message: 'primary failed' });
     });
 
     it('applies requestId suffix when the primary re-emits', async () => {

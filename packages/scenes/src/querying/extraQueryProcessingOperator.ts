@@ -6,15 +6,18 @@ import { ExtraQueryDataProcessor } from './ExtraQueryProvider';
 export const passthroughProcessor: ExtraQueryDataProcessor = (_, secondary) => of(secondary);
 
 /**
- * Combines loading responseState across multiple responses
- * If any response contains an error => Error
- * Otherwise, if any response is loading => Loading
- * Otherwise, if any response is streaming => Streaming
- * otherwise return the first/primary response state
+ * Combines loading state across the primary response and any secondary (extra query) responses.
+ *
+ * If primary response is error => Error
+ * Else if any response is loading => Loading
+ * Else if any response is streaming => Streaming
+ * Else => primary state
  * @param responseState
  */
 export function combineLoadingStates(responseState: LoadingState[]): LoadingState {
-  if (responseState.some((s) => s === LoadingState.Error)) {
+  const primaryState = responseState[0] ?? LoadingState.Done;
+
+  if (primaryState === LoadingState.Error) {
     return LoadingState.Error;
   }
   if (responseState.some((s) => s === LoadingState.Loading)) {
@@ -23,8 +26,7 @@ export function combineLoadingStates(responseState: LoadingState[]): LoadingStat
   if (responseState.some((s) => s === LoadingState.Streaming)) {
     return LoadingState.Streaming;
   }
-  // If nothing is Error, Loading, or Streaming, return the LoadingState of the primary (zero index) response.
-  return responseState[0] ?? LoadingState.Done;
+  return primaryState;
 }
 
 /**
@@ -57,10 +59,15 @@ export const extraQueryProcessingOperator =
       map(([processedPrimary, ...processedSecondaries]) => {
         const allResponses = [processedPrimary, ...processedSecondaries];
         const allResponseErrors = allResponses.flatMap((d) => d.errors ?? []);
+        // Hold secondary series until primary is no longer loading:
+        // A time shifted frame rendered alone currently breaks the panel and shows the unwanted "Data outside time range" message.
+        // Annotations are deliberately not held back: no processor time shifts a secondary's annotations
+        const secondarySeries =
+          processedPrimary.state === LoadingState.Loading ? [] : processedSecondaries.flatMap((s) => s.series);
         return {
           ...processedPrimary,
           state: combineLoadingStates(allResponses.map((d) => d.state)),
-          series: [...processedPrimary.series, ...processedSecondaries.flatMap((s) => s.series)],
+          series: [...processedPrimary.series, ...secondarySeries],
           annotations: [
             ...(processedPrimary.annotations ?? []),
             ...processedSecondaries.flatMap((s) => s.annotations ?? []),
