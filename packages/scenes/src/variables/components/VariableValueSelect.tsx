@@ -130,17 +130,14 @@ export function VariableValueSelectMulti({
     allowCustomValue = true,
   } = state;
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
-  // To not trigger queries on every selection we hold the in-flight selection locally and only commit
-  // it to the variable onBlur. `undefined` means nothing is in flight, and then the variable is the
-  // only source of truth: it is free to reject or rewrite what we commit (an empty selection falls
-  // back to the default, for example) without having to tell us about it.
+  // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState<VariableValueSingle[] | undefined>(undefined);
   const [inputValue, setInputValue] = useState('');
 
   const selectedValue = uncommittedValue ?? arrayValue;
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
-  // A value change from outside this picker wins over whatever is in flight here
+  // Detect value changes outside
   useEffect(() => {
     setUncommittedValue(undefined);
   }, [arrayValue]);
