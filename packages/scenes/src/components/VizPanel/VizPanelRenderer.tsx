@@ -257,6 +257,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // legacy single status message.
   // @ts-expect-error onOpenInspector is added in a newer @grafana/ui version
   const showNewPanelErrorsUI = Boolean(context.onOpenInspector);
+  // The host only provides this when it wants an "Investigate errors" action offered in the
+  // status popover (e.g. gated on assistant availability); PanelChrome renders it generically.
+  // @ts-expect-error onInvestigateErrors is added in a newer @grafana/ui version
+  const onInvestigateErrors: (() => void) | undefined = context.onInvestigateErrors;
   const panelId = model.getLegacyPanelId();
   const outdatedPluginError = t(
     'grafana-scenes.components.viz-panel-renderer.outdated-plugin-error',
@@ -279,6 +283,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         // @ts-expect-error onOpenInspector is added in a newer @grafana/ui version
         context.onOpenInspector?.();
       }}
+      onInvestigateErrors={showNewPanelErrorsUI ? onInvestigateErrors : undefined}
       width={width === 0 ? undefined : width}
       // In fit-content mode the height is content-driven: leave it undefined so
       // PanelChrome flows. A min-height floor keeps the chrome filled when
