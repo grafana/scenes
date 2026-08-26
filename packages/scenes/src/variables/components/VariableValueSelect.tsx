@@ -190,6 +190,11 @@ export function VariableValueSelectMulti({
       onInputChange={onInputChange}
       onBlur={() => {
         model.changeValueTo(uncommittedValue, undefined, true);
+        // The variable can reject or rewrite the committed value (e.g. an empty selection falls back
+        // to the default). When that rewrite matches the value the variable already had, no state
+        // change is published, so re-sync the local state here or the picker stays visually empty.
+        const committed = model.state.value;
+        setUncommittedValue(isArray(committed) ? committed : [committed]);
       }}
       filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}

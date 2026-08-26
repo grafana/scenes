@@ -5,6 +5,7 @@ import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { TestScene } from '../TestScene';
 import { selectors } from '@grafana/e2e-selectors';
 import { CustomVariable } from '../variants/CustomVariable';
+import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import userEvent from '@testing-library/user-event';
 
@@ -167,5 +168,74 @@ describe('VariableValueSelect', () => {
     await userEvent.type(inputElement, 'custom value');
     const options = screen.queryAllByRole('option');
     expect(options).toHaveLength(0);
+  });
+});
+
+describe('VariableValueSelectMulti', () => {
+  function setupMultiVariable(state: Partial<MultiValueVariableState>) {
+    const model = new CustomVariable({
+      name: 'test',
+      query: 'A,B,C',
+      isMulti: true,
+      includeAll: true,
+      defaultToAll: true,
+      key: 'test-key',
+      options: [
+        { value: 'A', label: 'A' },
+        { value: 'B', label: 'B' },
+        { value: 'C', label: 'C' },
+      ],
+      ...state,
+    } as MultiValueVariableState) as unknown as MultiValueVariable<MultiValueVariableState>;
+
+    const scene = new TestScene({
+      $variables: new SceneVariableSet({
+        variables: [model],
+      }),
+    });
+
+    scene.activate();
+
+    const result = render(
+      <div>
+        <MultiOrSingleValueSelect model={model} />
+        <button data-testid="outside">outside</button>
+      </div>
+    );
+
+    return { model, ...result };
+  }
+
+  async function clearAndBlur(container: HTMLElement) {
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(container.querySelector('[aria-label="select-clear-value"]')!);
+    await userEvent.click(screen.getByTestId('outside'));
+  }
+
+  it('should fall back to the All value every time the selection is cleared', async () => {
+    const { model, container } = setupMultiVariable({ value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
+
+    // Twice, because the first clear used to be the only one that recovered
+    await clearAndBlur(container);
+    expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
+    expect(screen.getByText(ALL_VARIABLE_TEXT)).toBeInTheDocument();
+
+    await clearAndBlur(container);
+    expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
+    expect(screen.getByText(ALL_VARIABLE_TEXT)).toBeInTheDocument();
+  });
+
+  it('should fall back to the first option when the selection is cleared and includeAll is false', async () => {
+    const { model, container } = setupMultiVariable({
+      value: ['A'],
+      text: ['A'],
+      includeAll: false,
+      defaultToAll: false,
+    });
+
+    await clearAndBlur(container);
+
+    expect(model.state.value).toEqual(['A']);
+    expect(screen.getByText('A')).toBeInTheDocument();
   });
 });
