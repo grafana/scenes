@@ -1,6 +1,6 @@
 import { MultiOrSingleValueSelect } from './VariableValueSelect';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { TestScene } from '../TestScene';
 import { selectors } from '@grafana/e2e-selectors';
@@ -223,6 +223,29 @@ describe('VariableValueSelectMulti', () => {
     await clearAndBlur(container);
     expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
     expect(screen.getByText(ALL_VARIABLE_TEXT)).toBeInTheDocument();
+  });
+
+  it('should commit the selection made while the menu was open', async () => {
+    const { model } = setupMultiVariable({ value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('B'));
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual(['B']);
+  });
+
+  it('should drop an in flight selection when the value changes outside the picker', async () => {
+    const { model } = setupMultiVariable({ value: ['A'], text: ['A'] });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('B'));
+
+    act(() => model.changeValueTo(['C'], ['C']));
+
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual(['C']);
   });
 
   it('should fall back to the first option when the selection is cleared and includeAll is false', async () => {

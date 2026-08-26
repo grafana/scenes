@@ -130,15 +130,19 @@ export function VariableValueSelectMulti({
     allowCustomValue = true,
   } = state;
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
-  // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
-  const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
+  // To not trigger queries on every selection we hold the in-flight selection locally and only commit
+  // it to the variable onBlur. `undefined` means nothing is in flight, and then the variable is the
+  // only source of truth: it is free to reject or rewrite what we commit (an empty selection falls
+  // back to the default, for example) without having to tell us about it.
+  const [uncommittedValue, setUncommittedValue] = useState<VariableValueSingle[] | undefined>(undefined);
   const [inputValue, setInputValue] = useState('');
 
+  const selectedValue = uncommittedValue ?? arrayValue;
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
-  // Detect value changes outside
+  // A value change from outside this picker wins over whatever is in flight here
   useEffect(() => {
-    setUncommittedValue(arrayValue);
+    setUncommittedValue(undefined);
   }, [arrayValue]);
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
@@ -169,7 +173,7 @@ export function VariableValueSelectMulti({
       width="auto"
       inputValue={inputValue}
       disabled={isReadOnly}
-      value={uncommittedValue}
+      value={selectedValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
@@ -189,15 +193,13 @@ export function VariableValueSelectMulti({
       blurInputOnSelect={false}
       onInputChange={onInputChange}
       onBlur={() => {
-        model.changeValueTo(uncommittedValue, undefined, true);
-        // The variable can reject or rewrite the committed value (e.g. an empty selection falls back
-        // to the default). When that rewrite matches the value the variable already had, no state
-        // change is published, so re-sync the local state here or the picker stays visually empty.
-        const committed = model.state.value;
-        setUncommittedValue(isArray(committed) ? committed : [committed]);
+        if (uncommittedValue !== undefined) {
+          model.changeValueTo(uncommittedValue, undefined, true);
+        }
+        setUncommittedValue(undefined);
       }}
       filterOption={filterNoOp}
-      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}
+      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${selectedValue}`)}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([], undefined, true);
