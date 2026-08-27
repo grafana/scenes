@@ -131,14 +131,15 @@ export function VariableValueSelectMulti({
   } = state;
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
-  const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
+  const [uncommittedValue, setUncommittedValue] = useState<VariableValueSingle[] | undefined>(undefined);
   const [inputValue, setInputValue] = useState('');
 
+  const selectedValue = uncommittedValue ?? arrayValue;
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   // Detect value changes outside
   useEffect(() => {
-    setUncommittedValue(arrayValue);
+    setUncommittedValue(undefined);
   }, [arrayValue]);
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
@@ -169,7 +170,7 @@ export function VariableValueSelectMulti({
       width="auto"
       inputValue={inputValue}
       disabled={isReadOnly}
-      value={uncommittedValue}
+      value={selectedValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
@@ -189,10 +190,13 @@ export function VariableValueSelectMulti({
       blurInputOnSelect={false}
       onInputChange={onInputChange}
       onBlur={() => {
-        model.changeValueTo(uncommittedValue, undefined, true);
+        if (uncommittedValue !== undefined) {
+          model.changeValueTo(uncommittedValue, undefined, true);
+        }
+        setUncommittedValue(undefined);
       }}
       filterOption={filterNoOp}
-      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}
+      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${selectedValue}`)}
       onChange={(newValue, action) => {
         if (action.action === 'clear' && noValueOnClear) {
           model.changeValueTo([], undefined, true);
