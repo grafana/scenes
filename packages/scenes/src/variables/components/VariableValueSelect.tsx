@@ -119,16 +119,7 @@ export function VariableValueSelectMulti({
   model: MultiValueVariable;
   state: MultiValueVariableState;
 }) {
-  const {
-    value,
-    options,
-    key,
-    maxVisibleValues,
-    noValueOnClear,
-    includeAll,
-    isReadOnly,
-    allowCustomValue = true,
-  } = state;
+  const { value, options, key, maxVisibleValues, includeAll, isReadOnly, allowCustomValue = true } = state;
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState<VariableValueSingle[] | undefined>(undefined);
