@@ -238,6 +238,16 @@ describe('VariableValueSelectMulti', () => {
     }
   });
 
+  it('should fall back to the first option when the selection is cleared and defaultToAll is false', async () => {
+    const { model, container } = setupMultiVariable({ defaultToAll: false, value: ['B'], text: ['B'] });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(container.querySelector('[aria-label="select-clear-value"]')!);
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual(['A']);
+  });
+
   it('should commit the selection made while the menu was open', async () => {
     const { model } = setupMultiVariable({ value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
 
