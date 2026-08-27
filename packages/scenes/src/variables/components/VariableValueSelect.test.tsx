@@ -1,6 +1,6 @@
 import { MultiOrSingleValueSelect } from './VariableValueSelect';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { TestScene } from '../TestScene';
 import { selectors } from '@grafana/e2e-selectors';
@@ -205,6 +205,25 @@ describe('VariableValueSelectMulti', () => {
 
     return { model, ...result };
   }
+
+  function getRemoveButtonFor(label: string) {
+    return within(screen.getByText(label).parentElement!).getByRole('button', { name: 'Remove' });
+  }
+
+  it('should only fall back to the All value once the last selected option is removed', async () => {
+    const { model } = setupMultiVariable({ value: ['A', 'B'], text: ['A', 'B'] });
+
+    await userEvent.click(getRemoveButtonFor('A'));
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual(['B']);
+
+    await userEvent.click(getRemoveButtonFor('B'));
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
+    expect(screen.getByText(ALL_VARIABLE_TEXT)).toBeInTheDocument();
+  });
 
   it('should fall back to the All value every time the selection is cleared', async () => {
     const { model, container } = setupMultiVariable({ value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
