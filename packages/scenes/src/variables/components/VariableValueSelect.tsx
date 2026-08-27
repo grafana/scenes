@@ -198,8 +198,11 @@ export function VariableValueSelectMulti({
       filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${selectedValue}`)}
       onChange={(newValue, action) => {
-        if (action.action === 'clear' && noValueOnClear) {
+        if (action.action === 'clear') {
+          // Clearing does not leave the input focused, so onBlur may never fire to commit it
           model.changeValueTo([], undefined, true);
+          setUncommittedValue(undefined);
+          return;
         }
 
         setUncommittedValue(newValue.map((x) => x.value!));

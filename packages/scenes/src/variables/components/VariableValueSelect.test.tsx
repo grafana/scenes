@@ -238,6 +238,15 @@ describe('VariableValueSelectMulti', () => {
     }
   });
 
+  it('should commit the clear even when the picker was never focused', async () => {
+    const { model, container } = setupMultiVariable({ value: ['A', 'B'], text: ['A', 'B'] });
+
+    await userEvent.click(container.querySelector('[aria-label="select-clear-value"]')!);
+
+    expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
+    expect(screen.getByText(ALL_VARIABLE_TEXT)).toBeInTheDocument();
+  });
+
   it('should fall back to the first option when the selection is cleared and defaultToAll is false', async () => {
     const { model, container } = setupMultiVariable({ defaultToAll: false, value: ['B'], text: ['B'] });
 
