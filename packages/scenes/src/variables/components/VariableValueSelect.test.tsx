@@ -256,5 +256,8 @@ describe('VariableValueSelectMulti', () => {
     await userEvent.click(screen.getByTestId('outside'));
 
     expect(model.state.value).toEqual(['B']);
+    expect(
+      screen.getByTestId(selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts('B'))
+    ).toBeInTheDocument();
   });
 });
