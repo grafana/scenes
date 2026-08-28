@@ -28,7 +28,7 @@ jobs:
             repo_secrets: |
                 CROWDIN_TOKEN=grafana-frontend-crowdin-token:access_token
       - name: Upload to Crowdin
-        uses: grafana/grafana-github-actions/crowdin-upload@main
+        uses: grafana/grafana-github-actions/crowdin-upload@36cd995b957c918d9f7c83953149d2507a53c2fd # main
         with:
           crowdin_token: ${{ env.CROWDIN_TOKEN }}
           crowdin_project_id: 34
