@@ -119,16 +119,7 @@ export function VariableValueSelectMulti({
   model: MultiValueVariable;
   state: MultiValueVariableState;
 }) {
-  const {
-    value,
-    options,
-    key,
-    maxVisibleValues,
-    noValueOnClear,
-    includeAll,
-    isReadOnly,
-    allowCustomValue = true,
-  } = state;
+  const { value, options, key, maxVisibleValues, includeAll, isReadOnly, allowCustomValue = true } = state;
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState<VariableValueSingle[] | undefined>(undefined);
@@ -198,8 +189,11 @@ export function VariableValueSelectMulti({
       filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${selectedValue}`)}
       onChange={(newValue, action) => {
-        if (action.action === 'clear' && noValueOnClear) {
+        if (action.action === 'clear') {
+          // Clearing does not leave the input focused, so onBlur may never fire to commit it
           model.changeValueTo([], undefined, true);
+          setUncommittedValue(undefined);
+          return;
         }
 
         setUncommittedValue(newValue.map((x) => x.value!));
