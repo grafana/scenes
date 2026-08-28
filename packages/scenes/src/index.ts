@@ -50,7 +50,16 @@ export {
 export { SceneDataLayerSet, SceneDataLayerSetBase } from './querying/SceneDataLayerSet';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
-export { SceneDataTransformer, type SceneDataTransformerState } from './querying/SceneDataTransformer';
+export {
+  SceneDataTransformer,
+  isSystemTransformation,
+  isTransformationFrom,
+  type ResolvedSystemTransformations,
+  type SceneDataTransformerState,
+  type SceneDataTransformation,
+  type SystemTransformation,
+  type SystemTransformationsSupplier,
+} from './querying/SceneDataTransformer';
 export { registerQueryWithController } from './querying/registerQueryWithController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
 export type {

@@ -225,8 +225,39 @@ export type SceneObjectUrlValue = string | string[] | undefined | null;
 export type SceneObjectUrlValues = Record<string, SceneObjectUrlValue>;
 
 export type CustomTransformOperator = (context: DataTransformContext) => MonoTypeOperatorFunction<DataFrame[]>;
+
+/**
+ * Identifies which provider injected a transformation and may replace it. Transformations without an origin
+ * are user configured; ones with an origin are added programmatically via
+ * SceneDataTransformer.setSystemTransformations and are not meant to be persisted or edited in the
+ * transformations editor.
+ *
+ * The origin is runtime ownership only, so it never survives into a save model. A transformation promoted
+ * into the dashboard spec has to drop its origin - otherwise the next setSystemTransformations call for that
+ * origin would delete it - which is why provenance that outlives promotion needs its own persisted field.
+ *
+ * Any string is a valid origin; 'plugin' is used by convention for panel plugin transformations.
+ */
+export type TransformationOrigin = string;
+
+/**
+ * Whether a system transformation runs before ('prepend') or after ('append') the user configured
+ * transformations. Stored on the transformation because the placement can not be derived from the
+ * array position when there are no user transformations.
+ */
+export type SystemTransformationPosition = 'prepend' | 'append';
+
 export type CustomTransformerDefinition =
-  | { operator: CustomTransformOperator; topic: DataTopic }
+  | {
+      operator: CustomTransformOperator;
+      topic: DataTopic;
+      /**
+       * Stable identity for the operator. Operators are functions and so compare by reference, which makes
+       * one that is rebuilt inline on every call look like a change. Two entries carrying the same key are
+       * treated as the same operator regardless of reference - change the key when the behavior changes.
+       */
+      key?: string;
+    }
   | CustomTransformOperator;
 export type SceneStateChangedHandler<TState> = (newState: TState, prevState: TState) => void;
 

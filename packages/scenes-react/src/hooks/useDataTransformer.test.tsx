@@ -4,6 +4,7 @@ import { renderHook } from '@testing-library/react';
 import { useQueryRunner } from './useQueryRunner';
 import { useDataTransformer } from './useDataTransformer';
 import { map, of } from 'rxjs';
+import { isSystemTransformation } from '@grafana/scenes';
 
 export const getDataSourceMock = jest.fn().mockReturnValue({
   uid: 'test-uid',
@@ -100,5 +101,45 @@ describe('useDataTransformer', () => {
 
     await new Promise((r) => setTimeout(r, 1));
     expect(dataTransformer.state.data?.series[0].fields[1].values).toEqual([200, 400, 600]);
+  });
+
+  it('Should preserve system transformations across re-renders', async () => {
+    const { wrapper } = getHookContextWrapper({});
+
+    const { result: queryRunnerResult } = renderHook(useQueryRunner, {
+      wrapper,
+      initialProps: {
+        queries: [{ uid: 'gdev-testdata', refId: 'first', scenarioId: 'random_walk' }],
+        maxDataPoints: 20,
+      },
+    });
+
+    const queryRunner = queryRunnerResult.current;
+
+    const { rerender, result: dataTransformerResult } = renderHook(useDataTransformer, {
+      wrapper,
+      initialProps: {
+        transformations: [{ id: 'transformer1', options: { multiplier: 1.5 } }],
+        data: queryRunner,
+      },
+    });
+    const dataTransformer = dataTransformerResult.current;
+    await new Promise((r) => setTimeout(r, 1));
+
+    dataTransformer.setSystemTransformations({ append: [{ id: 'transformer1', options: { multiplier: 2 } }] });
+    await new Promise((r) => setTimeout(r, 1));
+
+    // value * 1.5 * 2
+    expect(dataTransformer.state.data?.series[0].fields[1].values).toEqual([300, 600, 900]);
+
+    // Re-render with an equal but newly created array, as an inline array literal produces on every render
+    rerender({
+      transformations: [{ id: 'transformer1', options: { multiplier: 1.5 } }],
+      data: queryRunner,
+    });
+    await new Promise((r) => setTimeout(r, 1));
+
+    expect(dataTransformer.state.transformations.filter(isSystemTransformation)).toHaveLength(1);
+    expect(dataTransformer.state.data?.series[0].fields[1].values).toEqual([300, 600, 900]);
   });
 });
