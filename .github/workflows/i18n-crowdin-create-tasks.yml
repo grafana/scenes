@@ -22,7 +22,7 @@ jobs:
             repo_secrets: |
                 CROWDIN_TOKEN=grafana-frontend-crowdin-token:access_token
       - name: Create tasks in Crowdin
-        uses: grafana/grafana-github-actions/crowdin-create-tasks@main
+        uses: grafana/grafana-github-actions/crowdin-create-tasks@36cd995b957c918d9f7c83953149d2507a53c2fd # main
         with:
           crowdin_token: ${{ env.CROWDIN_TOKEN }}
           crowdin_project_id: 34
