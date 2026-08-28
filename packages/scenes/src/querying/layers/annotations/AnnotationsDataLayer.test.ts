@@ -22,7 +22,7 @@ import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithR
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 import { config, RefreshEvent } from '@grafana/runtime';
 import { ScopesVariable } from '../../../variables/variants/ScopesVariable';
-import { act } from 'react-dom/test-utils';
+import { act } from '@testing-library/react';
 import { AdHocFiltersVariable } from '../../../variables/adhoc/AdHocFiltersVariable';
 import { GroupByVariable } from '../../../variables/groupby/GroupByVariable';
 import { allActiveGroupByVariables } from '../../../variables/groupby/findActiveGroupByVariablesByUid';
@@ -489,9 +489,6 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
           metadata: { name: `Scope 1` },
           spec: {
             title: `Scope 1`,
-            type: 'test',
-            description: 'Test scope',
-            category: 'test',
             filters: [],
           },
         },
@@ -758,9 +755,6 @@ function newScopesVariableFromScopeFilters(filters: ScopeSpecFilter[]) {
       metadata: { name: `Scope 1` },
       spec: {
         title: `Scope 1`,
-        type: 'test',
-        description: 'Test scope',
-        category: 'test',
         filters,
       },
     },

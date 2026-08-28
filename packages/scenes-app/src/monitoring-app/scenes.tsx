@@ -17,7 +17,13 @@ import {
   SceneFlexItem,
   PanelBuilders,
 } from '@grafana/scenes';
-import { BigValueGraphMode, BigValueTextMode, LogsDedupStrategy, LogsSortOrder } from '@grafana/schema';
+import {
+  BigValueGraphMode,
+  BigValueTextMode,
+  LogsDedupStrategy,
+  LogsSortOrder,
+  TableFieldOptions,
+} from '@grafana/schema';
 import { LinkButton } from '@grafana/ui';
 
 import { SceneRadioToggle } from './SceneRadioToggle';
@@ -52,15 +58,13 @@ export function getHttpHandlerListScene(): EmbeddedScene {
   const httpHandlersTable = PanelBuilders.table()
     .setTitle('Handlers')
     .setData(httpHandlerQueriesFiltered)
-    .setOption('footer', {
-      enablePagination: true,
-    })
+    .setOption('enablePagination', true)
     .setOverrides((b) =>
       b
         .matchFieldsWithNameByRegex('.*')
         .overrideFilterable(false)
         .matchFieldsWithName('Time')
-        .overrideCustomFieldConfig('hidden', true)
+        .overrideCustomFieldConfig('hideFrom.viz' as keyof TableFieldOptions, true)
         .matchFieldsWithName('Value')
         .overrideDisplayName('Duration (Avg)')
         .matchFieldsWithName('handler')

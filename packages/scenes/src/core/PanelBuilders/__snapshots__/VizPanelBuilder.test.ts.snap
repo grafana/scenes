@@ -62,11 +62,20 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 
 exports[`VizPanelBuilder options and field config standard panels defaults provides gauge defaults 1`] = `
 {
+  "barShape": "flat",
+  "barWidthFactor": 0.5,
+  "effects": {},
+  "endpointMarker": "point",
   "minVizHeight": 75,
   "minVizWidth": 75,
+  "segmentCount": 1,
+  "segmentSpacing": 0.3,
+  "shape": "gauge",
   "showThresholdLabels": false,
   "showThresholdMarkers": true,
   "sizing": "auto",
+  "sparkline": true,
+  "textMode": "auto",
 }
 `;
 
@@ -270,20 +279,7 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 }
 `;
 
-exports[`VizPanelBuilder options and field config standard panels defaults provides table defaults 1`] = `
-{
-  "cellHeight": "sm",
-  "footer": {
-    "countRows": false,
-    "reducer": [],
-    "show": false,
-  },
-  "frameIndex": 0,
-  "showHeader": true,
-  "showTypeIcons": false,
-  "sortBy": [],
-}
-`;
+exports[`VizPanelBuilder options and field config standard panels defaults provides table defaults 1`] = `{}`;
 
 exports[`VizPanelBuilder options and field config standard panels defaults provides table defaults 2`] = `
 {

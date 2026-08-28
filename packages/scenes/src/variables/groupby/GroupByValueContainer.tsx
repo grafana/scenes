@@ -6,7 +6,7 @@ import { cx } from '@emotion/css';
 import { getNonApplicablePillStyles } from '../utils';
 
 export interface GroupByContainerProps {
-  innerProps: JSX.IntrinsicElements['div'];
+  innerProps: React.JSX.IntrinsicElements['div'];
   keysApplicability?: DrilldownsApplicability[];
 }
 
@@ -22,7 +22,7 @@ export const GroupByValueContainer = ({
   const firstChild = React.Children.toArray(children)[0];
   let isApplicable = true;
 
-  if (React.isValidElement(firstChild) && firstChild.props?.data?.value) {
+  if (React.isValidElement<{ data?: { value?: string } }>(firstChild) && firstChild.props?.data?.value) {
     const value = firstChild.props.data.value;
     const applicability = keysApplicability?.find((item) => item.key === value);
 
