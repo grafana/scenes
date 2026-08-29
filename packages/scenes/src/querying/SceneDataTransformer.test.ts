@@ -242,6 +242,41 @@ describe('SceneDataTransformer', () => {
     annotationTransformerSpy.mockClear();
   });
 
+  it('preserves undefined annotations when source data has no annotations', () => {
+    const transformationNode = new SceneDataTransformer({
+      transformations: [transformer1config],
+    });
+
+    const sourceDataWithoutAnnotations = new SceneDataNode({
+      data: {
+        state: LoadingState.Done,
+        timeRange: getDefaultTimeRange(),
+        series: [
+          toDataFrame([
+            [100, 1],
+            [200, 2],
+          ]),
+        ],
+      },
+    });
+
+    const consumer = new TestSceneObject({
+      $data: transformationNode,
+    });
+
+    // @ts-expect-error
+    const scene = new SceneFlexLayout({
+      $data: sourceDataWithoutAnnotations,
+      children: [new SceneFlexItem({ body: consumer })],
+    });
+
+    sourceDataWithoutAnnotations.activate();
+    transformationNode.activate();
+
+    const data = sceneGraph.getData(consumer).state.data;
+    expect(data?.annotations).toBeUndefined();
+  });
+
   it('applies transformations to closest data node', () => {
     const transformationNode = new SceneDataTransformer({
       transformations: [transformer1config, transformer2config, annotationTransformerConfig],
