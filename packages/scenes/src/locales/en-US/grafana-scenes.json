@@ -162,6 +162,9 @@
       "interval-variable": {
         "placeholder-select-value": "Select value"
       },
+      "key-label-hint-placeholder": {
+        "press-enter-to-continue": "Optional display name - press Enter to continue"
+      },
       "loading-options-placeholder": {
         "loading-options": "Loading options..."
       },
