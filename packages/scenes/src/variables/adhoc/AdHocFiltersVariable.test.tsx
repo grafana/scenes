@@ -1173,6 +1173,25 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
     });
   });
 
+  it('drops the dismissed-groupBy URL marker instead of surfacing it as a normal filter', () => {
+    // this dashboard has no matching groupBy default either
+    const { filtersVar } = setup();
+
+    // the previous dashboard serialized "default groupBy was dismissed, but restorable"
+    // as this key-less marker (see AdHocFiltersVariableUrlSyncHandler#getUrlState), which
+    // survives navigation to this unrelated dashboard via the shared var-filters URL param
+    const urlValues = {
+      'var-filters': ['|groupBy#dashboard#restorable'],
+    };
+
+    act(() => {
+      locationService.partial(urlValues);
+    });
+
+    expect(filtersVar.state.filters).toEqual([]);
+    expect(filtersVar.state.originFilters).toEqual([]);
+  });
+
   it('url updates origin filters properly', async () => {
     const scopesVariable = newScopesVariableFromScopeFilters([
       {
