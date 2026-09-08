@@ -911,6 +911,48 @@ describe('VizPanel', () => {
         expect(panelProps?.timeRange.from.toISOString()).toEqual('2022-01-01T00:00:00.000Z');
         expect(panelProps?.data.timeRange.from.toISOString()).toEqual('2022-01-01T00:00:00.000Z');
       });
+
+      it('Should not throw when previous field values are frozen', async () => {
+        const frozenA = Object.freeze(['A', 'B', 'C']);
+        const frozenB = Object.freeze(['A', 'B', 'C']);
+        const data = new SceneDataNode({
+          data: {
+            ...getTestData(),
+            series: [
+              toDataFrame({
+                fields: [
+                  { name: 'A', type: FieldType.string, values: frozenA },
+                  { name: 'B', type: FieldType.string, values: frozenB },
+                ],
+              }),
+            ],
+          },
+        });
+        panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+          pluginId: 'custom-plugin-id',
+          $timeRange: new SceneTimeRange(),
+          $data: data,
+        });
+
+        pluginToLoad = getTestPlugin1();
+
+        render(<panel.Component model={panel} />);
+
+        expect(await screen.findByText('My custom panel')).toBeInTheDocument();
+
+        act(() => {
+          data.setState({
+            data: {
+              ...data.state.data,
+              series: getTestData().series,
+            },
+          });
+        });
+
+        expect(await screen.findByText('My custom panel')).toBeInTheDocument();
+        expect(frozenA.length).toBe(3);
+        expect(frozenB.length).toBe(3);
+      });
     });
 
     describe('Non data plugin', () => {
