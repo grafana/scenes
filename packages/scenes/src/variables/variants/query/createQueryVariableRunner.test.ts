@@ -1,6 +1,7 @@
 import { lastValueFrom } from 'rxjs';
 
 import { DataSourceApi, MetricFindValue } from '@grafana/data';
+import { waitFor } from '@testing-library/react';
 
 import { EmbeddedScene } from '../../../components/EmbeddedScene';
 import { SceneCanvasText } from '../../../components/SceneCanvasText';
@@ -129,9 +130,11 @@ describe('LegacyQueryRunner', () => {
   it('interpolates through the global scene context when the datasource ignores scopedVars', async () => {
     const { scene, queryVariable } = buildScene('prod', 'hosts');
 
+    // Activation runs the query on its own, so nothing else may trigger a refresh here: the
+    // assertion below pins the exact calls the datasource saw.
     activateFullSceneTree(scene);
 
-    await lastValueFrom(queryVariable.validateAndUpdate());
+    await waitFor(() => expect(queryVariable.state.options).toEqual([{ label: 'prod.*', value: 'prod.*' }]));
 
     expect(metricFindQueryCalls).toEqual([{ variableName: 'hosts', interpolated: 'prod.*' }]);
   });
