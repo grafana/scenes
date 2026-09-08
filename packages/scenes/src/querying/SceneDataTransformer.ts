@@ -167,13 +167,11 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   public getResolvedSystemTransformations(series?: DataFrame[]): ResolvedSystemTransformations {
     const provider = this._provider;
 
-    // Answered before reaching for the source data so that a transformer with neither `$data` nor a
-    // system provider parent to walk returns a stable response.
     if (!provider) {
       return NO_SYSTEM_TRANSFORMATIONS;
     }
 
-    const frames = series ?? this.getSourceData().state.data?.series ?? NO_SERIES;
+    const frames = series ?? this._sourceSeriesOrNone();
     const memo = this._resolvedSystem;
 
     if (memo && memo.series === frames) {
@@ -190,6 +188,20 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     this._resolvedSystem = { series: frames, resolved };
 
     return resolved;
+  }
+
+  /**
+   * The source frames to resolve a provider against when the caller did not supply their own.
+   *
+   * Mirrors getSourceData's precondition: reading what is running must not throw for a transformer that is not wired.
+   * Since every VizPanel is a provider, a panel without `$data` would throw.
+   */
+  private _sourceSeriesOrNone(): DataFrame[] {
+    if (!this.state.$data && !this.parent?.parent) {
+      return NO_SERIES;
+    }
+
+    return this.getSourceData().state.data?.series ?? NO_SERIES;
   }
 
   private _resolveProvider(

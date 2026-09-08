@@ -1371,6 +1371,32 @@ describe('SceneDataTransformer', () => {
       expect(detached.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
     });
 
+    it('answers rather than throwing once its provider parent leaves the layout', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const transformationNode = new SceneDataTransformer({ transformations: [] });
+
+      provider.setState({ child: transformationNode });
+
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: provider })],
+      });
+
+      activateFullSceneTree(scene);
+
+      // The provider is kept across deactivation so editors can read a panel that is not rendering, and a
+      // panel removed from the layout is exactly that. It takes the walkable source data with it, leaving
+      // this transformer with neither `$data` nor a grandparent - what getSourceData throws on.
+      provider.clearParent();
+
+      expect(() => transformationNode.getResolvedSystemTransformations()).not.toThrow();
+      // Resolved against no frames rather than refusing to answer
+      expect(provider.calls[provider.calls.length - 1]).toEqual([]);
+      expect(transformationNode.getResolvedSystemTransformations().append).toEqual([
+        { ...transformer2config, origin: 'plugin', position: 'append' },
+      ]);
+    });
+
     it('resolves against empty frames when the source has no data yet', () => {
       const provider = new TestProvider({});
       const emptySource = new SceneDataNode({ data: undefined });
