@@ -363,7 +363,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   /**
    * @internal
    * SystemTransformationsProvider. Identifies this panel's tier in its data pipeline; not for app code.
-   * @todo review: but the method is still public, so what good is marking it internal?
    */
   public origin: TransformationOrigin = 'plugin';
 
@@ -375,7 +374,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   /**
    * @internal
    * Called by the SceneDataTransformer that discovered this panel with the frames about to enter the pipeline.
-   * @todo review: but the method is still public, so what good is marking it internal?
    */
   public getSystemTransformations(
     _transformer: SceneDataTransformer,
@@ -396,7 +394,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
   /**
    * @internal
    * The plugin resolves asynchronously, so the pipeline is told to reprocess whenever the plugin changes.
-   * @todo review: but the method is still public, so what good is marking it internal?
    */
   public subscribeToSystemTransformationsChanged(
     transformer: SceneDataTransformer,
@@ -872,7 +869,7 @@ function getPluginSystemTransformations(
   prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
   append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
 } {
-  // @todo remove type assertion
+  // @todo remove type assertion after scenes builds against updated PanelPlugin in Grafana 13
   const resolve = (plugin as Partial<PluginWithSystemTransformations>).getSystemTransformations;
 
   if (typeof resolve !== 'function') {
