@@ -27,7 +27,7 @@ import { subscribeToStateUpdates } from '../../utils/test/utils';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TextBoxVariable } from '../variables/variants/TextBoxVariable';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
-import { SystemTransformationsProvider } from './SystemTransformationProvider';
+import { SystemTransformationsProvider } from './systemTransformations/systemTransformationTypes';
 
 class TestSceneObject extends SceneObjectBase<{}> {}
 
@@ -1342,6 +1342,53 @@ describe('SceneDataTransformer', () => {
       expect(inner.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
       // *3 applied once by the outer transformer, not once per transformer
       expect(outer.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('drops a provider discovered on a previous parent when it re-activates elsewhere', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      provider.setState({ child: transformationNode });
+
+      sourceDataNode.activate();
+      const deactivate = transformationNode.activate();
+
+      expect(transformationNode.getResolvedSystemTransformations().append).toHaveLength(1);
+
+      deactivate();
+
+      // Re-parented under something that contributes nothing - clearParent first, which is how scenes
+      // sanctions a move (VizPanel._pluginLoaded does exactly this when it rewraps a query runner). The
+      // provider is kept across deactivation, so without re-deriving it on activation this would keep
+      // consulting the panel it has left.
+      transformationNode.clearParent();
+
+      const plainParent = new TestSceneObject({ $data: transformationNode });
+      transformationNode.activate();
+
+      expect(plainParent).toBeDefined();
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
+    });
+
+    it('hands out a frozen result so readers cannot corrupt each other', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      const resolved = transformationNode.getResolvedSystemTransformations();
+
+      // Shared with the pipeline for the whole pass, and the no-provider answer below is a module
+      // singleton shared by every transformer in the app
+      expect(Object.isFrozen(resolved)).toBe(true);
+      expect(Object.isFrozen(resolved.prepend)).toBe(true);
+      expect(Object.isFrozen(resolved.append)).toBe(true);
+
+      const none = new SceneDataTransformer({ transformations: [] }).getResolvedSystemTransformations();
+
+      expect(Object.isFrozen(none)).toBe(true);
+      expect(Object.isFrozen(none.append)).toBe(true);
     });
 
     it('ignores a parent that is not a provider', () => {

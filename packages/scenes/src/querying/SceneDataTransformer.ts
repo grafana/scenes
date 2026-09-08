@@ -22,6 +22,7 @@ import {
   SystemTransformationsProvider,
 } from './systemTransformations/systemTransformationTypes';
 import {
+  freezeResolved,
   isSystemTransformationsProvider,
   toSystemTransformation,
 } from './systemTransformations/systemTransformationProvider';
@@ -50,7 +51,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   /**
    * The provider found on the parent. Kept across deactivation rather than cleared with the subscription:
    * the transformations editor reads getResolvedSystemTransformations for panels that are not currently
-   * rendering, and re-discovering on the next activation would be too late.
+   * rendering, and re-discovering on the next activation would be too late. Re-derived from the parent on
+   * every activation, so it does not survive a move to a tree whose parent contributes nothing.
    */
   private _provider?: SystemTransformationsProvider;
   /**
@@ -107,6 +109,11 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     const provider = this.parent;
 
     if (!isSystemTransformationsProvider(provider)) {
+      // This only ever runs from the activation handler, where the parent is already final, so a parent
+      // that is not a provider means anything discovered on a previous activation belongs to a tree this
+      // transformer is no longer part of.
+      this._provider = undefined;
+      this._resolvedSystem = undefined;
       return;
     }
 
@@ -180,10 +187,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     const { prepend = [], append = [] } = this._resolveProvider(provider, frames);
 
-    const resolved: ResolvedSystemTransformations = {
+    const resolved = freezeResolved({
       prepend: prepend.map((t) => toSystemTransformation(t, 'prepend', provider.origin)),
       append: append.map((t) => toSystemTransformation(t, 'append', provider.origin)),
-    };
+    });
 
     this._resolvedSystem = { series: frames, resolved };
 

@@ -1,6 +1,7 @@
 import { DataTopic, DataTransformerConfig } from '@grafana/data';
 import { CustomTransformerDefinition } from '../../core/types';
 import {
+  ResolvedSystemTransformations,
   SystemTransformation,
   SystemTransformationPosition,
   SystemTransformationsProvider,
@@ -32,4 +33,16 @@ export function toSystemTransformation(
   }
 
   return { ...transformation, origin, position };
+}
+
+/**
+ * getResolvedSystemTransformations hands the same object to the pipeline and to every editor reading what
+ * is running, and the two above are module singletons shared by every transformer. Freezing makes a caller
+ * that mutates one fail at the mutation rather than corrupting readers it never knew about.
+ */
+export function freezeResolved(resolved: ResolvedSystemTransformations): ResolvedSystemTransformations {
+  Object.freeze(resolved.prepend);
+  Object.freeze(resolved.append);
+
+  return Object.freeze(resolved);
 }
