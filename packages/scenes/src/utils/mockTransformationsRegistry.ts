@@ -16,6 +16,8 @@ export const mockTransformationsRegistry = (transformers: Array<DataTransformerI
         transformation: t,
         description: t.description,
         editor: () => null,
+        imageDark: '',
+        imageLight: '',
       };
     });
   });

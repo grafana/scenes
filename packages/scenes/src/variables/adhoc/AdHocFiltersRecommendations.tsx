@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  // @ts-expect-error (temporary till we update grafana/data)
-  DrilldownsApplicability,
-  SelectableValue,
-  store,
-} from '@grafana/data';
+import { DrilldownsApplicability, SelectableValue, store } from '@grafana/data';
 import { sceneGraph } from '../../core/sceneGraph';
 import { getEnrichedDataRequest } from '../../querying/getEnrichedDataRequest';
 import { getQueriesForVariables } from '../utils';
@@ -187,7 +182,6 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const adhoc = this._adHocFilter;
     const ds = await getDataSource(adhoc.state.datasource, this._scopedVars);
 
-    // @ts-expect-error (temporary till we update grafana/data)
     if (!ds || !ds.getRecommendedDrilldowns) {
       this.setState({ datasourceSupportsRecommendations: false });
       return;
@@ -209,7 +203,6 @@ export class AdHocFiltersRecommendations extends SceneObjectBase<AdHocFiltersRec
     const dashboardUid = enrichedRequest?.dashboardUID;
 
     try {
-      // @ts-expect-error (temporary till we update grafana/data)
       const recommendedDrilldowns = await ds.getRecommendedDrilldowns({
         timeRange,
         dashboardUid,

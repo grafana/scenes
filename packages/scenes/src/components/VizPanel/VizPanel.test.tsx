@@ -672,7 +672,6 @@ describe('VizPanel', () => {
 
       pluginToLoad = getTestPlugin1();
       pluginToLoad.onPanelMigration = onPanelMigration;
-      // @ts-expect-error
       pluginToLoad.shouldMigrate = shouldMigrate.mockReturnValue(true);
 
       await panel.activate();
@@ -690,7 +689,6 @@ describe('VizPanel', () => {
 
       pluginToLoad = getTestPlugin1();
       pluginToLoad.onPanelMigration = onPanelMigration;
-      // @ts-expect-error
       pluginToLoad.shouldMigrate = shouldMigrate.mockReturnValue(false);
 
       await panel.activate();
@@ -708,7 +706,6 @@ describe('VizPanel', () => {
 
       pluginToLoad = getTestPlugin1();
       pluginToLoad.onPanelMigration = onPanelMigration;
-      // @ts-expect-error
       pluginToLoad.shouldMigrate = shouldMigrate.mockReturnValue(false);
 
       await panel.activate();
@@ -1363,7 +1360,7 @@ function getTestData(): PanelData {
       }),
     ],
     alertState: {
-      dashboardId: 1,
+      dashboardUID: '1',
       panelId: 18,
       state: AlertState.Pending,
       id: 123,

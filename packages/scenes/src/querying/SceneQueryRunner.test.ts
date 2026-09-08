@@ -799,9 +799,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
             metadata: { name: 'Scope 1' },
             spec: {
               title: 'Scope 1',
-              type: 'test',
-              description: 'Test scope',
-              category: 'test',
               filters: [{ key: 'cluster', operator: 'equals', value: 'prod' }],
             },
           },
@@ -853,9 +850,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
             metadata: { name: 'Scope 1' },
             spec: {
               title: 'Scope 1',
-              type: 'test',
-              description: 'Test scope',
-              category: 'test',
               filters: [{ key: 'cluster', operator: 'equals', value: 'prod' }],
             },
           },
@@ -3668,7 +3662,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         await new Promise((r) => setTimeout(r, 1));
         expect(queryRunner.state.data?.alertState).toMatchInlineSnapshot(`
           {
-            "dashboardId": 1,
+            "dashboardUID": "1",
             "id": 1,
             "panelId": 123,
             "state": "alerting",
@@ -3712,9 +3706,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
             metadata: { name: 'Scope 1' },
             spec: {
               title: 'Scope 1',
-              type: 'test',
-              description: 'Test scope',
-              category: 'test',
               filters: [],
             },
           },
@@ -3737,7 +3728,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         metadata: { name: 'Scope 1' },
         spec: {
           title: 'Scope 1',
-          type: 'test',
         },
       });
     });

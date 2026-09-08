@@ -31,7 +31,7 @@ export function getAdHocFiltersFromScopes(scopes: Scope[]): AdHocFilterWithLabel
   const formattedFilters: Map<string, AdHocFilterWithLabels> = new Map();
   // duplicated filters that could not be processed in any way are just appended to the list
   const duplicatedFilters: AdHocFilterWithLabels[] = [];
-  const allFilters = scopes.flatMap((scope) => scope.spec.filters);
+  const allFilters = scopes.flatMap((scope) => scope.spec.filters ?? []);
 
   for (const filter of allFilters) {
     processFilter(formattedFilters, duplicatedFilters, filter);

@@ -331,9 +331,6 @@ function generateScopes(filtersSpec: ScopeSpecFilter[][]) {
       metadata: { name: `name-${i}` },
       spec: {
         title: `scope-${i}`,
-        type: '',
-        description: 'desc',
-        category: '',
         filters: filtersSpec[i],
       },
     });
