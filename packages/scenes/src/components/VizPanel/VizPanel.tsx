@@ -42,10 +42,14 @@ import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
 import { VizPanelRenderProfiler } from '../../performance/VizPanelRenderProfiler';
 import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
-import { SceneDataTransformer, TransformationOrigin } from '../../querying/SceneDataTransformer';
+import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { buildPathIdFor } from '../../utils/pathId';
 import { Unsubscribable } from 'rxjs';
+import {
+  SystemTransformationsProvider,
+  TransformationOrigin,
+} from '../../querying/systemTransformations/systemTransformationTypes';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -134,9 +138,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   _renderCounter?: number;
 }
 
-export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends SceneObjectBase<
-  VizPanelState<TOptions, TFieldConfig>
-> {
+export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
+  extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>>
+  implements SystemTransformationsProvider
+{
   public static Component = VizPanelRenderer;
 
   protected _variableDependency = new VariableDependencyConfig(this, {

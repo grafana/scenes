@@ -22,7 +22,7 @@ import { getScopes } from '../core/sceneGraph/sceneGraph';
 import { SCOPES_VARIABLE_NAME } from '../variables/constants';
 
 /**
- * Manages ad-hoc filters and group-by variables for data providers.
+ * Manages ad-hoc filters and group-by variables for data systemTransformations.
  *
  * When the AdHocFiltersVariable has enableGroupBy=true, groupBy keys are sourced
  * from the adhoc filters array (operator === 'groupBy').

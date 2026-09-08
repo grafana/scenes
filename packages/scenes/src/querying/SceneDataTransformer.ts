@@ -17,94 +17,15 @@ import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
-
-/**
- * Identifies the contributor that injected a system transformation.
- */
-export type TransformationOrigin = string;
-
-/**
- * Whether a system transformation runs before or after the user configured transformations.
- */
-export type SystemTransformationPosition = 'prepend' | 'append';
-
-/**
- * A provider contributed transformation.
- */
-export type SystemTransformation = (
-  | DataTransformerConfig
-  | Exclude<CustomTransformerDefinition, CustomTransformOperator>
-) & {
-  origin: TransformationOrigin;
-  position: SystemTransformationPosition;
-};
-
-/**
- * Contributes transformations that wrap the user configured ones.
- * A SceneDataTransformer discovers on its parent when it activates (e.g. VizPanel).
- * Nothing a provider contributes ever reaches `state.transformations`.
- */
-export interface SystemTransformationsProvider {
-  origin: TransformationOrigin;
-
-  /**
-   * Resolves what to run for the frames about to enter the pipeline. Called on every pass and does not write scene state.
-   * Throwing is treated as noop rather than erroring. Does not interpolate system transformations!
-   */
-  getSystemTransformations(
-    transformer: SceneDataTransformer,
-    ctx: { series: DataFrame[] }
-  ): {
-    prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
-    append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
-  };
-
-  /**
-   * Optional. Asks to be told when what getSystemTransformations resolves to may have changed without new
-   * data arriving.
-   */
-  subscribeToSystemTransformationsChanged?(transformer: SceneDataTransformer, callback: () => void): Unsubscribable;
-}
-
-/**
- * Narrows SystemTransformationsProvider
- */
-export function isSystemTransformationsProvider(o: unknown): o is SystemTransformationsProvider {
-  return (
-    typeof o === 'object' &&
-    o !== null &&
-    'origin' in o &&
-    typeof (o as SystemTransformationsProvider).getSystemTransformations === 'function'
-  );
-}
-
-/**
- * The system transformations in effect for a given set of source frames, in pipeline order.
- */
-export interface ResolvedSystemTransformations {
-  prepend: SystemTransformation[];
-  append: SystemTransformation[];
-}
-
-/**
- * Stands in for the source frames before the first query result. A fresh [] each time would miss memo and re-resolve.
- */
-const NO_SERIES: DataFrame[] = [];
-
-/** Shared for the same reason: a transformer with no provider hands the same object to every caller. */
-const NO_SYSTEM_TRANSFORMATIONS: ResolvedSystemTransformations = { prepend: [], append: [] };
-
-function toSystemTransformation(
-  transformation: DataTransformerConfig | CustomTransformerDefinition,
-  position: SystemTransformationPosition,
-  origin: TransformationOrigin
-): SystemTransformation {
-  if (typeof transformation === 'function') {
-    return { operator: transformation, topic: DataTopic.Series, origin, position };
-  }
-
-  return { ...transformation, origin, position };
-}
+import {
+  ResolvedSystemTransformations,
+  SystemTransformationsProvider,
+} from './systemTransformations/systemTransformationTypes';
+import {
+  isSystemTransformationsProvider,
+  toSystemTransformation,
+} from './systemTransformations/systemTransformationProvider';
+import { NO_SERIES, NO_SYSTEM_TRANSFORMATIONS } from './systemTransformations/constants';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**

@@ -11,19 +11,19 @@ import {
   escapeLabelValueInExactSelector,
   escapeLabelValueInRegexSelector,
   escapeURLDelimiters,
-  renderPrometheusLabelFilters,
   getVariableControlId,
+  renderPrometheusLabelFilters,
 } from './variables/utils';
 import {
   isAdHocVariable,
-  isQueryVariable,
-  isTextBoxVariable,
+  isConstantVariable,
   isCustomVariable,
   isDataSourceVariable,
-  isConstantVariable,
-  isIntervalVariable,
   isGroupByVariable,
+  isIntervalVariable,
+  isQueryVariable,
   isSwitchVariable,
+  isTextBoxVariable,
 } from './variables/variants/guards';
 
 export * from './core/types';
@@ -50,16 +50,7 @@ export {
 export { SceneDataLayerSet, SceneDataLayerSetBase } from './querying/SceneDataLayerSet';
 export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
-export {
-  SceneDataTransformer,
-  isSystemTransformationsProvider,
-  type ResolvedSystemTransformations,
-  type SceneDataTransformerState,
-  type SystemTransformation,
-  type SystemTransformationPosition,
-  type SystemTransformationsProvider,
-  type TransformationOrigin,
-} from './querying/SceneDataTransformer';
+export { SceneDataTransformer, type SceneDataTransformerState } from './querying/SceneDataTransformer';
 export { registerQueryWithController } from './querying/registerQueryWithController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
 export type {
@@ -210,3 +201,9 @@ export { getCompareSeriesRefId } from './utils/getCompareSeriesRefId';
 export { timeShiftAlignmentProcessor } from './utils/timeShiftAlignmentProcessor';
 export { loadResources } from './utils/loadResources';
 export { PATH_ID_SEPARATOR } from './utils/pathId';
+export type { SystemTransformationsProvider } from './querying/systemTransformations/systemTransformationTypes';
+export type { SystemTransformation } from './querying/systemTransformations/systemTransformationTypes';
+export type { SystemTransformationPosition } from './querying/systemTransformations/systemTransformationTypes';
+export type { TransformationOrigin } from './querying/systemTransformations/systemTransformationTypes';
+export type { ResolvedSystemTransformations } from './querying/systemTransformations/systemTransformationTypes';
+export { isSystemTransformationsProvider } from './querying/systemTransformations/systemTransformationProvider';

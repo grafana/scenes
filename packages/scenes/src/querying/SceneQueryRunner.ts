@@ -340,7 +340,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (this.isQueryModeAuto()) {
       const timeRange = sceneGraph.getTimeRange(this);
 
-      // Add subscriptions to any extra providers so that they rerun queries
+      // Add subscriptions to any extra systemTransformations so that they rerun queries
       // when their state changes and they should rerun.
       const providers = this.getClosestExtraQueryProviders();
       for (const provider of providers) {
@@ -682,7 +682,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
         const secondaryStreams = secondaries.map((r) => runRequest(ds, r));
         // Create the rxjs operator which will combine the primary and secondary responses
         // by calling the correct processor functions provided by the
-        // extra request providers.
+        // extra request systemTransformations.
         const op = extraQueryProcessingOperator(processors);
         // Combine the primary and secondary streams into a single stream, and apply the operator.
         // Use combineLatest so intermediate loading/error states from the primary and secondary requests are emitted as
@@ -804,7 +804,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     request.interval = norm.interval;
     request.intervalMs = norm.intervalMs;
 
-    // If there are any extra request providers, we need to add a new request for each
+    // If there are any extra request systemTransformations, we need to add a new request for each
     // and map the request's ID to the processor function given by the provider, to ensure that
     // the processor is called with the correct response data.
     const primaryTimeRange = timeRange.state.value;

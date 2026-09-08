@@ -16,7 +16,7 @@ import {
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
-import { SceneDataTransformer, SystemTransformationsProvider } from './SceneDataTransformer';
+import { SceneDataTransformer } from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState } from '../core/types';
@@ -27,6 +27,7 @@ import { subscribeToStateUpdates } from '../../utils/test/utils';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TextBoxVariable } from '../variables/variants/TextBoxVariable';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
+import { SystemTransformationsProvider } from './SystemTransformationProvider';
 
 class TestSceneObject extends SceneObjectBase<{}> {}
 
