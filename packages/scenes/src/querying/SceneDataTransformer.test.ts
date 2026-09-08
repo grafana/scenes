@@ -10,17 +10,13 @@ import {
   arrayToDataFrame,
   DataTopic,
   DataFrame,
+  DataTransformerConfig,
 } from '@grafana/data';
 
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
 
 import { SceneDataNode } from '../core/SceneDataNode';
-import {
-  isSystemTransformation,
-  isTransformationFrom,
-  SceneDataTransformer,
-  SceneDataTransformation,
-} from './SceneDataTransformer';
+import { SceneDataTransformer, SystemTransformationsProvider } from './SceneDataTransformer';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { sceneGraph } from '../core/sceneGraph';
 import { CustomTransformOperator, CustomTransformerDefinition, SceneObjectState } from '../core/types';
@@ -33,6 +29,41 @@ import { TextBoxVariable } from '../variables/variants/TextBoxVariable';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
 
 class TestSceneObject extends SceneObjectBase<{}> {}
+
+interface TestProviderState extends SceneObjectState {
+  child?: SceneDataTransformer;
+  resolve?: (ctx: { series: DataFrame[] }) => {
+    prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  };
+}
+
+/** Stands in for the VizPanel that implements the interface in production. */
+class TestProvider extends SceneObjectBase<TestProviderState> implements SystemTransformationsProvider {
+  public origin = 'plugin';
+  public calls: DataFrame[][] = [];
+  public subscriptions = 0;
+  public unsubscriptions = 0;
+  public notify?: () => void;
+
+  public getSystemTransformations(_transformer: SceneDataTransformer, ctx: { series: DataFrame[] }) {
+    this.calls.push(ctx.series);
+
+    return this.state.resolve?.(ctx) ?? {};
+  }
+
+  public subscribeToSystemTransformationsChanged(_transformer: SceneDataTransformer, callback: () => void) {
+    this.subscriptions++;
+    this.notify = callback;
+
+    return {
+      unsubscribe: () => {
+        this.unsubscriptions++;
+        this.notify = undefined;
+      },
+    };
+  }
+}
 
 const transformer1config = {
   id: 'transformer1',
@@ -54,14 +85,6 @@ const annotationTransformerConfig = {
     option: 'value3',
   },
   topic: DataTopic.Annotations,
-};
-
-// Same +4 registry transformation, left untopiced so that it applies to series
-const annotationTransformerConfigNoTopic = {
-  id: 'annotationTransformer',
-  options: {
-    option: 'value3',
-  },
 };
 
 export const getCustomTransformOperator = (spy: jest.Mock): CustomTransformOperator => {
@@ -956,7 +979,8 @@ describe('SceneDataTransformer', () => {
       // Still running, so nothing has been emitted yet
       expect(transformationNode.state.data).toBeUndefined();
 
-      transformationNode.setUserTransformations([]);
+      transformationNode.setState({ transformations: [] });
+      transformationNode.reprocessTransformations();
 
       expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
 
@@ -966,7 +990,7 @@ describe('SceneDataTransformer', () => {
       expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
     });
 
-    it('abandons it when a supplier stops contributing', () => {
+    it('abandons it when the provider stops contributing', () => {
       const { operator, finish } = heldPasses();
       let contributes = true;
 
@@ -975,8 +999,9 @@ describe('SceneDataTransformer', () => {
         transformations: [],
       });
 
-      transformationNode.setSystemTransformations({
-        supplier: () => (contributes ? { append: [operator] } : {}),
+      new TestProvider({
+        child: transformationNode,
+        resolve: () => (contributes ? { append: [operator] } : {}),
       });
 
       transformationNode.activate();
@@ -1068,7 +1093,7 @@ describe('SceneDataTransformer', () => {
     });
   });
   describe('variable interpolation with custom transform operators', () => {
-    function buildScene(transformations: SceneDataTransformation[]) {
+    function buildScene(transformations: Array<DataTransformerConfig | CustomTransformerDefinition>) {
       const transformationNode = new SceneDataTransformer({ transformations });
       const consumer = new TestSceneObject({ $data: transformationNode });
       const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
@@ -1125,902 +1150,336 @@ describe('SceneDataTransformer', () => {
       expect(customTransformerSpy).toHaveBeenCalledTimes(2);
       expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
     });
-
-    it('interpolates variables inside system transformations', () => {
-      const { transformationNode, textVar } = buildScene([]);
-
-      transformationNode.setSystemTransformations({ append: [configWithVariable] });
-
-      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
-
-      // The origin tag has to survive alongside the interpolated options
-      expect(transformationNode.state.transformations.filter(isSystemTransformation)).toHaveLength(1);
-
-      textVar.setValue('New Text Variable Value');
-
-      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
-    });
-
-    it('keeps system custom transform operators when interpolating variables', () => {
-      const { transformationNode, consumer, textVar } = buildScene([configWithVariable]);
-
-      // setSystemTransformations wraps the bare operator into the object form a JSON round trip drops
-      transformationNode.setSystemTransformations({ append: [customTransformOperator] });
-
-      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
-      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
-
-      // value * 2 / 100
-      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
-
-      textVar.setValue('New Text Variable Value');
-
-      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
-      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
-      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
-    });
   });
 
   describe('system transformations', () => {
-    function buildScene() {
-      const transformationNode = new SceneDataTransformer({
-        transformations: [transformer1config],
-      });
+    function buildScene({
+      transformations = [transformer1config] as Array<DataTransformerConfig | CustomTransformerDefinition>,
+      provider = new TestProvider({}),
+    } = {}) {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations });
 
-      const consumer = new TestSceneObject({
-        $data: transformationNode,
-      });
-
-      // @ts-expect-error
-      const scene = new SceneFlexLayout({
-        $data: sourceDataNode,
-        children: [new SceneFlexItem({ body: consumer })],
-      });
+      provider.setState({ child: transformationNode });
 
       sourceDataNode.activate();
-      transformationNode.activate();
 
-      return { transformationNode, consumer };
+      return { transformationNode, provider, activate: () => transformationNode.activate() };
     }
 
-    it('combines prepended and appended transformations with user configured ones', () => {
-      const { transformationNode, consumer } = buildScene();
-
-      transformationNode.setSystemTransformations({
+    it('applies the transformations its parent provides, without any registration call', () => {
+      const provider = new TestProvider({
         // +4 (registry operator, no topic so it applies to series)
-        prepend: [{ id: 'annotationTransformer', options: {} }],
-        // *3
-        append: [transformer2config],
+        resolve: () => ({ prepend: [{ id: 'annotationTransformer', options: {} }], append: [transformer2config] }),
       });
+      const { transformationNode, activate } = buildScene({ provider });
 
-      expect(transformationNode.state.transformations).toEqual([
-        { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
-        transformer1config,
-        { ...transformer2config, origin: 'plugin', position: 'append' },
-      ]);
-
-      // (value + 4) * 2 * 3 - proves prepend runs before and append after the user transformation
-      const data = sceneGraph.getData(consumer).state.data;
-      expect(data?.series[0].fields[1].values).toEqual([30, 36, 42]);
-    });
-
-    it('replaces previous system transformations on subsequent calls', () => {
-      const { transformationNode, consumer } = buildScene();
-
-      transformationNode.setSystemTransformations({
-        prepend: [{ id: 'annotationTransformer', options: {} }],
-        append: [transformer2config],
-      });
-
-      transformationNode.setSystemTransformations({ append: [transformer2config] });
-
-      expect(transformationNode.state.transformations).toEqual([
-        transformer1config,
-        { ...transformer2config, origin: 'plugin', position: 'append' },
-      ]);
-
-      // value * 2 * 3
-      const data = sceneGraph.getData(consumer).state.data;
-      expect(data?.series[0].fields[1].values).toEqual([6, 12, 18]);
-    });
-
-    it('clears its own transformations without touching the user configured ones', () => {
-      const { transformationNode, consumer } = buildScene();
-
-      // +4 (prepend), *3 (append)
-      transformationNode.setSystemTransformations({
-        prepend: [{ id: 'annotationTransformer', options: {} }],
-        append: [transformer2config],
-      });
-
-      expect(transformationNode.state.transformations).toEqual([
-        { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
-        transformer1config,
-        { ...transformer2config, origin: 'plugin', position: 'append' },
-      ]);
+      activate();
 
       // (value + 4) * 2 * 3
-      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+    });
 
-      // Passing no groups clears this origin
-      transformationNode.setSystemTransformations({});
+    it('never puts what the provider contributes into state', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
 
       expect(transformationNode.state.transformations).toEqual([transformer1config]);
+    });
+
+    it('is part of the first pass rather than a corrective second one', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      const dataUpdates = subscribeToStateUpdates(transformationNode);
+
+      activate();
+
+      expect(dataUpdates).toHaveLength(1);
+      // value * 2 * 3, from the very first emission
+      expect(dataUpdates[0].data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('resolves against the source frames rather than the pipeline output', () => {
+      const provider = new TestProvider({});
+      const { activate } = buildScene({ provider });
+
+      activate();
+
+      expect(provider.calls).toHaveLength(1);
+      // The source values, not the *2 the user transformation produces
+      expect(provider.calls[0][0].fields[1].values).toEqual([1, 2, 3]);
+    });
+
+    it('resolves the provider once per pass, sharing the memo with getResolvedSystemTransformations', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(provider.calls).toHaveLength(1);
+
+      transformationNode.getResolvedSystemTransformations();
+      transformationNode.getResolvedSystemTransformations();
+
+      expect(provider.calls).toHaveLength(1);
+    });
+
+    it('reports what is running, tagged with origin and position', () => {
+      const provider = new TestProvider({
+        resolve: () => ({ prepend: [transformer1config], append: [transformer2config] }),
+      });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({
+        prepend: [{ ...transformer1config, origin: 'plugin', position: 'prepend' }],
+        append: [{ ...transformer2config, origin: 'plugin', position: 'append' }],
+      });
+    });
+
+    it('wraps a bare custom transform operator so that it carries the origin and the series topic', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [customTransformOperator] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(transformationNode.getResolvedSystemTransformations().append).toEqual([
+        { operator: customTransformOperator, topic: DataTopic.Series, origin: 'plugin', position: 'append' },
+      ]);
+      // value * 2 / 100
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+    });
+
+    it('honours the topic of what the provider contributes', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [annotationTransformerConfig] }) });
+      const { transformationNode, activate } = buildScene({ provider, transformations: [] });
+
+      activate();
+
+      // Series untouched, annotations +4
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
+      expect(transformationNode.state.data?.annotations?.[0].fields[1].values).toEqual([5, 6, 7]);
+    });
+
+    it('uses a different origin when the provider declares one', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      provider.origin = 'test-origin';
+
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(transformationNode.getResolvedSystemTransformations().append).toEqual([
+        { ...transformer2config, origin: 'test-origin', position: 'append' },
+      ]);
+    });
+
+    it('reprocesses when the provider signals a change without new data', () => {
+      let contributes = false;
+      const provider = new TestProvider({ resolve: () => (contributes ? { append: [transformer2config] } : {}) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
 
       // value * 2
-      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+
+      contributes = true;
+      provider.notify!();
+
+      // value * 2 * 3
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
     });
 
-    it('does not update state when called again with equal transformations', () => {
-      const { transformationNode } = buildScene();
+    it('unsubscribes from the provider on deactivation', () => {
+      const provider = new TestProvider({});
+      const { activate } = buildScene({ provider });
 
-      transformationNode.setSystemTransformations({ prepend: [transformer2config] });
-      const transformations = transformationNode.state.transformations;
+      const deactivate = activate();
 
-      transformationNode.setSystemTransformations({ prepend: [transformer2config] });
+      expect(provider.subscriptions).toBe(1);
+      expect(provider.unsubscriptions).toBe(0);
 
-      expect(transformationNode.state.transformations).toBe(transformations);
-    });
-    it('does not update state when called again with the same custom transform operator reference', () => {
-      const { transformationNode } = buildScene();
+      deactivate();
 
-      transformationNode.setSystemTransformations({ append: [customTransformOperator] });
-      const transformations = transformationNode.state.transformations;
-
-      transformationNode.setSystemTransformations({ append: [customTransformOperator] });
-
-      expect(transformationNode.state.transformations).toBe(transformations);
+      expect(provider.unsubscriptions).toBe(1);
     });
 
-    it('applies system transformations set before activation', () => {
-      const transformationNode = new SceneDataTransformer({
-        transformations: [transformer1config],
-      });
+    it('keeps answering after deactivation, and does not double register on re-activation', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
 
-      const consumer = new TestSceneObject({
-        $data: transformationNode,
-      });
+      activate()();
 
-      // @ts-expect-error
-      const scene = new SceneFlexLayout({
-        $data: sourceDataNode,
-        children: [new SceneFlexItem({ body: consumer })],
-      });
+      // The transformations editor reads this for panels that are not currently rendering
+      expect(transformationNode.getResolvedSystemTransformations().append).toEqual([
+        { ...transformer2config, origin: 'plugin', position: 'append' },
+      ]);
 
-      transformationNode.setSystemTransformations({ append: [transformer2config] });
+      activate();
 
-      expect(transformationNode.state.data).toBeUndefined();
+      expect(provider.subscriptions).toBe(2);
+      expect(transformationNode.getResolvedSystemTransformations().append).toHaveLength(1);
+      // Not applied twice
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('does not discover a provider through a nested transformer', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+
+      const inner = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+      const outer = new SceneDataTransformer({ $data: inner, transformations: [transformer1config] });
+
+      provider.setState({ child: outer });
+
+      sourceDataNode.activate();
+      outer.activate();
+
+      expect(inner.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      // *3 applied once by the outer transformer, not once per transformer
+      expect(outer.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('ignores a parent that is not a provider', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+      const parent = new TestSceneObject({ $data: transformationNode });
 
       sourceDataNode.activate();
       transformationNode.activate();
 
-      // value * 2 * 3 - the activation handler picks up the transformations set while inactive
-      const data = sceneGraph.getData(consumer).state.data;
-      expect(data?.series[0].fields[1].values).toEqual([6, 12, 18]);
-    });
-    // Scales every value by `factor`, so a changed closure is observable in the output
-    const scaleOperator =
-      (factor: number): CustomTransformOperator =>
-      () =>
-      (source) =>
-        source.pipe(
-          map((data) =>
-            data.map((frame) => ({
-              ...frame,
-              fields: frame.fields.map((field) => ({ ...field, values: field.values.map((v) => v * factor) })),
-            }))
-          )
-        );
-
-    it('does not re-run the pipeline when an inline operator is re-applied under an unchanged key', () => {
-      const { transformationNode } = buildScene();
-
-      transformationNode.setSystemTransformations({
-        append: [{ operator: scaleOperator(10), topic: DataTopic.Series, key: 'panel-transformation' }],
-      });
-      const transformations = transformationNode.state.transformations;
-
-      transformationNode.setSystemTransformations({
-        append: [{ operator: scaleOperator(10), topic: DataTopic.Series, key: 'panel-transformation' }],
-      });
-
-      expect(transformationNode.state.transformations).toBe(transformations);
+      expect(parent).toBeDefined();
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
     });
 
-    it('settles instead of looping when a caller re-applies inline operators on every data change', () => {
-      const { transformationNode } = buildScene();
-      const limit = 50;
-      let applies = 0;
+    it('does not throw when it has no parent at all', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
 
-      transformationNode.subscribeToState((state, prev) => {
-        if (state.data !== prev.data && applies < limit) {
-          applies++;
-          // Built inline on every data change, as a panel would
-          transformationNode.setSystemTransformations({
-            append: [{ operator: scaleOperator(10), topic: DataTopic.Series, key: 'panel-transformation' }],
-          });
-        }
-      });
+      sourceDataNode.activate();
 
-      transformationNode.reprocessTransformations();
-
-      // One apply, then the unchanged key makes the follow-up call a no-op. Without the key the new
-      // operator reference makes every call re-process and emit, and this never terminates.
-      expect(applies).toBe(2);
+      expect(() => transformationNode.activate()).not.toThrow();
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
     });
 
-    it('still re-applies inline operators that carry no key', () => {
-      const { transformationNode } = buildScene();
+    it('answers without a source to resolve against, for an editor reading a detached transformer', () => {
+      const detached = new SceneDataTransformer({ transformations: [] });
 
-      transformationNode.setSystemTransformations({
-        append: [{ operator: scaleOperator(10), topic: DataTopic.Series }],
-      });
-      const transformations = transformationNode.state.transformations;
-
-      transformationNode.setSystemTransformations({
-        append: [{ operator: scaleOperator(10), topic: DataTopic.Series }],
-      });
-
-      expect(transformationNode.state.transformations).not.toBe(transformations);
+      expect(detached.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
     });
 
-    it('ignores a changed operator under an unchanged key', () => {
-      const { transformationNode, consumer } = buildScene();
+    it('resolves against empty frames when the source has no data yet', () => {
+      const provider = new TestProvider({});
+      const emptySource = new SceneDataNode({ data: undefined });
+      const transformationNode = new SceneDataTransformer({ $data: emptySource, transformations: [] });
 
-      transformationNode.setSystemTransformations({
-        append: [{ operator: scaleOperator(10), topic: DataTopic.Series, key: 'v1' }],
-      });
+      provider.setState({ child: transformationNode });
+      transformationNode.activate();
 
-      // value * 2 * 10
-      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([20, 40, 60]);
-
-      // The key is the caller's declaration of identity, so it has to change for a new operator to apply
-      transformationNode.setSystemTransformations({
-        append: [{ operator: scaleOperator(100), topic: DataTopic.Series, key: 'v1' }],
-      });
-
-      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([20, 40, 60]);
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      expect(provider.calls[0]).toEqual([]);
     });
 
-    it('re-applies when the key changes', () => {
-      const { transformationNode, consumer } = buildScene();
+    it('keeps the passthrough fast path when the provider contributes nothing', () => {
+      const provider = new TestProvider({});
+      const { transformationNode, activate } = buildScene({ provider, transformations: [] });
 
-      transformationNode.setSystemTransformations({
-        append: [{ operator: scaleOperator(10), topic: DataTopic.Series, key: 'v1' }],
-      });
+      activate();
 
-      // value * 2 * 10
-      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([20, 40, 60]);
-
-      transformationNode.setSystemTransformations({
-        append: [{ operator: scaleOperator(100), topic: DataTopic.Series, key: 'v2' }],
-      });
-
-      // value * 2 * 100
-      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([200, 400, 600]);
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
     });
 
-    it('still detects a changed topic under an unchanged key', () => {
-      const { transformationNode } = buildScene();
-      const operator = scaleOperator(10);
-
-      transformationNode.setSystemTransformations({
-        append: [{ operator, topic: DataTopic.Series, key: 'v1' }],
+    it('degrades a throwing provider to a no-op instead of erroring the stream', () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const provider = new TestProvider({
+        resolve: () => {
+          throw new Error('boom');
+        },
       });
+      const { transformationNode, activate } = buildScene({ provider });
 
-      transformationNode.setSystemTransformations({
-        append: [{ operator, topic: DataTopic.Annotations, key: 'v1' }],
-      });
+      activate();
 
-      expect(transformationNode.state.transformations).toEqual([
-        transformer1config,
-        { operator, topic: DataTopic.Annotations, origin: 'plugin', position: 'append', key: 'v1' },
-      ]);
+      // value * 2 - the user transformation still ran
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      expect(transformationNode.state.data?.state).not.toBe(LoadingState.Error);
+      expect(consoleError).toHaveBeenCalled();
+
+      consoleError.mockRestore();
     });
 
-    it('re-applies under an unchanged key when another writer replaced the transformations', () => {
-      const { transformationNode } = buildScene();
-      const operator = scaleOperator(10);
+    it('discovers the provider on the clone rather than inheriting the original', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
 
-      transformationNode.setSystemTransformations({
-        append: [{ operator, topic: DataTopic.Series, key: 'v1' }],
-      });
+      activate();
 
-      // e.g. a transformations editor writing back only the user configured transformations
-      transformationNode.setState({ transformations: [transformer1config] });
+      const clone = transformationNode.clone();
+      const otherProvider = new TestProvider({});
+      otherProvider.setState({ child: clone });
 
-      transformationNode.setSystemTransformations({
-        append: [{ operator, topic: DataTopic.Series, key: 'v1' }],
-      });
+      clone.activate();
 
-      expect(transformationNode.state.transformations).toEqual([
-        transformer1config,
-        { operator, topic: DataTopic.Series, origin: 'plugin', position: 'append', key: 'v1' },
-      ]);
+      expect(clone.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      expect(otherProvider.subscriptions).toBe(1);
     });
 
-    it('matches an origin scoped guard only for that origin', () => {
-      const { transformationNode } = buildScene();
+    describe('variable interpolation', () => {
+      const configWithVariable = { ...transformer1config, options: { options: '$myVariable' } };
 
-      transformationNode.setSystemTransformations({ append: [transformer2config] });
-
-      const [user, system] = transformationNode.state.transformations;
-
-      expect(isSystemTransformation(system)).toBe(true);
-      expect(isSystemTransformation(user)).toBe(false);
-
-      // Usable as a predicate, which is why it is curried rather than a second argument
-      expect(transformationNode.state.transformations.filter(isTransformationFrom('plugin'))).toEqual([system]);
-      expect(transformationNode.state.transformations.filter(isSystemTransformation)).toEqual([system]);
-    });
-
-    it('wraps bare custom transform operators so they carry the plugin origin', () => {
-      const { transformationNode, consumer } = buildScene();
-
-      transformationNode.setSystemTransformations({ append: [customTransformOperator] });
-
-      expect(transformationNode.state.transformations).toEqual([
-        transformer1config,
-        { operator: customTransformOperator, topic: DataTopic.Series, origin: 'plugin', position: 'append' },
-      ]);
-      expect(transformationNode.state.transformations.filter(isSystemTransformation)).toHaveLength(1);
-
-      // value * 2 / 100
-      const data = sceneGraph.getData(consumer).state.data;
-      expect(data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
-    });
-    describe('setUserTransformations', () => {
-      it('replaces the user transformations while keeping system ones in place', () => {
-        const { transformationNode, consumer } = buildScene();
-
-        // +4 (prepend), *3 (append)
-        transformationNode.setSystemTransformations({
-          prepend: [{ id: 'annotationTransformer', options: {} }],
-          append: [transformer2config],
-        });
-
-        // Swap the user transformation from *2 to *3
-        transformationNode.setUserTransformations([transformer2config]);
-
-        expect(transformationNode.state.transformations).toEqual([
-          { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
-          transformer2config,
-          { ...transformer2config, origin: 'plugin', position: 'append' },
-        ]);
-
-        // (value + 4) * 3 * 3
-        const data = sceneGraph.getData(consumer).state.data;
-        expect(data?.series[0].fields[1].values).toEqual([45, 54, 63]);
-      });
-
-      it('does not update state when the user transformations are unchanged', () => {
-        const { transformationNode } = buildScene();
-
-        transformationNode.setSystemTransformations({ append: [transformer2config] });
-        const transformations = transformationNode.state.transformations;
-
-        transformationNode.setUserTransformations([transformer1config]);
-
-        expect(transformationNode.state.transformations).toBe(transformations);
-      });
-
-      it('replaces rather than appends on repeated calls', () => {
-        const { transformationNode } = buildScene();
-
-        transformationNode.setUserTransformations([transformer2config]);
-        transformationNode.setUserTransformations([transformer2config]);
-
-        expect(transformationNode.state.transformations).toEqual([transformer2config]);
-      });
-
-      it('drops system transformations passed in with the user ones', () => {
-        const { transformationNode, consumer } = buildScene();
-
-        // +4 (prepend), *3 (append)
-        transformationNode.setSystemTransformations({
-          prepend: [{ id: 'annotationTransformer', options: {} }],
-          append: [transformer2config],
-        });
-
-        // Callers migrating off setState({ transformations }) may hand back the whole array
-        transformationNode.setUserTransformations(transformationNode.state.transformations);
-        transformationNode.setUserTransformations(transformationNode.state.transformations);
-
-        expect(transformationNode.state.transformations).toEqual([
-          { id: 'annotationTransformer', options: {}, origin: 'plugin', position: 'prepend' },
-          transformer1config,
-          { ...transformer2config, origin: 'plugin', position: 'append' },
-        ]);
-
-        // (value + 4) * 2 * 3 - the runtime transforms ran once, not once per call
-        const data = sceneGraph.getData(consumer).state.data;
-        expect(data?.series[0].fields[1].values).toEqual([30, 36, 42]);
-      });
-
-      it('clears the user transformations without touching system ones', () => {
-        const { transformationNode, consumer } = buildScene();
-
-        transformationNode.setSystemTransformations({ append: [transformer2config] });
-        transformationNode.setUserTransformations([]);
-
-        expect(transformationNode.state.transformations).toEqual([
-          { ...transformer2config, origin: 'plugin', position: 'append' },
-        ]);
-
-        // value * 3, the user *2 is gone
-        const data = sceneGraph.getData(consumer).state.data;
-        expect(data?.series[0].fields[1].values).toEqual([3, 6, 9]);
-      });
-    });
-
-    describe('multiple origins', () => {
-      it('composes both origins into the same tiers, in registration order', () => {
-        const transformationNode = new SceneDataTransformer({ transformations: [] });
-
-        const consumer = new TestSceneObject({ $data: transformationNode });
-
-        // @ts-expect-error
-        const scene = new SceneFlexLayout({
-          $data: sourceDataNode,
-          children: [new SceneFlexItem({ body: consumer })],
-        });
-
-        sourceDataNode.activate();
-        transformationNode.activate();
-
-        // *3 then +4, so the order of the two origins is visible in the result
-        transformationNode.setSystemTransformations({ prepend: [transformer2config], origin: 'first' });
-        transformationNode.setSystemTransformations({
-          prepend: [annotationTransformerConfigNoTopic],
-          origin: 'second',
-        });
-
-        expect(transformationNode.state.transformations).toEqual([
-          { ...transformer2config, origin: 'first', position: 'prepend' },
-          { ...annotationTransformerConfigNoTopic, origin: 'second', position: 'prepend' },
-        ]);
-
-        // value * 3 + 4, not (value + 4) * 3
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([7, 10, 13]);
-      });
-
-      it('replaces one origin without disturbing the other', () => {
-        const { transformationNode, consumer } = buildScene();
-
-        transformationNode.setSystemTransformations({ prepend: [annotationTransformerConfigNoTopic], origin: 'first' });
-        transformationNode.setSystemTransformations({ append: [transformer2config], origin: 'second' });
-
-        // A second call for an origin that is already in state used to throw here
-        transformationNode.setSystemTransformations({ append: [transformer2config], origin: 'second' });
-        transformationNode.setSystemTransformations({ origin: 'first' });
-
-        expect(transformationNode.state.transformations).toEqual([
-          transformer1config,
-          { ...transformer2config, origin: 'second', position: 'append' },
-        ]);
-
-        // value * 2 * 3, the first origin's +4 is gone
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
-      });
-    });
-
-    describe('supplier', () => {
-      function buildSupplierScene(transformations: SceneDataTransformation[] = [transformer1config]) {
+      function buildInterpolationScene(
+        provider: TestProvider,
+        transformations: Array<DataTransformerConfig | CustomTransformerDefinition>
+      ) {
         const transformationNode = new SceneDataTransformer({ transformations });
+        const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
 
-        const consumer = new TestSceneObject({ $data: transformationNode });
+        provider.setState({ child: transformationNode });
 
         const scene = new SceneFlexLayout({
           $data: sourceDataNode,
-          children: [new SceneFlexItem({ body: consumer })],
+          $variables: new SceneVariableSet({ variables: [textVar] }),
+          children: [new SceneFlexItem({ body: provider })],
         });
 
-        const activate = () => {
-          sourceDataNode.activate();
-          transformationNode.activate();
-        };
+        activateFullSceneTree(scene);
 
-        // Parents a clone under the same source instead of building a second scene around it, which would
-        // give sourceDataNode two parents
-        const attach = (node: SceneDataTransformer) => {
-          scene.setState({
-            children: [...scene.state.children, new SceneFlexItem({ body: new TestSceneObject({ $data: node }) })],
-          });
-        };
-
-        return { transformationNode, consumer, activate, attach };
+        return { transformationNode, textVar };
       }
 
-      it('runs supplied transformations around the user configured ones', () => {
-        const { transformationNode, consumer, activate } = buildSupplierScene();
+      it('does not drop provider contributed custom transform operators', () => {
+        // Interpolation JSON round trips the configs, which would drop a bare operator - the wrapping
+        // toSystemTransformation does is what keeps it out of that path
+        const provider = new TestProvider({ resolve: () => ({ append: [customTransformOperator] }) });
+        const { transformationNode, textVar } = buildInterpolationScene(provider, [configWithVariable]);
 
-        transformationNode.setSystemTransformations({
-          supplier: () => ({
-            // +4
-            prepend: [annotationTransformerConfigNoTopic],
-            // *3
-            append: [transformer2config],
-          }),
-        });
-
-        activate();
-
-        // (value + 4) * 2 * 3 - same pipeline order as concrete entries
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([30, 36, 42]);
-      });
-
-      it('does not put supplied transformations in state', () => {
-        const { transformationNode, activate } = buildSupplierScene();
-
-        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
-        activate();
-
-        expect(transformationNode.state.transformations).toEqual([transformer1config]);
-      });
-
-      it('receives the source frames rather than the pipeline output', () => {
-        const { transformationNode, activate } = buildSupplierScene();
-        const seen: number[][] = [];
-
-        transformationNode.setSystemTransformations({
-          supplier: ({ series }) => {
-            seen.push(series[0].fields[1].values);
-            // Appended, so it runs after the user *2 but is still resolved from the source frames
-            return { append: [transformer2config] };
-          },
-        });
-
-        activate();
-
-        expect(seen).toEqual([[1, 2, 3]]);
-      });
-
-      it('resolves the supplier once per emission', () => {
-        const supplierSpy = jest.fn().mockReturnValue({ append: [transformer2config] });
-        const { transformationNode, activate } = buildSupplierScene();
-
-        transformationNode.setSystemTransformations({ supplier: supplierSpy });
-        activate();
-
-        expect(supplierSpy).toHaveBeenCalledTimes(1);
-
-        // An editor reading the resolution for the frames the pipeline used shares its memo
-        const series = sourceDataNode.state.data!.series;
-        expect(transformationNode.getResolvedSystemTransformations(series)).toEqual({
-          prepend: [],
-          append: [{ ...transformer2config, origin: 'plugin', position: 'append' }],
-        });
-        expect(supplierSpy).toHaveBeenCalledTimes(1);
-
-        // New frames are a new question
-        sourceDataNode.setState({
-          data: { ...sourceDataNode.state.data!, series: [toDataFrame([[100, 4]])] },
-        });
-
-        expect(supplierSpy).toHaveBeenCalledTimes(2);
-      });
-
-      it('resolves against the source frames, sharing the pipeline memo, when called with no arguments', () => {
-        const supplierSpy = jest.fn().mockReturnValue({ append: [transformer2config] });
-        // User transformation doubles, so pipeline output and source frames are distinguishable
-        const { transformationNode, activate } = buildSupplierScene();
-
-        transformationNode.setSystemTransformations({ supplier: supplierSpy });
-        activate();
-
-        expect(transformationNode.getResolvedSystemTransformations()).toEqual({
-          prepend: [],
-          append: [{ ...transformer2config, origin: 'plugin', position: 'append' }],
-        });
-
-        // One resolution total: the default argument is the frames the pipeline already resolved against,
-        // not this object's own transformed output
-        expect(supplierSpy).toHaveBeenCalledTimes(1);
-        expect(supplierSpy.mock.calls[0][0].series[0].fields[1].values).toEqual([1, 2, 3]);
-      });
-
-      it('resolves against empty frames when the source has no data yet', () => {
-        // A query runner has no data in state until it has run, which is the load time case an editor
-        // reading the resolution would hit
-        const transformationNode = new SceneDataTransformer({
-          transformations: [],
-          $data: new SceneQueryRunner({ queries: [{ refId: 'A' }] }),
-        });
-
-        const supplierSpy = jest.fn().mockReturnValue({});
-        transformationNode.setSystemTransformations({ supplier: supplierSpy });
-
-        expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
-        expect(supplierSpy).toHaveBeenCalledWith({ series: [] });
-
-        // Repeated reads must still hit the memo, which they cannot if the empty default allocates a fresh
-        // array on every call
-        transformationNode.getResolvedSystemTransformations();
-        expect(supplierSpy).toHaveBeenCalledTimes(1);
-      });
-
-      it('merges supplied transformations with the concrete ones for the same origin', () => {
-        const { transformationNode, consumer, activate } = buildSupplierScene();
-
-        transformationNode.setSystemTransformations({
-          // +4
-          prepend: [annotationTransformerConfigNoTopic],
-          // *3
-          supplier: () => ({ append: [transformer2config] }),
-        });
-
-        activate();
-
-        const series = sourceDataNode.state.data!.series;
-        expect(transformationNode.getResolvedSystemTransformations(series)).toEqual({
-          prepend: [{ ...annotationTransformerConfigNoTopic, origin: 'plugin', position: 'prepend' }],
-          append: [{ ...transformer2config, origin: 'plugin', position: 'append' }],
-        });
-
-        // (value + 4) * 2 * 3
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([30, 36, 42]);
-      });
-
-      it('composes suppliers from several origins in registration order', () => {
-        const { transformationNode, consumer, activate } = buildSupplierScene([]);
-
-        transformationNode.setSystemTransformations({
-          origin: 'first',
-          supplier: () => ({ prepend: [transformer2config] }),
-        });
-        transformationNode.setSystemTransformations({
-          origin: 'second',
-          supplier: () => ({ prepend: [annotationTransformerConfigNoTopic] }),
-        });
-
-        activate();
-
-        const series = sourceDataNode.state.data!.series;
-        expect(transformationNode.getResolvedSystemTransformations(series).prepend).toEqual([
-          { ...transformer2config, origin: 'first', position: 'prepend' },
-          { ...annotationTransformerConfigNoTopic, origin: 'second', position: 'prepend' },
-        ]);
-
-        // value * 3 + 4
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([7, 10, 13]);
-      });
-
-      it('honours the topic of supplied transformations', () => {
-        const { transformationNode, consumer, activate } = buildSupplierScene();
-
-        // +4, annotations only
-        transformationNode.setSystemTransformations({ supplier: () => ({ append: [annotationTransformerConfig] }) });
-        activate();
-
-        const data = sceneGraph.getData(consumer).state.data;
-
-        // value * 2 from the user transformation, untouched by the annotations only entry
-        expect(data?.series[0].fields[1].values).toEqual([2, 4, 6]);
-        expect(data?.annotations?.[0].fields[1].values).toEqual([5, 6, 7]);
-      });
-
-      it('tags a bare custom transform operator with the series topic', () => {
-        const { transformationNode, consumer, activate } = buildSupplierScene();
-
-        transformationNode.setSystemTransformations({ supplier: () => ({ append: [customTransformOperator] }) });
-        activate();
-
-        const series = sourceDataNode.state.data!.series;
-        expect(transformationNode.getResolvedSystemTransformations(series).append).toEqual([
-          { operator: customTransformOperator, topic: DataTopic.Series, origin: 'plugin', position: 'append' },
-        ]);
+        expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+        expect(customTransformerSpy).toHaveBeenCalledTimes(1);
 
         // value * 2 / 100
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+
+        // The operator has to survive every re-interpolation, not just the first
+        textVar.setValue('New Text Variable Value');
+
+        expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+        expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
       });
 
-      it('keeps the passthrough fast path when every supplier resolves to nothing', () => {
-        const { transformationNode, activate } = buildSupplierScene([]);
+      it('does not re-run for a variable that only provider output references', () => {
+        // The dependency config scans state.transformations, which provider output never enters, so a
+        // provider whose configs reference variables has to resolve them itself.
+        const provider = new TestProvider({ resolve: () => ({ append: [configWithVariable] }) });
+        const { textVar } = buildInterpolationScene(provider, []);
 
-        transformationNode.setSystemTransformations({ supplier: () => ({}) });
-        activate();
+        expect(transformerSpy).toHaveBeenCalledTimes(1);
 
-        // Passthrough hands the source data straight on rather than rebuilding it
-        expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
-      });
+        textVar.setValue('New Text Variable Value');
 
-      it('re-runs the pipeline when the supplier is registered or removed', () => {
-        const { transformationNode, consumer, activate } = buildSupplierScene();
-
-        activate();
-
-        // value * 2
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
-
-        // Nothing about the supplier reaches state, so registering it has to force the re-run itself
-        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
-
-        transformationNode.setSystemTransformations({});
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
-      });
-
-      it('does not re-emit when a newly registered supplier resolves to nothing', () => {
-        const { transformationNode, activate } = buildSupplierScene([]);
-
-        const emissions: PanelData[] = [];
-        transformationNode.getResultsStream().subscribe((result) => emissions.push(result.data));
-
-        activate();
-
-        expect(emissions).toHaveLength(1);
-
-        // What most panels look like: the plugin contributes no transformations, so registering its
-        // supplier changes nothing and must not cost a pass
-        transformationNode.setSystemTransformations({ supplier: () => ({}) });
-
-        expect(emissions).toHaveLength(1);
-      });
-
-      it('does not re-run when a swapped supplier resolves to the same thing', () => {
-        const { transformationNode, activate } = buildSupplierScene([]);
-
-        const emissions: PanelData[] = [];
-        transformationNode.getResultsStream().subscribe((result) => emissions.push(result.data));
-
-        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
-        activate();
-
-        // value * 3
-        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
-        expect(emissions).toHaveLength(1);
-
-        // A fresh closure resolving to the same config, which is what a registrar rebuilding its supplier
-        // on every activation looks like
-        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
-
-        expect(emissions).toHaveLength(1);
-      });
-
-      it('does not re-run when a swapped supplier spells the same operator differently', () => {
-        const { transformationNode, activate } = buildSupplierScene([]);
-
-        const emissions: PanelData[] = [];
-        transformationNode.getResultsStream().subscribe((result) => emissions.push(result.data));
-
-        transformationNode.setSystemTransformations({ supplier: () => ({ append: [customTransformOperator] }) });
-        activate();
-
-        expect(emissions).toHaveLength(1);
-
-        // Bare and object form are one entry once the pipeline normalizes them, so this is not a change
-        transformationNode.setSystemTransformations({
-          supplier: () => ({ append: [{ operator: customTransformOperator, topic: DataTopic.Series }] }),
-        });
-
-        expect(emissions).toHaveLength(1);
-      });
-
-      it('re-runs when a swapped supplier resolves to something else', () => {
-        const { transformationNode, activate } = buildSupplierScene([]);
-
-        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
-        activate();
-
-        // value * 3
-        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
-
-        transformationNode.setSystemTransformations({
-          supplier: () => ({ append: [annotationTransformerConfigNoTopic] }),
-        });
-
-        // value + 4
-        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([5, 6, 7]);
-      });
-
-      it('picks up a supplier that resolves differently on reprocessTransformations', () => {
-        const { transformationNode, consumer, activate } = buildSupplierScene();
-        let ready = false;
-
-        transformationNode.setSystemTransformations({
-          supplier: () => (ready ? { append: [transformer2config] } : {}),
-        });
-
-        activate();
-
-        // value * 2 - the supplier had nothing to give yet
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
-
-        ready = true;
-        transformationNode.reprocessTransformations();
-
-        // value * 2 * 3, same frames but a new resolution
-        expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
-      });
-
-      it('carries suppliers into a clone so the clone never emits untransformed data', () => {
-        const { transformationNode, activate, attach } = buildSupplierScene([]);
-
-        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
-        activate();
-
-        // value * 3
-        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
-
-        const clone = transformationNode.clone();
-        attach(clone);
-
-        const emissions: unknown[] = [];
-        clone.getResultsStream().subscribe((result) => emissions.push(result.data.series[0].fields[1].values));
-
-        clone.activate();
-
-        expect(clone.getResolvedSystemTransformations(sourceDataNode.state.data!.series).append).toEqual([
-          { ...transformer2config, origin: 'plugin', position: 'append' },
-        ]);
-
-        // The clone was cloned with transformed data; activating it must not replace that with the source
-        expect(clone.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
-        expect(emissions).not.toContainEqual([1, 2, 3]);
-      });
-
-      it('keeps resolving the carried supplier when the clone gets new data', () => {
-        const { transformationNode, activate, attach } = buildSupplierScene([]);
-
-        transformationNode.setSystemTransformations({ supplier: () => ({ append: [transformer2config] }) });
-        activate();
-
-        const clone = transformationNode.clone();
-        attach(clone);
-
-        clone.activate();
-
-        sourceDataNode.setState({
-          data: { ...sourceDataNode.state.data!, series: [toDataFrame([[100, 5]])] },
-        });
-
-        // value * 3 on the new frames, so the carried supplier is live rather than just present
-        expect(clone.state.data?.series[0].fields[1].values).toEqual([15]);
-      });
-
-      it('carries the origin order into a clone', () => {
-        const { transformationNode, activate } = buildSupplierScene([]);
-
-        transformationNode.setSystemTransformations({
-          origin: 'first',
-          supplier: () => ({ prepend: [transformer2config] }),
-        });
-        transformationNode.setSystemTransformations({
-          origin: 'second',
-          supplier: () => ({ prepend: [annotationTransformerConfigNoTopic] }),
-        });
-
-        activate();
-
-        const clone = transformationNode.clone();
-
-        expect(clone.getResolvedSystemTransformations(sourceDataNode.state.data!.series).prepend).toEqual([
-          { ...transformer2config, origin: 'first', position: 'prepend' },
-          { ...annotationTransformerConfigNoTopic, origin: 'second', position: 'prepend' },
-        ]);
-      });
-
-      it('degrades a throwing supplier to a no-op instead of erroring the stream', () => {
-        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-        const { transformationNode, consumer, activate } = buildSupplierScene();
-
-        transformationNode.setSystemTransformations({
-          supplier: () => {
-            throw new Error('no frames to my liking');
-          },
-        });
-
-        activate();
-
-        const data = sceneGraph.getData(consumer).state.data;
-
-        // value * 2 - the user transformation still runs
-        expect(data?.series[0].fields[1].values).toEqual([2, 4, 6]);
-        expect(data?.state).not.toEqual(LoadingState.Error);
-        expect(data?.errors).toBeUndefined();
-        expect(errorSpy).toHaveBeenCalled();
-
-        errorSpy.mockRestore();
+        expect(transformerSpy).toHaveBeenCalledTimes(1);
       });
     });
   });

@@ -1,6 +1,9 @@
 import { t } from '@grafana/i18n';
 import {
   AbsoluteTimeRange,
+  DataFrame,
+  DataTopic,
+  DataTransformerConfig,
   FieldConfigSource,
   PanelModel,
   PanelPlugin,
@@ -22,7 +25,7 @@ import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@gra
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
+import { CustomTransformerDefinition, DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VizPanelMenu } from './VizPanelMenu';
@@ -39,9 +42,10 @@ import { evaluateTimeRange } from '../../utils/evaluateTimeRange';
 import { LiveNowTimer } from '../../behaviors/LiveNowTimer';
 import { VizPanelRenderProfiler } from '../../performance/VizPanelRenderProfiler';
 import { registerQueryWithController, wrapPromiseInStateObservable } from '../../querying/registerQueryWithController';
-import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
+import { SceneDataTransformer, TransformationOrigin } from '../../querying/SceneDataTransformer';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { buildPathIdFor } from '../../utils/pathId';
+import { Unsubscribable } from 'rxjs';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -105,6 +109,11 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * see https://github.com/grafana/grafana/pull/120190
    **/
   _UNSAFE_clearPreviousFieldValues?: boolean;
+
+  /**
+   * Whether this panel provides system transformations
+   */
+  applyPluginTransformations?: boolean;
 
   /**
    * Sets panel chrome collapsed state
@@ -349,6 +358,116 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   public getPlugin(): PanelPlugin | undefined {
     return this._plugin;
+  }
+
+  /**
+   * @internal
+   * SystemTransformationsProvider. Identifies this panel's tier in its data pipeline; not for app code.
+   * @todo review: but the method is still public, so what good is marking it internal?
+   */
+  public origin: TransformationOrigin = 'plugin';
+
+  /**
+   * The plugin the data pipeline last resolved against.
+   */
+  private _pluginForTransformationsResolved?: { plugin: PanelPlugin | undefined };
+
+  /**
+   * @internal
+   * Called by the SceneDataTransformer that discovered this panel with the frames about to enter the pipeline.
+   * @todo review: but the method is still public, so what good is marking it internal?
+   */
+  public getSystemTransformations(
+    _transformer: SceneDataTransformer,
+    { series }: { series: DataFrame[] }
+  ): {
+    prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  } {
+    if (series.length === 0) {
+      return {};
+    }
+
+    const plugin = this._pluginForTransformations();
+
+    return plugin ? getPluginSystemTransformations(plugin, { series }) : {};
+  }
+
+  /**
+   * @internal
+   * The plugin resolves asynchronously, so the pipeline is told to reprocess whenever the plugin changes.
+   * @todo review: but the method is still public, so what good is marking it internal?
+   */
+  public subscribeToSystemTransformationsChanged(
+    transformer: SceneDataTransformer,
+    callback: () => void
+  ): Unsubscribable {
+    this._pluginForTransformationsResolved = { plugin: this._pluginForTransformations() };
+
+    const sub = this.subscribeToState(() => {
+      const next = this._pluginForTransformations();
+
+      if (next === this._pluginForTransformationsResolved?.plugin) {
+        return;
+      }
+
+      this._pluginForTransformationsResolved = { plugin: next };
+      callback();
+    });
+
+    this._warmPluginForTransformations(transformer, callback);
+
+    return sub;
+  }
+
+  /**
+   * The plugin that contributes the transformations for this panel.
+   */
+  private _pluginForTransformations(): PanelPlugin | undefined {
+    if (!this.state.applyPluginTransformations) {
+      return undefined;
+    }
+
+    const loaded = this._plugin?.meta.id === this.state.pluginId ? this._plugin : undefined;
+
+    return loaded ?? loadPanelPluginSync(this.state.pluginId);
+  }
+
+  /**
+   * This method "warms" the import cache and re-reads it synchronously.
+   *
+   * A data provider can stay active while its panel never renders (e.g. a dashboard datasource panel)
+   * In which case _onActivate never runs and the plugin is never imported.
+   * It does not go through _loadPlugin, which runs option migrations and writes state on an inactive panel.
+   *
+   * Done from a subscription rather than getSystemTransformations because a failed import is
+   * evicted from the cache and would be retried on every pass.
+   */
+  private _warmPluginForTransformations(transformer: SceneDataTransformer, callback: () => void) {
+    if (!this.state.applyPluginTransformations || this._pluginForTransformations()) {
+      return;
+    }
+
+    const { pluginId } = this.state;
+
+    getPluginImportUtils()
+      .importPanelPlugin(pluginId)
+      // A plugin that fails to load contributes nothing; it must not error the panel's data.
+      .catch(() => undefined)
+      .then(() => {
+        if (!transformer.isActive || this.state.pluginId !== pluginId) {
+          return;
+        }
+
+        const next = this._pluginForTransformations();
+
+        if (next === this._pluginForTransformationsResolved?.plugin) {
+          return;
+        }
+
+        this._pluginForTransformationsResolved = { plugin: next };
+        callback();
+      });
   }
 
   public getPanelContext(): PanelContext {
@@ -729,4 +848,50 @@ function getPanelPluginNotFound(id: string): PanelPlugin {
   };
 
   return plugin;
+}
+
+/**
+ * The subset of PanelPlugin that carries panel plugin defined transformations.
+ * This is a Grafana 13 addition to PanelPlugin, while scenes builds against
+ * @grafana/data >= 11.6, so this file has to compile and behave against versions that lack it.
+ */
+interface PluginWithSystemTransformations {
+  getSystemTransformations(ctx: { series: DataFrame[] }): {
+    prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  };
+}
+
+/**
+ * Internal helper - resolves system transformations from the plugin
+ */
+function getPluginSystemTransformations(
+  plugin: PanelPlugin,
+  ctx: { series: DataFrame[] }
+): {
+  prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+} {
+  // @todo remove type assertion
+  const resolve = (plugin as Partial<PluginWithSystemTransformations>).getSystemTransformations;
+
+  if (typeof resolve !== 'function') {
+    return {};
+  }
+
+  const { prepend = [], append = [] } = resolve.call(plugin, ctx) ?? {};
+
+  // The contract supports the series topic only.
+  return { prepend: prepend.filter(appliesToSeriesTopic), append: append.filter(appliesToSeriesTopic) };
+}
+
+/**
+ * Internal helper - checks if the transformation applies to series
+ */
+function appliesToSeriesTopic(transformation: DataTransformerConfig | CustomTransformerDefinition): boolean {
+  if (typeof transformation === 'function') {
+    return true;
+  }
+
+  return transformation.topic == null || transformation.topic === DataTopic.Series;
 }

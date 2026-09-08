@@ -6,6 +6,7 @@ import {
 } from '@grafana/scenes';
 import { useSceneContext } from './hooks';
 import { useEffect, useId } from 'react';
+import { isEqual } from 'lodash';
 import { DataTransformerConfig } from '@grafana/schema';
 import { useAddToScene } from '../contexts/SceneContextObject';
 
@@ -31,8 +32,10 @@ export function useDataTransformer(options: UseDataTransformerOptions) {
   useAddToScene(dataTransformer, scene);
 
   useEffect(() => {
-    // Replaces only the user transformations, so runtime ones added via setSystemTransformations survive
-    dataTransformer.setUserTransformations(options.transformations);
+    if (!isEqual(dataTransformer.state.transformations, options.transformations)) {
+      dataTransformer.setState({ transformations: options.transformations });
+      dataTransformer.reprocessTransformations();
+    }
   }, [dataTransformer, options.transformations]);
 
   return dataTransformer;

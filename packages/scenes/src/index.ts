@@ -52,13 +52,13 @@ export { SceneDataLayerBase } from './querying/layers/SceneDataLayerBase';
 export { SceneDataLayerControls } from './querying/layers/SceneDataLayerControls';
 export {
   SceneDataTransformer,
-  isSystemTransformation,
-  isTransformationFrom,
+  isSystemTransformationsProvider,
   type ResolvedSystemTransformations,
   type SceneDataTransformerState,
-  type SceneDataTransformation,
   type SystemTransformation,
-  type SystemTransformationsSupplier,
+  type SystemTransformationPosition,
+  type SystemTransformationsProvider,
+  type TransformationOrigin,
 } from './querying/SceneDataTransformer';
 export { registerQueryWithController } from './querying/registerQueryWithController';
 export { registerRuntimeDataSource, RuntimeDataSource } from './querying/RuntimeDataSource';
