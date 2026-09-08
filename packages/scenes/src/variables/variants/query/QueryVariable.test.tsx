@@ -96,7 +96,7 @@ jest.mock('@grafana/runtime', () => ({
   getDataSourceSrv: () => ({
     get: (ds: DataSourceRef, vars: ScopedVars): Promise<DataSourceApi> => {
       getDataSourceMock(ds, vars);
-      const uid = typeof ds === 'string' ? ds : (ds?.uid ?? 'fake-std');
+      const uid = typeof ds === 'string' ? ds : ds?.uid ?? 'fake-std';
       return Promise.resolve({
         ...fakeDsMock,
         uid,
@@ -117,10 +117,7 @@ jest.mock('@grafana/runtime', () => ({
 }));
 
 class FakeQueryRunner implements QueryRunner {
-  public constructor(
-    private datasource: DataSourceApi,
-    private _runRequest: jest.Mock
-  ) {}
+  public constructor(private datasource: DataSourceApi, private _runRequest: jest.Mock) {}
 
   public getTarget(variable: QueryVariable) {
     return (this.datasource.variables as StandardVariableSupport<DataSourceApi>).toDataQuery(
