@@ -134,7 +134,9 @@ export class QueryVariable extends MultiValueVariable<QueryVariableState> {
       take(1),
       mergeMap((data: PanelData) => {
         if (data.state === LoadingState.Error) {
-          return throwError(() => data.error);
+          // `error` is unset when the backend only populated `errors`; throwing undefined
+          // is later dropped by filter(Boolean) and treated as a successful empty result.
+          return throwError(() => data.error ?? data.errors?.[0] ?? new Error('Variable query failed'));
         }
         return of(data);
       }),
