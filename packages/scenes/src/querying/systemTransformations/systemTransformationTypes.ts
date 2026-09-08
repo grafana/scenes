@@ -32,7 +32,8 @@ export interface SystemTransformationsProvider {
 
   /**
    * Resolves what to run for the frames about to enter the pipeline. Called on every pass and does not write scene state.
-   * Throwing is treated as noop rather than erroring. Does not interpolate system transformations!
+   * Throwing is treated as noop rather than erroring.
+   * What this returns is never interpolated. Only `state.transformations` is scanned for variable dependencies.
    */
   getSystemTransformations(
     transformer: SceneDataTransformer,

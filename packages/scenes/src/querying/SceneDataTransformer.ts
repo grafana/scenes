@@ -206,21 +206,25 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   /**
-   * The transformations the pipeline should run for the given source frames, in prepend, user, append order.
+   * The system transformations to run for the given source frames.
    */
-  private _effectiveTransformations(series: DataFrame[]): Array<DataTransformerConfig | CustomTransformerDefinition> {
-    if (!this._provider) {
-      // Without a provider state already holds everything in pipeline order, so the common case stays free.
-      return this.state.transformations;
+  private _systemTransformationsFor(series: DataFrame[]): ResolvedSystemTransformations {
+    // Without a provider state already holds everything in pipeline order, so the common case stays free.
+    return this._provider ? this.getResolvedSystemTransformations(series) : NO_SYSTEM_TRANSFORMATIONS;
+  }
+
+  /**
+   * Places the user configured transformations between the system tiers, in prepend, user, append order.
+   */
+  private _withSystemTransformations(
+    system: ResolvedSystemTransformations,
+    transformations: Array<DataTransformerConfig | CustomTransformerDefinition>
+  ): Array<DataTransformerConfig | CustomTransformerDefinition> {
+    if (system.prepend.length === 0 && system.append.length === 0) {
+      return transformations;
     }
 
-    const { prepend, append } = this.getResolvedSystemTransformations(series);
-
-    if (prepend.length === 0 && append.length === 0) {
-      return this.state.transformations;
-    }
-
-    return [...prepend, ...this.state.transformations, ...append];
+    return [...system.prepend, ...transformations, ...system.append];
   }
 
   /**
@@ -343,7 +347,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       | null = null;
 
     // Resolved once for the whole pass and handed to both tiers, rather than re-derived per position.
-    const transformations = data ? this._effectiveTransformations(data.series) : [];
+    const system = data ? this._systemTransformationsFor(data.series) : NO_SYSTEM_TRANSFORMATIONS;
+    const transformations = data ? this._withSystemTransformations(system, this.state.transformations) : [];
 
     if (transformations.length === 0 || !data) {
       // Transformations are asynchronous, so a pass started when there were some is likely still running.
@@ -396,7 +401,11 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       endTransformCallback = profiler.onDataTransformStart(timestamp, transformationId, metrics);
     }
 
-    const interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data, transformations);
+    // Only the user transforms are interpolated.
+    const interpolatedTransformations = this._withSystemTransformations(
+      system,
+      this._interpolateVariablesInTransformationConfigs(data, this.state.transformations)
+    );
 
     const seriesTransformations = this._filterAndPrepareTransformationsByTopic(
       interpolatedTransformations,

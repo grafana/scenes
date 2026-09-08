@@ -1430,6 +1430,18 @@ describe('SceneDataTransformer', () => {
     describe('variable interpolation', () => {
       const configWithVariable = { ...transformer1config, options: { options: '$myVariable' } };
 
+      // transformDataFrame runs every option string through ctx.interpolate itself, and only skips that
+      // when a scene is registered on the window - its way of deferring to the interpolation scenes has
+      // already done. EmbeddedScene/SceneApp set it in a real app; these tests build a bare layout, so
+      // without it the compat path resolves both tiers and there is no way to tell them apart.
+      beforeEach(() => {
+        (window as any).__grafanaSceneContext = {};
+      });
+
+      afterEach(() => {
+        delete (window as any).__grafanaSceneContext;
+      });
+
       function buildInterpolationScene(
         provider: TestProvider,
         transformations: Array<DataTransformerConfig | CustomTransformerDefinition>
@@ -1477,10 +1489,28 @@ describe('SceneDataTransformer', () => {
         const { textVar } = buildInterpolationScene(provider, []);
 
         expect(transformerSpy).toHaveBeenCalledTimes(1);
+        expect(transformerSpy).toHaveBeenLastCalledWith({ options: '$myVariable' });
 
         textVar.setValue('New Text Variable Value');
 
         expect(transformerSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('leaves provider output literal even when a user transformation references a variable', () => {
+        // Both tiers carry the same `$myVariable` config. Interpolating the merged array would resolve the
+        // provider's copy too, making its behaviour depend on whether the user's own configs happen to
+        // reference a variable - the thing that decides whether interpolation runs at all.
+        const provider = new TestProvider({ resolve: () => ({ append: [configWithVariable] }) });
+        const { textVar } = buildInterpolationScene(provider, [configWithVariable]);
+
+        expect(transformerSpy).toHaveBeenCalledWith({ options: 'Text Variable Value' });
+        expect(transformerSpy).toHaveBeenCalledWith({ options: '$myVariable' });
+
+        transformerSpy.mockClear();
+        textVar.setValue('New Text Variable Value');
+
+        expect(transformerSpy).toHaveBeenCalledWith({ options: 'New Text Variable Value' });
+        expect(transformerSpy).toHaveBeenCalledWith({ options: '$myVariable' });
       });
     });
   });
