@@ -28,7 +28,7 @@ import { EmbeddedScene } from '../../../components/EmbeddedScene';
 import { SceneVariableSet } from '../../sets/SceneVariableSet';
 import { VariableValueSelectors } from '../../components/VariableValueSelectors';
 import { SceneCanvasText } from '../../../components/SceneCanvasText';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { config, setRunRequest } from '@grafana/runtime';
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
@@ -96,7 +96,7 @@ jest.mock('@grafana/runtime', () => ({
   getDataSourceSrv: () => ({
     get: (ds: DataSourceRef, vars: ScopedVars): Promise<DataSourceApi> => {
       getDataSourceMock(ds, vars);
-      const uid = typeof ds === 'string' ? ds : ds?.uid ?? 'fake-std';
+      const uid = typeof ds === 'string' ? ds : (ds?.uid ?? 'fake-std');
       return Promise.resolve({
         ...fakeDsMock,
         uid,
@@ -117,7 +117,10 @@ jest.mock('@grafana/runtime', () => ({
 }));
 
 class FakeQueryRunner implements QueryRunner {
-  public constructor(private datasource: DataSourceApi, private _runRequest: jest.Mock) {}
+  public constructor(
+    private datasource: DataSourceApi,
+    private _runRequest: jest.Mock
+  ) {}
 
   public getTarget(variable: QueryVariable) {
     return (this.datasource.variables as StandardVariableSupport<DataSourceApi>).toDataQuery(
@@ -203,6 +206,43 @@ describe.each(['11.1.2', '11.1.1'])('QueryVariable', (v) => {
         });
 
         expect(variable.state.loading).toEqual(true);
+      });
+
+      it('Should surface query errors reported only via data.errors', async () => {
+        const origError = console.error;
+        console.error = jest.fn();
+
+        runRequestMock.mockReturnValue(
+          of<PanelData>({
+            state: LoadingState.Error,
+            series: [],
+            error: undefined,
+            errors: [{ message: 'error querying the database: 001003 (42000): SQL compilation error' }],
+            timeRange: getDefaultTimeRange(),
+          })
+        );
+
+        const variable = new QueryVariable({
+          name: 'site',
+          datasource: { uid: 'fake-std', type: 'fake-std' },
+          query: 'query',
+        });
+
+        const scene = new EmbeddedScene({
+          $timeRange: new SceneTimeRange({ from: 'now-6h', to: 'now' }),
+          $variables: new SceneVariableSet({ variables: [variable] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+        const deactivate = activateFullSceneTree(scene);
+
+        await waitFor(() => {
+          expect(variable.state.error).toBe('error querying the database: 001003 (42000): SQL compilation error');
+        });
+        expect(variable.state.options).toEqual([]);
+        expect(variable.state.loading).toBe(false);
+
+        deactivate();
+        console.error = origError;
       });
 
       it('Should fan out metric-find across a multi-value datasource variable and union options', async () => {
