@@ -1371,6 +1371,59 @@ describe('SceneDataTransformer', () => {
       expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
     });
 
+    it('re-runs the pipeline when the provider it dropped contributed to the current data', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [transformer1config],
+      });
+
+      provider.setState({ child: transformationNode });
+
+      sourceDataNode.activate();
+      const deactivate = transformationNode.activate();
+
+      // value * 2 (user) * 3 (provider)
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+
+      deactivate();
+      transformationNode.clearParent();
+
+      const plainParent = new TestSceneObject({ $data: transformationNode });
+      transformationNode.activate();
+
+      expect(plainParent).toBeDefined();
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      // Not the *3 the dropped provider produced. The source frames are unchanged, so an unforced pass
+      // would be skipped as already transformed and state.data would keep its output.
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+    });
+
+    it('re-runs the pipeline when re-activation gains a provider', () => {
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [transformer1config],
+      });
+      const plainParent = new TestSceneObject({ $data: transformationNode });
+
+      sourceDataNode.activate();
+      const deactivate = transformationNode.activate();
+
+      expect(plainParent).toBeDefined();
+      // value * 2, no provider to contribute
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+
+      deactivate();
+      transformationNode.clearParent();
+
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      provider.setState({ child: transformationNode });
+      transformationNode.activate();
+
+      // value * 2 * 3 - the newly discovered provider has to reach the already transformed frames
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
     it('hands out a frozen result so readers cannot corrupt each other', () => {
       const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
       const { transformationNode, activate } = buildScene({ provider });

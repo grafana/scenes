@@ -63,6 +63,11 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     series: DataFrame[];
     resolved: ResolvedSystemTransformations;
   };
+  /**
+   * Whether a previous activation already ran a pass, which is what makes the provider found on this one a
+   * *change* rather than a first discovery. Not carried over by clone, unlike `_prevDataFromSource`.
+   */
+  private _hasActivatedBefore = false;
 
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
@@ -88,11 +93,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     // Before the first transform below, so a discovered provider is part of that first pass rather than
     // needing a second, corrective one.
-    this._discoverProvider();
+    const providerChanged = this._discoverProvider();
 
     if (sourceData.state.data) {
-      this.transform(sourceData.state.data);
+      this.transform(sourceData.state.data, providerChanged);
     }
+
+    this._hasActivatedBefore = true;
 
     return () => {
       if (this._transformSub) {
@@ -104,8 +111,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   /**
    * Checks the parent for system transformation provider.
    * The provider is kept across deactivation but its subscription is not: _subs is cleared on deactivate, this re-establishes the subscription.
+   * Reports whether a re-activation changed which provider is in effect, in either direction.
    */
-  private _discoverProvider() {
+  private _discoverProvider(): boolean {
+    const previous = this._provider;
     const provider = this.parent;
 
     if (!isSystemTransformationsProvider(provider)) {
@@ -114,7 +123,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       // transformer is no longer part of.
       this._provider = undefined;
       this._resolvedSystem = undefined;
-      return;
+
+      return this._hasActivatedBefore && previous !== undefined;
     }
 
     this._provider = provider;
@@ -128,6 +138,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     if (sub) {
       this._subs.add(sub);
     }
+
+    return this._hasActivatedBefore && previous !== provider;
   }
 
   private getSourceData(): SceneDataProvider {
