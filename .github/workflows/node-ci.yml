@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
+  # Manual re-drive for `publish`. Pushing to main is forbidden by the ruleset, so
+  # without this a publish that never fired could not be recovered.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -127,8 +130,9 @@ jobs:
   # forbids committing to main directly: this job opens a release PR, and the
   # `publish` job below reacts to that PR being merged. The marker is the commit
   # subject, which for a squash merge (the only method enabled here) is the PR
-  # title. `publish` also has a version-based fallback so a retitled or manually
-  # landed release still ships.
+  # title. `publish` re-checks npm before acting, so a re-run is a no-op rather
+  # than a double publish, and workflow_dispatch is the manual re-drive if the
+  # subject-based trigger ever misses.
   release-pr:
     name: Open release PR
     runs-on: ubuntu-latest
@@ -138,7 +142,8 @@ jobs:
       group: release-main
       cancel-in-progress: false
     permissions:
-      contents: read
+      # create-github-app-token fetches its credentials over OIDC.
+      id-token: write
     steps:
       - name: Get GitHub App Token
         id: get-github-app-token
@@ -206,7 +211,7 @@ jobs:
         # recomputes cumulatively, so closing the old one and opening a fresh PR
         # always yields the correct version.
         run: |
-          for NUM in $(gh pr list --state open --json number,headRefName --jq '.[] | select(.headRefName | startswith("release/")) | .number'); do
+          for NUM in $(gh pr list --state open --json number,headRefName --jq '.[] | select(.headRefName | test("^release/v[0-9]+\\.[0-9]+\\.[0-9]+$")) | .number'); do
             echo "Closing superseded release PR #${NUM}"
             gh pr close "$NUM" --delete-branch --comment "Superseded by the release PR for v${VERSION}."
           done
@@ -263,9 +268,12 @@ jobs:
     name: Publish release
     runs-on: ubuntu-latest
     needs: [test, test-react-18]
-    if: "github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Release v')"
+    if: "github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Release v'))"
     concurrency:
-      group: release-main
+      # Deliberately NOT release-main: GitHub keeps a single pending entry per
+      # group, so sharing one let a queued publish be cancelled by a later
+      # release-pr, silently dropping an already-merged release.
+      group: release-publish
       cancel-in-progress: false
     permissions:
       id-token: write
@@ -295,24 +303,39 @@ jobs:
       - name: Build library
         run: yarn run lerna run build --no-private
 
-      - name: Resolve version to publish
+      - name: Resolve what still needs releasing
         id: version
-        # Fallback for the commit-subject trigger: if this version is already on
-        # npm there is nothing to do, so a re-run (or a push whose subject merely
-        # looks like a release) is a no-op rather than a failure.
+        # Probe every publishable package, not just one. lerna publishes
+        # topologically, so a failure partway through leaves some packages on npm
+        # and some not; gating on a single package would make the retry a silent
+        # no-op and strand the rest. The GitHub release is tracked separately so a
+        # failed `auto release` can be retried after a successful npm publish.
         run: |
           VERSION="$(node -p "require('./lerna.json').version")"
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          if npm view "@grafana/scenes@${VERSION}" version >/dev/null 2>&1; then
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "v${VERSION} is already published; nothing to do."
+          PUBLISH=false
+          SPECS="$(yarn lerna list --json --no-private --loglevel silent \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).map(p=>p.name+'@'+p.version).join('\n')))")"
+          for SPEC in $SPECS; do
+            if npm view "$SPEC" version >/dev/null 2>&1; then
+              echo "${SPEC} is already published."
+            else
+              echo "${SPEC} is not on npm."
+              PUBLISH=true
+            fi
+          done
+          echo "publish=${PUBLISH}" >> "$GITHUB_OUTPUT"
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
           else
-            echo "publish=true" >> "$GITHUB_OUTPUT"
-            echo "Publishing v${VERSION}."
+            echo "release=true" >> "$GITHUB_OUTPUT"
           fi
+          echo "Needs npm publish: ${PUBLISH}"
+        env:
+          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
 
       - name: Push release tag
-        if: steps.version.outputs.publish == 'true'
+        if: steps.version.outputs.publish == 'true' || steps.version.outputs.release == 'true'
         # Tag before publishing to npm: a publish failure then leaves git fully
         # consistent, and this step is skipped on a re-run if the tag already
         # points at the right commit.
@@ -331,7 +354,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
 
       - name: Create local tag
-        if: steps.version.outputs.publish == 'true'
+        if: steps.version.outputs.publish == 'true' || steps.version.outputs.release == 'true'
         # `auto release` resolves the release version from `git describe --tags`
         # on HEAD, so the tag has to exist locally as well as on the remote.
         run: git tag "v${VERSION}" "${GITHUB_SHA}" || true
@@ -346,7 +369,7 @@ jobs:
         run: yarn lerna publish from-package --yes --no-verify-access
 
       - name: Create GitHub release
-        if: steps.version.outputs.publish == 'true'
+        if: steps.version.outputs.release == 'true'
         run: yarn auto release
         env:
           GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
