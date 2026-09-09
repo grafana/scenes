@@ -932,6 +932,7 @@ describe('VizPanel', () => {
           pluginId: 'custom-plugin-id',
           $timeRange: new SceneTimeRange(),
           $data: data,
+          _UNSAFE_clearPreviousFieldValues: true,
         });
 
         pluginToLoad = getTestPlugin1();
