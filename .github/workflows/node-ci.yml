@@ -42,10 +42,50 @@ jobs:
       - name: Build library
         run: yarn build
 
+  test-react-18:
+    name: Run tests (React 18)
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Test using Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version-file: '.nvmrc'
+
+      # The published packages peer-support React 18 and 19, but the workspace pins 19,
+      # so the job above only ever exercises half of that range. Downgrading the pins
+      # here covers the other half, and catches React-19-only APIs (ref as a plain prop,
+      # <Context value>, use(), useActionState) before they reach consumers on Grafana
+      # below 13.2, which is still React 18.
+      - name: Pin workspace to React 18
+        run: node ./scripts/use-react-18.js
+
+      - name: Install dependencies
+        uses: ./.github/actions/yarn-nm-install
+        with:
+          # The step above rewrites package.json, so the lockfile has to be updated.
+          immutable: false
+          # yarn.lock is unchanged at restore time, so these caches would otherwise be
+          # shared with the React 19 job. Turbo caching especially: a hit there would let
+          # this job report success without running anything.
+          cache-node-modules: false
+          cache-install-state: false
+          cache-turbo: false
+
+      - name: Typecheck library
+        run: yarn typecheck
+
+      - name: Test library
+        run: yarn test
+
   canary:
     name: Canary release
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, test-react-18]
     if: github.event_name == 'pull_request'
     permissions:
       id-token: write
@@ -86,7 +126,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    needs: test
+    needs: [test, test-react-18]
     if: "github.event_name == 'push' && !contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
     concurrency:
       group: release-main
