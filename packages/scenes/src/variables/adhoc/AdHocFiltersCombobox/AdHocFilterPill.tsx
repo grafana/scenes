@@ -24,8 +24,9 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
     useEditablePill({ filter, controller, readOnly, focusOnWipInputRef, isFilterEmpty: isAdhocFilterEmpty });
 
   const keyLabel = filter.keyLabel ?? filter.key;
+  const isMatchAll = isMatchAllFilter(filter);
   // A saved All default can arrive without valueLabels, so the sentinel always renders as All
-  const isAllValueSelected = filter.operator === ONE_OF_OPERATOR && isMatchAllFilter(filter);
+  const isAllValueSelected = filter.operator === ONE_OF_OPERATOR && isMatchAll;
   const valueLabel = isAllValueSelected
     ? t('grafana-scenes.components.adhoc-filter-pill.all-values', 'All')
     : filter.valueLabels?.join(', ') || filter.values?.join(', ') || filter.value;
@@ -52,7 +53,11 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
   const cleanFilter = !filter.restorable && !filter.readOnly && !filter.nonApplicable;
 
   if (viewMode) {
-    const pillTextContent = `${keyLabel} ${filter.operator} ${valueLabel}`;
+    // A match all filter is not narrowing anything, so its value is muted. The key, operator,
+    // border and hover stay normal - the pill is still fully interactive.
+    const pillTextContent = isMatchAll
+      ? `${keyLabel} ${filter.operator}`
+      : `${keyLabel} ${filter.operator} ${valueLabel}`;
 
     const handleRemove = () => {
       if (filter.origin && filter.origin === 'dashboard') {
@@ -67,14 +72,15 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
     // Removing a dashboard default turns it into a match all one, so there is nowhere left to go
     // once it already is. Derived rather than read off filter.matchAllFilter, because a default
     // authored as All in the editor arrives without the flag.
-    const showRemove = !readOnly && (!filter.origin || (filter.origin === 'dashboard' && !isMatchAllFilter(filter)));
+    const showRemove = !readOnly && (!filter.origin || (filter.origin === 'dashboard' && !isMatchAll));
 
     return (
       <BasePill
         ref={pillWrapperRef}
         label={pillTextContent}
+        mutedValue={isMatchAll ? valueLabel : undefined}
         readOnly={readOnly}
-        disabled={isMatchAllFilter(filter) || filter.nonApplicable}
+        disabled={filter.nonApplicable}
         isFilterReadOnly={filter.readOnly}
         strikethrough={filter.nonApplicable}
         onClick={handlePillClick}
@@ -118,7 +124,7 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
                 }}
                 name="history"
                 size="md"
-                className={isMatchAllFilter(filter) ? styles.matchAllPillIcon : styles.pillIcon}
+                className={styles.pillIcon}
                 tooltip={getOriginFilterTooltips(filter.origin).restore}
               />
             )}
@@ -165,10 +171,5 @@ const getStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       color: theme.colors.text.primary,
     },
-  }),
-  matchAllPillIcon: css({
-    marginInline: theme.spacing(0.5),
-    cursor: 'pointer',
-    color: theme.colors.text.disabled,
   }),
 });
