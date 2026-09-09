@@ -374,6 +374,25 @@ describe('MultiValueVariable', () => {
       expect(variable.state.value).toEqual(['1']);
     });
 
+    it('When changing with the all value in the middle of the selection', () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        isMulti: true,
+        defaultToAll: true,
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+
+      variable.changeValueTo(['1', ALL_VARIABLE_VALUE, '2']);
+      // Should remove the all value wherever it sits so only the concrete values remain
+      expect(variable.state.value).toEqual(['1', '2']);
+      expect(variable.state.text).toEqual(['A', 'B']);
+    });
+
     it('When value is the same', () => {
       const variable = new TestVariable({
         name: 'test',
@@ -469,6 +488,40 @@ describe('MultiValueVariable', () => {
       });
 
       expect(variable.getValueText()).toBe(ALL_VARIABLE_TEXT);
+    });
+
+    it('getValueText should return "All" text when the all value is not first', () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        optionsToReturn: [],
+        isMulti: true,
+        value: ['1', ALL_VARIABLE_VALUE],
+        text: ['A', ALL_VARIABLE_TEXT],
+        delayMs: 0,
+      });
+
+      expect(variable.getValueText()).toBe(ALL_VARIABLE_TEXT);
+    });
+
+    it('getValue should expand to all option values when the all value is not first', () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        optionsToReturn: [],
+        isMulti: true,
+        value: ['1', ALL_VARIABLE_VALUE],
+        text: ['A', ALL_VARIABLE_TEXT],
+        delayMs: 0,
+      });
+
+      expect(variable.getValue()).toEqual(['1', '2']);
     });
 
     describe('When option properties are present', () => {
@@ -861,6 +914,29 @@ describe('MultiValueVariable', () => {
 
       await lastValueFrom(variable.validateAndUpdate());
 
+      expect(variable.getValue()).toEqual(['1', '2']);
+    });
+
+    it('updateFromUrl with the all value mixed into the array should remove the all value', () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        optionsToReturn: [],
+        includeAll: true,
+        isMulti: true,
+        value: [],
+        text: [],
+        delayMs: 0,
+      });
+
+      variable.urlSync?.updateFromUrl({ ['var-test']: ['1', ALL_VARIABLE_VALUE, '2'] });
+
+      expect(variable.state.value).toEqual(['1', '2']);
+      expect(variable.state.text).toEqual(['A', 'B']);
+      // Without normalisation the literal all value would be interpolated into queries
       expect(variable.getValue()).toEqual(['1', '2']);
     });
 

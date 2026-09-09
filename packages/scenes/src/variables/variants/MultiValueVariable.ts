@@ -281,7 +281,9 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 
   public hasAllValue() {
     const value = this.state.value;
-    return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value[0] === ALL_VARIABLE_VALUE);
+    // Values that bypass changeValueTo's normalisation (e.g. direct state updates) can hold
+    // the All value at any position; treating it as All avoids interpolating a literal $__all
+    return value === ALL_VARIABLE_VALUE || (Array.isArray(value) && value.includes(ALL_VARIABLE_VALUE));
   }
 
   public getDefaultMultiState(options: VariableValueOption[]) {
@@ -329,16 +331,18 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
         text = state.text;
       }
 
-      // If last value is the All value then replace all with it
+      // If the last (most recently added) value is the All value it replaces the rest
       if (value[value.length - 1] === ALL_VARIABLE_VALUE) {
         value = [ALL_VARIABLE_VALUE];
         text = [ALL_VARIABLE_TEXT];
       }
-      // If the first value is the ALL value and we have other values, then remove the All value
-      else if (value[0] === ALL_VARIABLE_VALUE && value.length > 1) {
-        value.shift();
+      // Otherwise a value was added after the All value, so the All value is
+      // deselected wherever it sits in the selection
+      else if (value.length > 1 && value.includes(ALL_VARIABLE_VALUE)) {
+        const allIndex = value.indexOf(ALL_VARIABLE_VALUE);
+        value.splice(allIndex, 1);
         if (Array.isArray(text)) {
-          text.shift();
+          text.splice(allIndex, 1);
         }
       }
     }
