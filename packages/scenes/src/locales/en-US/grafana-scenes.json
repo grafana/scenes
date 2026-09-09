@@ -188,6 +188,7 @@
         "placeholder-enter-value": "Enter value"
       },
       "variable-value-select": {
+        "all-label": "All",
         "placeholder-select-value": "Select value"
       }
     }
