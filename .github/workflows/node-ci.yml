@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
     types: [opened, synchronize, reopened]
+  # Manual re-drive for `publish`. Pushing to main is forbidden by the ruleset, so
+  # without this a publish that never fired could not be recovered.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -86,7 +89,7 @@ jobs:
     name: Canary release
     runs-on: ubuntu-latest
     needs: [test, test-react-18]
-    if: github.event_name == 'pull_request'
+    if: "github.event_name == 'pull_request' && !startsWith(github.head_ref, 'release/')"
     permissions:
       id-token: write
     steps:
@@ -123,13 +126,159 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
 
-  release:
-    name: Release
+  # Releasing is split in two because the org-level "Repo required PRs" ruleset
+  # forbids committing to main directly: this job opens a release PR, and the
+  # `publish` job below reacts to that PR being merged. The marker is the commit
+  # subject, which for a squash merge (the only method enabled here) is the PR
+  # title. `publish` re-checks npm before acting, so a re-run is a no-op rather
+  # than a double publish, and workflow_dispatch is the manual re-drive if the
+  # subject-based trigger ever misses.
+  release-pr:
+    name: Open release PR
     runs-on: ubuntu-latest
     needs: [test, test-react-18]
-    if: "github.event_name == 'push' && !contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
+    if: "github.event_name == 'push' && !startsWith(github.event.head_commit.message, 'Release v') && !contains(github.event.head_commit.message, 'ci skip') && !contains(github.event.head_commit.message, 'skip ci')"
     concurrency:
       group: release-main
+      cancel-in-progress: false
+    permissions:
+      # create-github-app-token fetches its credentials over OIDC.
+      id-token: write
+    steps:
+      - name: Get GitHub App Token
+        id: get-github-app-token
+        uses: grafana/shared-workflows/actions/create-github-app-token@46f48da11e78ebdba7a8747ae456b11062fac83e # create-github-app-token/v0.3.1
+        with:
+          github_app: scenes-repo-bot-access-token
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          token: ${{ steps.get-github-app-token.outputs.token }}
+          persist-credentials: false
+
+      - name: Prepare repository
+        run: git fetch --unshallow --tags
+
+      - name: Test using Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Install dependencies
+        uses: ./.github/actions/yarn-nm-install
+
+      # No build here: nothing is published from this job, so the build only
+      # needs to happen in `publish`.
+      - name: Calculate version bump
+        id: bump
+        run: |
+          AUTO_OUTPUT="$(yarn auto version)"
+          BUMP="$(echo "$AUTO_OUTPUT" | grep -oE '^(major|minor|patch)$' | tail -n1)"
+          if [ -z "$BUMP" ]; then
+            echo "No version bump detected. Output of \`auto version\`:"
+            echo "$AUTO_OUTPUT"
+          fi
+          echo "bump=${BUMP}" >> "$GITHUB_OUTPUT"
+          echo "Calculated version bump: ${BUMP:-none (skipping release)}"
+        env:
+          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+
+      - name: Update changelogs
+        if: steps.bump.outputs.bump != ''
+        # `auto changelog` writes the root and per-package changelogs and commits
+        # them locally (unsigned). Drop the commit but keep the file changes so the
+        # release branch can be built from them below.
+        run: |
+          BEFORE_CHANGELOG="$(git rev-parse HEAD)"
+          yarn auto changelog
+          git reset --mixed "$BEFORE_CHANGELOG"
+        env:
+          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+
+      - name: Bump versions
+        id: version
+        if: steps.bump.outputs.bump != ''
+        # --no-git-tag-version so lerna only rewrites lerna.json and the
+        # package.json files without creating a commit or tag.
+        run: |
+          yarn lerna version "${{ steps.bump.outputs.bump }}" --force-publish --no-commit-hooks --yes --no-push --no-git-tag-version
+          echo "version=$(node -p "require('./lerna.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Replace any superseded release PR
+        if: steps.bump.outputs.bump != ''
+        # A release PR left open while another labelled PR merges is stale: its
+        # version no longer reflects everything since the last tag. `auto version`
+        # recomputes cumulatively, so closing the old one and opening a fresh PR
+        # always yields the correct version.
+        run: |
+          for NUM in $(gh pr list --state open --json number,headRefName --jq '.[] | select(.headRefName | test("^release/v[0-9]+\\.[0-9]+\\.[0-9]+$")) | .number'); do
+            echo "Closing superseded release PR #${NUM}"
+            gh pr close "$NUM" --delete-branch --comment "Superseded by the release PR for v${VERSION}."
+          done
+        env:
+          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Create release branch
+        if: steps.bump.outputs.bump != ''
+        # createCommitOnBranch (used by ghcommit-action below) needs the ref to
+        # already exist. Recreate it if a previous attempt left one behind.
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/git/refs/heads/release/v${VERSION}" >/dev/null 2>&1 \
+            && gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/release/v${VERSION}"
+          gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f "ref=refs/heads/release/v${VERSION}" -f "sha=${GITHUB_SHA}"
+        env:
+          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Commit changelogs and version bump
+        id: release-commit
+        if: steps.bump.outputs.bump != ''
+        # One commit for both, unlike the previous direct-to-main flow which
+        # needed two. Created through the API so it is signed ("Verified"), which
+        # the org-wide "Signed Commits" ruleset requires on every branch.
+        uses: planetscale/ghcommit-action@a6b150b81dca5dd027baa898604418eec9e11465 # v0.2.22
+        with:
+          commit_message: 'Release v${{ steps.version.outputs.version }}'
+          repo: ${{ github.repository }}
+          branch: release/v${{ steps.version.outputs.version }}
+          file_pattern: 'CHANGELOG.md packages/*/CHANGELOG.md lerna.json packages/*/package.json'
+        env:
+          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+
+      - name: Open release PR
+        if: steps.bump.outputs.bump != ''
+        # `no-changelog` keeps this PR out of the next release's changelog via the
+        # omit-commits plugin. It carries no major/minor/patch label, so with
+        # onlyPublishWithReleaseLabel it contributes no bump of its own.
+        run: |
+          PR_URL="$(gh pr create \
+            --base main \
+            --head "release/v${VERSION}" \
+            --title "Release v${VERSION}" \
+            --label no-changelog \
+            --body "Automated release of v${VERSION}. Needs one approval; merging then publishes to npm and creates the git tag and GitHub release.")"
+          echo "Opened ${PR_URL}"
+          echo "Release PR for v${VERSION} is open and needs an approval before it can merge: ${PR_URL}" >> "$GITHUB_STEP_SUMMARY"
+          gh pr merge "$PR_URL" --auto --squash
+        env:
+          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+
+  publish:
+    name: Publish release
+    runs-on: ubuntu-latest
+    needs: [test, test-react-18]
+    # The dispatch path is restricted to main: dispatching from an open
+    # release/v* branch would read its bumped lerna.json, match its own
+    # "Release v" commit, then publish and tag a commit that is not on main and
+    # becomes unreachable once the branch is deleted on merge.
+    if: "(github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Release v'))"
+    concurrency:
+      # Deliberately NOT release-main: GitHub keeps a single pending entry per
+      # group, so sharing one let a queued publish be cancelled by a later
+      # release-pr, silently dropping an already-merged release.
+      group: release-publish
       cancel-in-progress: false
     permissions:
       id-token: write
@@ -159,119 +308,87 @@ jobs:
       - name: Build library
         run: yarn run lerna run build --no-private
 
-      # `auto shipit` is decomposed into the steps below so that the changelog and
-      # version-bump commits can be created through the GitHub GraphQL API
-      # (createCommitOnBranch) instead of `git push`. Commits created that way are
-      # signed by GitHub ("Verified"), which the branch protection on main requires.
-
-      - name: Calculate version bump
-        id: bump
-        run: |
-          AUTO_OUTPUT="$(yarn auto version)"
-          BUMP="$(echo "$AUTO_OUTPUT" | grep -oE '^(major|minor|patch)$' | tail -n1)"
-          if [ -z "$BUMP" ]; then
-            echo "No version bump detected. Output of \`auto version\`:"
-            echo "$AUTO_OUTPUT"
-          fi
-          echo "bump=${BUMP}" >> "$GITHUB_OUTPUT"
-          echo "Calculated version bump: ${BUMP:-none (skipping release)}"
-        env:
-          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
-
-      - name: Update changelogs
-        if: steps.bump.outputs.bump != ''
-        # `auto changelog` writes the root and per-package changelogs and commits
-        # them locally (unsigned). Drop the commit but keep the file changes so the
-        # next step can re-create it through the API.
-        run: |
-          BEFORE_CHANGELOG="$(git rev-parse HEAD)"
-          yarn auto changelog
-          git reset --mixed "$BEFORE_CHANGELOG"
-        env:
-          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
-
-      - name: Commit changelogs
-        id: changelog-commit
-        if: steps.bump.outputs.bump != ''
-        uses: planetscale/ghcommit-action@a6b150b81dca5dd027baa898604418eec9e11465 # v0.2.22
-        with:
-          commit_message: 'Update CHANGELOG.md [skip ci]'
-          repo: ${{ github.repository }}
-          branch: main
-          file_pattern: 'CHANGELOG.md packages/*/CHANGELOG.md'
-        env:
-          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
-
-      - name: Sync with remote
-        if: steps.bump.outputs.bump != ''
-        run: |
-          git fetch origin main
-          git reset --hard "${CHANGELOG_COMMIT:-FETCH_HEAD}"
-        env:
-          CHANGELOG_COMMIT: ${{ steps.changelog-commit.outputs.commit-hash }}
-
-      - name: Bump versions
+      - name: Resolve what still needs releasing
         id: version
-        if: steps.bump.outputs.bump != ''
-        # Same command `auto shipit` runs internally, plus --no-git-tag-version so
-        # that lerna only updates lerna.json and the package.json files without
-        # creating a commit or tag.
+        # Probe every publishable package, not just one. lerna publishes
+        # topologically, so a failure partway through leaves some packages on npm
+        # and some not; gating on a single package would make the retry a silent
+        # no-op and strand the rest. The GitHub release is tracked separately so a
+        # failed `auto release` can be retried after a successful npm publish.
         run: |
-          yarn lerna version "${{ steps.bump.outputs.bump }}" --force-publish --no-commit-hooks --yes --no-push --no-git-tag-version
-          echo "version=$(node -p "require('./lerna.json').version")" >> "$GITHUB_OUTPUT"
-
-      - name: Commit version bump
-        id: version-commit
-        if: steps.bump.outputs.bump != ''
-        uses: planetscale/ghcommit-action@a6b150b81dca5dd027baa898604418eec9e11465 # v0.2.22
-        with:
-          commit_message: 'Bump version to: v${{ steps.version.outputs.version }} [skip ci]'
-          repo: ${{ github.repository }}
-          branch: main
-          file_pattern: 'lerna.json packages/*/package.json'
+          VERSION="$(node -p "require('./lerna.json').version")"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          PUBLISH=false
+          SPECS="$(yarn lerna list --json --no-private --loglevel silent \
+            | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).map(p=>p.name+'@'+p.version).join('\n')))")"
+          for SPEC in $SPECS; do
+            if NPM_OUT="$(npm view "$SPEC" version 2>&1)"; then
+              echo "${SPEC} is already published."
+            elif printf '%s' "$NPM_OUT" | grep -q 'E404'; then
+              echo "${SPEC} is not on npm."
+              PUBLISH=true
+            else
+              echo "npm view ${SPEC} failed: ${NPM_OUT}" >&2
+              exit 1
+            fi
+          done
+          echo "publish=${PUBLISH}" >> "$GITHUB_OUTPUT"
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Needs npm publish: ${PUBLISH}"
         env:
-          GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
-
-      - name: Check out version bump commit
-        if: steps.bump.outputs.bump != ''
-        # The local tag is not pushed; it is what `auto release` below uses to
-        # resolve the release version (`git describe --tags` on HEAD).
-        run: |
-          git fetch origin main
-          git reset --hard "$VERSION_COMMIT"
-          git tag "v$VERSION" "$VERSION_COMMIT"
-        env:
-          VERSION: ${{ steps.version.outputs.version }}
-          VERSION_COMMIT: ${{ steps.version-commit.outputs.commit-hash }}
+          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
 
       - name: Push release tag
-        if: steps.bump.outputs.bump != ''
+        id: tag
+        if: steps.version.outputs.publish == 'true' || steps.version.outputs.release == 'true'
         # Tag before publishing to npm: a publish failure then leaves git fully
         # consistent, and this step is skipped on a re-run if the tag already
-        # points at the right commit.
+        # points at the right commit. The sha is resolved from the `Release v`
+        # commit rather than GITHUB_SHA, which on a workflow_dispatch re-drive is
+        # whatever sits at the tip of the chosen branch. Prefix match, because a
+        # squash subject is the PR title plus " (#N)".
         run: |
+          RELEASE_SHA="$(git rev-list -1 --grep "^Release v${VERSION}" HEAD)"
+          if [ -z "$RELEASE_SHA" ]; then
+            echo "No 'Release v${VERSION}' commit reachable from HEAD" >&2
+            exit 1
+          fi
+          echo "sha=${RELEASE_SHA}" >> "$GITHUB_OUTPUT"
           EXISTING="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${VERSION}" --jq .object.sha 2>/dev/null)" || EXISTING=""
           if [ -z "$EXISTING" ]; then
-            gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f "ref=refs/tags/v${VERSION}" -f "sha=${VERSION_COMMIT}"
-          elif [ "$EXISTING" = "$VERSION_COMMIT" ]; then
-            echo "Tag v${VERSION} already exists at ${VERSION_COMMIT}, skipping"
+            gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f "ref=refs/tags/v${VERSION}" -f "sha=${RELEASE_SHA}"
+          elif [ "$EXISTING" = "$RELEASE_SHA" ]; then
+            echo "Tag v${VERSION} already exists at ${RELEASE_SHA}, skipping"
           else
-            echo "Tag v${VERSION} already exists but points at ${EXISTING} instead of ${VERSION_COMMIT}" >&2
+            echo "Tag v${VERSION} already exists but points at ${EXISTING} instead of ${RELEASE_SHA}" >&2
             exit 1
           fi
         env:
           GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
           VERSION: ${{ steps.version.outputs.version }}
-          VERSION_COMMIT: ${{ steps.version-commit.outputs.commit-hash }}
+
+      - name: Create local tag
+        if: steps.version.outputs.publish == 'true' || steps.version.outputs.release == 'true'
+        # `auto release` resolves the release version from `git describe --tags`
+        # on HEAD, so the tag has to exist locally as well as on the remote.
+        run: git tag "v${VERSION}" "${RELEASE_SHA}" || true
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_SHA: ${{ steps.tag.outputs.sha }}
 
       - name: Publish to npm
-        if: steps.bump.outputs.bump != ''
-        # Same command the npm plugin runs from `auto shipit`. Publishing
-        # authenticates via npm trusted publishing (OIDC), hence id-token: write.
+        if: steps.version.outputs.publish == 'true'
+        # Publishing authenticates via npm trusted publishing (OIDC), hence
+        # id-token: write. from-package skips anything already on npm, so a
+        # partially completed publish can be re-run safely.
         run: yarn lerna publish from-package --yes --no-verify-access
 
       - name: Create GitHub release
-        if: steps.bump.outputs.bump != ''
+        if: steps.version.outputs.release == 'true'
         run: yarn auto release
         env:
           GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
