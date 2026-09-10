@@ -39,3 +39,16 @@ describe('org macro', () => {
     expect(sceneInterpolator(scene, '${__org.name}')).toBe('My cool org');
   });
 });
+
+describe('namespace macro', () => {
+  it.each(['stacks-123', 'default', 'org-15'])('Can interpolate $__namespace as %s', (namespace) => {
+    const scene = new TestScene({});
+
+    config.namespace = namespace;
+
+    expect(sceneInterpolator(scene, '$__namespace')).toBe(namespace);
+    expect(sceneInterpolator(scene, 'apis/dashboard.grafana.app/v1beta1/namespaces/${__namespace}/dashboards')).toBe(
+      `apis/dashboard.grafana.app/v1beta1/namespaces/${namespace}/dashboards`
+    );
+  });
+});
