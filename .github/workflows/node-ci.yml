@@ -297,6 +297,22 @@ jobs:
       - name: Prepare repository
         run: git fetch --unshallow --tags
 
+      # On the workflow_dispatch path the checkout is main's tip, not the release
+      # commit, and everything below reads the working tree: the build, lerna.json,
+      # the gitHead lerna stamps into the npm metadata, and the commit range
+      # `auto release` turns into release notes. Pin the tree to the same commit
+      # `Push release tag` tags, so the tarballs, the tag and the notes all describe
+      # one commit. On the push path HEAD is already that commit, so this is a no-op.
+      - name: Check out the release commit
+        run: |
+          RELEASE_SHA="$(git rev-list -1 --grep "^Release v[0-9]" HEAD)"
+          if [ -z "$RELEASE_SHA" ]; then
+            echo "No 'Release v' commit reachable from HEAD" >&2
+            exit 1
+          fi
+          echo "Publishing from ${RELEASE_SHA}"
+          git checkout --detach "$RELEASE_SHA"
+
       - name: Test using Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
@@ -321,6 +337,12 @@ jobs:
           PUBLISH=false
           SPECS="$(yarn lerna list --json --no-private --loglevel silent \
             | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).map(p=>p.name+'@'+p.version).join('\n')))")"
+          # An empty list would leave PUBLISH=false and skip the publish silently green.
+          if [ -z "$SPECS" ]; then
+            echo "lerna list returned no publishable packages" >&2
+            exit 1
+          fi
+          echo "specs=$(printf '%s' "$SPECS" | tr '\n' ' ')" >> "$GITHUB_OUTPUT"
           for SPEC in $SPECS; do
             if NPM_OUT="$(npm view "$SPEC" version 2>&1)"; then
               echo "${SPEC} is already published."
@@ -383,12 +405,112 @@ jobs:
       - name: Publish to npm
         if: steps.version.outputs.publish == 'true'
         # Publishing authenticates via npm trusted publishing (OIDC), hence
-        # id-token: write. from-package skips anything already on npm, so a
-        # partially completed publish can be re-run safely.
-        run: yarn lerna publish from-package --yes --no-verify-access
+        # id-token: write. from-package recomputes the publish set from the registry
+        # on every call, so repeating it is safe and is exactly what a human does by
+        # hand: provenance signing intermittently aborts partway through a
+        # multi-package publish with a Rekor 409 (TLOG_CREATE_ENTRY_ERROR), which is
+        # how v8.17.0 left one package published and one not. The registry, not
+        # lerna's exit code, decides when we are done.
+        run: |
+          for ATTEMPT in 1 2 3; do
+            if yarn lerna publish from-package --yes --no-verify-access; then
+              exit 0
+            fi
+            echo "lerna publish attempt ${ATTEMPT} exited non-zero"
+            MISSING=""
+            for SPEC in $SPECS; do
+              npm view "$SPEC" version >/dev/null 2>&1 || MISSING="${MISSING} ${SPEC}"
+            done
+            if [ -z "$MISSING" ]; then
+              echo "Every package is on npm; treating the publish as complete."
+              exit 0
+            fi
+            echo "Still missing:${MISSING}"
+            if [ "$ATTEMPT" -eq 3 ]; then break; fi
+            sleep $((ATTEMPT * 30))
+          done
+          echo "npm publish still incomplete after 3 attempts:${MISSING}" >&2
+          exit 1
+        env:
+          SPECS: ${{ steps.version.outputs.specs }}
 
       - name: Create GitHub release
         if: steps.version.outputs.release == 'true'
-        run: yarn auto release
+        # `auto release` creates the release, then the `released` plugin comments on
+        # every PR and on every issue referenced by a "Closes #N". Upstream guards the
+        # PR path with a try/catch but not the issue path, so a failure there fails
+        # this step after the release is already correct — which is what happened on
+        # v8.17.0 (403, the app has pull_requests:write but not issues:write). Assert
+        # on the release itself and keep a post-release failure visible as a warning.
+        run: |
+          AUTO_RC=0
+          yarn auto release || AUTO_RC=$?
+          if ! gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "::error::auto release exited ${AUTO_RC} and no GitHub release exists for v${VERSION}"
+            exit 1
+          fi
+          if [ "$AUTO_RC" -ne 0 ]; then
+            echo "::warning::GitHub release v${VERSION} was created, but auto exited ${AUTO_RC} afterwards; a post-release comment or label failed"
+          fi
         env:
           GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+
+      - name: Report release state
+        # Always runs, because the end state is least obvious exactly when a step
+        # above failed: v8.17.0 attempt 1 was half-published and attempt 2 was fully
+        # released but still red, and both looked like a bare red X.
+        if: always() && steps.version.outputs.version != ''
+        run: |
+          INCOMPLETE=false
+          {
+            echo "## Release v${VERSION}"
+            echo
+            echo "| Artifact | State |"
+            echo "| --- | --- |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          for SPEC in $SPECS; do
+            # Retried: this can run seconds after publishing, and a packument read can
+            # lag. A false MISSING would red a release that actually landed.
+            STATE=""
+            for _ in 1 2 3; do
+              if NPM_OUT="$(npm view "$SPEC" version 2>&1)"; then
+                STATE="published"
+                break
+              fi
+              sleep 5
+            done
+            if [ -z "$STATE" ]; then
+              if printf '%s' "$NPM_OUT" | grep -q 'E404'; then
+                STATE="**MISSING from npm**"
+              else
+                STATE="unknown (npm view failed)"
+              fi
+              INCOMPLETE=true
+            fi
+            echo "| npm \`${SPEC}\` | ${STATE} |" >> "$GITHUB_STEP_SUMMARY"
+          done
+          EXPECTED_SHA="$(git rev-list -1 --grep "^Release v${VERSION}" HEAD || true)"
+          TAG_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${VERSION}" --jq .object.sha 2>/dev/null)" || TAG_SHA=""
+          if [ -n "$TAG_SHA" ] && [ "$TAG_SHA" = "$EXPECTED_SHA" ]; then
+            echo "| tag \`v${VERSION}\` | \`${TAG_SHA}\` |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| tag \`v${VERSION}\` | **MISSING or wrong commit** (\`${TAG_SHA:-none}\`) |" >> "$GITHUB_STEP_SUMMARY"
+            INCOMPLETE=true
+          fi
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "| GitHub release | created |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| GitHub release | **MISSING** |" >> "$GITHUB_STEP_SUMMARY"
+            INCOMPLETE=true
+          fi
+          if [ "$INCOMPLETE" = true ]; then
+            printf '\n**v%s is INCOMPLETE - re-run this job.**\n' "$VERSION" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          printf '\nv%s is fully released on npm, git and GitHub. Any failure above is post-release; re-running will change nothing.\n' "$VERSION" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SPECS: ${{ steps.version.outputs.specs }}
