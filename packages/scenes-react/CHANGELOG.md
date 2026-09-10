@@ -1,3 +1,15 @@
+# v8.17.0 (Thu Sep 10 2026)
+
+#### 🚀 Enhancement
+
+- Deps: Migrate to React 19.2.8 [#1620](https://github.com/grafana/scenes/pull/1620) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v8.16.0 (Wed Aug 19 2026)
 
 #### 🐛 Bug Fix
