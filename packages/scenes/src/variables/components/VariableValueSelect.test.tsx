@@ -9,6 +9,15 @@ import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import userEvent from '@testing-library/user-event';
 
+const translations: Record<string, string> = {};
+
+jest.mock('@grafana/i18n', () => ({
+  ...jest.requireActual('@grafana/i18n'),
+  t: (id: string, defaultMessage: string) => translations[id] ?? defaultMessage,
+}));
+
+const ALL_LABEL_KEY = 'grafana-scenes.variables.variable-value-select.all-label';
+
 describe('VariableValueSelect', () => {
   let model: MultiValueVariable<MultiValueVariableState>;
 
@@ -268,5 +277,68 @@ describe('VariableValueSelectMulti', () => {
     expect(
       screen.getByTestId(selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts('B'))
     ).toBeInTheDocument();
+  });
+});
+
+describe('All option localization', () => {
+  beforeEach(() => {
+    translations[ALL_LABEL_KEY] = 'Tout';
+  });
+
+  afterEach(() => {
+    delete translations[ALL_LABEL_KEY];
+  });
+
+  function setupVariable(state: Partial<MultiValueVariableState>) {
+    const model = new CustomVariable({
+      name: 'test',
+      query: 'A,B,C',
+      includeAll: true,
+      key: 'test-key',
+      options: [
+        { value: 'A', label: 'A' },
+        { value: 'B', label: 'B' },
+        { value: 'C', label: 'C' },
+      ],
+      ...state,
+    } as MultiValueVariableState) as unknown as MultiValueVariable<MultiValueVariableState>;
+
+    const scene = new TestScene({
+      $variables: new SceneVariableSet({
+        variables: [model],
+      }),
+    });
+
+    scene.activate();
+
+    render(<MultiOrSingleValueSelect model={model} />);
+
+    return { model };
+  }
+
+  it('should show the translated All label as the selected single value', async () => {
+    setupVariable({ isMulti: false, value: ALL_VARIABLE_VALUE, text: ALL_VARIABLE_TEXT });
+
+    expect(screen.getByText('Tout')).toBeInTheDocument();
+    expect(screen.queryByText(ALL_VARIABLE_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('should show the translated All label as a selected multi value', async () => {
+    setupVariable({ isMulti: true, value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
+
+    expect(screen.getByText('Tout')).toBeInTheDocument();
+    expect(screen.queryByText(ALL_VARIABLE_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('should keep the untranslated text in variable state when selecting All', async () => {
+    const { model } = setupVariable({ isMulti: false, value: 'A', text: 'A' });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('Tout'));
+
+    expect(model.state.value).toBe(ALL_VARIABLE_VALUE);
+    // ${var:text} and the legacy `All` URL value depend on this staying untranslated
+    expect(model.state.text).toBe(ALL_VARIABLE_TEXT);
+    expect(model.getValueText()).toBe(ALL_VARIABLE_TEXT);
   });
 });
