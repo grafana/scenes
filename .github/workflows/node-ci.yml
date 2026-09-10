@@ -304,13 +304,22 @@ jobs:
       # `Push release tag` tags, so the tarballs, the tag and the notes all describe
       # one commit. On the push path HEAD is already that commit, so this is a no-op.
       - name: Check out the release commit
+        id: release-commit
+        # `--grep` matches ANY line of a commit message, so an unrelated commit whose
+        # body quotes a "Release v..." line resolves ahead of the real release commit.
+        # Candidates are therefore filtered on the subject, which also skips the decoy
+        # rather than failing the release outright. Resolved once here and exported:
+        # every later step reads this output instead of re-deriving it, so a wrong
+        # value stays a single point of failure instead of being confirmed twice.
         run: |
-          RELEASE_SHA="$(git rev-list -1 --grep "^Release v[0-9]" HEAD)"
+          RELEASE_SHA="$(git log --grep "^Release v[0-9]" --format='%H%x09%s' HEAD \
+            | awk -F'\t' '$2 ~ /^Release v[0-9]/ {print $1; exit}')"
           if [ -z "$RELEASE_SHA" ]; then
-            echo "No 'Release v' commit reachable from HEAD" >&2
+            echo "No commit whose subject starts with 'Release v' is reachable from HEAD" >&2
             exit 1
           fi
-          echo "Publishing from ${RELEASE_SHA}"
+          echo "sha=${RELEASE_SHA}" >> "$GITHUB_OUTPUT"
+          echo "Publishing from ${RELEASE_SHA} ($(git log -1 --format=%s "$RELEASE_SHA"))"
           git checkout --detach "$RELEASE_SHA"
 
       - name: Test using Node.js
@@ -360,26 +369,28 @@ jobs:
           else
             echo "release=true" >> "$GITHUB_OUTPUT"
           fi
+          # Tracked separately from publish/release: if both packages are on npm and
+          # the release exists but the tag is missing or on the wrong commit, gating the
+          # tag step on those two would skip it on every re-run, leaving it unfixable.
+          TAG_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${VERSION}" --jq .object.sha 2>/dev/null)" || TAG_SHA=""
+          if [ "$TAG_SHA" = "$RELEASE_SHA" ]; then
+            echo "tag=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=true" >> "$GITHUB_OUTPUT"
+          fi
           echo "Needs npm publish: ${PUBLISH}"
         env:
           GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+          RELEASE_SHA: ${{ steps.release-commit.outputs.sha }}
 
       - name: Push release tag
-        id: tag
-        if: steps.version.outputs.publish == 'true' || steps.version.outputs.release == 'true'
+        if: steps.version.outputs.publish == 'true' || steps.version.outputs.release == 'true' || steps.version.outputs.tag == 'true'
         # Tag before publishing to npm: a publish failure then leaves git fully
-        # consistent, and this step is skipped on a re-run if the tag already
-        # points at the right commit. The sha is resolved from the `Release v`
-        # commit rather than GITHUB_SHA, which on a workflow_dispatch re-drive is
-        # whatever sits at the tip of the chosen branch. Prefix match, because a
-        # squash subject is the PR title plus " (#N)".
+        # consistent, and this step is a no-op on a re-run if the tag already points
+        # at the right commit. The sha comes from `Check out the release commit`,
+        # since on a workflow_dispatch re-drive GITHUB_SHA is whatever sits at the tip
+        # of the chosen branch.
         run: |
-          RELEASE_SHA="$(git rev-list -1 --grep "^Release v${VERSION}" HEAD)"
-          if [ -z "$RELEASE_SHA" ]; then
-            echo "No 'Release v${VERSION}' commit reachable from HEAD" >&2
-            exit 1
-          fi
-          echo "sha=${RELEASE_SHA}" >> "$GITHUB_OUTPUT"
           EXISTING="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${VERSION}" --jq .object.sha 2>/dev/null)" || EXISTING=""
           if [ -z "$EXISTING" ]; then
             gh api "repos/${GITHUB_REPOSITORY}/git/refs" -f "ref=refs/tags/v${VERSION}" -f "sha=${RELEASE_SHA}"
@@ -392,15 +403,16 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
           VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_SHA: ${{ steps.release-commit.outputs.sha }}
 
       - name: Create local tag
-        if: steps.version.outputs.publish == 'true' || steps.version.outputs.release == 'true'
+        if: steps.version.outputs.publish == 'true' || steps.version.outputs.release == 'true' || steps.version.outputs.tag == 'true'
         # `auto release` resolves the release version from `git describe --tags`
         # on HEAD, so the tag has to exist locally as well as on the remote.
         run: git tag "v${VERSION}" "${RELEASE_SHA}" || true
         env:
           VERSION: ${{ steps.version.outputs.version }}
-          RELEASE_SHA: ${{ steps.tag.outputs.sha }}
+          RELEASE_SHA: ${{ steps.release-commit.outputs.sha }}
 
       - name: Publish to npm
         if: steps.version.outputs.publish == 'true'
@@ -458,10 +470,12 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
 
       - name: Report release state
-        # Always runs, because the end state is least obvious exactly when a step
-        # above failed: v8.17.0 attempt 1 was half-published and attempt 2 was fully
-        # released but still red, and both looked like a bare red X.
-        if: always() && steps.version.outputs.version != ''
+        # Runs on success and failure, because the end state is least obvious exactly
+        # when a step above failed: v8.17.0 attempt 1 was half-published and attempt 2
+        # was fully released but still red, and both looked like a bare red X.
+        # `!cancelled()` rather than `always()`, so a cancelled run does not report an
+        # incomplete release and fail.
+        if: ${{ !cancelled() && steps.version.outputs.version != '' }}
         run: |
           INCOMPLETE=false
           {
@@ -482,18 +496,21 @@ jobs:
               sleep 5
             done
             if [ -z "$STATE" ]; then
+              # Only a confirmed E404 means "not published". Reddening the job because
+              # npm was unreachable would recreate the false red this step exists to
+              # remove, so an inconclusive probe is a warning.
               if printf '%s' "$NPM_OUT" | grep -q 'E404'; then
                 STATE="**MISSING from npm**"
+                INCOMPLETE=true
               else
                 STATE="unknown (npm view failed)"
+                echo "::warning::npm view failed for ${SPEC}, could not confirm it is published"
               fi
-              INCOMPLETE=true
             fi
             echo "| npm \`${SPEC}\` | ${STATE} |" >> "$GITHUB_STEP_SUMMARY"
           done
-          EXPECTED_SHA="$(git rev-list -1 --grep "^Release v${VERSION}" HEAD || true)"
           TAG_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/v${VERSION}" --jq .object.sha 2>/dev/null)" || TAG_SHA=""
-          if [ -n "$TAG_SHA" ] && [ "$TAG_SHA" = "$EXPECTED_SHA" ]; then
+          if [ -n "$TAG_SHA" ] && [ "$TAG_SHA" = "$RELEASE_SHA" ]; then
             echo "| tag \`v${VERSION}\` | \`${TAG_SHA}\` |" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "| tag \`v${VERSION}\` | **MISSING or wrong commit** (\`${TAG_SHA:-none}\`) |" >> "$GITHUB_STEP_SUMMARY"
@@ -514,3 +531,4 @@ jobs:
           GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
           VERSION: ${{ steps.version.outputs.version }}
           SPECS: ${{ steps.version.outputs.specs }}
+          RELEASE_SHA: ${{ steps.release-commit.outputs.sha }}
