@@ -1354,6 +1354,70 @@ describe('VizPanel', () => {
     });
   });
 
+  describe('getPluginAsync', () => {
+    beforeEach(() => {
+      pluginToLoad = undefined;
+      mockPluginCache = {};
+      mockImportPanelPlugin = jest.fn(() => Promise.resolve(undefined));
+    });
+
+    it('resolves without importing when the plugin is already in the cache', async () => {
+      const plugin = getPanelPlugin({ id: 'custom-plugin-id' }, () => <div />);
+      mockPluginCache = { 'custom-plugin-id': plugin };
+
+      const panel = new VizPanel({ pluginId: 'custom-plugin-id' });
+
+      await expect(panel.getPluginAsync()).resolves.toBe(plugin);
+      expect(mockImportPanelPlugin).not.toHaveBeenCalled();
+    });
+
+    it('shares one import between concurrent callers and the panel activating', async () => {
+      const plugin = getPanelPlugin({ id: 'custom-plugin-id' }, () => <div />);
+
+      mockImportPanelPlugin = jest.fn(() => {
+        mockPluginCache['custom-plugin-id'] = plugin;
+        return Promise.resolve(plugin);
+      });
+
+      const panel = new VizPanel({ pluginId: 'custom-plugin-id' });
+
+      const [first, second] = [panel.getPluginAsync(), panel.getPluginAsync()];
+      panel.activate();
+
+      await expect(first).resolves.toBe(plugin);
+      await expect(second).resolves.toBe(plugin);
+      expect(mockImportPanelPlugin).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects when the import does, and does not retry it', async () => {
+      mockImportPanelPlugin = jest.fn(() => Promise.reject(new Error('boom')));
+
+      const panel = new VizPanel({ pluginId: 'custom-plugin-id' });
+
+      await expect(panel.getPluginAsync()).rejects.toThrow('boom');
+      await expect(panel.getPluginAsync()).rejects.toThrow('boom');
+      expect(mockImportPanelPlugin).toHaveBeenCalledTimes(1);
+    });
+
+    it('imports again when the viz type changes', async () => {
+      const pluginA = getPanelPlugin({ id: 'plugin-a' }, () => <div />);
+      const pluginB = getPanelPlugin({ id: 'plugin-b' }, () => <div />);
+
+      mockImportPanelPlugin = jest.fn((pluginId: string) =>
+        Promise.resolve(pluginId === 'plugin-a' ? pluginA : pluginB)
+      );
+
+      const panel = new VizPanel({ pluginId: 'plugin-a' });
+
+      await expect(panel.getPluginAsync()).resolves.toBe(pluginA);
+
+      panel.setState({ pluginId: 'plugin-b' });
+
+      await expect(panel.getPluginAsync()).resolves.toBe(pluginB);
+      expect(mockImportPanelPlugin).toHaveBeenCalledTimes(2);
+    });
+  });
+
   describe('system transformations provider', () => {
     const seriesData = () => ({
       state: LoadingState.Done,

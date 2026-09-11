@@ -154,7 +154,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
 
   // Not part of state as this is not serializable
   protected _panelContext?: PanelContext;
+  /**
+   * The plugin this panel has adopted: options have been migrated and defaulted against it, so it
+   * deliberately lags state.pluginId while a viz type change is still loading.
+   */
   private _plugin?: PanelPlugin;
+  /** The in-flight import, so the render path and the data pipeline share one. */
+  private _pluginImport?: { pluginId: string; promise: Promise<PanelPlugin> };
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
   private _structureRev = 0;
@@ -221,22 +227,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
       endPluginLoadCallback?.(plugin, true);
       this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
     } else {
-      const { importPanelPlugin } = getPluginImportUtils();
-
       try {
         // Start profiling plugin load - get end callback
         const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
 
-        const panelPromise = importPanelPlugin(pluginId);
-
-        const queryControler = sceneGraph.getQueryController(this);
-        if (queryControler && queryControler.state.enableProfiling) {
-          wrapPromiseInStateObservable(panelPromise)
-            .pipe(registerQueryWithController({ type: `VizPanel/loadPlugin/${pluginId}`, origin: this }))
-            .subscribe(() => {});
-        }
-
-        const result = await panelPromise;
+        const result = await this._importPlugin(pluginId);
 
         // End profiling plugin load (not from cache)
         endPluginLoadCallback?.(result, false);
@@ -250,6 +245,30 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
         }
       }
     }
+  }
+
+  /**
+   * The only place the plugin is imported. Concurrent callers - the render path and the data
+   * pipeline - share one import, and a rejection stays cached so a plugin that fails to load is not
+   * retried on every transformation pass; the host evicts failures from its own cache.
+   */
+  private _importPlugin(pluginId: string): Promise<PanelPlugin> {
+    if (this._pluginImport?.pluginId === pluginId) {
+      return this._pluginImport.promise;
+    }
+
+    const promise = getPluginImportUtils().importPanelPlugin(pluginId);
+
+    const queryControler = sceneGraph.getQueryController(this);
+    if (queryControler && queryControler.state.enableProfiling) {
+      wrapPromiseInStateObservable(promise)
+        .pipe(registerQueryWithController({ type: `VizPanel/loadPlugin/${pluginId}`, origin: this }))
+        .subscribe(() => {});
+    }
+
+    this._pluginImport = { pluginId, promise };
+
+    return promise;
   }
 
   public getLegacyPanelId() {
@@ -361,8 +380,35 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     return plugin && plugin.meta.info.version ? plugin.meta.info.version : config.buildInfo.version;
   }
 
+  /**
+   * The plugin this panel has adopted, or undefined while it is still loading.
+   */
   public getPlugin(): PanelPlugin | undefined {
     return this._plugin;
+  }
+
+  /**
+   * The plugin for the current state.pluginId, importing it if it is not loaded yet. Rejects when
+   * the import does, like the host's importPanelPlugin.
+   *
+   * Unlike getPlugin this does not return undefined merely because the import has not finished, and
+   * it does not wait on the panel being activated. It does not adopt what it resolves: option
+   * migrations and the state write stay with _loadPlugin, on the render and viz change paths.
+   */
+  public getPluginAsync(): Promise<PanelPlugin> {
+    const resolved = this._resolvePluginSync();
+
+    return resolved ? Promise.resolve(resolved) : this._importPlugin(this.state.pluginId);
+  }
+
+  /**
+   * The plugin for the current state.pluginId when it is available without importing: the one this
+   * panel adopted, or one already in the host's cache.
+   */
+  private _resolvePluginSync(): PanelPlugin | undefined {
+    const { pluginId } = this.state;
+
+    return this._plugin?.meta.id === pluginId ? this._plugin : loadPanelPluginSync(pluginId);
   }
 
   /**
@@ -370,11 +416,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
    * SystemTransformationsProvider. Identifies this panel's tier in its data pipeline; not for app code.
    */
   public origin: TransformationOrigin = 'plugin';
-
-  /**
-   * The plugin the data pipeline last resolved against.
-   */
-  private _pluginForTransformationsResolved?: { plugin: PanelPlugin | undefined };
 
   /**
    * @internal
@@ -404,72 +445,38 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     transformer: SceneDataTransformer,
     callback: () => void
   ): Unsubscribable {
-    this._pluginForTransformationsResolved = { plugin: this._pluginForTransformations() };
+    let resolved = this._pluginForTransformations();
 
-    const sub = this.subscribeToState(() => {
+    const notifyIfChanged = () => {
       const next = this._pluginForTransformations();
 
-      if (next === this._pluginForTransformationsResolved?.plugin) {
+      if (next === resolved) {
         return;
       }
 
-      this._pluginForTransformationsResolved = { plugin: next };
+      resolved = next;
       callback();
-    });
+    };
 
-    this._warmPluginForTransformations(transformer, callback);
+    // A data provider can stay active while its panel never renders (e.g. a dashboard datasource
+    // panel), in which case _onActivate never runs and nothing else imports the plugin. Kicked from
+    // here rather than from getSystemTransformations so one import serves every pass.
+    if (this.state.applyPluginTransformations && !resolved) {
+      this.getPluginAsync().then(
+        () => transformer.isActive && notifyIfChanged(),
+        // A plugin that fails to load contributes nothing; it must not error the panel's data.
+        () => undefined
+      );
+    }
 
-    return sub;
+    return this.subscribeToState(notifyIfChanged);
   }
 
   /**
    * The plugin that contributes the transformations for this panel.
    */
   private _pluginForTransformations(): PanelPlugin | undefined {
-    if (!this.state.applyPluginTransformations) {
-      return undefined;
-    }
-
-    const loaded = this._plugin?.meta.id === this.state.pluginId ? this._plugin : undefined;
-
-    return loaded ?? loadPanelPluginSync(this.state.pluginId);
-  }
-
-  /**
-   * This method "warms" the import cache and re-reads it synchronously.
-   *
-   * A data provider can stay active while its panel never renders (e.g. a dashboard datasource panel)
-   * In which case _onActivate never runs and the plugin is never imported.
-   * It does not go through _loadPlugin, which runs option migrations and writes state on an inactive panel.
-   *
-   * Done from a subscription rather than getSystemTransformations because a failed import is
-   * evicted from the cache and would be retried on every pass.
-   */
-  private _warmPluginForTransformations(transformer: SceneDataTransformer, callback: () => void) {
-    if (!this.state.applyPluginTransformations || this._pluginForTransformations()) {
-      return;
-    }
-
-    const { pluginId } = this.state;
-
-    getPluginImportUtils()
-      .importPanelPlugin(pluginId)
-      // A plugin that fails to load contributes nothing; it must not error the panel's data.
-      .catch(() => undefined)
-      .then(() => {
-        if (!transformer.isActive || this.state.pluginId !== pluginId) {
-          return;
-        }
-
-        const next = this._pluginForTransformations();
-
-        if (next === this._pluginForTransformationsResolved?.plugin) {
-          return;
-        }
-
-        this._pluginForTransformationsResolved = { plugin: next };
-        callback();
-      });
+    return this.state.applyPluginTransformations ? this._resolvePluginSync() : undefined;
   }
 
   public getPanelContext(): PanelContext {
