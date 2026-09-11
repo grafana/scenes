@@ -24,6 +24,7 @@ function setupScene(
   const timeRange = new SceneTimeRange({
     from: timeRangeProps.from,
     to: timeRangeProps.to,
+    timeZone: timeRangeProps.timeZone,
   });
   const timePicker = new SceneTimePicker({
     hidePicker: timePickerProps.hidePicker,
@@ -41,6 +42,10 @@ function setupScene(
 }
 
 describe('SceneTimePicker', () => {
+  afterEach(() => {
+    window.localStorage.clear();
+  });
+
   it('does not render if hidePicker', () => {
     const { scene } = setupScene(
       {
@@ -91,6 +96,34 @@ describe('SceneTimePicker', () => {
     render(<scene.Component model={scene} />);
     await userEvent.click(screen.getByTestId(Components.TimePicker.openButton));
     expect(screen.getByText(/it looks like you haven't used this time picker before/i)).toBeInTheDocument();
+  });
+
+  it('should load with valid time picker history only', async () => {
+    const HISTORY_LOCAL_STORAGE_KEY = 'grafana.dashboard.timepicker.history';
+    const mixedHistory = [
+      { from: '2022-12-03T00:00:00.000Z', to: '2022-12-03T23:59:59.000Z' },
+      {
+        from: '2022-12-01T00:00:00.000Z',
+        to: '2022-12-01T23:59:59.000Z',
+        raw: { from: '2022-12-01T00:00:00.000Z', to: '022-12-01T23:59:59.000Z' },
+      },
+      {},
+      { from: null, to: null },
+      { from: '2022-12-04T00:00:00.000Z', to: null },
+    ];
+    window.localStorage.setItem(HISTORY_LOCAL_STORAGE_KEY, JSON.stringify(mixedHistory));
+
+    const { scene } = setupScene({
+      from: 'now-12h',
+      to: 'now',
+      timeZone: 'utc',
+    });
+
+    render(<scene.Component model={scene} />);
+    await userEvent.click(screen.getByTestId(Components.TimePicker.openButton));
+
+    expect(screen.queryByText(/it looks like you haven't used this time picker before/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/2022-12-03 00:00:00 to 2022-12-03 23:59:59/i)).toBeInTheDocument();
   });
 
   it('should add new absolute time range to list', async () => {
