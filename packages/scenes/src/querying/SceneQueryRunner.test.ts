@@ -2117,7 +2117,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(extraRunRequestCall[1].targets[0].foo).toEqual(2);
     });
 
-    test('should not rerun extra requests when systemTransformations say not to', async () => {
+    test('should not rerun extra requests when providers say not to', async () => {
       const timeRange = new SceneTimeRange({
         from: '2023-08-24T05:00:00.000Z',
         to: '2023-08-24T07:00:00.000Z',
@@ -2235,7 +2235,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(queryRunner.state.data?.series.map((s) => s.refId)).toEqual(['A', 'secA', 'secB']);
     });
 
-    it('merges secondaries contributed by multiple systemTransformations', async () => {
+    it('merges secondaries contributed by multiple providers', async () => {
       const providerA = new TestExtraQueryProvider({ foo: 1 }, false, [secondaryDescriptor('secA')]);
       const providerB = new SecondTestExtraQueryProvider({ foo: 2 }, false, [secondaryDescriptor('secB')]);
       const { scene, queryRunner } = buildScene([providerA, providerB]);
@@ -3873,7 +3873,7 @@ class TestExtraQueryProvider extends SceneObjectBase<TestExtraQueryProviderState
 }
 
 // A distinct provider class. `getClosestExtraQueryProviders` de-duplicates
-// systemTransformations by their constructor, so testing multiple systemTransformations at once
+// providers by their constructor, so testing multiple providers at once
 // requires more than one class.
 class SecondTestExtraQueryProvider extends TestExtraQueryProvider {}
 

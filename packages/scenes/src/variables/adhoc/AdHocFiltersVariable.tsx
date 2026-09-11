@@ -550,7 +550,7 @@ export class AdHocFiltersVariable
   /**
    * Updates the variable's `filters` and `filterExpression` state.
    * If `skipPublish` option is true, this will not emit the `SceneVariableValueChangedEvent`,
-   * allowing consumers to update the filters without triggering dependent data systemTransformations.
+   * allowing consumers to update the filters without triggering dependent data providers.
    */
   public updateFilters(
     filters: AdHocFilterWithLabels[],
