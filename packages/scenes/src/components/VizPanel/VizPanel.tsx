@@ -45,7 +45,6 @@ import { registerQueryWithController, wrapPromiseInStateObservable } from '../..
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { buildPathIdFor } from '../../utils/pathId';
-import { Unsubscribable } from 'rxjs';
 import {
   SystemTransformationsProvider,
   TransformationOrigin,
@@ -159,7 +158,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
    * deliberately lags state.pluginId while a viz type change is still loading.
    */
   private _plugin?: PanelPlugin;
-  /** The in-flight import, so the render path and the data pipeline share one. */
+  /** The in-flight import, so concurrent callers share one. */
   private _pluginImport?: { pluginId: string; promise: Promise<PanelPlugin> };
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
@@ -248,9 +247,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
   }
 
   /**
-   * The only place the plugin is imported. Concurrent callers - the render path and the data
-   * pipeline - share one import, and a rejection stays cached so a plugin that fails to load is not
-   * retried on every transformation pass; the host evicts failures from its own cache.
+   * The only place the plugin is imported. Concurrent callers (_loadPlugin, getPluginAsync) share one import,
+   * and a rejection stays cached so a plugin that fails to load is not retried on every call.
    */
   private _importPlugin(pluginId: string): Promise<PanelPlugin> {
     if (this._pluginImport?.pluginId === pluginId) {
@@ -369,6 +367,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
       pluginId: plugin.meta.id,
     });
 
+    // The plugin arrives async so the pipeline may have already run a pass without its system transformations.
+    if (this.state.applyPluginTransformations && $data instanceof SceneDataTransformer && $data.isActive) {
+      $data.reprocessTransformations();
+    }
+
     // Non data panels needs to be re-rendered when time range change
     if (plugin.meta.skipDataQuery) {
       const sceneTimeRange = sceneGraph.getTimeRange(this);
@@ -435,41 +438,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     const plugin = this._pluginForTransformations();
 
     return plugin ? getPluginSystemTransformations(plugin, { series }) : {};
-  }
-
-  /**
-   * @internal
-   * The plugin resolves asynchronously, so the pipeline is told to reprocess whenever the plugin changes.
-   */
-  public subscribeToSystemTransformationsChanged(
-    transformer: SceneDataTransformer,
-    callback: () => void
-  ): Unsubscribable {
-    let resolved = this._pluginForTransformations();
-
-    const notifyIfChanged = () => {
-      const next = this._pluginForTransformations();
-
-      if (next === resolved) {
-        return;
-      }
-
-      resolved = next;
-      callback();
-    };
-
-    // A data provider can stay active while its panel never renders (e.g. a dashboard datasource
-    // panel), in which case _onActivate never runs and nothing else imports the plugin. Kicked from
-    // here rather than from getSystemTransformations so one import serves every pass.
-    if (this.state.applyPluginTransformations && !resolved) {
-      this.getPluginAsync().then(
-        () => transformer.isActive && notifyIfChanged(),
-        // A plugin that fails to load contributes nothing; it must not error the panel's data.
-        () => undefined
-      );
-    }
-
-    return this.subscribeToState(notifyIfChanged);
   }
 
   /**

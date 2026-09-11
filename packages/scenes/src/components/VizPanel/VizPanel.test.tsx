@@ -1477,7 +1477,7 @@ describe('VizPanel', () => {
       expect(transformer.state.transformations).toEqual([]);
     });
 
-    it('ignores a stale loaded plugin while the viz type is being swapped', () => {
+    it('drops what the previous plugin contributed on a viz type change', async () => {
       const pluginA = pluginContributing('plugin-a', { append: [doubler] });
       const pluginB = pluginContributing('plugin-b', {});
 
@@ -1487,13 +1487,12 @@ describe('VizPanel', () => {
 
       panel.activate();
 
-      expect(panel.getPlugin()).toBe(pluginA);
       expect(transformer.getResolvedSystemTransformations().append).toHaveLength(1);
+      expect(transformer.state.data?.series[0].fields[0].values).toEqual([2, 4, 6]);
 
-      // state.pluginId moves first; _plugin still holds plugin-a until the load finishes
-      panel.setState({ pluginId: 'plugin-b' });
+      await panel.changePluginType('plugin-b');
 
-      expect(panel.getPlugin()).toBe(pluginA);
+      expect(panel.getPlugin()).toBe(pluginB);
       expect(transformer.getResolvedSystemTransformations().append).toEqual([]);
       expect(transformer.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
     });
@@ -1512,12 +1511,11 @@ describe('VizPanel', () => {
           })
       );
 
-      const { transformer } = setup();
+      const { panel, transformer } = setup();
 
-      // The panel itself never activates - a dashboard datasource panel behind a collapsed row - so
-      // only the transformer's discovery is there to warm the plugin
-      transformer.activate();
+      panel.activate();
 
+      // The first pass runs against the frames as they are, with no plugin resolved yet
       expect(transformer.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
       expect(mockImportPanelPlugin).toHaveBeenCalledWith('custom-plugin-id');
 
@@ -1525,35 +1523,60 @@ describe('VizPanel', () => {
       await new Promise((r) => setTimeout(r, 1));
 
       expect(transformer.state.data?.series[0].fields[0].values).toEqual([2, 4, 6]);
+      expect(transformer.getResolvedSystemTransformations().append).toHaveLength(1);
     });
 
-    it('does not run option migrations when it warms the plugin', async () => {
-      const plugin = pluginContributing('custom-plugin-id', {});
-      const onPanelMigration = jest.fn();
-      plugin.onPanelMigration = onPanelMigration;
-
-      mockImportPanelPlugin = jest.fn(() => {
-        mockPluginCache['custom-plugin-id'] = plugin;
-        return Promise.resolve(plugin);
-      });
+    it('runs one pass when the plugin is already cached', () => {
+      mockPluginCache = { 'custom-plugin-id': pluginContributing('custom-plugin-id', { append: [doubler] }) };
 
       const { panel, transformer } = setup();
+      const onTransformerState = jest.fn();
+      transformer.subscribeToState(onTransformerState);
 
-      transformer.activate();
+      panel.activate();
+
+      expect(transformer.state.data?.series[0].fields[0].values).toEqual([2, 4, 6]);
+      // The panel adopts the plugin from its activation handler, which runs before $data is
+      // activated, so the transformer's own first pass already resolves it
+      expect(onTransformerState).toHaveBeenCalledTimes(1);
+    });
+
+    it('reprocesses on re-activation when the plugin arrived while the transformer was inactive', async () => {
+      const plugin = pluginContributing('custom-plugin-id', { append: [doubler] });
+      let resolveImport: () => void = () => {};
+
+      mockImportPanelPlugin = jest.fn(
+        () =>
+          new Promise<PanelPlugin | undefined>((resolve) => {
+            resolveImport = () => {
+              mockPluginCache['custom-plugin-id'] = plugin;
+              resolve(plugin);
+            };
+          })
+      );
+
+      const { panel, transformer } = setup();
+      const deactivate = panel.activate();
+
+      expect(transformer.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
+
+      deactivate();
+      resolveImport();
       await new Promise((r) => setTimeout(r, 1));
 
-      expect(mockImportPanelPlugin).toHaveBeenCalled();
-      expect(onPanelMigration).not.toHaveBeenCalled();
-      // _loadPlugin was never run, so the panel still holds no plugin of its own
-      expect(panel.getPlugin()).toBeUndefined();
+      expect(transformer.isActive).toBe(false);
+
+      panel.activate();
+
+      expect(transformer.state.data?.series[0].fields[0].values).toEqual([2, 4, 6]);
     });
 
     it('contributes nothing and does not reject when the plugin import fails', async () => {
       mockImportPanelPlugin = jest.fn(() => Promise.reject(new Error('boom')));
 
-      const { transformer } = setup();
+      const { panel, transformer } = setup();
 
-      transformer.activate();
+      panel.activate();
       await new Promise((r) => setTimeout(r, 1));
 
       expect(transformer.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
@@ -1599,7 +1622,7 @@ describe('VizPanel', () => {
       expect(transformer.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
     });
 
-    it('contributes nothing when applyPluginTransformations is off, and reprocesses when it is flipped on', () => {
+    it('contributes nothing when applyPluginTransformations is off', () => {
       pluginToLoad = pluginContributing('custom-plugin-id', { append: [doubler] });
       const { panel, transformer } = setup({ applyPluginTransformations: false });
 
@@ -1607,11 +1630,6 @@ describe('VizPanel', () => {
 
       expect(transformer.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
       expect(transformer.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
-
-      panel.setState({ applyPluginTransformations: true });
-
-      expect(transformer.getResolvedSystemTransformations().append).toHaveLength(1);
-      expect(transformer.state.data?.series[0].fields[0].values).toEqual([2, 4, 6]);
     });
 
     it('binds a clone to its own plugin rather than the panel it was cloned from', () => {
