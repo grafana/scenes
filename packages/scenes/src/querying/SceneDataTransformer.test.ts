@@ -1,4 +1,4 @@
-import { map, of } from 'rxjs';
+import { map, of, Subject, switchMap } from 'rxjs';
 
 import {
   getDefaultTimeRange,
@@ -10,6 +10,7 @@ import {
   arrayToDataFrame,
   DataTopic,
   DataFrame,
+  DataTransformerConfig,
 } from '@grafana/data';
 
 import { SceneFlexItem, SceneFlexLayout } from '../components/layout/SceneFlexLayout';
@@ -26,8 +27,44 @@ import { subscribeToStateUpdates } from '../../utils/test/utils';
 import { SceneVariableSet } from '../variables/sets/SceneVariableSet';
 import { TextBoxVariable } from '../variables/variants/TextBoxVariable';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
+import { SystemTransformationsProvider } from './systemTransformations/systemTransformationTypes';
 
 class TestSceneObject extends SceneObjectBase<{}> {}
+
+interface TestProviderState extends SceneObjectState {
+  child?: SceneDataTransformer;
+  resolve?: (ctx: { series: DataFrame[] }) => {
+    prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  };
+}
+
+/** Stands in for the VizPanel that implements the interface in production. */
+class TestProvider extends SceneObjectBase<TestProviderState> implements SystemTransformationsProvider {
+  public origin = 'plugin';
+  public calls: DataFrame[][] = [];
+  public subscriptions = 0;
+  public unsubscriptions = 0;
+  public notify?: () => void;
+
+  public getSystemTransformations(_transformer: SceneDataTransformer, ctx: { series: DataFrame[] }) {
+    this.calls.push(ctx.series);
+
+    return this.state.resolve?.(ctx) ?? {};
+  }
+
+  public subscribeToSystemTransformationsChanged(_transformer: SceneDataTransformer, callback: () => void) {
+    this.subscriptions++;
+    this.notify = callback;
+
+    return {
+      unsubscribe: () => {
+        this.unsubscriptions++;
+        this.notify = undefined;
+      },
+    };
+  }
+}
 
 const transformer1config = {
   id: 'transformer1',
@@ -838,6 +875,177 @@ describe('SceneDataTransformer', () => {
     });
   });
 
+  describe('passthrough state churn', () => {
+    it('does not publish a state change when the passthrough data is unchanged', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      transformationNode.activate();
+
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+
+      const stateChanges: PanelData[] = [];
+      transformationNode.subscribeToState((state) => stateChanges.push(state.data!));
+
+      // Any source state change re-runs transform, whether or not it touched the data
+      sourceDataNode.setState({ data: sourceDataNode.state.data });
+
+      expect(stateChanges).toHaveLength(0);
+    });
+
+    it('still publishes when the passthrough data actually changes', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      transformationNode.activate();
+
+      const stateChanges: PanelData[] = [];
+      transformationNode.subscribeToState((state) => stateChanges.push(state.data!));
+
+      const nextData = { ...sourceDataNode.state.data, series: [toDataFrame([[100, 5]])] };
+      sourceDataNode.setState({ data: nextData });
+
+      expect(stateChanges).toHaveLength(1);
+      expect(transformationNode.state.data).toBe(nextData);
+    });
+
+    it('publishes when the source hands over an equal but distinct data object', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      transformationNode.activate();
+
+      const stateChanges: PanelData[] = [];
+      transformationNode.subscribeToState((state) => stateChanges.push(state.data!));
+
+      // The guard is reference identity, not structural: deep comparing every frame on each source state
+      // change would cost more than the no-op event it saves, and state.data should track the object the
+      // source is actually holding
+      sourceDataNode.setState({ data: { ...sourceDataNode.state.data } });
+
+      expect(stateChanges).toHaveLength(1);
+    });
+
+    it('still emits on the results stream when the data is unchanged', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      const emissions: PanelData[] = [];
+      transformationNode.getResultsStream().subscribe((result) => emissions.push(result.data));
+
+      transformationNode.activate();
+
+      expect(emissions).toHaveLength(1);
+
+      // Subscribers there track source emissions rather than state transitions, so the guard on setState
+      // must not silence them
+      sourceDataNode.setState({ data: sourceDataNode.state.data });
+
+      expect(emissions).toHaveLength(2);
+    });
+  });
+
+  describe('when the pipeline becomes empty while a pass is in flight', () => {
+    // Passes the test decides when to finish. Transformations are asynchronous in general - a custom
+    // operator can emit whenever it likes, and newer @grafana/data resolves standard transformations
+    // through a dynamic import - so a pass can still be running when the next one starts.
+    function heldPasses() {
+      const gates: Array<Subject<DataFrame[]>> = [];
+
+      const operator: CustomTransformOperator = () => (source) =>
+        source.pipe(
+          switchMap(() => {
+            const gate = new Subject<DataFrame[]>();
+            gates.push(gate);
+            return gate;
+          })
+        );
+
+      // Finishes the oldest pass still waiting, emitting the given frames as its result
+      const finish = (series: DataFrame[]) => {
+        const gate = gates.shift()!;
+        gate.next(series);
+        gate.complete();
+      };
+
+      return { operator, finish };
+    }
+
+    it('abandons it when the last user transformation is removed', () => {
+      const { operator, finish } = heldPasses();
+
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [operator],
+      });
+
+      transformationNode.activate();
+
+      // Still running, so nothing has been emitted yet
+      expect(transformationNode.state.data).toBeUndefined();
+
+      transformationNode.setState({ transformations: [] });
+      transformationNode.reprocessTransformations();
+
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+
+      finish([toDataFrame([[100, 999]])]);
+
+      // The abandoned pass must not overwrite the passthrough with its stale frames
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+    });
+
+    it('abandons it when the provider stops contributing', () => {
+      const { operator, finish } = heldPasses();
+      let contributes = true;
+
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [],
+      });
+
+      new TestProvider({
+        child: transformationNode,
+        resolve: () => (contributes ? { append: [operator] } : {}),
+      });
+
+      transformationNode.activate();
+
+      expect(transformationNode.state.data).toBeUndefined();
+
+      // Switching to a plugin that registers nothing is exactly this transition
+      contributes = false;
+      transformationNode.reprocessTransformations();
+
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+
+      finish([toDataFrame([[100, 999]])]);
+
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+    });
+
+    it('leaves it running when a source state change repeats data already transformed', () => {
+      const { operator, finish } = heldPasses();
+
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [operator],
+      });
+
+      transformationNode.activate();
+      finish([toDataFrame([[100, 7]])]);
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([7]);
+
+      // A forced pass, mid flight
+      transformationNode.reprocessTransformations();
+
+      // Any source state change re-runs transform with the same data, which returns early because it has
+      // already been transformed. Cancelling the forced pass there would silently drop it.
+      sourceDataNode.setState({ data: sourceDataNode.state.data });
+
+      finish([toDataFrame([[100, 8]])]);
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([8]);
+    });
+  });
+
   it('interpolates transformation options before applying', () => {
     const transformationNode = new SceneDataTransformer({
       transformations: [
@@ -883,6 +1091,665 @@ describe('SceneDataTransformer', () => {
     expect(annotationTransformerSpy).toHaveBeenCalledTimes(2);
     expect(annotationTransformerSpy).toHaveBeenLastCalledWith({
       options: 'annotation-transformation-New Text Variable Value',
+    });
+  });
+  describe('variable interpolation with custom transform operators', () => {
+    function buildScene(transformations: Array<DataTransformerConfig | CustomTransformerDefinition>) {
+      const transformationNode = new SceneDataTransformer({ transformations });
+      const consumer = new TestSceneObject({ $data: transformationNode });
+      const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
+
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        $variables: new SceneVariableSet({ variables: [textVar] }),
+        children: [new SceneFlexItem({ body: consumer })],
+      });
+
+      activateFullSceneTree(scene);
+
+      return { transformationNode, consumer, textVar };
+    }
+
+    const configWithVariable = { ...transformer1config, options: { options: '$myVariable' } };
+
+    it('does not drop object form custom transformer operators', () => {
+      // JSON stringifying the object form alongside the configs would drop `operator`
+      const { consumer, textVar } = buildScene([configWithVariable, customAnnotationTransformOperator]);
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+
+      const data = sceneGraph.getData(consumer).state.data;
+      // series: value * 2 (interpolated config still applied)
+      expect(data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      // annotations: value / 10 (custom operator survived interpolation)
+      expect(data?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
+
+      // The operator has to survive every re-interpolation, not just the first
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+
+      const updated = sceneGraph.getData(consumer).state.data;
+      expect(updated?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      expect(updated?.annotations?.[0].fields[1].values).toEqual([0.1, 0.2, 0.3]);
+    });
+
+    it('does not drop bare custom transform operators', () => {
+      const { consumer, textVar } = buildScene([configWithVariable, customTransformOperator]);
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+
+      // value * 2 / 100
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+
+      textVar.setValue('New Text Variable Value');
+
+      expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+      expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+      expect(sceneGraph.getData(consumer).state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+    });
+  });
+
+  describe('system transformations', () => {
+    function buildScene({
+      transformations = [transformer1config] as Array<DataTransformerConfig | CustomTransformerDefinition>,
+      provider = new TestProvider({}),
+    } = {}) {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations });
+
+      provider.setState({ child: transformationNode });
+
+      sourceDataNode.activate();
+
+      return { transformationNode, provider, activate: () => transformationNode.activate() };
+    }
+
+    it('applies the transformations its parent provides, without any registration call', () => {
+      const provider = new TestProvider({
+        // +4 (registry operator, no topic so it applies to series)
+        resolve: () => ({ prepend: [{ id: 'annotationTransformer', options: {} }], append: [transformer2config] }),
+      });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      // (value + 4) * 2 * 3
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([30, 36, 42]);
+    });
+
+    it('never puts what the provider contributes into state', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(transformationNode.state.transformations).toEqual([transformer1config]);
+    });
+
+    it('is part of the first pass rather than a corrective second one', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      const dataUpdates = subscribeToStateUpdates(transformationNode);
+
+      activate();
+
+      expect(dataUpdates).toHaveLength(1);
+      // value * 2 * 3, from the very first emission
+      expect(dataUpdates[0].data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('resolves against the source frames rather than the pipeline output', () => {
+      const provider = new TestProvider({});
+      const { activate } = buildScene({ provider });
+
+      activate();
+
+      expect(provider.calls).toHaveLength(1);
+      // The source values, not the *2 the user transformation produces
+      expect(provider.calls[0][0].fields[1].values).toEqual([1, 2, 3]);
+    });
+
+    it('resolves the provider once per pass, sharing the memo with getResolvedSystemTransformations', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(provider.calls).toHaveLength(1);
+
+      transformationNode.getResolvedSystemTransformations();
+      transformationNode.getResolvedSystemTransformations();
+
+      expect(provider.calls).toHaveLength(1);
+    });
+
+    it('reports what is running, tagged with origin and position', () => {
+      const provider = new TestProvider({
+        resolve: () => ({ prepend: [transformer1config], append: [transformer2config] }),
+      });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({
+        prepend: [{ ...transformer1config, origin: 'plugin', position: 'prepend' }],
+        append: [{ ...transformer2config, origin: 'plugin', position: 'append' }],
+      });
+    });
+
+    it('wraps a bare custom transform operator so that it carries the origin and the series topic', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [customTransformOperator] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(transformationNode.getResolvedSystemTransformations().append).toEqual([
+        { operator: customTransformOperator, topic: DataTopic.Series, origin: 'plugin', position: 'append' },
+      ]);
+      // value * 2 / 100
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+    });
+
+    it('honours the topic of what the provider contributes', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [annotationTransformerConfig] }) });
+      const { transformationNode, activate } = buildScene({ provider, transformations: [] });
+
+      activate();
+
+      // Series untouched, annotations +4
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
+      expect(transformationNode.state.data?.annotations?.[0].fields[1].values).toEqual([5, 6, 7]);
+    });
+
+    it('uses a different origin when the provider declares one', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      provider.origin = 'test-origin';
+
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(transformationNode.getResolvedSystemTransformations().append).toEqual([
+        { ...transformer2config, origin: 'test-origin', position: 'append' },
+      ]);
+    });
+
+    it('reprocesses when the provider signals a change without new data', () => {
+      let contributes = false;
+      const provider = new TestProvider({ resolve: () => (contributes ? { append: [transformer2config] } : {}) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      // value * 2
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+
+      contributes = true;
+      provider.notify!();
+
+      // value * 2 * 3
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('unsubscribes from the provider on deactivation', () => {
+      const provider = new TestProvider({});
+      const { activate } = buildScene({ provider });
+
+      const deactivate = activate();
+
+      expect(provider.subscriptions).toBe(1);
+      expect(provider.unsubscriptions).toBe(0);
+
+      deactivate();
+
+      expect(provider.unsubscriptions).toBe(1);
+    });
+
+    it('keeps answering after deactivation, and does not double register on re-activation', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate()();
+
+      // The transformations editor reads this for panels that are not currently rendering
+      expect(transformationNode.getResolvedSystemTransformations().append).toEqual([
+        { ...transformer2config, origin: 'plugin', position: 'append' },
+      ]);
+
+      activate();
+
+      expect(provider.subscriptions).toBe(2);
+      expect(transformationNode.getResolvedSystemTransformations().append).toHaveLength(1);
+      // Not applied twice
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('does not discover a provider through a nested transformer', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+
+      const inner = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+      const outer = new SceneDataTransformer({ $data: inner, transformations: [transformer1config] });
+
+      provider.setState({ child: outer });
+
+      sourceDataNode.activate();
+      outer.activate();
+
+      expect(inner.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      // *3 applied once by the outer transformer, not once per transformer
+      expect(outer.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('drops a provider discovered on a previous parent when it re-activates elsewhere', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      provider.setState({ child: transformationNode });
+
+      sourceDataNode.activate();
+      const deactivate = transformationNode.activate();
+
+      expect(transformationNode.getResolvedSystemTransformations().append).toHaveLength(1);
+
+      deactivate();
+
+      // Re-parented under something that contributes nothing - clearParent first, which is how scenes
+      // sanctions a move (VizPanel._pluginLoaded does exactly this when it rewraps a query runner). The
+      // provider is kept across deactivation, so without re-deriving it on activation this would keep
+      // consulting the panel it has left.
+      transformationNode.clearParent();
+
+      const plainParent = new TestSceneObject({ $data: transformationNode });
+      transformationNode.activate();
+
+      expect(plainParent).toBeDefined();
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
+    });
+
+    it('re-runs the pipeline when the provider it dropped contributed to the current data', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [transformer1config],
+      });
+
+      provider.setState({ child: transformationNode });
+
+      sourceDataNode.activate();
+      const deactivate = transformationNode.activate();
+
+      // value * 2 (user) * 3 (provider)
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+
+      deactivate();
+      transformationNode.clearParent();
+
+      const plainParent = new TestSceneObject({ $data: transformationNode });
+      transformationNode.activate();
+
+      expect(plainParent).toBeDefined();
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      // Not the *3 the dropped provider produced. The source frames are unchanged, so an unforced pass
+      // would be skipped as already transformed and state.data would keep its output.
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+    });
+
+    it('re-runs the pipeline when the same provider resolves differently across deactivation', () => {
+      let contributes = false;
+      const provider = new TestProvider({ resolve: () => (contributes ? { append: [transformer2config] } : {}) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      const deactivate = activate();
+
+      // value * 2, the provider contributes nothing yet
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+
+      deactivate();
+
+      // What a plugin import finishing while the transformer is inactive looks like: nothing was
+      // watching, so no reprocess was triggered
+      contributes = true;
+      transformationNode.activate();
+
+      // value * 2 * 3. The source frames are unchanged, so an unforced pass would be skipped as
+      // already transformed and state.data would keep frames the reported pipeline never produced.
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+      expect(transformationNode.getResolvedSystemTransformations().append).toHaveLength(1);
+    });
+
+    it('re-runs the pipeline when the same provider stops contributing across deactivation', () => {
+      let contributes = true;
+      const provider = new TestProvider({ resolve: () => (contributes ? { append: [transformer2config] } : {}) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      const deactivate = activate();
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+
+      deactivate();
+
+      contributes = false;
+      transformationNode.activate();
+
+      // Back to value * 2, not the *3 the previous pass produced
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+    });
+
+    it('re-runs the pipeline when deactivation cancelled the pass that would have applied it', () => {
+      const gates: Array<Subject<DataFrame[]>> = [];
+      // A contribution that finishes only when the test says so. Transformations are asynchronous in
+      // general, so a pass can still be in flight when deactivation cancels it.
+      const held: CustomTransformOperator = () => (source) =>
+        source.pipe(
+          switchMap(() => {
+            const gate = new Subject<DataFrame[]>();
+            gates.push(gate);
+            return gate;
+          })
+        );
+
+      let contributes = false;
+      const provider = new TestProvider({ resolve: () => (contributes ? { append: [held] } : {}) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      const deactivate = activate();
+
+      // Nothing from the provider yet, so this pass is synchronous and lands
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      expect(gates).toHaveLength(0);
+
+      // The provider starts contributing - a plugin finishing its import - and the pass that triggers
+      // is still in flight when deactivation cancels it
+      contributes = true;
+      provider.notify!();
+
+      expect(gates).toHaveLength(1);
+
+      deactivate();
+      transformationNode.activate();
+
+      // The cancelled pass never reached state.data, so re-activation has to run one rather than
+      // treat it as already applied
+      expect(gates).toHaveLength(2);
+    });
+
+    it('does not re-run the pipeline when re-activation resolves the same', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      const deactivate = activate();
+
+      const dataUpdates = subscribeToStateUpdates(transformationNode);
+
+      deactivate();
+      transformationNode.activate();
+
+      // Re-activation is the common case (a row expanding, navigating back); nothing changed, so the
+      // whole pipeline must not re-run for every panel
+      expect(dataUpdates).toHaveLength(0);
+    });
+
+    it('re-runs a clone whose own provider resolves differently from the one it was cloned from', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+
+      const clone = transformationNode.clone();
+      new TestProvider({ child: clone });
+
+      clone.activate();
+
+      // The clone's provider contributes nothing, so it must not keep the *3 it inherited in state
+      expect(clone.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+    });
+
+    it('re-runs the pipeline when re-activation gains a provider', () => {
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [transformer1config],
+      });
+      const plainParent = new TestSceneObject({ $data: transformationNode });
+
+      sourceDataNode.activate();
+      const deactivate = transformationNode.activate();
+
+      expect(plainParent).toBeDefined();
+      // value * 2, no provider to contribute
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+
+      deactivate();
+      transformationNode.clearParent();
+
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      provider.setState({ child: transformationNode });
+      transformationNode.activate();
+
+      // value * 2 * 3 - the newly discovered provider has to reach the already transformed frames
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+    });
+
+    it('hands out a frozen result so readers cannot corrupt each other', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      const resolved = transformationNode.getResolvedSystemTransformations();
+
+      // Shared with the pipeline for the whole pass, and the no-provider answer below is a module
+      // singleton shared by every transformer in the app
+      expect(Object.isFrozen(resolved)).toBe(true);
+      expect(Object.isFrozen(resolved.prepend)).toBe(true);
+      expect(Object.isFrozen(resolved.append)).toBe(true);
+
+      const none = new SceneDataTransformer({ transformations: [] }).getResolvedSystemTransformations();
+
+      expect(Object.isFrozen(none)).toBe(true);
+      expect(Object.isFrozen(none.append)).toBe(true);
+    });
+
+    it('ignores a parent that is not a provider', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+      const parent = new TestSceneObject({ $data: transformationNode });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      expect(parent).toBeDefined();
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
+    });
+
+    it('does not throw when it has no parent at all', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      sourceDataNode.activate();
+
+      expect(() => transformationNode.activate()).not.toThrow();
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+    });
+
+    it('answers without a source to resolve against, for an editor reading a detached transformer', () => {
+      const detached = new SceneDataTransformer({ transformations: [] });
+
+      expect(detached.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+    });
+
+    it('answers rather than throwing once its provider parent leaves the layout', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const transformationNode = new SceneDataTransformer({ transformations: [] });
+
+      provider.setState({ child: transformationNode });
+
+      const scene = new SceneFlexLayout({
+        $data: sourceDataNode,
+        children: [new SceneFlexItem({ body: provider })],
+      });
+
+      activateFullSceneTree(scene);
+
+      // The provider is kept across deactivation so editors can read a panel that is not rendering, and a
+      // panel removed from the layout is exactly that. It takes the walkable source data with it, leaving
+      // this transformer with neither `$data` nor a grandparent - what getSourceData throws on.
+      provider.clearParent();
+
+      expect(() => transformationNode.getResolvedSystemTransformations()).not.toThrow();
+      // Resolved against no frames rather than refusing to answer
+      expect(provider.calls[provider.calls.length - 1]).toEqual([]);
+      expect(transformationNode.getResolvedSystemTransformations().append).toEqual([
+        { ...transformer2config, origin: 'plugin', position: 'append' },
+      ]);
+    });
+
+    it('resolves against empty frames when the source has no data yet', () => {
+      const provider = new TestProvider({});
+      const emptySource = new SceneDataNode({ data: undefined });
+      const transformationNode = new SceneDataTransformer({ $data: emptySource, transformations: [] });
+
+      provider.setState({ child: transformationNode });
+      transformationNode.activate();
+
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      expect(provider.calls[0]).toEqual([]);
+    });
+
+    it('keeps the passthrough fast path when the provider contributes nothing', () => {
+      const provider = new TestProvider({});
+      const { transformationNode, activate } = buildScene({ provider, transformations: [] });
+
+      activate();
+
+      expect(transformationNode.state.data).toBe(sourceDataNode.state.data);
+    });
+
+    it('degrades a throwing provider to a no-op instead of erroring the stream', () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const provider = new TestProvider({
+        resolve: () => {
+          throw new Error('boom');
+        },
+      });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      // value * 2 - the user transformation still ran
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      expect(transformationNode.state.data?.state).not.toBe(LoadingState.Error);
+      expect(consoleError).toHaveBeenCalled();
+
+      consoleError.mockRestore();
+    });
+
+    it('discovers the provider on the clone rather than inheriting the original', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      const clone = transformationNode.clone();
+      const otherProvider = new TestProvider({});
+      otherProvider.setState({ child: clone });
+
+      clone.activate();
+
+      expect(clone.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      expect(otherProvider.subscriptions).toBe(1);
+    });
+
+    describe('variable interpolation', () => {
+      const configWithVariable = { ...transformer1config, options: { options: '$myVariable' } };
+
+      // transformDataFrame runs every option string through ctx.interpolate itself, and only skips that
+      // when a scene is registered on the window - its way of deferring to the interpolation scenes has
+      // already done. EmbeddedScene/SceneApp set it in a real app; these tests build a bare layout, so
+      // without it the compat path resolves both tiers and there is no way to tell them apart.
+      beforeEach(() => {
+        (window as any).__grafanaSceneContext = {};
+      });
+
+      afterEach(() => {
+        delete (window as any).__grafanaSceneContext;
+      });
+
+      function buildInterpolationScene(
+        provider: TestProvider,
+        transformations: Array<DataTransformerConfig | CustomTransformerDefinition>
+      ) {
+        const transformationNode = new SceneDataTransformer({ transformations });
+        const textVar = new TextBoxVariable({ name: 'myVariable', value: 'Text Variable Value' });
+
+        provider.setState({ child: transformationNode });
+
+        const scene = new SceneFlexLayout({
+          $data: sourceDataNode,
+          $variables: new SceneVariableSet({ variables: [textVar] }),
+          children: [new SceneFlexItem({ body: provider })],
+        });
+
+        activateFullSceneTree(scene);
+
+        return { transformationNode, textVar };
+      }
+
+      it('does not drop provider contributed custom transform operators', () => {
+        // Interpolation JSON round trips the configs, which would drop a bare operator - the wrapping
+        // toSystemTransformation does is what keeps it out of that path
+        const provider = new TestProvider({ resolve: () => ({ append: [customTransformOperator] }) });
+        const { transformationNode, textVar } = buildInterpolationScene(provider, [configWithVariable]);
+
+        expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'Text Variable Value' });
+        expect(customTransformerSpy).toHaveBeenCalledTimes(1);
+
+        // value * 2 / 100
+        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+
+        // The operator has to survive every re-interpolation, not just the first
+        textVar.setValue('New Text Variable Value');
+
+        expect(transformerSpy).toHaveBeenLastCalledWith({ options: 'New Text Variable Value' });
+        expect(customTransformerSpy).toHaveBeenCalledTimes(2);
+        expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([0.02, 0.04, 0.06]);
+      });
+
+      it('does not re-run for a variable that only provider output references', () => {
+        // The dependency config scans state.transformations, which provider output never enters, so a
+        // provider whose configs reference variables has to resolve them itself.
+        const provider = new TestProvider({ resolve: () => ({ append: [configWithVariable] }) });
+        const { textVar } = buildInterpolationScene(provider, []);
+
+        expect(transformerSpy).toHaveBeenCalledTimes(1);
+        expect(transformerSpy).toHaveBeenLastCalledWith({ options: '$myVariable' });
+
+        textVar.setValue('New Text Variable Value');
+
+        expect(transformerSpy).toHaveBeenCalledTimes(1);
+      });
+
+      it('leaves provider output literal even when a user transformation references a variable', () => {
+        // Both tiers carry the same `$myVariable` config. Interpolating the merged array would resolve the
+        // provider's copy too, making its behaviour depend on whether the user's own configs happen to
+        // reference a variable - the thing that decides whether interpolation runs at all.
+        const provider = new TestProvider({ resolve: () => ({ append: [configWithVariable] }) });
+        const { textVar } = buildInterpolationScene(provider, [configWithVariable]);
+
+        expect(transformerSpy).toHaveBeenCalledWith({ options: 'Text Variable Value' });
+        expect(transformerSpy).toHaveBeenCalledWith({ options: '$myVariable' });
+
+        transformerSpy.mockClear();
+        textVar.setValue('New Text Variable Value');
+
+        expect(transformerSpy).toHaveBeenCalledWith({ options: 'New Text Variable Value' });
+        expect(transformerSpy).toHaveBeenCalledWith({ options: '$myVariable' });
+      });
     });
   });
 

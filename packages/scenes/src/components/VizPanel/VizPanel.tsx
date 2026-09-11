@@ -1,6 +1,9 @@
 import { t } from '@grafana/i18n';
 import {
   AbsoluteTimeRange,
+  DataFrame,
+  DataTopic,
+  DataTransformerConfig,
   FieldConfigSource,
   PanelModel,
   PanelPlugin,
@@ -22,7 +25,7 @@ import { PanelContext, SeriesVisibilityChangeMode, VizLegendOptions } from '@gra
 import { config, getAppEvents, getPluginImportUtils } from '@grafana/runtime';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { sceneGraph } from '../../core/sceneGraph';
-import { DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
+import { CustomTransformerDefinition, DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
 import { VizPanelMenu } from './VizPanelMenu';
@@ -42,6 +45,10 @@ import { registerQueryWithController, wrapPromiseInStateObservable } from '../..
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { buildPathIdFor } from '../../utils/pathId';
+import {
+  SystemTransformationsProvider,
+  TransformationOrigin,
+} from '../../querying/systemTransformations/systemTransformationTypes';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -107,6 +114,11 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   _UNSAFE_clearPreviousFieldValues?: boolean;
 
   /**
+   * Whether this panel provides system transformations
+   */
+  applyPluginTransformations?: boolean;
+
+  /**
    * Sets panel chrome collapsed state
    */
   collapsible?: boolean;
@@ -125,9 +137,10 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   _renderCounter?: number;
 }
 
-export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends SceneObjectBase<
-  VizPanelState<TOptions, TFieldConfig>
-> {
+export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
+  extends SceneObjectBase<VizPanelState<TOptions, TFieldConfig>>
+  implements SystemTransformationsProvider
+{
   public static Component = VizPanelRenderer;
 
   protected _variableDependency = new VariableDependencyConfig(this, {
@@ -140,7 +153,13 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
 
   // Not part of state as this is not serializable
   protected _panelContext?: PanelContext;
+  /**
+   * The plugin this panel has adopted: options have been migrated and defaulted against it, so it
+   * deliberately lags state.pluginId while a viz type change is still loading.
+   */
   private _plugin?: PanelPlugin;
+  /** The in-flight import, so concurrent callers share one. */
+  private _pluginImport?: { pluginId: string; promise: Promise<PanelPlugin> };
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
   private _structureRev = 0;
@@ -207,22 +226,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       endPluginLoadCallback?.(plugin, true);
       this._pluginLoaded(plugin, overwriteOptions, overwriteFieldConfig, isAfterPluginChange);
     } else {
-      const { importPanelPlugin } = getPluginImportUtils();
-
       try {
         // Start profiling plugin load - get end callback
         const endPluginLoadCallback = profiler?.onPluginLoadStart(pluginId);
 
-        const panelPromise = importPanelPlugin(pluginId);
-
-        const queryControler = sceneGraph.getQueryController(this);
-        if (queryControler && queryControler.state.enableProfiling) {
-          wrapPromiseInStateObservable(panelPromise)
-            .pipe(registerQueryWithController({ type: `VizPanel/loadPlugin/${pluginId}`, origin: this }))
-            .subscribe(() => {});
-        }
-
-        const result = await panelPromise;
+        const result = await this._importPlugin(pluginId);
 
         // End profiling plugin load (not from cache)
         endPluginLoadCallback?.(result, false);
@@ -236,6 +244,29 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
         }
       }
     }
+  }
+
+  /**
+   * The only place the plugin is imported. Concurrent callers (_loadPlugin, getPluginAsync) share one import,
+   * and a rejection stays cached so a plugin that fails to load is not retried on every call.
+   */
+  private _importPlugin(pluginId: string): Promise<PanelPlugin> {
+    if (this._pluginImport?.pluginId === pluginId) {
+      return this._pluginImport.promise;
+    }
+
+    const promise = getPluginImportUtils().importPanelPlugin(pluginId);
+
+    const queryControler = sceneGraph.getQueryController(this);
+    if (queryControler && queryControler.state.enableProfiling) {
+      wrapPromiseInStateObservable(promise)
+        .pipe(registerQueryWithController({ type: `VizPanel/loadPlugin/${pluginId}`, origin: this }))
+        .subscribe(() => {});
+    }
+
+    this._pluginImport = { pluginId, promise };
+
+    return promise;
   }
 
   public getLegacyPanelId() {
@@ -336,6 +367,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
       pluginId: plugin.meta.id,
     });
 
+    // The plugin arrives async so the pipeline may have already run a pass without its system transformations.
+    if (this.state.applyPluginTransformations && $data instanceof SceneDataTransformer && $data.isActive) {
+      $data.reprocessTransformations();
+    }
+
     // Non data panels needs to be re-rendered when time range change
     if (plugin.meta.skipDataQuery) {
       const sceneTimeRange = sceneGraph.getTimeRange(this);
@@ -347,8 +383,68 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}> extends Scene
     return plugin && plugin.meta.info.version ? plugin.meta.info.version : config.buildInfo.version;
   }
 
+  /**
+   * The plugin this panel has adopted, or undefined while it is still loading.
+   */
   public getPlugin(): PanelPlugin | undefined {
     return this._plugin;
+  }
+
+  /**
+   * The plugin for the current state.pluginId, importing it if it is not loaded yet. Rejects when
+   * the import does, like the host's importPanelPlugin.
+   *
+   * Unlike getPlugin this does not return undefined merely because the import has not finished, and
+   * it does not wait on the panel being activated. It does not adopt what it resolves: option
+   * migrations and the state write stay with _loadPlugin, on the render and viz change paths.
+   */
+  public getPluginAsync(): Promise<PanelPlugin> {
+    const resolved = this._resolvePluginSync();
+
+    return resolved ? Promise.resolve(resolved) : this._importPlugin(this.state.pluginId);
+  }
+
+  /**
+   * The plugin for the current state.pluginId when it is available without importing: the one this
+   * panel adopted, or one already in the host's cache.
+   */
+  private _resolvePluginSync(): PanelPlugin | undefined {
+    const { pluginId } = this.state;
+
+    return this._plugin?.meta.id === pluginId ? this._plugin : loadPanelPluginSync(pluginId);
+  }
+
+  /**
+   * @internal
+   * SystemTransformationsProvider. Identifies this panel's tier in its data pipeline; not for app code.
+   */
+  public origin: TransformationOrigin = 'plugin';
+
+  /**
+   * @internal
+   * Called by the SceneDataTransformer that discovered this panel with the frames about to enter the pipeline.
+   */
+  public getSystemTransformations(
+    _transformer: SceneDataTransformer,
+    { series }: { series: DataFrame[] }
+  ): {
+    prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  } {
+    if (series.length === 0) {
+      return {};
+    }
+
+    const plugin = this._pluginForTransformations();
+
+    return plugin ? getPluginSystemTransformations(plugin, { series }) : {};
+  }
+
+  /**
+   * The plugin that contributes the transformations for this panel.
+   */
+  private _pluginForTransformations(): PanelPlugin | undefined {
+    return this.state.applyPluginTransformations ? this._resolvePluginSync() : undefined;
   }
 
   public getPanelContext(): PanelContext {
@@ -729,4 +825,50 @@ function getPanelPluginNotFound(id: string): PanelPlugin {
   };
 
   return plugin;
+}
+
+/**
+ * The subset of PanelPlugin that carries panel plugin defined transformations.
+ * This is a Grafana 13 addition to PanelPlugin, while scenes builds against
+ * @grafana/data >= 11.6, so this file has to compile and behave against versions that lack it.
+ */
+interface PluginWithSystemTransformations {
+  getSystemTransformations(ctx: { series: DataFrame[] }): {
+    prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+    append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  };
+}
+
+/**
+ * Internal helper - resolves system transformations from the plugin
+ */
+function getPluginSystemTransformations(
+  plugin: PanelPlugin,
+  ctx: { series: DataFrame[] }
+): {
+  prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+  append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
+} {
+  // @todo remove type assertion after scenes builds against updated PanelPlugin in Grafana 13
+  const resolve = (plugin as Partial<PluginWithSystemTransformations>).getSystemTransformations;
+
+  if (typeof resolve !== 'function') {
+    return {};
+  }
+
+  const { prepend = [], append = [] } = resolve.call(plugin, ctx) ?? {};
+
+  // The contract supports the series topic only.
+  return { prepend: prepend.filter(appliesToSeriesTopic), append: append.filter(appliesToSeriesTopic) };
+}
+
+/**
+ * Internal helper - checks if the transformation applies to series
+ */
+function appliesToSeriesTopic(transformation: DataTransformerConfig | CustomTransformerDefinition): boolean {
+  if (typeof transformation === 'function') {
+    return true;
+  }
+
+  return transformation.topic == null || transformation.topic === DataTopic.Series;
 }

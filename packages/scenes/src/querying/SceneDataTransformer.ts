@@ -17,10 +17,21 @@ import { CustomTransformerDefinition, SceneDataProvider, SceneDataProviderResult
 import { VariableDependencyConfig } from '../variables/VariableDependencyConfig';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
+import {
+  ResolvedSystemTransformations,
+  SystemTransformationsProvider,
+} from './systemTransformations/systemTransformationTypes';
+import {
+  freezeResolved,
+  isSystemTransformationsProvider,
+  toSystemTransformation,
+} from './systemTransformations/systemTransformationProvider';
+import { NO_SERIES, NO_SYSTEM_TRANSFORMATIONS } from './systemTransformations/constants';
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
-   * Array of standard transformation configs and custom transform operators
+   * Array of standard transformation configs and custom transform operators.
+   * User configured only: system contributed transformations provided by getResolvedSystemTransformations.
    */
   transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
 }
@@ -37,6 +48,32 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   private _transformSub?: Unsubscribable;
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
   private _prevDataFromSource?: PanelData;
+  /**
+   * The provider found on the parent. Kept across deactivation rather than cleared with the subscription:
+   * the transformations editor reads getResolvedSystemTransformations for panels that are not currently
+   * rendering, and re-discovering on the next activation would be too late. Re-derived from the parent on
+   * every activation, so it does not survive a move to a tree whose parent contributes nothing.
+   */
+  private _provider?: SystemTransformationsProvider;
+  /**
+   * One slot memo so that a pass resolves the provider once and the editors reading
+   * getResolvedSystemTransformations see what the pipeline used rather than re-resolving.
+   */
+  private _resolvedSystem?: {
+    series: DataFrame[];
+    resolved: ResolvedSystemTransformations;
+  };
+  /**
+   * Whether a previous activation already ran a pass, which is what makes the provider found on this one a
+   * *change* rather than a first discovery. Not carried over by clone, unlike `_prevDataFromSource`.
+   */
+  private _hasActivatedBefore = false;
+  /**
+   * The system transformations that produced the current `state.data`, as opposed to what resolves now.
+   * Written only where `_prevDataFromSource` is, so the two always describe the same pass: a pass
+   * cancelled by deactivation has applied neither, and must not be taken for one that landed.
+   */
+  private _lastPassSystem?: ResolvedSystemTransformations;
 
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
@@ -60,15 +97,75 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     this._subs.add(sourceData.subscribeToState((state) => this.transform(state.data)));
 
+    // Before the first transform below, so a discovered provider is part of that first pass rather than
+    // needing a second, corrective one.
+    const providerChanged = this._discoverProvider();
+
     if (sourceData.state.data) {
-      this.transform(sourceData.state.data);
+      this.transform(sourceData.state.data, providerChanged);
     }
+
+    this._hasActivatedBefore = true;
 
     return () => {
       if (this._transformSub) {
         this._transformSub.unsubscribe();
       }
     };
+  }
+
+  /**
+   * Checks the parent for system transformation provider.
+   * The provider is kept across deactivation but its subscription is not: _subs is cleared on deactivate, this re-establishes the subscription.
+   * Reports whether what the pipeline should run has changed since the last pass, so the caller can force one.
+   */
+  private _discoverProvider(): boolean {
+    const previous = this._provider;
+    const provider = this.parent;
+
+    if (!isSystemTransformationsProvider(provider)) {
+      // This only ever runs from the activation handler, where the parent is already final, so a parent
+      // that is not a provider means anything discovered on a previous activation belongs to a tree this
+      // transformer is no longer part of.
+      this._provider = undefined;
+      this._resolvedSystem = undefined;
+
+      return this._hasActivatedBefore && previous !== undefined;
+    }
+
+    this._provider = provider;
+
+    // Nothing was watching the provider while this was inactive, so what it resolves to may have moved on
+    // from what the last pass memoized.
+    this._resolvedSystem = undefined;
+
+    const sub = provider.subscribeToSystemTransformationsChanged?.(this, () => this.reprocessTransformations());
+
+    if (sub) {
+      this._subs.add(sub);
+    }
+
+    if (this._hasActivatedBefore && previous !== provider) {
+      return true;
+    }
+
+    return this._systemChangedSinceLastPass();
+  }
+
+  /**
+   * Whether the provider resolves to something other than what the last pass ran.
+   *
+   * The provider instance being unchanged is not enough to conclude the pipeline is unchanged: nothing
+   * was watching while this was inactive, so a plugin that finished importing in that window resolves
+   * differently now. Source frames usually survive a re-activation unchanged, so without this the pass
+   * is skipped as already transformed and state.data keeps frames the reported pipeline never produced.
+   */
+  private _systemChangedSinceLastPass(): boolean {
+    if (!this._lastPassSystem) {
+      return false;
+    }
+
+    return !isEqual(this._lastPassSystem, this.getResolvedSystemTransformations());
   }
 
   private getSourceData(): SceneDataProvider {
@@ -102,7 +199,90 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public reprocessTransformations() {
+    // A provider can resolve differently for the same frames - a plugin that was not loaded on the last pass
+    // is the reason callers reach for this - so the memo cannot survive a forced re-run.
+    this._resolvedSystem = undefined;
     this.transform(this.getSourceData().state.data, true);
+  }
+
+  /**
+   * The system transformations for the given source frames.
+   * Public because provider output never reaches state, so this is the only way for readers
+   * (the transformations editor, the inspect data tab) to see what the pipeline is running.
+   */
+  public getResolvedSystemTransformations(series?: DataFrame[]): ResolvedSystemTransformations {
+    const provider = this._provider;
+
+    if (!provider) {
+      return NO_SYSTEM_TRANSFORMATIONS;
+    }
+
+    const frames = series ?? this._sourceSeriesOrNone();
+    const memo = this._resolvedSystem;
+
+    if (memo && memo.series === frames) {
+      return memo.resolved;
+    }
+
+    const { prepend = [], append = [] } = this._resolveProvider(provider, frames);
+
+    const resolved = freezeResolved({
+      prepend: prepend.map((t) => toSystemTransformation(t, 'prepend', provider.origin)),
+      append: append.map((t) => toSystemTransformation(t, 'append', provider.origin)),
+    });
+
+    this._resolvedSystem = { series: frames, resolved };
+
+    return resolved;
+  }
+
+  /**
+   * The source frames to resolve a provider against when the caller did not supply their own.
+   *
+   * Mirrors getSourceData's precondition: reading what is running must not throw for a transformer that is not wired.
+   * Since every VizPanel is a provider, a panel without `$data` would throw.
+   */
+  private _sourceSeriesOrNone(): DataFrame[] {
+    if (!this.state.$data && !this.parent?.parent) {
+      return NO_SERIES;
+    }
+
+    return this.getSourceData().state.data?.series ?? NO_SERIES;
+  }
+
+  private _resolveProvider(
+    provider: SystemTransformationsProvider,
+    series: DataFrame[]
+  ): ReturnType<SystemTransformationsProvider['getSystemTransformations']> {
+    try {
+      return provider.getSystemTransformations(this, { series }) ?? {};
+    } catch (err) {
+      // A provider is someone else's code running in our data pipeline; contributing nothing is better than erroring
+      console.error(`Error resolving system transformations for origin '${provider.origin}': `, err);
+      return {};
+    }
+  }
+
+  /**
+   * The system transformations to run for the given source frames.
+   */
+  private _systemTransformationsFor(series: DataFrame[]): ResolvedSystemTransformations {
+    // Without a provider state already holds everything in pipeline order, so the common case stays free.
+    return this._provider ? this.getResolvedSystemTransformations(series) : NO_SYSTEM_TRANSFORMATIONS;
+  }
+
+  /**
+   * Places the user configured transformations between the system tiers, in prepend, user, append order.
+   */
+  private _withSystemTransformations(
+    system: ResolvedSystemTransformations,
+    transformations: Array<DataTransformerConfig | CustomTransformerDefinition>
+  ): Array<DataTransformerConfig | CustomTransformerDefinition> {
+    if (system.prepend.length === 0 && system.append.length === 0) {
+      return transformations;
+    }
+
+    return [...system.prepend, ...transformations, ...system.append];
   }
 
   /**
@@ -153,6 +333,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     if (this._prevDataFromSource) {
       clone['_prevDataFromSource'] = this._prevDataFromSource;
+      clone['_lastPassSystem'] = this._lastPassSystem;
     }
 
     return clone;
@@ -224,9 +405,27 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         ) => void)
       | null = null;
 
-    if (this.state.transformations.length === 0 || !data) {
+    // Resolved once for the whole pass and handed to both tiers, rather than re-derived per position.
+    const system = data ? this._systemTransformationsFor(data.series) : NO_SYSTEM_TRANSFORMATIONS;
+    const transformations = data ? this._withSystemTransformations(system, this.state.transformations) : [];
+
+    if (transformations.length === 0 || !data) {
+      // Transformations are asynchronous, so a pass started when there were some is likely still running.
+      // Left subscribed it would complete after this and overwrite the passthrough with stale frames. Not
+      // hoisted above the haveAlreadyTransformedData return below: there the data is unchanged, so letting
+      // the in-flight pass finish is what we want.
+      this._transformSub?.unsubscribe();
+
       this._prevDataFromSource = data;
-      this.setState({ data });
+      this._lastPassSystem = system;
+
+      // Any source state change re-runs this, so without the guard a passthrough panel publishes a state
+      // change carrying data it already had - one no-op event per listener, DashboardSceneChangeTracker
+      // included. The results stream still emits: subscribers there are tracking source emissions, not
+      // state transitions.
+      if (data !== this.state.data) {
+        this.setState({ data });
+      }
 
       if (data) {
         this._results.next({ origin: this, data });
@@ -242,7 +441,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     // S3.1: Start transformation tracking
     if (profiler) {
       // Create meaningful transformation identifier from actual transformations
-      const transformationTypes = this.state.transformations
+      const transformationTypes = transformations
         .map((t) => {
           if ('id' in t) {
             // Standard DataTransformerConfig
@@ -256,13 +455,17 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       transformationId = transformationTypes || 'no-transforms';
 
       // Calculate transformation complexity metrics
-      const metrics = this._calculateTransformationMetrics(data, this.state.transformations);
+      const metrics = this._calculateTransformationMetrics(data, transformations);
 
       // Start the DataProcessing phase with centralized logging - get end callback
       endTransformCallback = profiler.onDataTransformStart(timestamp, transformationId, metrics);
     }
 
-    const interpolatedTransformations = this._interpolateVariablesInTransformationConfigs(data);
+    // Only the user transforms are interpolated.
+    const interpolatedTransformations = this._withSystemTransformations(
+      system,
+      this._interpolateVariablesInTransformationConfigs(data, this.state.transformations)
+    );
 
     const seriesTransformations = this._filterAndPrepareTransformationsByTopic(
       interpolatedTransformations,
@@ -357,27 +560,29 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         this.setState({ data: transformedData });
         this._results.next({ origin: this, data: transformedData });
         this._prevDataFromSource = data;
+        this._lastPassSystem = system;
       });
   }
 
   private _interpolateVariablesInTransformationConfigs(
-    data: PanelData
+    data: PanelData,
+    transformations: Array<DataTransformerConfig | CustomTransformerDefinition>
   ): Array<DataTransformerConfig | CustomTransformerDefinition> {
-    const transformations = this.state.transformations;
-
     if (this._variableDependency.getNames().size === 0) {
       return transformations;
     }
 
-    const onlyObjects = transformations.every((t) => typeof t === 'object');
+    // Custom transform operators (bare or in object form) hold functions that a JSON round-trip would drop
+    const isInterpolatable = (t: DataTransformerConfig | CustomTransformerDefinition) =>
+      typeof t === 'object' && !('operator' in t);
 
-    // If all transformations are config object we can interpolate them all at once
-    if (onlyObjects) {
+    // If all transformations are config objects we can interpolate them all at once
+    if (transformations.every(isInterpolatable)) {
       return JSON.parse(sceneGraph.interpolate(this, JSON.stringify(transformations), data.request?.scopedVars));
     }
 
     return transformations.map((t) => {
-      return typeof t === 'object'
+      return isInterpolatable(t)
         ? JSON.parse(sceneGraph.interpolate(this, JSON.stringify(t), data.request?.scopedVars))
         : t;
     });
