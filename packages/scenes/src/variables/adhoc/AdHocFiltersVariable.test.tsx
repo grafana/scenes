@@ -3291,6 +3291,20 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(screen.getAllByRole('option')[0]).toHaveTextContent('All');
     });
 
+    it('gives the Apply button a native tab stop while editing multi-value filters', async () => {
+      setup({
+        originFilters: [
+          { key: 'pod', operator: '=|', value: 'test1', values: ['test1', 'test2'], origin: 'dashboard' },
+        ],
+        layout: 'combobox',
+      });
+
+      await userEvent.click(await screen.findByText('pod =| test1, test2'));
+
+      const applyButton = await screen.findByRole('button', { name: 'Apply' });
+      expect(applyButton).toHaveProperty('tabIndex', 0);
+    });
+
     it('does not offer All for user-added filters', async () => {
       setup({
         filters: setTemplateSrvWithFilters([
