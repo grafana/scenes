@@ -1215,6 +1215,43 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
     });
 
+    it('should drop a dismissed default groupBy key once it has been replaced by a new one', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        enableGroupBy: true,
+        originFilters: [{ key: 'region', operator: GROUP_BY_OPERATOR, value: '', origin: 'dashboard' }],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls[0][1].groupByKeys).toEqual(['region']);
+
+      // User edits the default groupBy pill's key to a new one - the default is dismissed
+      // (dismissedGroupBy: true) and the new key is added as a user filter, per
+      // AdHocFiltersVariable._updateFilter's origin/groupBy branch.
+      const origin = filtersVar.state.originFilters![0];
+      filtersVar._updateFilter(origin, { key: 'zone', keyLabel: 'zone' });
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      const runRequestCall = runRequestMock.mock.calls[runRequestMock.mock.calls.length - 1];
+      expect(runRequestCall[1].groupByKeys).toEqual(['zone']);
+    });
+
     it('should not pass group by dimensions when enableGroupBy is false', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
