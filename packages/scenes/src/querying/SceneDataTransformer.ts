@@ -181,7 +181,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   /**
    * The system transformations for the given source frames.
-   * This is the source of truth to know what the pipeline is running since provider output never reaches state.
+   * Public because provider output never reaches state, so this is the only way for readers
+   * (the transformations editor, the inspect data tab) to see what the pipeline is running.
    */
   public getResolvedSystemTransformations(series?: DataFrame[]): ResolvedSystemTransformations {
     const provider = this._provider;
