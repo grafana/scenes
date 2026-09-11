@@ -14,7 +14,8 @@ import { FloatingFocusManager, FloatingPortal, UseFloatingOptions } from '@float
 import { Spinner, Text, useStyles2 } from '@grafana/ui';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
-import { AdHocFilterWithLabels, isMultiValueOperator, OPERATORS } from '../AdHocFiltersVariable';
+import { AdHocFilterWithLabels, isMultiValueOperator, ONE_OF_OPERATOR, OPERATORS } from '../AdHocFiltersVariable';
+import { ALL_VARIABLE_VALUE } from '../../constants';
 import { AdHocFiltersController } from '../controller/AdHocFiltersController';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import {
@@ -102,6 +103,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const hasMultiValueOperator = isMultiValueOperator(filter?.operator || '');
   const isMultiValueEdit = hasMultiValueOperator && filterInputType === 'value';
+  // Origin (default) filters with the "one of" operator offer an explicit "All" option
+  const offersAllOption = Boolean(filter?.origin) && filter?.operator === ONE_OF_OPERATOR;
 
   // used to identify operator element and prevent dismiss because it registers as outside click
   const operatorIdentifier = useId();
@@ -156,6 +159,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
         controller.updateToMatchAll(filter);
       }
 
+      // Selecting All commits as a regular value update: the variable derives the match all
+      // flags from the value itself. Hosts are free to map updateToMatchAll to something else
+      // (the default filters editor maps it to a removal), so it must not be used to author All.
       if (filterMultiValues.length) {
         const valueLabels: string[] = [];
         const values: string[] = [];
@@ -188,10 +194,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleLocalMultiValueChange = useCallback((selectedItem: SelectableValue<string>) => {
     setFilterMultiValues((items) => {
-      if (items.some((item) => item.value === selectedItem.value)) {
-        return items.filter((item) => item.value !== selectedItem.value);
+      // "All" is exclusive: selecting it clears other values, selecting a value clears "All"
+      if (selectedItem.value === ALL_VARIABLE_VALUE) {
+        return items.some((item) => item.value === ALL_VARIABLE_VALUE) ? [] : [selectedItem];
       }
-      return [...items, selectedItem];
+      const itemsWithoutAll = items.filter((item) => item.value !== ALL_VARIABLE_VALUE);
+      if (itemsWithoutAll.some((item) => item.value === selectedItem.value)) {
+        return itemsWithoutAll.filter((item) => item.value !== selectedItem.value);
+      }
+      return [...itemsWithoutAll, selectedItem];
     });
   }, []);
 
@@ -270,6 +281,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       setActiveIndex(null);
     } else if (!nextFilteredItems.length && allowCustomValue) {
       setActiveIndex(0);
+    } else if (isMultiValueEdit && offersAllOption && !value) {
+      // An empty input re-prepends the All row, which shifts every index by one
+      setActiveIndex(0);
     } else {
       setActiveIndex(getFirstSelectableIndex(nextFilteredItems));
     }
@@ -314,6 +328,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     }
   }
 
+  // Selecting All commits the special $__all value, which lifts the filter's restriction
+  // from queries. Not offered for "not one of" where "All" would read as excluding everything.
+  if (isMultiValueEdit && offersAllOption && !inputValue) {
+    filteredDropDownItems.unshift({
+      label: t('grafana-scenes.components.adhoc-filters-combobox.all-values', 'All'),
+      value: ALL_VARIABLE_VALUE,
+    });
+  }
+
   // calculate width and populate listRef and disabledIndicesRef for arrow key navigation
   const maxOptionWidth = setupDropdownAccessibility(filteredDropDownItems, listRef, disabledIndicesRef);
 
@@ -352,7 +375,11 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           return;
         }
         setOptions(options);
-        if (options[0]?.group) {
+        if (inputType === 'value' && offersAllOption) {
+          // The prepended All row takes the initial highlight, keeping the index valid
+          // when the first fetched option is a group header
+          setActiveIndex(0);
+        } else if (options[0]?.group) {
           setActiveIndex(1);
         } else {
           setActiveIndex(0);
@@ -365,7 +392,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
       controller.stopInteraction?.();
     },
-    [filter, controller, isGroupBy]
+    [filter, controller, isGroupBy, offersAllOption]
   );
 
   const rowVirtualizer = useVirtualizer({
@@ -683,7 +710,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           (acc, value, i) => [
             ...acc,
             {
-              label: filter.valueLabels?.[i] || value,
+              label:
+                value === ALL_VARIABLE_VALUE
+                  ? t('grafana-scenes.components.adhoc-filters-combobox.all-values', 'All')
+                  : filter.valueLabels?.[i] || value,
               value: value,
             },
           ],

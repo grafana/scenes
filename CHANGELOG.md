@@ -1,3 +1,90 @@
+# v8.17.0 (Thu Sep 10 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - Macros: Add $__namespace macro [#1639](https://github.com/grafana/scenes/pull/1639) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+  - AdhocFilters: Fixes incorrect border color [#1624](https://github.com/grafana/scenes/pull/1624) ([@torkelo](https://github.com/torkelo))
+- `scenes-app`, `@grafana/scenes-react`, `@grafana/scenes`
+  - Deps: Migrate to React 19.2.8 [#1620](https://github.com/grafana/scenes/pull/1620) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### 🐛 Bug Fix
+
+- CI: Release through a pull request instead of committing to main [#1640](https://github.com/grafana/scenes/pull/1640) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+- fix(security/medium/packages/scenes-app): update dependency react-router-dom to v6.30.5 [security] [#1615](https://github.com/grafana/scenes/pull/1615) ([@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot]))
+- `@grafana/scenes`
+  - Variables: Localize the native All option label [#1638](https://github.com/grafana/scenes/pull/1638) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+  - AdHocFiltersVariable: Stop rendering match all pills as disabled [#1622](https://github.com/grafana/scenes/pull/1622) ([@samjewell](https://github.com/samjewell))
+  - QueryVariable: surface query errors reported only via data.errors [#1635](https://github.com/grafana/scenes/pull/1635) ([@tskarhed](https://github.com/tskarhed))
+  - Filters: Do not store empty groupBy values [#1633](https://github.com/grafana/scenes/pull/1633) ([@mdvictor](https://github.com/mdvictor))
+  - Variables: Fix multi value picker leaving the variable out of sync when clearing [#1631](https://github.com/grafana/scenes/pull/1631) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+  - Dashboards: Add assistant button in panel status popup [#1629](https://github.com/grafana/scenes/pull/1629) ([@mdvictor](https://github.com/mdvictor))
+  - Variables: Fix multi value picker staying empty after clearing the selection [#1630](https://github.com/grafana/scenes/pull/1630) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+  - fix(SceneQueryRunner): secondary query behavior fixes [#1597](https://github.com/grafana/scenes/pull/1597) ([@gtk-grafana](https://github.com/gtk-grafana) [@drew08t](https://github.com/drew08t))
+  - Performance: Export POST_STORM_WINDOW from SceneRenderProfiler [#1618](https://github.com/grafana/scenes/pull/1618) ([@mmandrus](https://github.com/mmandrus))
+
+#### Authors: 10
+
+- [@renovate-sh-app[bot]](https://github.com/renovate-sh-app[bot])
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Drew Slobodnjak ([@drew08t](https://github.com/drew08t))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Michael Mandrus ([@mmandrus](https://github.com/mmandrus))
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.16.1 (Thu Aug 20 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Link the alert icon to its alert rule [#1619](https://github.com/grafana/scenes/pull/1619) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
+# v8.15.0 (Wed Aug 19 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Add content-fit rendering mode via `VizPanelFitScope` [#1608](https://github.com/grafana/scenes/pull/1608) ([@bfmatei](https://github.com/bfmatei))
+  - AdHocFilters: forward value meta to filter [#1613](https://github.com/grafana/scenes/pull/1613) ([@hugohaggmark](https://github.com/hugohaggmark))
+  - AdHocFiltersVariable: Add All value option for dashboard default filters [#1591](https://github.com/grafana/scenes/pull/1591) ([@samjewell](https://github.com/samjewell) [@cursoragent](https://github.com/cursoragent) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 5
+
+- Bogdan Matei ([@bfmatei](https://github.com/bfmatei))
+- Cursor Agent ([@cursoragent](https://github.com/cursoragent))
+- Hugo Häggmark ([@hugohaggmark](https://github.com/hugohaggmark))
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.15.0 (Tue Aug 18 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - AdHocFiltersVariable: Add All value option for dashboard default filters [#1591](https://github.com/grafana/scenes/pull/1591) ([@samjewell](https://github.com/samjewell) [@cursoragent](https://github.com/cursoragent) [@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 3
+
+- Cursor Agent ([@cursoragent](https://github.com/cursoragent))
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.14.0 (Tue Aug 18 2026)
 
 #### 🚀 Enhancement

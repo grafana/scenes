@@ -1,5 +1,5 @@
 // Performance tracking exports - EXTERNAL API ONLY (used by Grafana)
-export { SceneRenderProfiler } from './SceneRenderProfiler';
+export { SceneRenderProfiler, POST_STORM_WINDOW } from './SceneRenderProfiler';
 
 // Performance observer pattern - essential external API
 export {

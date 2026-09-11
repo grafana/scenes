@@ -13,6 +13,7 @@ import {
 } from '@grafana/ui';
 
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
+import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
@@ -24,7 +25,7 @@ import { getVariableControlId } from '../utils';
 
 const filterNoOp = () => true;
 
-const filterAll = (v: SelectableValue<VariableValueSingle>) => v.value !== '$__all';
+const filterAll = (v: SelectableValue<VariableValueSingle>) => v.value !== ALL_VARIABLE_VALUE;
 
 const determineToggleAllState = (
   selectedValues: Array<SelectableValue<VariableValueSingle>>,
@@ -34,7 +35,7 @@ const determineToggleAllState = (
     return ToggleAllState.allSelected;
   } else if (
     selectedValues.length === 0 ||
-    (selectedValues.length === 1 && selectedValues[0] && selectedValues[0].value === '$__all')
+    (selectedValues.length === 1 && selectedValues[0] && selectedValues[0].value === ALL_VARIABLE_VALUE)
   ) {
     return ToggleAllState.noneSelected;
   } else {
@@ -53,7 +54,12 @@ export function VariableValueSelect({ model, state }: { model: MultiValueVariabl
   const { value, text, key, options, includeAll, isReadOnly, allowCustomValue = true } = state;
   const [inputValue, setInputValue] = useState('');
   const [hasCustomValue, setHasCustomValue] = useState(false);
-  const selectValue = toSelectableValue(value, String(text));
+  // The All option is only localized for display. state.text stays ALL_VARIABLE_TEXT because it
+  // feeds interpolation (${var:text}) and the legacy `All` URL value.
+  const selectValue = toSelectableValue(
+    value,
+    value === ALL_VARIABLE_VALUE ? t('grafana-scenes.variables.variable-value-select.all-label', 'All') : String(text)
+  );
   const queryController = sceneGraph.getQueryController(model);
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
@@ -101,7 +107,9 @@ export function VariableValueSelect({ model, state }: { model: MultiValueVariabl
       options={filteredOptions}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${value}`)}
       onChange={(newValue) => {
-        model.changeValueTo(newValue.value!, newValue.label!, true);
+        // Never let the localized All label reach the variable state, see selectValue above
+        const text = newValue.value === ALL_VARIABLE_VALUE ? ALL_VARIABLE_TEXT : newValue.label!;
+        model.changeValueTo(newValue.value!, text, true);
         queryController?.startProfile(VARIABLE_VALUE_CHANGED_INTERACTION);
 
         if (hasCustomValue !== newValue.__isNew__) {
@@ -119,26 +127,18 @@ export function VariableValueSelectMulti({
   model: MultiValueVariable;
   state: MultiValueVariableState;
 }) {
-  const {
-    value,
-    options,
-    key,
-    maxVisibleValues,
-    noValueOnClear,
-    includeAll,
-    isReadOnly,
-    allowCustomValue = true,
-  } = state;
+  const { value, options, key, maxVisibleValues, includeAll, isReadOnly, allowCustomValue = true } = state;
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
-  const [uncommittedValue, setUncommittedValue] = useState(arrayValue);
+  const [uncommittedValue, setUncommittedValue] = useState<VariableValueSingle[] | undefined>(undefined);
   const [inputValue, setInputValue] = useState('');
 
+  const selectedValue = uncommittedValue ?? arrayValue;
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
   // Detect value changes outside
   useEffect(() => {
-    setUncommittedValue(arrayValue);
+    setUncommittedValue(undefined);
   }, [arrayValue]);
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
@@ -158,7 +158,10 @@ export function VariableValueSelectMulti({
     return inputValue;
   };
 
-  const placeholder = options.length > 0 ? 'Select value' : '';
+  const placeholder =
+    options.length > 0
+      ? t('grafana-scenes.variables.variable-value-select.placeholder-select-value', 'Select value')
+      : '';
   const filteredOptions = optionSearcher(inputValue);
 
   return (
@@ -169,7 +172,7 @@ export function VariableValueSelectMulti({
       width="auto"
       inputValue={inputValue}
       disabled={isReadOnly}
-      value={uncommittedValue}
+      value={selectedValue}
       noMultiValueWrap={true}
       maxVisibleValues={maxVisibleValues ?? 5}
       tabSelectsValue={false}
@@ -189,13 +192,19 @@ export function VariableValueSelectMulti({
       blurInputOnSelect={false}
       onInputChange={onInputChange}
       onBlur={() => {
-        model.changeValueTo(uncommittedValue, undefined, true);
+        if (uncommittedValue !== undefined) {
+          model.changeValueTo(uncommittedValue, undefined, true);
+        }
+        setUncommittedValue(undefined);
       }}
       filterOption={filterNoOp}
-      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${uncommittedValue}`)}
+      data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${selectedValue}`)}
       onChange={(newValue, action) => {
-        if (action.action === 'clear' && noValueOnClear) {
+        if (action.action === 'clear') {
+          // Clearing does not leave the input focused, so onBlur may never fire to commit it
           model.changeValueTo([], undefined, true);
+          setUncommittedValue(undefined);
+          return;
         }
 
         setUncommittedValue(newValue.map((x) => x.value!));
@@ -208,9 +217,9 @@ interface SelectMenuOptionProps<T> {
   isDisabled: boolean;
   isFocused: boolean;
   isSelected: boolean;
-  innerProps: JSX.IntrinsicElements['div'];
+  innerProps: React.JSX.IntrinsicElements['div'];
   innerRef: RefCallback<HTMLDivElement>;
-  renderOptionLabel?: (value: SelectableValue<T>) => JSX.Element;
+  renderOptionLabel?: (value: SelectableValue<T>) => React.JSX.Element;
   data: SelectableValue<T>;
   indeterminate: boolean;
 }

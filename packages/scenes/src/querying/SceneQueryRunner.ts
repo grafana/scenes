@@ -1,7 +1,7 @@
 import { cloneDeep, isEqual } from 'lodash';
-import { combineLatest, ReplaySubject, Unsubscribable } from 'rxjs';
+import { combineLatest, ReplaySubject, tap, Unsubscribable } from 'rxjs';
 
-import { DataQuery, DataSourceRef, LoadingState } from '@grafana/schema';
+import { DataQuery, DataSourceRef } from '@grafana/schema';
 
 import {
   AlertStateInfo,
@@ -14,6 +14,7 @@ import {
   PanelData,
   preProcessPanelData,
   rangeUtil,
+  LoadingState,
 } from '@grafana/data';
 
 // TODO: Remove this ignore annotation when the grafana runtime dependency has been updated
@@ -315,6 +316,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _isInView = true;
   private _bypassIsInView = false;
   private _queryNotExecutedWhenOutOfView = false;
+  private _primaryHasFetchedData = false;
 
   public getResultsStream() {
     return this._results;
@@ -675,9 +677,20 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
       writeSceneLog('SceneQueryRunner', 'Starting runRequest', this.state.key);
 
+      this._primaryHasFetchedData = false;
       let stream = runRequest(ds, primary);
 
       if (secondaries.length > 0) {
+        // Extra queries must not gate the panel's first paint. The merged loading state stays
+        // Loading until every secondary settles, so primary readiness is recorded separately.
+        stream = stream.pipe(
+          tap((primaryData) => {
+            if (primaryData.state !== LoadingState.Loading) {
+              this._primaryHasFetchedData = true;
+            }
+          })
+        );
+
         // Submit all secondary requests in parallel.
         const secondaryStreams = secondaries.map((r) => runRequest(ds, r));
         // Create the rxjs operator which will combine the primary and secondary responses
@@ -861,7 +874,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     let hasFetchedData = this.state._hasFetchedData;
 
-    if (!hasFetchedData && preProcessedData.state !== LoadingState.Loading) {
+    if (!hasFetchedData && (preProcessedData.state !== LoadingState.Loading || this._primaryHasFetchedData)) {
       hasFetchedData = true;
     }
 

@@ -1,12 +1,22 @@
 import { MultiOrSingleValueSelect } from './VariableValueSelect';
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { TestScene } from '../TestScene';
 import { selectors } from '@grafana/e2e-selectors';
 import { CustomVariable } from '../variants/CustomVariable';
+import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import userEvent from '@testing-library/user-event';
+
+const translations: Record<string, string> = {};
+
+jest.mock('@grafana/i18n', () => ({
+  ...jest.requireActual('@grafana/i18n'),
+  t: (id: string, defaultMessage: string) => translations[id] ?? defaultMessage,
+}));
+
+const ALL_LABEL_KEY = 'grafana-scenes.variables.variable-value-select.all-label';
 
 describe('VariableValueSelect', () => {
   let model: MultiValueVariable<MultiValueVariableState>;
@@ -167,5 +177,168 @@ describe('VariableValueSelect', () => {
     await userEvent.type(inputElement, 'custom value');
     const options = screen.queryAllByRole('option');
     expect(options).toHaveLength(0);
+  });
+});
+
+describe('VariableValueSelectMulti', () => {
+  function setupMultiVariable(state: Partial<MultiValueVariableState>) {
+    const model = new CustomVariable({
+      name: 'test',
+      query: 'A,B,C',
+      isMulti: true,
+      includeAll: true,
+      defaultToAll: true,
+      key: 'test-key',
+      options: [
+        { value: 'A', label: 'A' },
+        { value: 'B', label: 'B' },
+        { value: 'C', label: 'C' },
+      ],
+      ...state,
+    } as MultiValueVariableState) as unknown as MultiValueVariable<MultiValueVariableState>;
+
+    const scene = new TestScene({
+      $variables: new SceneVariableSet({
+        variables: [model],
+      }),
+    });
+
+    scene.activate();
+
+    const result = render(
+      <div>
+        <MultiOrSingleValueSelect model={model} />
+        <button data-testid="outside">outside</button>
+      </div>
+    );
+
+    return { model, ...result };
+  }
+
+  function getRemoveButtonFor(label: string) {
+    return within(screen.getByText(label).parentElement!).getByRole('button', { name: 'Remove' });
+  }
+
+  it('should only fall back to the All value once the last selected option is removed', async () => {
+    const { model } = setupMultiVariable({ value: ['A', 'B'], text: ['A', 'B'] });
+
+    await userEvent.click(getRemoveButtonFor('A'));
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual(['B']);
+
+    await userEvent.click(getRemoveButtonFor('B'));
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
+    expect(screen.getByText(ALL_VARIABLE_TEXT)).toBeInTheDocument();
+  });
+
+  it('should fall back to the All value every time the selection is cleared', async () => {
+    const { model, container } = setupMultiVariable({ value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
+
+    for (const _attempt of [1, 2]) {
+      await userEvent.click(screen.getByRole('combobox'));
+      await userEvent.click(container.querySelector('[aria-label="select-clear-value"]')!);
+      await userEvent.click(screen.getByTestId('outside'));
+
+      expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
+      expect(screen.getByText(ALL_VARIABLE_TEXT)).toBeInTheDocument();
+    }
+  });
+
+  it('should commit the clear even when the picker was never focused', async () => {
+    const { model, container } = setupMultiVariable({ value: ['A', 'B'], text: ['A', 'B'] });
+
+    await userEvent.click(container.querySelector('[aria-label="select-clear-value"]')!);
+
+    expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
+    expect(screen.getByText(ALL_VARIABLE_TEXT)).toBeInTheDocument();
+  });
+
+  it('should fall back to the first option when the selection is cleared and defaultToAll is false', async () => {
+    const { model, container } = setupMultiVariable({ defaultToAll: false, value: ['B'], text: ['B'] });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(container.querySelector('[aria-label="select-clear-value"]')!);
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual(['A']);
+  });
+
+  it('should commit the selection made while the menu was open', async () => {
+    const { model } = setupMultiVariable({ value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('B'));
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual(['B']);
+    expect(
+      screen.getByTestId(selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts('B'))
+    ).toBeInTheDocument();
+  });
+});
+
+describe('All option localization', () => {
+  beforeEach(() => {
+    translations[ALL_LABEL_KEY] = 'Tout';
+  });
+
+  afterEach(() => {
+    delete translations[ALL_LABEL_KEY];
+  });
+
+  function setupVariable(state: Partial<MultiValueVariableState>) {
+    const model = new CustomVariable({
+      name: 'test',
+      query: 'A,B,C',
+      includeAll: true,
+      key: 'test-key',
+      options: [
+        { value: 'A', label: 'A' },
+        { value: 'B', label: 'B' },
+        { value: 'C', label: 'C' },
+      ],
+      ...state,
+    } as MultiValueVariableState) as unknown as MultiValueVariable<MultiValueVariableState>;
+
+    const scene = new TestScene({
+      $variables: new SceneVariableSet({
+        variables: [model],
+      }),
+    });
+
+    scene.activate();
+
+    render(<MultiOrSingleValueSelect model={model} />);
+
+    return { model };
+  }
+
+  it('should show the translated All label as the selected single value', async () => {
+    setupVariable({ isMulti: false, value: ALL_VARIABLE_VALUE, text: ALL_VARIABLE_TEXT });
+
+    expect(screen.getByText('Tout')).toBeInTheDocument();
+    expect(screen.queryByText(ALL_VARIABLE_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('should show the translated All label as a selected multi value', async () => {
+    setupVariable({ isMulti: true, value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
+
+    expect(screen.getByText('Tout')).toBeInTheDocument();
+    expect(screen.queryByText(ALL_VARIABLE_TEXT)).not.toBeInTheDocument();
+  });
+
+  it('should keep the untranslated text in variable state when selecting All', async () => {
+    const { model } = setupVariable({ isMulti: false, value: 'A', text: 'A' });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('Tout'));
+
+    expect(model.state.value).toBe(ALL_VARIABLE_VALUE);
+    // ${var:text} and the legacy `All` URL value depend on this staying untranslated
+    expect(model.state.text).toBe(ALL_VARIABLE_TEXT);
+    expect(model.getValueText()).toBe(ALL_VARIABLE_TEXT);
   });
 });
