@@ -425,7 +425,10 @@ function useClearPreviousData(data?: DataFrame[]) {
     // empty out all prev not seen in new
     prevVals.current.forEach((vals) => {
       if (!currVals.current!.has(vals)) {
-        vals.length = 0;
+        // Panel edit can freeze field value arrays. Mutating length throws.
+        if (Object.isExtensible(vals)) {
+          vals.length = 0;
+        }
       }
     });
     prevVals.current.clear();
