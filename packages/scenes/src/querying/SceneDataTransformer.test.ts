@@ -1440,6 +1440,44 @@ describe('SceneDataTransformer', () => {
       expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
     });
 
+    it('re-runs the pipeline when deactivation cancelled the pass that would have applied it', () => {
+      const gates: Array<Subject<DataFrame[]>> = [];
+      // A contribution that finishes only when the test says so. Transformations are asynchronous in
+      // general, so a pass can still be in flight when deactivation cancels it.
+      const held: CustomTransformOperator = () => (source) =>
+        source.pipe(
+          switchMap(() => {
+            const gate = new Subject<DataFrame[]>();
+            gates.push(gate);
+            return gate;
+          })
+        );
+
+      let contributes = false;
+      const provider = new TestProvider({ resolve: () => (contributes ? { append: [held] } : {}) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      const deactivate = activate();
+
+      // Nothing from the provider yet, so this pass is synchronous and lands
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+      expect(gates).toHaveLength(0);
+
+      // The provider starts contributing - a plugin finishing its import - and the pass that triggers
+      // is still in flight when deactivation cancels it
+      contributes = true;
+      provider.notify!();
+
+      expect(gates).toHaveLength(1);
+
+      deactivate();
+      transformationNode.activate();
+
+      // The cancelled pass never reached state.data, so re-activation has to run one rather than
+      // treat it as already applied
+      expect(gates).toHaveLength(2);
+    });
+
     it('does not re-run the pipeline when re-activation resolves the same', () => {
       const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
       const { transformationNode, activate } = buildScene({ provider });

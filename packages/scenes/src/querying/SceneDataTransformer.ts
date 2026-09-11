@@ -69,9 +69,9 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    */
   private _hasActivatedBefore = false;
   /**
-   * What the last pass actually ran, as opposed to what resolves now. Paired with `_prevDataFromSource`:
-   * that one records the frames a skippable pass was already run for, this one the transformations it
-   * was run with.
+   * The system transformations that produced the current `state.data`, as opposed to what resolves now.
+   * Written only where `_prevDataFromSource` is, so the two always describe the same pass: a pass
+   * cancelled by deactivation has applied neither, and must not be taken for one that landed.
    */
   private _lastPassSystem?: ResolvedSystemTransformations;
 
@@ -461,8 +461,6 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       endTransformCallback = profiler.onDataTransformStart(timestamp, transformationId, metrics);
     }
 
-    this._lastPassSystem = system;
-
     // Only the user transforms are interpolated.
     const interpolatedTransformations = this._withSystemTransformations(
       system,
@@ -562,6 +560,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         this.setState({ data: transformedData });
         this._results.next({ origin: this, data: transformedData });
         this._prevDataFromSource = data;
+        this._lastPassSystem = system;
       });
   }
 
