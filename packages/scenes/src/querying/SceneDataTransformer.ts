@@ -68,6 +68,12 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    * *change* rather than a first discovery. Not carried over by clone, unlike `_prevDataFromSource`.
    */
   private _hasActivatedBefore = false;
+  /**
+   * What the last pass actually ran, as opposed to what resolves now. Paired with `_prevDataFromSource`:
+   * that one records the frames a skippable pass was already run for, this one the transformations it
+   * was run with.
+   */
+  private _lastPassSystem?: ResolvedSystemTransformations;
 
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
@@ -111,7 +117,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   /**
    * Checks the parent for system transformation provider.
    * The provider is kept across deactivation but its subscription is not: _subs is cleared on deactivate, this re-establishes the subscription.
-   * Reports whether a re-activation changed which provider is in effect, in either direction.
+   * Reports whether what the pipeline should run has changed since the last pass, so the caller can force one.
    */
   private _discoverProvider(): boolean {
     const previous = this._provider;
@@ -139,7 +145,27 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       this._subs.add(sub);
     }
 
-    return this._hasActivatedBefore && previous !== provider;
+    if (this._hasActivatedBefore && previous !== provider) {
+      return true;
+    }
+
+    return this._systemChangedSinceLastPass();
+  }
+
+  /**
+   * Whether the provider resolves to something other than what the last pass ran.
+   *
+   * The provider instance being unchanged is not enough to conclude the pipeline is unchanged: nothing
+   * was watching while this was inactive, so a plugin that finished importing in that window resolves
+   * differently now. Source frames usually survive a re-activation unchanged, so without this the pass
+   * is skipped as already transformed and state.data keeps frames the reported pipeline never produced.
+   */
+  private _systemChangedSinceLastPass(): boolean {
+    if (!this._lastPassSystem) {
+      return false;
+    }
+
+    return !isEqual(this._lastPassSystem, this.getResolvedSystemTransformations());
   }
 
   private getSourceData(): SceneDataProvider {
@@ -307,6 +333,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     if (this._prevDataFromSource) {
       clone['_prevDataFromSource'] = this._prevDataFromSource;
+      clone['_lastPassSystem'] = this._lastPassSystem;
     }
 
     return clone;
@@ -390,6 +417,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       this._transformSub?.unsubscribe();
 
       this._prevDataFromSource = data;
+      this._lastPassSystem = system;
 
       // Any source state change re-runs this, so without the guard a passthrough panel publishes a state
       // change carrying data it already had - one no-op event per listener, DashboardSceneChangeTracker
@@ -432,6 +460,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       // Start the DataProcessing phase with centralized logging - get end callback
       endTransformCallback = profiler.onDataTransformStart(timestamp, transformationId, metrics);
     }
+
+    this._lastPassSystem = system;
 
     // Only the user transforms are interpolated.
     const interpolatedTransformations = this._withSystemTransformations(

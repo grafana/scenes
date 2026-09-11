@@ -1399,6 +1399,80 @@ describe('SceneDataTransformer', () => {
       expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
     });
 
+    it('re-runs the pipeline when the same provider resolves differently across deactivation', () => {
+      let contributes = false;
+      const provider = new TestProvider({ resolve: () => (contributes ? { append: [transformer2config] } : {}) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      const deactivate = activate();
+
+      // value * 2, the provider contributes nothing yet
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+
+      deactivate();
+
+      // What a plugin import finishing while the transformer is inactive looks like: nothing was
+      // watching, so no reprocess was triggered
+      contributes = true;
+      transformationNode.activate();
+
+      // value * 2 * 3. The source frames are unchanged, so an unforced pass would be skipped as
+      // already transformed and state.data would keep frames the reported pipeline never produced.
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+      expect(transformationNode.getResolvedSystemTransformations().append).toHaveLength(1);
+    });
+
+    it('re-runs the pipeline when the same provider stops contributing across deactivation', () => {
+      let contributes = true;
+      const provider = new TestProvider({ resolve: () => (contributes ? { append: [transformer2config] } : {}) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      const deactivate = activate();
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+
+      deactivate();
+
+      contributes = false;
+      transformationNode.activate();
+
+      // Back to value * 2, not the *3 the previous pass produced
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+    });
+
+    it('does not re-run the pipeline when re-activation resolves the same', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      const deactivate = activate();
+
+      const dataUpdates = subscribeToStateUpdates(transformationNode);
+
+      deactivate();
+      transformationNode.activate();
+
+      // Re-activation is the common case (a row expanding, navigating back); nothing changed, so the
+      // whole pipeline must not re-run for every panel
+      expect(dataUpdates).toHaveLength(0);
+    });
+
+    it('re-runs a clone whose own provider resolves differently from the one it was cloned from', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const { transformationNode, activate } = buildScene({ provider });
+
+      activate();
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+
+      const clone = transformationNode.clone();
+      new TestProvider({ child: clone });
+
+      clone.activate();
+
+      // The clone's provider contributes nothing, so it must not keep the *3 it inherited in state
+      expect(clone.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+    });
+
     it('re-runs the pipeline when re-activation gains a provider', () => {
       const transformationNode = new SceneDataTransformer({
         $data: sourceDataNode,
