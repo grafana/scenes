@@ -24,7 +24,8 @@ export class SimpleController implements AdHocFiltersController {
     private setFilters: (filters: AdHocFilterWithLabels[]) => void,
     private wip: AdHocFilterWithLabels | undefined,
     private setWip: (wip: AdHocFilterWithLabels | undefined) => void,
-    public getControlId: () => string
+    public getControlId: () => string,
+    private enableKeyLabelEditing?: boolean
   ) {}
 
   useState(): AdHocFiltersControllerState {
@@ -34,11 +35,21 @@ export class SimpleController implements AdHocFiltersController {
       readOnly: false,
       allowCustomValue: false,
       supportsMultiValueOperators: false,
-      inputPlaceholder: 'Filter by vowels or consonants...',
+      inputPlaceholder: this.enableKeyLabelEditing ? 'Add a default filter...' : 'Filter by vowels or consonants...',
+      enableKeyLabelEditing: this.enableKeyLabelEditing,
     };
   }
 
   async getKeys(currentKey: string | null): Promise<Array<SelectableValue<string>>> {
+    if (this.enableKeyLabelEditing) {
+      // semantic-layer style keys: raw keys with datasource-provided display labels
+      return [
+        { label: 'RVP Region', value: 'territory_navigator.rvp_region' },
+        { label: 'Account Tier', value: 'territory_navigator.account_tier' },
+        { value: 'territory_navigator.raw_key_without_label' },
+      ];
+    }
+
     // Return available keys: vowels and consonants
     return [
       { label: 'vowels', value: 'vowels' },
@@ -47,6 +58,10 @@ export class SimpleController implements AdHocFiltersController {
   }
 
   async getValuesFor(filter: AdHocFilterWithLabels): Promise<Array<SelectableValue<string>>> {
+    if (filter.key.startsWith('territory_navigator.')) {
+      return ['EMEA', 'AMER', 'APAC'].map((v) => ({ label: v, value: v.toLowerCase() }));
+    }
+
     // Return values based on the key
     if (filter.key === 'vowels') {
       return ['a', 'e', 'i', 'o', 'u'].map((v) => ({ label: v, value: v }));
@@ -172,4 +187,34 @@ function SimpleControllerDemoRenderer({ model }: SceneComponentProps<SimpleContr
  */
 export class SimpleControllerDemo extends SceneObjectBase<SceneObjectState> {
   static Component = SimpleControllerDemoRenderer;
+}
+
+/**
+ * Demo renderer for the optional key display-name step (enableKeyLabelEditing)
+ */
+function KeyLabelControllerDemoRenderer({ model }: SceneComponentProps<KeyLabelControllerDemo>) {
+  const [filters, setFilters] = useState<AdHocFilterWithLabels[]>([]);
+  const [wip, setWip] = useState<AdHocFilterWithLabels | undefined>(undefined);
+
+  const controller = useMemo(
+    () => new SimpleController(filters, setFilters, wip, setWip, () => 'key-label-control-id', true),
+    [filters, wip]
+  );
+
+  return (
+    <>
+      <AdHocFiltersComboboxRenderer controller={controller} />
+      <div style={{ marginTop: '16px' }}>
+        <h4>Current filters:</h4>
+        <pre>{JSON.stringify(filters, null, 2)}</pre>
+      </div>
+    </>
+  );
+}
+
+/**
+ * Demo component for the optional key display-name step (enableKeyLabelEditing)
+ */
+export class KeyLabelControllerDemo extends SceneObjectBase<SceneObjectState> {
+  static Component = KeyLabelControllerDemoRenderer;
 }

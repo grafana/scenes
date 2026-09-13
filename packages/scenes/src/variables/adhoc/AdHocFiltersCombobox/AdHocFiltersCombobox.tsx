@@ -21,6 +21,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   DropdownItem,
   ExpressionHintPlaceholder,
+  KeyLabelHintPlaceholder,
   LoadingOptionsPlaceholder,
   MultiValueApplyButton,
   NoOptionsPlaceholder,
@@ -61,7 +62,7 @@ interface AdHocComboboxProps {
   onInputClick?: () => void;
 }
 
-export type AdHocInputType = 'key' | 'operator' | 'value';
+export type AdHocInputType = 'key' | 'label' | 'operator' | 'value';
 
 export const AdHocCombobox = forwardRef(function AdHocCombobox(
   {
@@ -97,7 +98,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     filters,
     inputPlaceholder,
     groupByInputPlaceholder,
+    enableKeyLabelEditing,
   } = controller.useState();
+
+  const keyLabelStepEnabled = Boolean(enableKeyLabelEditing) && !isGroupBy;
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +116,9 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   const listRef = useRef<Array<HTMLElement | null>>([]);
   const disabledIndicesRef = useRef<number[]>([]);
   const filterInputTypeRef = useRef<AdHocInputType>(initialInputType);
+  // datasource-provided key label prefilled into the label step; Enter on an
+  // unchanged or empty input skips without committing a keyLabel override
+  const keyLabelPrefillRef = useRef<string>('');
 
   const optionsSearcher = useMemo(() => getAdhocOptionSearcher(options), [options]);
 
@@ -277,7 +284,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
     const nextIsExpressionInput = parseExpression(value) !== null;
     const nextFilteredItems = flattenOptionGroups(handleOptionGroups(optionsSearcher(value)));
 
-    if (nextIsExpressionInput) {
+    if (filterInputType === 'label') {
+      // free-text step, there are no options to highlight
+      setActiveIndex(null);
+    } else if (nextIsExpressionInput) {
       setActiveIndex(null);
     } else if (!nextFilteredItems.length && allowCustomValue) {
       setActiveIndex(0);
@@ -312,7 +322,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }, []);
 
   // adding custom option this way so that virtualiser is aware of it and can scroll to
-  if (allowCustomValue && filterInputType !== 'operator' && inputValue && !canCommitExpressionUpdate) {
+  if (
+    allowCustomValue &&
+    filterInputType !== 'operator' &&
+    filterInputType !== 'label' &&
+    inputValue &&
+    !canCommitExpressionUpdate
+  ) {
     const operatorDefinition = OPERATORS.find((op) => filter?.operator === op.value);
     const customOptionValue: SelectableValue<string> = {
       value: inputValue.trim(),
@@ -342,6 +358,15 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleFetchOptions = useCallback(
     async (inputType: AdHocInputType) => {
+      // label step is free-text only, there are no options to fetch
+      if (inputType === 'label') {
+        setOptionsError(false);
+        setOptionsLoading(false);
+        setOptions([]);
+        setActiveIndex(null);
+        return;
+      }
+
       // Start profiling the user interaction
       const interactionName = inputType === 'key' ? ADHOC_KEYS_DROPDOWN_INTERACTION : ADHOC_VALUES_DROPDOWN_INTERACTION;
 
@@ -442,6 +467,17 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               valueLabels: [],
               values: undefined,
             });
+          }
+          switchInputType('key', setInputType, undefined, refs.domReference.current);
+          return;
+        }
+
+        if (filterInputType === 'label') {
+          event.preventDefault();
+          setInputValue('');
+          keyLabelPrefillRef.current = '';
+          if (filter) {
+            controller.updateFilter(filter, { key: '', keyLabel: '' });
           }
           switchInputType('key', setInputType, undefined, refs.domReference.current);
           return;
@@ -555,6 +591,21 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
   const handleEnterInput = useCallback(
     (event: React.KeyboardEvent, multiValueEdit?: boolean) => {
+      if (event.key === 'Enter' && filterInputType === 'label') {
+        event.preventDefault();
+
+        const nextLabel = inputValue.trim();
+        // an empty or unchanged input skips the step without a keyLabel override
+        if (filter && nextLabel && nextLabel !== keyLabelPrefillRef.current) {
+          controller.updateFilter(filter, { keyLabel: nextLabel });
+        }
+
+        setInputValue('');
+        setActiveIndex(null);
+        switchInputType('operator', setInputType, undefined, refs.domReference.current);
+        return;
+      }
+
       if (event.key === 'Enter' && canCommitExpressionUpdate && filter) {
         const parsed = commitExpressionUpdate();
 
@@ -629,6 +680,17 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
 
           controller.updateFilter(filter!, payload);
 
+          if (keyLabelStepEnabled && filterInputType === 'key') {
+            const prefill = selectedItem.label ?? '';
+            keyLabelPrefillRef.current = prefill;
+            setInputValue(prefill);
+            setActiveIndex(null);
+            switchInputType('label', setInputType, undefined, refs.domReference.current);
+            // select the prefill so typing replaces it in one go
+            setTimeout(() => refs.domReference.current?.select());
+            return;
+          }
+
           populateInputValueOnInputTypeSwitch({
             populateInputOnEdit,
             item: selectedItem,
@@ -659,6 +721,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       controller,
       filter,
       filterInputType,
+      inputValue,
+      keyLabelStepEnabled,
       canCommitExpressionUpdate,
       commitExpressionUpdate,
       commitFullParsedExpression,
@@ -774,7 +838,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           {/* Filter key pill render */}
           {filter?.key ? <div className={cx(styles.basePill, styles.keyPill)}>{keyLabel}</div> : null}
           {/* Filter operator pill render */}
-          {filter?.key && filter?.operator && filterInputType !== 'operator' ? (
+          {filter?.key && filter?.operator && filterInputType !== 'operator' && filterInputType !== 'label' ? (
             <div
               id={operatorIdentifier}
               className={cx(
@@ -875,7 +939,10 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               <div
                 style={{
                   ...floatingStyles,
-                  width: `${optionsError ? ERROR_STATE_DROPDOWN_WIDTH : maxOptionWidth}px`,
+                  // the label step renders a hint instead of options, give it room to read fully
+                  width: `${
+                    optionsError || filterInputType === 'label' ? ERROR_STATE_DROPDOWN_WIDTH : maxOptionWidth
+                  }px`,
                   transform: isMultiValueEdit
                     ? `translate(${multiValuePillWrapperRef.current?.getBoundingClientRect().left || 0}px, ${
                         (refs.domReference.current?.getBoundingClientRect().bottom || 0) + 10
@@ -897,6 +964,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                     <LoadingOptionsPlaceholder />
                   ) : optionsError ? (
                     <OptionsErrorPlaceholder handleFetchOptions={() => handleFetchOptions(filterInputType)} />
+                  ) : filterInputType === 'label' ? (
+                    <KeyLabelHintPlaceholder />
                   ) : !filteredDropDownItems.length && canCommitExpressionUpdate ? (
                     <ExpressionHintPlaceholder />
                   ) : !filteredDropDownItems.length &&
@@ -979,6 +1048,17 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                                   controller.startProfile?.(FILTER_CHANGED_INTERACTION);
                                 }
                                 controller.updateFilter(filter!, payload);
+
+                                if (keyLabelStepEnabled && filterInputType === 'key') {
+                                  const prefill = item.label ?? '';
+                                  keyLabelPrefillRef.current = prefill;
+                                  setInputValue(prefill);
+                                  setActiveIndex(null);
+                                  switchInputType('label', setInputType, undefined, refs.domReference.current);
+                                  // select the prefill so typing replaces it in one go
+                                  setTimeout(() => refs.domReference.current?.select());
+                                  return;
+                                }
 
                                 populateInputValueOnInputTypeSwitch({
                                   populateInputOnEdit,
