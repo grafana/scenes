@@ -98,6 +98,39 @@ export function hasVariableDependencyInLoadingState(sceneObject: SceneObject) {
   return false;
 }
 
+/**
+ * Checks if any of the variables the given scene object depends on is in an error state (or depends
+ * on a variable that is in an error state), while the owning variable set has `blockDependentsOnError`
+ * enabled.
+ *
+ * For example if C depends on variable B which depends on variable A and A failed to update this
+ * returns true for variable C and B as well as for any panel/query runner referencing A, B or C.
+ */
+export function hasVariableDependencyInErrorState(sceneObject: SceneObject) {
+  if (!sceneObject.variableDependency) {
+    return false;
+  }
+
+  for (const name of sceneObject.variableDependency.getNames()) {
+    // Prevent infinite recursion for variables that reference themselves
+    if ('name' in sceneObject.state && sceneObject.state.name === name) {
+      continue;
+    }
+
+    const variable = lookupVariable(name, sceneObject);
+    if (!variable) {
+      continue;
+    }
+
+    const set = variable.parent as SceneVariables;
+    if (set.isVariableInErrorState?.(variable)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function findObjectInternal(
   scene: SceneObject,
   check: (obj: SceneObject) => boolean,
