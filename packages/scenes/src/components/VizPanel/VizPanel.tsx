@@ -371,9 +371,10 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     // transformations.
     if (
       this.state.applyPluginTransformations && // does panel support system transformations?
-      pluginProvidesSystemTransformations(plugin) && // does the plugin supply provider method?
       $data instanceof SceneDataTransformer &&
-      $data.isActive
+      $data.isActive &&
+      // the plugin supplies a provider method, or a previous one did and its transformations must come back out
+      (pluginProvidesSystemTransformations(plugin) || $data.hasAppliedSystemTransformations())
     ) {
       $data.reprocessTransformations();
     }

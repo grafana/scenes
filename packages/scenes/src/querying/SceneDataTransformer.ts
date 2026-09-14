@@ -191,6 +191,17 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     return true;
   }
 
+  /**
+   * @internal
+   * Whether the pass behind the current state.data applied any system transformations. A provider that has
+   * stopped contributing still needs one more pass to take them back out.
+   */
+  public hasAppliedSystemTransformations(): boolean {
+    const last = this._lastPassSystem;
+
+    return last !== undefined && (last.prepend.length > 0 || last.append.length > 0);
+  }
+
   public reprocessTransformations() {
     // A provider can resolve differently for the same frames - a plugin that was not loaded on the last pass
     // is the reason callers reach for this - so the memo cannot survive a forced re-run.

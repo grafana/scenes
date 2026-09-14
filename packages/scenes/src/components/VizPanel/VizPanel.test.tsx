@@ -1500,6 +1500,27 @@ describe('VizPanel', () => {
       expect(transformer.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
     });
 
+    it('drops what the previous plugin contributed when the new viz type does not implement the contract', async () => {
+      const pluginA = pluginContributing('plugin-a', { append: [doubler] });
+      // Not pluginContributing({}) - a plugin with no getSystemTransformations at all, which is the
+      // common case and the one the capability guard can wrongly skip
+      const pluginB = getPanelPlugin({ id: 'plugin-b' }, () => <div />);
+
+      mockPluginCache = { 'plugin-a': pluginA, 'plugin-b': pluginB };
+
+      const { panel, transformer } = setup({ pluginId: 'plugin-a' });
+
+      panel.activate();
+
+      expect(transformer.state.data?.series[0].fields[0].values).toEqual([2, 4, 6]);
+
+      await panel.changePluginType('plugin-b');
+
+      expect(panel.getPlugin()).toBe(pluginB);
+      expect(transformer.getResolvedSystemTransformations().append).toEqual([]);
+      expect(transformer.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
+    });
+
     it('reprocesses when the plugin finishes loading', async () => {
       const plugin = pluginContributing('custom-plugin-id', { append: [doubler] });
       let resolveImport: () => void = () => {};
