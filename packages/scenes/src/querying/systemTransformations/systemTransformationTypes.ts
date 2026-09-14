@@ -1,4 +1,3 @@
-import { SceneDataTransformer } from '../SceneDataTransformer';
 import { CustomTransformOperator, DataFrame, DataTransformerConfig } from '@grafana/data';
 import { CustomTransformerDefinition } from '../../core/types';
 
@@ -34,10 +33,7 @@ export interface SystemTransformationsProvider {
    * Throwing is treated as noop rather than erroring.
    * What this returns is never interpolated. Only `state.transformations` is scanned for variable dependencies.
    */
-  getSystemTransformations(
-    transformer: SceneDataTransformer,
-    ctx: { series: DataFrame[] }
-  ): {
+  getSystemTransformations(ctx: { series: DataFrame[] }): {
     prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
     append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
   };

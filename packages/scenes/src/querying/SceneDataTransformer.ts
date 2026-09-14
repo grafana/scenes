@@ -248,7 +248,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     series: DataFrame[]
   ): ReturnType<SystemTransformationsProvider['getSystemTransformations']> {
     try {
-      return provider.getSystemTransformations(this, { series }) ?? {};
+      return provider.getSystemTransformations({ series }) ?? {};
     } catch (err) {
       // A provider is someone else's code running in our data pipeline; contributing nothing is better than erroring
       console.error(`Error resolving system transformations for origin '${provider.origin}': `, err);

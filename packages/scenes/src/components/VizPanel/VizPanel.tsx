@@ -430,10 +430,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
    * @internal
    * Called by the SceneDataTransformer that discovered this panel with the frames about to enter the pipeline.
    */
-  public getSystemTransformations(
-    _transformer: SceneDataTransformer,
-    { series }: { series: DataFrame[] }
-  ): {
+  public getSystemTransformations({ series }: { series: DataFrame[] }): {
     prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
     append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
   } {

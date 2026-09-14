@@ -44,7 +44,7 @@ class TestProvider extends SceneObjectBase<TestProviderState> implements SystemT
   public origin = 'plugin';
   public calls: DataFrame[][] = [];
 
-  public getSystemTransformations(_transformer: SceneDataTransformer, ctx: { series: DataFrame[] }) {
+  public getSystemTransformations(ctx: { series: DataFrame[] }) {
     this.calls.push(ctx.series);
 
     return this.state.resolve?.(ctx) ?? {};
