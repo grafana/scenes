@@ -1445,9 +1445,12 @@ describe('VizPanel', () => {
       return plugin;
     }
 
-    function setup({ pluginId = 'custom-plugin-id', applyPluginTransformations = true }: Partial<VizPanelState> = {}) {
+    function setup(
+      { pluginId = 'custom-plugin-id', applyPluginTransformations = true }: Partial<VizPanelState> = {},
+      transformations: DataTransformerConfig[] = []
+    ) {
       const source = new SceneDataNode({ data: seriesData() });
-      const transformer = new SceneDataTransformer({ $data: source, transformations: [] });
+      const transformer = new SceneDataTransformer({ $data: source, transformations });
       const panel = new VizPanel({ pluginId, applyPluginTransformations, $data: transformer });
 
       return { panel, transformer, source };
@@ -1539,6 +1542,39 @@ describe('VizPanel', () => {
       // The panel adopts the plugin from its activation handler, which runs before $data is
       // activated, so the transformer's own first pass already resolves it
       expect(onTransformerState).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not re-run the pipeline when the loaded plugin does not implement the contract', async () => {
+      const plugin = getPanelPlugin({ id: 'custom-plugin-id' }, () => <div />);
+      let resolveImport: () => void = () => {};
+
+      mockImportPanelPlugin = jest.fn(
+        () =>
+          new Promise<PanelPlugin | undefined>((resolve) => {
+            resolveImport = () => {
+              mockPluginCache['custom-plugin-id'] = plugin;
+              resolve(plugin);
+            };
+          })
+      );
+
+      const { panel, transformer } = setup({}, [doubler]);
+
+      panel.activate();
+
+      // value * 2 from the user transformation, with no plugin resolved yet
+      expect(transformer.state.data?.series[0].fields[0].values).toEqual([2, 4, 6]);
+
+      const onTransformerState = jest.fn();
+      transformer.subscribeToState(onTransformerState);
+
+      resolveImport();
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(panel.getPlugin()).toBe(plugin);
+      // The plugin contributes nothing, so forcing the whole user pipeline through a second pass
+      // would be wasted work on every panel of a dashboard
+      expect(onTransformerState).not.toHaveBeenCalled();
     });
 
     it('reprocesses on re-activation when the plugin arrived while the transformer was inactive', async () => {

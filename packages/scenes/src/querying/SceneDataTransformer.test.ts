@@ -43,26 +43,11 @@ interface TestProviderState extends SceneObjectState {
 class TestProvider extends SceneObjectBase<TestProviderState> implements SystemTransformationsProvider {
   public origin = 'plugin';
   public calls: DataFrame[][] = [];
-  public subscriptions = 0;
-  public unsubscriptions = 0;
-  public notify?: () => void;
 
   public getSystemTransformations(_transformer: SceneDataTransformer, ctx: { series: DataFrame[] }) {
     this.calls.push(ctx.series);
 
     return this.state.resolve?.(ctx) ?? {};
-  }
-
-  public subscribeToSystemTransformationsChanged(_transformer: SceneDataTransformer, callback: () => void) {
-    this.subscriptions++;
-    this.notify = callback;
-
-    return {
-      unsubscribe: () => {
-        this.unsubscriptions++;
-        this.notify = undefined;
-      },
-    };
   }
 }
 
@@ -1278,38 +1263,7 @@ describe('SceneDataTransformer', () => {
       ]);
     });
 
-    it('reprocesses when the provider signals a change without new data', () => {
-      let contributes = false;
-      const provider = new TestProvider({ resolve: () => (contributes ? { append: [transformer2config] } : {}) });
-      const { transformationNode, activate } = buildScene({ provider });
-
-      activate();
-
-      // value * 2
-      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
-
-      contributes = true;
-      provider.notify!();
-
-      // value * 2 * 3
-      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
-    });
-
-    it('unsubscribes from the provider on deactivation', () => {
-      const provider = new TestProvider({});
-      const { activate } = buildScene({ provider });
-
-      const deactivate = activate();
-
-      expect(provider.subscriptions).toBe(1);
-      expect(provider.unsubscriptions).toBe(0);
-
-      deactivate();
-
-      expect(provider.unsubscriptions).toBe(1);
-    });
-
-    it('keeps answering after deactivation, and does not double register on re-activation', () => {
+    it('keeps answering after deactivation', () => {
       const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
       const { transformationNode, activate } = buildScene({ provider });
 
@@ -1322,7 +1276,6 @@ describe('SceneDataTransformer', () => {
 
       activate();
 
-      expect(provider.subscriptions).toBe(2);
       expect(transformationNode.getResolvedSystemTransformations().append).toHaveLength(1);
       // Not applied twice
       expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
@@ -1463,10 +1416,11 @@ describe('SceneDataTransformer', () => {
       expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
       expect(gates).toHaveLength(0);
 
-      // The provider starts contributing - a plugin finishing its import - and the pass that triggers
-      // is still in flight when deactivation cancels it
+      // The provider starts contributing - a plugin finishing its import, which is what makes
+      // VizPanel reach for reprocessTransformations - and the pass that triggers is still in flight
+      // when deactivation cancels it
       contributes = true;
-      provider.notify!();
+      transformationNode.reprocessTransformations();
 
       expect(gates).toHaveLength(1);
 
@@ -1662,7 +1616,8 @@ describe('SceneDataTransformer', () => {
       clone.activate();
 
       expect(clone.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
-      expect(otherProvider.subscriptions).toBe(1);
+      // Resolved to empty because it asked otherProvider, not because it asked nobody
+      expect(otherProvider.calls.length).toBeGreaterThan(0);
     });
 
     describe('variable interpolation', () => {

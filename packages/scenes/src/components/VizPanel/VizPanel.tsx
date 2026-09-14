@@ -114,7 +114,7 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
   _UNSAFE_clearPreviousFieldValues?: boolean;
 
   /**
-   * Whether this panel provides system transformations
+   * Whether to check the panel plugin for system transformations. Set by host to gate rollout (feature toggle)
    */
   applyPluginTransformations?: boolean;
 
@@ -367,8 +367,14 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
       pluginId: plugin.meta.id,
     });
 
-    // The plugin arrives async so the pipeline may have already run a pass without its system transformations.
-    if (this.state.applyPluginTransformations && $data instanceof SceneDataTransformer && $data.isActive) {
+    // The plugin arrives async so the pipeline may have already run a pass without its system
+    // transformations.
+    if (
+      this.state.applyPluginTransformations && // does panel support system transformations?
+      pluginProvidesSystemTransformations(plugin) && // does the plugin supply provider method?
+      $data instanceof SceneDataTransformer &&
+      $data.isActive
+    ) {
       $data.reprocessTransformations();
     }
 
@@ -840,6 +846,16 @@ interface PluginWithSystemTransformations {
 }
 
 /**
+ * Whether the plugin implements the contract
+ */
+function pluginProvidesSystemTransformations(
+  plugin: PanelPlugin
+): plugin is PanelPlugin & PluginWithSystemTransformations {
+  // @todo remove type assertion after scenes builds against updated PanelPlugin in Grafana 13
+  return typeof (plugin as Partial<PluginWithSystemTransformations>).getSystemTransformations === 'function';
+}
+
+/**
  * Internal helper - resolves system transformations from the plugin
  */
 function getPluginSystemTransformations(
@@ -849,14 +865,11 @@ function getPluginSystemTransformations(
   prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
   append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
 } {
-  // @todo remove type assertion after scenes builds against updated PanelPlugin in Grafana 13
-  const resolve = (plugin as Partial<PluginWithSystemTransformations>).getSystemTransformations;
-
-  if (typeof resolve !== 'function') {
+  if (!pluginProvidesSystemTransformations(plugin)) {
     return {};
   }
 
-  const { prepend = [], append = [] } = resolve.call(plugin, ctx) ?? {};
+  const { prepend = [], append = [] } = plugin.getSystemTransformations(ctx) ?? {};
 
   // The contract supports the series topic only.
   return { prepend: prepend.filter(appliesToSeriesTopic), append: append.filter(appliesToSeriesTopic) };

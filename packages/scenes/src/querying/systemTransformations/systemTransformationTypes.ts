@@ -1,7 +1,6 @@
 import { SceneDataTransformer } from '../SceneDataTransformer';
 import { CustomTransformOperator, DataFrame, DataTransformerConfig } from '@grafana/data';
 import { CustomTransformerDefinition } from '../../core/types';
-import { Unsubscribable } from 'rxjs';
 
 /**
  * Identifies the contributor that injected a system transformation.
@@ -42,12 +41,6 @@ export interface SystemTransformationsProvider {
     prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
     append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
   };
-
-  /**
-   * Optional. Asks to be told when what getSystemTransformations resolves to may have changed without new
-   * data arriving.
-   */
-  subscribeToSystemTransformationsChanged?(transformer: SceneDataTransformer, callback: () => void): Unsubscribable;
 }
 
 /**

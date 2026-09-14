@@ -116,7 +116,6 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
   /**
    * Checks the parent for system transformation provider.
-   * The provider is kept across deactivation but its subscription is not: _subs is cleared on deactivate, this re-establishes the subscription.
    * Reports whether what the pipeline should run has changed since the last pass, so the caller can force one.
    */
   private _discoverProvider(): boolean {
@@ -138,12 +137,6 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     // Nothing was watching the provider while this was inactive, so what it resolves to may have moved on
     // from what the last pass memoized.
     this._resolvedSystem = undefined;
-
-    const sub = provider.subscribeToSystemTransformationsChanged?.(this, () => this.reprocessTransformations());
-
-    if (sub) {
-      this._subs.add(sub);
-    }
 
     if (this._hasActivatedBefore && previous !== provider) {
       return true;
