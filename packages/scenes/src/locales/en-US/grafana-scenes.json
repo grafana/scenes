@@ -33,6 +33,14 @@
         "group-by-key": "Group by {{keyLabel}}",
         "remove-group-by-key": "Remove group by {{keyLabel}}"
       },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "Move panel",
+            "resize-panel": "Resize panel"
+          }
+        }
+      },
       "nested-scene-renderer": {
         "collapse-button-label": "Collapse scene",
         "expand-button-label": "Expand scene",
