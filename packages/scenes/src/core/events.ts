@@ -25,7 +25,7 @@ export interface StateCommittedPayload {
  * undoable after already committed to state
  */
 export class StateCommittedEvent extends BusEventWithPayload<StateCommittedPayload> {
-  public static readonly type = 'scene-object-state-transaction-committed';
+  public static readonly type = 'scene-object-state-committed';
 }
 
 type UserActionEventType =
