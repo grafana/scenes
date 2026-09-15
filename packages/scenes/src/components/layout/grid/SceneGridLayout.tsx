@@ -1,6 +1,9 @@
 import { PointerEvent } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 
+import { t } from '@grafana/i18n';
+
+import { StateTransactionCommittedEvent } from '../../../core/events';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneLayout, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN } from './constants';
@@ -212,11 +215,39 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
   public onResizeStop: ReactGridLayout.ItemCallback = (_, o, n) => {
     const child = this.getSceneLayoutChild(n.i);
-    child.setState({
-      width: n.w,
-      height: n.h,
+    const from = { width: child.state.width, height: child.state.height };
+    const to = { width: n.w, height: n.h };
+
+    if (from.width === to.width && from.height === to.height) {
+      return;
+    }
+
+    this._commitTransaction({
+      description: t('grafana-scenes.components.layout.grid.scene-grid-layout.resize-panel', 'Resize panel'),
+      replay: () => {
+        child.setState(to);
+        // Unlike a live drag, react-grid-layout has no gesture of its own to reflow from here -
+        // it only picks up the new size from a fresh `layout` prop, which requires the grid
+        // itself (not just the child) to re-render.
+        this.forceRender();
+      },
+      revert: () => {
+        child.setState(from);
+        this.forceRender();
+      },
     });
   };
+
+  /**
+   * Applies a resize gesture and publishes a StateTransactionCommittedEvent describing it, so an
+   * external system (e.g. an undo/redo stack) can observe and record it. The change is always
+   * applied here, regardless of whether anyone is listening for the event - if nobody is, this
+   * behaves exactly as if undo/redo support didn't exist.
+   */
+  private _commitTransaction(transaction: { description: string; replay: () => void; revert: () => void }) {
+    transaction.replay();
+    this.publishEvent(new StateTransactionCommittedEvent({ source: this, ...transaction }), true);
+  }
 
   private pushChildDown(child: SceneGridItemLike, amount: number) {
     child.setState({

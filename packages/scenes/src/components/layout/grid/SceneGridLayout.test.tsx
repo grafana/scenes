@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
+import { StateTransactionCommittedEvent, type StateTransactionCommittedPayload } from '../../../core/events';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../../core/types';
 import { EmbeddedScene } from '../../EmbeddedScene';
@@ -887,6 +888,113 @@ describe('SceneGridLayout', () => {
       expect(layout.state.children[0].state.key).toEqual('row-b');
       expect(layout.state.children[1].state.key).toEqual('row-a');
       expect(layout.state.children[2].state.key).toEqual('c');
+    });
+  });
+
+  describe('StateTransactionCommittedEvent (resize)', () => {
+    it('applies a resize immediately and publishes StateTransactionCommittedEvent describing it', () => {
+      const layout = new SceneGridLayout({
+        children: [new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) })],
+        isLazy: false,
+      });
+      const handler = jest.fn();
+      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
+      const gridStateBefore = layout.state;
+
+      layout.onResizeStop(
+        [],
+        // @ts-expect-error
+        {},
+        { i: 'a', x: 0, y: 0, w: 4, h: 4 },
+        {},
+        {},
+        {}
+      );
+
+      expect(handler).toHaveBeenCalledTimes(1);
+      const payload: StateTransactionCommittedPayload = handler.mock.calls[0][0].payload;
+      expect(payload.source).toBe(layout);
+      expect(payload.description).toEqual('Resize panel');
+
+      expect(layout.state.children[0].state.width).toEqual(4);
+      expect(layout.state.children[0].state.height).toEqual(4);
+      // react-grid-layout only reflows from a fresh `layout` prop, which requires the grid
+      // itself (not just the resized child) to re-render.
+      expect(layout.state).not.toBe(gridStateBefore);
+    });
+
+    it('restores the original size when revert() is called', () => {
+      const layout = new SceneGridLayout({
+        children: [new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) })],
+        isLazy: false,
+      });
+      let payload: StateTransactionCommittedPayload | undefined;
+      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
+
+      layout.onResizeStop(
+        [],
+        // @ts-expect-error
+        {},
+        { i: 'a', x: 0, y: 0, w: 4, h: 4 },
+        {},
+        {},
+        {}
+      );
+
+      expect(layout.state.children[0].state.width).toEqual(4);
+
+      const gridStateBeforeRevert = layout.state;
+      payload!.revert();
+
+      expect(layout.state.children[0].state.width).toEqual(1);
+      expect(layout.state.children[0].state.height).toEqual(1);
+      expect(layout.state).not.toBe(gridStateBeforeRevert);
+    });
+
+    it('redo (replay() again) restores the resized size', () => {
+      const layout = new SceneGridLayout({
+        children: [new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) })],
+        isLazy: false,
+      });
+      let payload: StateTransactionCommittedPayload | undefined;
+      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
+
+      layout.onResizeStop(
+        [],
+        // @ts-expect-error
+        {},
+        { i: 'a', x: 0, y: 0, w: 4, h: 4 },
+        {},
+        {},
+        {}
+      );
+
+      payload!.revert();
+      payload!.replay();
+
+      expect(layout.state.children[0].state.width).toEqual(4);
+      expect(layout.state.children[0].state.height).toEqual(4);
+    });
+
+    it('does not publish when the resize did not change anything', () => {
+      const layout = new SceneGridLayout({
+        children: [new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) })],
+        isLazy: false,
+      });
+      const handler = jest.fn();
+      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
+
+      layout.onResizeStop(
+        [],
+        // @ts-expect-error
+        {},
+        { i: 'a', x: 0, y: 0, w: 1, h: 1 },
+        {},
+        {},
+        {}
+      );
+
+      expect(handler).not.toHaveBeenCalled();
     });
   });
 
