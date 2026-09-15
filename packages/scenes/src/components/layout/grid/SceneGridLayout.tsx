@@ -396,47 +396,36 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
     const isReparenting = newParent !== sceneChild.parent && !this._loadOldLayout;
     const prevChildren = this.state.children;
-    const applyChildren = () => {
+
+    // Undo/redo only covers plain top-level repositioning for now. Moving a panel into/out of a
+    // row (or moving a row itself) changes tree shape, not just field values, and rows are legacy
+    // for newly-authored dashboards (dashboardNewLayouts moved row authoring to RowsLayoutManager
+    // entirely) - so it's applied directly here instead, exactly as it always has been, and simply
+    // isn't undoable, the same way an invalid intermediate drop already isn't below.
+    const involvesRow =
+      isReparenting || sceneChild instanceof SceneGridRow || sceneChild.parent instanceof SceneGridRow;
+
+    if (this._loadOldLayout || involvesRow) {
+      positionChanges.forEach(({ child, to }) => child.setState(to));
       const nextChildren = isReparenting ? this.moveChildTo(sceneChild, newParent) : prevChildren;
       this.setState({ children: sortChildrenByPosition(nextChildren) });
-    };
-
-    // An invalid intermediate state is discarded by onLayoutChange right after this, so there's
-    // nothing meaningful to make undoable - apply it directly, mutating in place as before.
-    if (this._loadOldLayout) {
-      positionChanges.forEach(({ child, to }) => child.setState(to));
-      applyChildren();
       this._skipOnLayoutChange = true;
       return;
     }
 
-    if (positionChanges.length === 0 && !isReparenting) {
+    if (positionChanges.length === 0) {
       this._skipOnLayoutChange = true;
       return;
     }
-
-    // sortChildrenByPosition also resorts every row's own children, so snapshot them up front to
-    // be able to restore them verbatim on undo.
-    const prevRowChildren = snapshotRowChildren(prevChildren);
-
-    // Computed lazily on the first replay() call and reused after that (redo included), rather
-    // than recomputed via moveChildTo() on every call - moveChildTo clones rows, so recomputing
-    // would put a different (though equivalent) row object into the tree on every redo.
-    let nextChildren: SceneGridItemLike[] | undefined;
 
     this._commitTransaction({
-      description:
-        sceneChild instanceof SceneGridRow
-          ? t('grafana-scenes.components.layout.grid.scene-grid-layout.move-row', 'Move row')
-          : t('grafana-scenes.components.layout.grid.scene-grid-layout.move-panel', 'Move panel'),
+      description: t('grafana-scenes.components.layout.grid.scene-grid-layout.move-panel', 'Move panel'),
       replay: () => {
         positionChanges.forEach(({ child, to }) => child.setState(to));
-        nextChildren ??= sortChildrenByPosition(isReparenting ? this.moveChildTo(sceneChild, newParent) : prevChildren);
-        this.setState({ children: nextChildren });
+        this.setState({ children: sortChildrenByPosition(prevChildren) });
       },
       revert: () => {
         positionChanges.forEach(({ child, from }) => child.setState(from));
-        prevRowChildren.forEach((children, row) => row.setState({ children }));
         this.setState({ children: prevChildren });
       },
     });
@@ -525,18 +514,4 @@ interface PositionChange {
   child: SceneGridItemLike;
   from: SceneGridItemPlacement;
   to: SceneGridItemPlacement;
-}
-
-/** Recursively captures each row's current children array, to be able to restore it verbatim later. */
-function snapshotRowChildren(
-  children: SceneGridItemLike[],
-  out = new Map<SceneGridRow, SceneGridItemLike[]>()
-): Map<SceneGridRow, SceneGridItemLike[]> {
-  for (const child of children) {
-    if (child instanceof SceneGridRow) {
-      out.set(child, child.state.children);
-      snapshotRowChildren(child.state.children, out);
-    }
-  }
-  return out;
 }

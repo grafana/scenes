@@ -1096,17 +1096,17 @@ describe('SceneGridLayout', () => {
       expect(handler).not.toHaveBeenCalled();
     });
 
-    it('restores a row children order on revert when the moved item is reparented into a row', () => {
+    it('applies reparenting into a row directly, without publishing an undoable transaction', () => {
       const rowChild = new SceneGridItem({ key: 'b', x: 0, y: 2, width: 1, height: 1, body: new TestObject({}) });
       const row = new SceneGridRow({ title: 'Row A', key: 'row-a', isCollapsed: false, y: 1, children: [rowChild] });
       const topLevelChild = new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) });
 
-      let payload: StateTransactionCommittedPayload | undefined;
+      const handler = jest.fn();
       const layout = new SceneGridLayout({
         children: [topLevelChild, row],
         isLazy: false,
       });
-      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
+      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
 
       // move panel a to be the first child of the row (same gesture as the "moving a panel or row" test above)
       layout.onDragStop(
@@ -1123,23 +1123,42 @@ describe('SceneGridLayout', () => {
         {}
       );
 
-      expect(payload!.description).toEqual('Move panel');
+      // Moving a panel into/out of a row changes tree shape, not just a field value, and rows are
+      // legacy for newly-authored dashboards - so this still works exactly as before, it's just
+      // not undoable (same as an invalid intermediate drop never publishing a transaction either).
+      expect(handler).not.toHaveBeenCalled();
 
       const rowAfterDrag = layout.state.children[0];
       expect((rowAfterDrag as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['a', 'b']);
+    });
 
-      payload!.revert();
+    it('applies dragging a row itself directly, without publishing an undoable transaction', () => {
+      const row = new SceneGridRow({ title: 'Row A', key: 'row-a', isCollapsed: true, y: 0 });
+      const topLevelChild = new SceneGridItem({ key: 'a', x: 0, y: 1, width: 1, height: 1, body: new TestObject({}) });
 
+      const handler = jest.fn();
+      const layout = new SceneGridLayout({
+        children: [row, topLevelChild],
+        isLazy: false,
+      });
+      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
+
+      // drag the (collapsed, so draggable) row below the panel
+      layout.onDragStop(
+        [
+          { w: 12, h: 8, x: 0, y: 0, i: 'a' },
+          { w: 24, h: 1, x: 0, y: 8, i: 'row-a' },
+        ],
+        // @ts-expect-error
+        {},
+        { w: 24, h: 1, x: 0, y: 8, i: 'row-a' },
+        {},
+        {},
+        {}
+      );
+
+      expect(handler).not.toHaveBeenCalled();
       expect(layout.state.children.map((c) => c.state.key)).toEqual(['a', 'row-a']);
-      expect((layout.state.children[1] as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['b']);
-
-      // Redo should replay the exact same result computed by the first replay(), not recompute
-      // moveChildTo() again - that clones rows, which would otherwise put a different (though
-      // equivalent) row object into the tree on every redo.
-      payload!.replay();
-
-      expect(layout.state.children.map((c) => c.state.key)).toEqual(['row-a']);
-      expect(layout.state.children[0]).toBe(rowAfterDrag);
     });
   });
 
