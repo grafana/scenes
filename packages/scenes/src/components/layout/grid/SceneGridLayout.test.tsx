@@ -998,6 +998,151 @@ describe('SceneGridLayout', () => {
     });
   });
 
+  describe('StateTransactionCommittedEvent (drag)', () => {
+    function buildThreeItemLayout() {
+      return new SceneGridLayout({
+        children: [
+          new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) }),
+          new SceneGridItem({ key: 'b', x: 1, y: 0, width: 1, height: 1, body: new TestObject({}) }),
+          new SceneGridItem({ key: 'c', x: 0, y: 1, width: 1, height: 1, body: new TestObject({}) }),
+        ],
+        isLazy: false,
+      });
+    }
+
+    const dragStopArgs: Parameters<SceneGridLayout['onDragStop']> = [
+      [
+        { i: 'b', x: 0, y: 0, w: 1, h: 1 },
+        { i: 'a', x: 0, y: 1, w: 1, h: 1 },
+        { i: 'c', x: 0, y: 2, w: 1, h: 1 },
+      ],
+      // @ts-expect-error
+      {},
+      { i: 'b', x: 0, y: 0, w: 1, h: 1 },
+      // @ts-expect-error
+      {},
+      // @ts-expect-error
+      {},
+      // @ts-expect-error
+      {},
+    ];
+
+    it('applies a drag immediately and publishes StateTransactionCommittedEvent with a description and source', () => {
+      const layout = buildThreeItemLayout();
+      const handler = jest.fn();
+      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
+
+      layout.onDragStop(...dragStopArgs);
+
+      expect(handler).toHaveBeenCalledTimes(1);
+      const payload: StateTransactionCommittedPayload = handler.mock.calls[0][0].payload;
+      expect(payload.source).toBe(layout);
+      expect(payload.description).toEqual('Move panel');
+
+      expect(layout.state.children.map((c) => c.state.key)).toEqual(['b', 'a', 'c']);
+      expect(layout.state.children[0].state.x).toEqual(0);
+      expect(layout.state.children[0].state.y).toEqual(0);
+    });
+
+    it('restores the original positions and order when revert() is called', () => {
+      const layout = buildThreeItemLayout();
+      let payload: StateTransactionCommittedPayload | undefined;
+      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
+
+      layout.onDragStop(...dragStopArgs);
+      payload!.revert();
+
+      expect(layout.state.children.map((c) => c.state.key)).toEqual(['a', 'b', 'c']);
+      expect(layout.state.children[0].state.x).toEqual(0);
+      expect(layout.state.children[0].state.y).toEqual(0);
+      expect(layout.state.children[1].state.x).toEqual(1);
+      expect(layout.state.children[1].state.y).toEqual(0);
+    });
+
+    it('redo (replay() again) replays the exact same snapshot produced by the drag', () => {
+      const layout = buildThreeItemLayout();
+      let payload: StateTransactionCommittedPayload | undefined;
+      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
+
+      layout.onDragStop(...dragStopArgs);
+      const childrenAfterDrag = layout.state.children;
+
+      payload!.revert();
+      payload!.replay();
+
+      expect(layout.state.children).toBe(childrenAfterDrag);
+    });
+
+    it('does not publish when the drag did not change anything', () => {
+      const layout = buildThreeItemLayout();
+      const handler = jest.fn();
+      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
+
+      // Same positions as the initial layout
+      layout.onDragStop(
+        [
+          { i: 'a', x: 0, y: 0, w: 1, h: 1 },
+          { i: 'b', x: 1, y: 0, w: 1, h: 1 },
+          { i: 'c', x: 0, y: 1, w: 1, h: 1 },
+        ],
+        // @ts-expect-error
+        {},
+        { i: 'a', x: 0, y: 0, w: 1, h: 1 },
+        {},
+        {},
+        {}
+      );
+
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it('restores a row children order on revert when the moved item is reparented into a row', () => {
+      const rowChild = new SceneGridItem({ key: 'b', x: 0, y: 2, width: 1, height: 1, body: new TestObject({}) });
+      const row = new SceneGridRow({ title: 'Row A', key: 'row-a', isCollapsed: false, y: 1, children: [rowChild] });
+      const topLevelChild = new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) });
+
+      let payload: StateTransactionCommittedPayload | undefined;
+      const layout = new SceneGridLayout({
+        children: [topLevelChild, row],
+        isLazy: false,
+      });
+      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
+
+      // move panel a to be the first child of the row (same gesture as the "moving a panel or row" test above)
+      layout.onDragStop(
+        [
+          { w: 12, h: 8, x: 0, y: 2, i: 'a' },
+          { w: 24, h: 1, x: 0, y: 0, i: 'row-a' },
+          { w: 12, h: 8, x: 0, y: 10, i: 'b' },
+        ],
+        // @ts-expect-error
+        {},
+        { w: 12, h: 8, x: 0, y: 2, i: 'a' },
+        {},
+        {},
+        {}
+      );
+
+      expect(payload!.description).toEqual('Move panel');
+
+      const rowAfterDrag = layout.state.children[0];
+      expect((rowAfterDrag as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['a', 'b']);
+
+      payload!.revert();
+
+      expect(layout.state.children.map((c) => c.state.key)).toEqual(['a', 'row-a']);
+      expect((layout.state.children[1] as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['b']);
+
+      // Redo should replay the exact same result computed by the first replay(), not recompute
+      // moveChildTo() again - that clones rows, which would otherwise put a different (though
+      // equivalent) row object into the tree on every redo.
+      payload!.replay();
+
+      expect(layout.state.children.map((c) => c.state.key)).toEqual(['row-a']);
+      expect(layout.state.children[0]).toBe(rowAfterDrag);
+    });
+  });
+
   describe('when using rows', () => {
     it('should update objects relations when moving object out of a row', () => {
       const rowAChild1 = new SceneGridItem({

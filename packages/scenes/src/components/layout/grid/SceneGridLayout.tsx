@@ -360,18 +360,20 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // Update the parent if the child if it has moved to a row or back to the grid
     const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
     let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
-    let newChildren = this.state.children;
 
-    // Update children positions if they have changed
+    // Collect position changes instead of applying them immediately, so we can capture a
+    // consistent "from" snapshot before anything mutates (see _commitTransaction).
+    const positionChanges: PositionChange[] = [];
     for (let i = 0; i < gridLayout.length; i++) {
       const gridItem = gridLayout[i];
       const child = this.getSceneLayoutChild(gridItem.i)!;
       const childSize = child.state;
 
       if (childSize?.x !== gridItem.x || childSize?.y !== gridItem.y) {
-        child.setState({
-          x: gridItem.x,
-          y: gridItem.y,
+        positionChanges.push({
+          child,
+          from: { x: childSize.x, y: childSize.y },
+          to: { x: gridItem.x, y: gridItem.y },
         });
       }
     }
@@ -392,11 +394,53 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       newParent = this;
     }
 
-    if (newParent !== sceneChild.parent && !this._loadOldLayout) {
-      newChildren = this.moveChildTo(sceneChild, newParent);
+    const isReparenting = newParent !== sceneChild.parent && !this._loadOldLayout;
+    const prevChildren = this.state.children;
+    const applyChildren = () => {
+      const nextChildren = isReparenting ? this.moveChildTo(sceneChild, newParent) : prevChildren;
+      this.setState({ children: sortChildrenByPosition(nextChildren) });
+    };
+
+    // An invalid intermediate state is discarded by onLayoutChange right after this, so there's
+    // nothing meaningful to make undoable - apply it directly, mutating in place as before.
+    if (this._loadOldLayout) {
+      positionChanges.forEach(({ child, to }) => child.setState(to));
+      applyChildren();
+      this._skipOnLayoutChange = true;
+      return;
     }
 
-    this.setState({ children: sortChildrenByPosition(newChildren) });
+    if (positionChanges.length === 0 && !isReparenting) {
+      this._skipOnLayoutChange = true;
+      return;
+    }
+
+    // sortChildrenByPosition also resorts every row's own children, so snapshot them up front to
+    // be able to restore them verbatim on undo.
+    const prevRowChildren = snapshotRowChildren(prevChildren);
+
+    // Computed lazily on the first replay() call and reused after that (redo included), rather
+    // than recomputed via moveChildTo() on every call - moveChildTo clones rows, so recomputing
+    // would put a different (though equivalent) row object into the tree on every redo.
+    let nextChildren: SceneGridItemLike[] | undefined;
+
+    this._commitTransaction({
+      description:
+        sceneChild instanceof SceneGridRow
+          ? t('grafana-scenes.components.layout.grid.scene-grid-layout.move-row', 'Move row')
+          : t('grafana-scenes.components.layout.grid.scene-grid-layout.move-panel', 'Move panel'),
+      replay: () => {
+        positionChanges.forEach(({ child, to }) => child.setState(to));
+        nextChildren ??= sortChildrenByPosition(isReparenting ? this.moveChildTo(sceneChild, newParent) : prevChildren);
+        this.setState({ children: nextChildren });
+      },
+      revert: () => {
+        positionChanges.forEach(({ child, from }) => child.setState(from));
+        prevRowChildren.forEach((children, row) => row.setState({ children }));
+        this.setState({ children: prevChildren });
+      },
+    });
+
     this._skipOnLayoutChange = true;
   };
 
@@ -475,4 +519,24 @@ function sortChildrenByPosition(children: SceneGridItemLike[]) {
 
 function sortGridLayout(layout: ReactGridLayout.Layout[]) {
   return [...layout].sort((a, b) => a.y - b.y || a.x! - b.x);
+}
+
+interface PositionChange {
+  child: SceneGridItemLike;
+  from: SceneGridItemPlacement;
+  to: SceneGridItemPlacement;
+}
+
+/** Recursively captures each row's current children array, to be able to restore it verbatim later. */
+function snapshotRowChildren(
+  children: SceneGridItemLike[],
+  out = new Map<SceneGridRow, SceneGridItemLike[]>()
+): Map<SceneGridRow, SceneGridItemLike[]> {
+  for (const child of children) {
+    if (child instanceof SceneGridRow) {
+      out.set(child, child.state.children);
+      snapshotRowChildren(child.state.children, out);
+    }
+  }
+  return out;
 }
