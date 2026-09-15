@@ -397,15 +397,9 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     const isReparenting = newParent !== sceneChild.parent && !this._loadOldLayout;
     const prevChildren = this.state.children;
 
-    // Undo/redo only covers plain top-level repositioning for now. Moving a panel into/out of a
-    // row (or moving a row itself) changes tree shape, not just field values, and rows are legacy
-    // for newly-authored dashboards (dashboardNewLayouts moved row authoring to RowsLayoutManager
-    // entirely) - so it's applied directly here instead, exactly as it always has been, and simply
-    // isn't undoable, the same way an invalid intermediate drop already isn't below.
-    const involvesRow =
-      isReparenting || sceneChild instanceof SceneGridRow || sceneChild.parent instanceof SceneGridRow;
-
-    if (this._loadOldLayout || involvesRow) {
+    // An invalid intermediate state is discarded by onLayoutChange right after this, so there's
+    // nothing meaningful to make undoable - apply it directly, mutating in place as before.
+    if (this._loadOldLayout) {
       positionChanges.forEach(({ child, to }) => child.setState(to));
       const nextChildren = isReparenting ? this.moveChildTo(sceneChild, newParent) : prevChildren;
       this.setState({ children: sortChildrenByPosition(nextChildren) });
@@ -413,16 +407,23 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       return;
     }
 
-    if (positionChanges.length === 0) {
+    if (positionChanges.length === 0 && !isReparenting) {
       this._skipOnLayoutChange = true;
       return;
     }
 
     this._commitTransaction({
-      description: t('grafana-scenes.components.layout.grid.scene-grid-layout.move-panel', 'Move panel'),
+      description:
+        sceneChild instanceof SceneGridRow
+          ? t('grafana-scenes.components.layout.grid.scene-grid-layout.move-row', 'Move row')
+          : t('grafana-scenes.components.layout.grid.scene-grid-layout.move-panel', 'Move panel'),
+      // moveChildTo clones rows rather than mutating them, so replaying this on a later redo
+      // produces a different (though equivalent) row object than the original drag did - kept
+      // simple deliberately: correct data, just not identity-stable across repeated redos.
       replay: () => {
         positionChanges.forEach(({ child, to }) => child.setState(to));
-        this.setState({ children: sortChildrenByPosition(prevChildren) });
+        const nextChildren = isReparenting ? this.moveChildTo(sceneChild, newParent) : prevChildren;
+        this.setState({ children: sortChildrenByPosition(nextChildren) });
       },
       revert: () => {
         positionChanges.forEach(({ child, from }) => child.setState(from));

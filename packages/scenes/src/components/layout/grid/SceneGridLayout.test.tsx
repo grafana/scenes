@@ -1096,17 +1096,17 @@ describe('SceneGridLayout', () => {
       expect(handler).not.toHaveBeenCalled();
     });
 
-    it('applies reparenting into a row directly, without publishing an undoable transaction', () => {
+    it('restores a row children order on revert when the moved item is reparented into a row', () => {
       const rowChild = new SceneGridItem({ key: 'b', x: 0, y: 2, width: 1, height: 1, body: new TestObject({}) });
       const row = new SceneGridRow({ title: 'Row A', key: 'row-a', isCollapsed: false, y: 1, children: [rowChild] });
       const topLevelChild = new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) });
 
-      const handler = jest.fn();
+      let payload: StateTransactionCommittedPayload | undefined;
       const layout = new SceneGridLayout({
         children: [topLevelChild, row],
         isLazy: false,
       });
-      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
+      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
 
       // move panel a to be the first child of the row (same gesture as the "moving a panel or row" test above)
       layout.onDragStop(
@@ -1123,25 +1123,65 @@ describe('SceneGridLayout', () => {
         {}
       );
 
-      // Moving a panel into/out of a row changes tree shape, not just a field value, and rows are
-      // legacy for newly-authored dashboards - so this still works exactly as before, it's just
-      // not undoable (same as an invalid intermediate drop never publishing a transaction either).
-      expect(handler).not.toHaveBeenCalled();
+      expect(payload!.description).toEqual('Move panel');
+      expect((layout.state.children[0] as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['a', 'b']);
 
-      const rowAfterDrag = layout.state.children[0];
-      expect((rowAfterDrag as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['a', 'b']);
+      payload!.revert();
+
+      expect(layout.state.children.map((c) => c.state.key)).toEqual(['a', 'row-a']);
+      expect((layout.state.children[1] as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['b']);
     });
 
-    it('applies dragging a row itself directly, without publishing an undoable transaction', () => {
+    it('redo after reparenting restores the moved structure, but as a new (though equivalent) row object', () => {
+      const rowChild = new SceneGridItem({ key: 'b', x: 0, y: 2, width: 1, height: 1, body: new TestObject({}) });
+      const row = new SceneGridRow({ title: 'Row A', key: 'row-a', isCollapsed: false, y: 1, children: [rowChild] });
+      const topLevelChild = new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) });
+
+      let payload: StateTransactionCommittedPayload | undefined;
+      const layout = new SceneGridLayout({
+        children: [topLevelChild, row],
+        isLazy: false,
+      });
+      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
+
+      layout.onDragStop(
+        [
+          { w: 12, h: 8, x: 0, y: 2, i: 'a' },
+          { w: 24, h: 1, x: 0, y: 0, i: 'row-a' },
+          { w: 12, h: 8, x: 0, y: 10, i: 'b' },
+        ],
+        // @ts-expect-error
+        {},
+        { w: 12, h: 8, x: 0, y: 2, i: 'a' },
+        {},
+        {},
+        {}
+      );
+
+      const rowAfterFirstApply = layout.state.children[0];
+
+      payload!.revert();
+      payload!.replay();
+
+      // Correct data either way...
+      expect(layout.state.children.map((c) => c.state.key)).toEqual(['row-a']);
+      expect((layout.state.children[0] as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['a', 'b']);
+      // ...but moveChildTo clones rather than mutates, so a recomputed replay() produces a
+      // different row instance than the original drag did. Kept simple deliberately: this is the
+      // one accepted imperfection of not memoizing the "after" tree for reparenting.
+      expect(layout.state.children[0]).not.toBe(rowAfterFirstApply);
+    });
+
+    it('publishes "Move row" when dragging a row itself (not into another row)', () => {
       const row = new SceneGridRow({ title: 'Row A', key: 'row-a', isCollapsed: true, y: 0 });
       const topLevelChild = new SceneGridItem({ key: 'a', x: 0, y: 1, width: 1, height: 1, body: new TestObject({}) });
 
-      const handler = jest.fn();
+      let payload: StateTransactionCommittedPayload | undefined;
       const layout = new SceneGridLayout({
         children: [row, topLevelChild],
         isLazy: false,
       });
-      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
+      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
 
       // drag the (collapsed, so draggable) row below the panel
       layout.onDragStop(
@@ -1157,8 +1197,12 @@ describe('SceneGridLayout', () => {
         {}
       );
 
-      expect(handler).not.toHaveBeenCalled();
+      expect(payload!.description).toEqual('Move row');
       expect(layout.state.children.map((c) => c.state.key)).toEqual(['a', 'row-a']);
+
+      payload!.revert();
+
+      expect(layout.state.children.map((c) => c.state.key)).toEqual(['row-a', 'a']);
     });
   });
 
