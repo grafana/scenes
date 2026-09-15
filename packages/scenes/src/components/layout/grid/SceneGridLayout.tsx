@@ -3,7 +3,7 @@ import ReactGridLayout from 'react-grid-layout';
 
 import { t } from '@grafana/i18n';
 
-import { StateCommittedEvent } from '../../../core/events';
+import { StateCommittedEvent, StateCommittedPayload } from '../../../core/events';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneLayout, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN } from './constants';
@@ -237,9 +237,9 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     });
   };
 
-  private _commitState(transaction: { description: string; replay: () => void; revert: () => void }) {
-    transaction.replay();
-    this.publishEvent(new StateCommittedEvent({ source: this, ...transaction }), true);
+  private _commitState(payload: StateCommittedPayload) {
+    payload.replay();
+    this.publishEvent(new StateCommittedEvent({ source: this, ...payload }), true);
   }
 
   private pushChildDown(child: SceneGridItemLike, amount: number) {
