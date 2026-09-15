@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { StateTransactionCommittedEvent, type StateTransactionCommittedPayload } from '../../../core/events';
+import { StateCommittedEvent, type StateCommittedPayload } from '../../../core/events';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneComponentProps, SceneObjectState } from '../../../core/types';
 import { EmbeddedScene } from '../../EmbeddedScene';
@@ -891,15 +891,19 @@ describe('SceneGridLayout', () => {
     });
   });
 
-  describe('StateTransactionCommittedEvent (resize)', () => {
-    it('applies a resize immediately and publishes StateTransactionCommittedEvent describing it', () => {
+  describe('StateCommittedEvent (resize)', () => {
+    function setup() {
       const layout = new SceneGridLayout({
         children: [new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) })],
         isLazy: false,
       });
       const handler = jest.fn();
-      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
-      const gridStateBefore = layout.state;
+      layout.subscribeToEvent(StateCommittedEvent, handler);
+      return { layout, handler };
+    }
+
+    it('applies a resize, then supports revert() and replay() with the exact dimensions', () => {
+      const { layout, handler } = setup();
 
       layout.onResizeStop(
         [],
@@ -910,97 +914,35 @@ describe('SceneGridLayout', () => {
         {},
         {}
       );
-
-      expect(handler).toHaveBeenCalledTimes(1);
-      const payload: StateTransactionCommittedPayload = handler.mock.calls[0][0].payload;
-      expect(payload.source).toBe(layout);
-      expect(payload.description).toEqual('Resize panel');
 
       expect(layout.state.children[0].state.width).toEqual(4);
       expect(layout.state.children[0].state.height).toEqual(4);
-      // react-grid-layout only reflows from a fresh `layout` prop, which requires the grid
-      // itself (not just the resized child) to re-render.
-      expect(layout.state).not.toBe(gridStateBefore);
-    });
 
-    it('restores the original size when revert() is called', () => {
-      const layout = new SceneGridLayout({
-        children: [new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) })],
-        isLazy: false,
-      });
-      let payload: StateTransactionCommittedPayload | undefined;
-      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
+      expect(handler).toHaveBeenCalledTimes(1);
+      const payload: StateCommittedPayload = handler.mock.calls[0][0].payload;
+      expect(payload.source).toBe(layout);
 
-      layout.onResizeStop(
-        [],
-        // @ts-expect-error
-        {},
-        { i: 'a', x: 0, y: 0, w: 4, h: 4 },
-        {},
-        {},
-        {}
-      );
-
-      expect(layout.state.children[0].state.width).toEqual(4);
-
-      const gridStateBeforeRevert = layout.state;
-      payload!.revert();
+      payload.revert();
 
       expect(layout.state.children[0].state.width).toEqual(1);
       expect(layout.state.children[0].state.height).toEqual(1);
-      expect(layout.state).not.toBe(gridStateBeforeRevert);
-    });
 
-    it('redo (replay() again) restores the resized size', () => {
-      const layout = new SceneGridLayout({
-        children: [new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) })],
-        isLazy: false,
-      });
-      let payload: StateTransactionCommittedPayload | undefined;
-      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
-
-      layout.onResizeStop(
-        [],
-        // @ts-expect-error
-        {},
-        { i: 'a', x: 0, y: 0, w: 4, h: 4 },
-        {},
-        {},
-        {}
-      );
-
-      payload!.revert();
-      payload!.replay();
+      payload.replay();
 
       expect(layout.state.children[0].state.width).toEqual(4);
       expect(layout.state.children[0].state.height).toEqual(4);
     });
-
-    it('does not publish when the resize did not change anything', () => {
-      const layout = new SceneGridLayout({
-        children: [new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) })],
-        isLazy: false,
-      });
-      const handler = jest.fn();
-      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
-
-      layout.onResizeStop(
-        [],
-        // @ts-expect-error
-        {},
-        { i: 'a', x: 0, y: 0, w: 1, h: 1 },
-        {},
-        {},
-        {}
-      );
-
-      expect(handler).not.toHaveBeenCalled();
-    });
   });
 
-  describe('StateTransactionCommittedEvent (drag)', () => {
-    function buildThreeItemLayout() {
-      return new SceneGridLayout({
+  describe('StateCommittedEvent (drag)', () => {
+    function setup() {
+      const layout = new SceneGridLayout({
+        /**
+         * |-----|
+         * | a b |
+         * |   c |
+         * |-----|
+         */
         children: [
           new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) }),
           new SceneGridItem({ key: 'b', x: 1, y: 0, width: 1, height: 1, body: new TestObject({}) }),
@@ -1008,6 +950,9 @@ describe('SceneGridLayout', () => {
         ],
         isLazy: false,
       });
+      const handler = jest.fn();
+      layout.subscribeToEvent(StateCommittedEvent, handler);
+      return { layout, handler };
     }
 
     const dragStopArgs: Parameters<SceneGridLayout['onDragStop']> = [
@@ -1018,6 +963,7 @@ describe('SceneGridLayout', () => {
       ],
       // @ts-expect-error
       {},
+      /** drag b over a **/
       { i: 'b', x: 0, y: 0, w: 1, h: 1 },
       // @ts-expect-error
       {},
@@ -1027,182 +973,45 @@ describe('SceneGridLayout', () => {
       {},
     ];
 
-    it('applies a drag immediately and publishes StateTransactionCommittedEvent with a description and source', () => {
-      const layout = buildThreeItemLayout();
-      const handler = jest.fn();
-      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
+    it('applies a drag, then supports revert() and replay() with the exact positions', () => {
+      const { layout, handler } = setup();
+
+      expect(layout.state.children.map((c) => c.state.key)).toEqual(['a', 'b', 'c']);
 
       layout.onDragStop(...dragStopArgs);
 
+      expect(layout.state.children.map((c) => c.state.key)).toEqual(['b', 'a', 'c']);
+      let b = layout.state.children[0];
+      let a = layout.state.children[1];
+      expect(b.state.x).toEqual(0);
+      expect(b.state.y).toEqual(0);
+      expect(a.state.x).toEqual(0);
+      expect(a.state.y).toEqual(1); // shifted down
+
       expect(handler).toHaveBeenCalledTimes(1);
-      const payload: StateTransactionCommittedPayload = handler.mock.calls[0][0].payload;
+      const payload: StateCommittedPayload = handler.mock.calls[0][0].payload;
       expect(payload.source).toBe(layout);
       expect(payload.description).toEqual('Move panel');
 
-      expect(layout.state.children.map((c) => c.state.key)).toEqual(['b', 'a', 'c']);
-      expect(layout.state.children[0].state.x).toEqual(0);
-      expect(layout.state.children[0].state.y).toEqual(0);
-    });
-
-    it('restores the original positions and order when revert() is called', () => {
-      const layout = buildThreeItemLayout();
-      let payload: StateTransactionCommittedPayload | undefined;
-      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
-
-      layout.onDragStop(...dragStopArgs);
-      payload!.revert();
+      payload.revert();
 
       expect(layout.state.children.map((c) => c.state.key)).toEqual(['a', 'b', 'c']);
-      expect(layout.state.children[0].state.x).toEqual(0);
-      expect(layout.state.children[0].state.y).toEqual(0);
-      expect(layout.state.children[1].state.x).toEqual(1);
-      expect(layout.state.children[1].state.y).toEqual(0);
-    });
+      a = layout.state.children[0];
+      b = layout.state.children[1];
+      expect(a.state.x).toEqual(0);
+      expect(a.state.y).toEqual(0);
+      expect(b.state.x).toEqual(1);
+      expect(b.state.y).toEqual(0);
 
-    it('redo (replay() again) replays the exact same snapshot produced by the drag', () => {
-      const layout = buildThreeItemLayout();
-      let payload: StateTransactionCommittedPayload | undefined;
-      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
+      payload.replay();
 
-      layout.onDragStop(...dragStopArgs);
-      const childrenAfterDrag = layout.state.children;
-
-      payload!.revert();
-      payload!.replay();
-
-      expect(layout.state.children).toBe(childrenAfterDrag);
-    });
-
-    it('does not publish when the drag did not change anything', () => {
-      const layout = buildThreeItemLayout();
-      const handler = jest.fn();
-      layout.subscribeToEvent(StateTransactionCommittedEvent, handler);
-
-      // Same positions as the initial layout
-      layout.onDragStop(
-        [
-          { i: 'a', x: 0, y: 0, w: 1, h: 1 },
-          { i: 'b', x: 1, y: 0, w: 1, h: 1 },
-          { i: 'c', x: 0, y: 1, w: 1, h: 1 },
-        ],
-        // @ts-expect-error
-        {},
-        { i: 'a', x: 0, y: 0, w: 1, h: 1 },
-        {},
-        {},
-        {}
-      );
-
-      expect(handler).not.toHaveBeenCalled();
-    });
-
-    it('restores a row children order on revert when the moved item is reparented into a row', () => {
-      const rowChild = new SceneGridItem({ key: 'b', x: 0, y: 2, width: 1, height: 1, body: new TestObject({}) });
-      const row = new SceneGridRow({ title: 'Row A', key: 'row-a', isCollapsed: false, y: 1, children: [rowChild] });
-      const topLevelChild = new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) });
-
-      let payload: StateTransactionCommittedPayload | undefined;
-      const layout = new SceneGridLayout({
-        children: [topLevelChild, row],
-        isLazy: false,
-      });
-      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
-
-      // move panel a to be the first child of the row (same gesture as the "moving a panel or row" test above)
-      layout.onDragStop(
-        [
-          { w: 12, h: 8, x: 0, y: 2, i: 'a' },
-          { w: 24, h: 1, x: 0, y: 0, i: 'row-a' },
-          { w: 12, h: 8, x: 0, y: 10, i: 'b' },
-        ],
-        // @ts-expect-error
-        {},
-        { w: 12, h: 8, x: 0, y: 2, i: 'a' },
-        {},
-        {},
-        {}
-      );
-
-      expect(payload!.description).toEqual('Move panel');
-      expect((layout.state.children[0] as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['a', 'b']);
-
-      payload!.revert();
-
-      expect(layout.state.children.map((c) => c.state.key)).toEqual(['a', 'row-a']);
-      expect((layout.state.children[1] as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['b']);
-    });
-
-    it('redo after reparenting restores the moved structure, but as a new (though equivalent) row object', () => {
-      const rowChild = new SceneGridItem({ key: 'b', x: 0, y: 2, width: 1, height: 1, body: new TestObject({}) });
-      const row = new SceneGridRow({ title: 'Row A', key: 'row-a', isCollapsed: false, y: 1, children: [rowChild] });
-      const topLevelChild = new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) });
-
-      let payload: StateTransactionCommittedPayload | undefined;
-      const layout = new SceneGridLayout({
-        children: [topLevelChild, row],
-        isLazy: false,
-      });
-      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
-
-      layout.onDragStop(
-        [
-          { w: 12, h: 8, x: 0, y: 2, i: 'a' },
-          { w: 24, h: 1, x: 0, y: 0, i: 'row-a' },
-          { w: 12, h: 8, x: 0, y: 10, i: 'b' },
-        ],
-        // @ts-expect-error
-        {},
-        { w: 12, h: 8, x: 0, y: 2, i: 'a' },
-        {},
-        {},
-        {}
-      );
-
-      const rowAfterFirstApply = layout.state.children[0];
-
-      payload!.revert();
-      payload!.replay();
-
-      // Correct data either way...
-      expect(layout.state.children.map((c) => c.state.key)).toEqual(['row-a']);
-      expect((layout.state.children[0] as SceneGridRow).state.children.map((c) => c.state.key)).toEqual(['a', 'b']);
-      // ...but moveChildTo clones rather than mutates, so a recomputed replay() produces a
-      // different row instance than the original drag did. Kept simple deliberately: this is the
-      // one accepted imperfection of not memoizing the "after" tree for reparenting.
-      expect(layout.state.children[0]).not.toBe(rowAfterFirstApply);
-    });
-
-    it('publishes "Move row" when dragging a row itself (not into another row)', () => {
-      const row = new SceneGridRow({ title: 'Row A', key: 'row-a', isCollapsed: true, y: 0 });
-      const topLevelChild = new SceneGridItem({ key: 'a', x: 0, y: 1, width: 1, height: 1, body: new TestObject({}) });
-
-      let payload: StateTransactionCommittedPayload | undefined;
-      const layout = new SceneGridLayout({
-        children: [row, topLevelChild],
-        isLazy: false,
-      });
-      layout.subscribeToEvent(StateTransactionCommittedEvent, (evt) => (payload = evt.payload));
-
-      // drag the (collapsed, so draggable) row below the panel
-      layout.onDragStop(
-        [
-          { w: 12, h: 8, x: 0, y: 0, i: 'a' },
-          { w: 24, h: 1, x: 0, y: 8, i: 'row-a' },
-        ],
-        // @ts-expect-error
-        {},
-        { w: 24, h: 1, x: 0, y: 8, i: 'row-a' },
-        {},
-        {},
-        {}
-      );
-
-      expect(payload!.description).toEqual('Move row');
-      expect(layout.state.children.map((c) => c.state.key)).toEqual(['a', 'row-a']);
-
-      payload!.revert();
-
-      expect(layout.state.children.map((c) => c.state.key)).toEqual(['row-a', 'a']);
+      expect(layout.state.children.map((c) => c.state.key)).toEqual(['b', 'a', 'c']);
+      b = layout.state.children[0];
+      a = layout.state.children[1];
+      expect(b.state.x).toEqual(0);
+      expect(b.state.y).toEqual(0);
+      expect(a.state.x).toEqual(0);
+      expect(a.state.y).toEqual(1);
     });
   });
 

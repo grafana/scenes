@@ -3,7 +3,7 @@ import ReactGridLayout from 'react-grid-layout';
 
 import { t } from '@grafana/i18n';
 
-import { StateTransactionCommittedEvent } from '../../../core/events';
+import { StateCommittedEvent } from '../../../core/events';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneLayout, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN } from './constants';
@@ -222,13 +222,12 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       return;
     }
 
-    this._commitTransaction({
+    this._commitState({
       description: t('grafana-scenes.components.layout.grid.scene-grid-layout.resize-panel', 'Resize panel'),
       replay: () => {
         child.setState(to);
-        // Unlike a live drag, react-grid-layout has no gesture of its own to reflow from here -
-        // it only picks up the new size from a fresh `layout` prop, which requires the grid
-        // itself (not just the child) to re-render.
+        // Unlike a live drag, react-grid-layout has no gesture
+        // to trigger reflow so we need to run it manually
         this.forceRender();
       },
       revert: () => {
@@ -238,15 +237,9 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     });
   };
 
-  /**
-   * Applies a resize gesture and publishes a StateTransactionCommittedEvent describing it, so an
-   * external system (e.g. an undo/redo stack) can observe and record it. The change is always
-   * applied here, regardless of whether anyone is listening for the event - if nobody is, this
-   * behaves exactly as if undo/redo support didn't exist.
-   */
-  private _commitTransaction(transaction: { description: string; replay: () => void; revert: () => void }) {
+  private _commitState(transaction: { description: string; replay: () => void; revert: () => void }) {
     transaction.replay();
-    this.publishEvent(new StateTransactionCommittedEvent({ source: this, ...transaction }), true);
+    this.publishEvent(new StateCommittedEvent({ source: this, ...transaction }), true);
   }
 
   private pushChildDown(child: SceneGridItemLike, amount: number) {
@@ -362,7 +355,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
 
     // Collect position changes instead of applying them immediately, so we can capture a
-    // consistent "from" snapshot before anything mutates (see _commitTransaction).
+    // consistent "from" snapshot before anything mutates (see _commitState).
     const positionChanges: PositionChange[] = [];
     for (let i = 0; i < gridLayout.length; i++) {
       const gridItem = gridLayout[i];
@@ -397,8 +390,6 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     const isReparenting = newParent !== sceneChild.parent && !this._loadOldLayout;
     const prevChildren = this.state.children;
 
-    // An invalid intermediate state is discarded by onLayoutChange right after this, so there's
-    // nothing meaningful to make undoable - apply it directly, mutating in place as before.
     if (this._loadOldLayout) {
       positionChanges.forEach(({ child, to }) => child.setState(to));
       const nextChildren = isReparenting ? this.moveChildTo(sceneChild, newParent) : prevChildren;
@@ -412,14 +403,8 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       return;
     }
 
-    this._commitTransaction({
-      description:
-        sceneChild instanceof SceneGridRow
-          ? t('grafana-scenes.components.layout.grid.scene-grid-layout.move-row', 'Move row')
-          : t('grafana-scenes.components.layout.grid.scene-grid-layout.move-panel', 'Move panel'),
-      // moveChildTo clones rows rather than mutating them, so replaying this on a later redo
-      // produces a different (though equivalent) row object than the original drag did - kept
-      // simple deliberately: correct data, just not identity-stable across repeated redos.
+    this._commitState({
+      description: t('grafana-scenes.components.layout.grid.scene-grid-layout.move-panel', 'Move panel'),
       replay: () => {
         positionChanges.forEach(({ child, to }) => child.setState(to));
         const nextChildren = isReparenting ? this.moveChildTo(sceneChild, newParent) : prevChildren;
