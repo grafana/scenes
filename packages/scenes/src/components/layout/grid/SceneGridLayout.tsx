@@ -223,6 +223,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     }
 
     this._commitState({
+      source: this,
       description: t('grafana-scenes.components.layout.grid.scene-grid-layout.resize-panel', 'Resize panel'),
       replay: () => {
         child.setState(to);
@@ -239,7 +240,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
 
   private _commitState(payload: StateCommittedPayload) {
     payload.replay();
-    this.publishEvent(new StateCommittedEvent({ source: this, ...payload }), true);
+    this.publishEvent(new StateCommittedEvent(payload), true);
   }
 
   private pushChildDown(child: SceneGridItemLike, amount: number) {
@@ -404,6 +405,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     }
 
     this._commitState({
+      source: this,
       description: t('grafana-scenes.components.layout.grid.scene-grid-layout.move-panel', 'Move panel'),
       replay: () => {
         positionChanges.forEach(({ child, to }) => child.setState(to));
