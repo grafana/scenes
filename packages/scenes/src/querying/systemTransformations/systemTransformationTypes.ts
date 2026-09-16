@@ -26,8 +26,8 @@ export type SystemTransformation = (
  * Nothing a provider contributes ever reaches `state.transformations`.
  */
 export interface SystemTransformationsProvider {
-  isSystemTransformationsProvider: true;
-  origin: TransformationOrigin;
+  readonly isSystemTransformationsProvider: true;
+  readonly origin: TransformationOrigin;
 
   /**
    * Resolves what to run for the frames about to enter the pipeline. Called on every pass and does not write scene state.
