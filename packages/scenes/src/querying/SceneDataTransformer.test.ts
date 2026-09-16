@@ -41,6 +41,7 @@ interface TestProviderState extends SceneObjectState {
 
 /** Stands in for the VizPanel that implements the interface in production. */
 class TestProvider extends SceneObjectBase<TestProviderState> implements SystemTransformationsProvider {
+  public isSystemTransformationsProvider: true = true;
   public origin = 'plugin';
   public calls: DataFrame[][] = [];
 
@@ -1518,6 +1519,23 @@ describe('SceneDataTransformer', () => {
       transformationNode.activate();
 
       expect(parent).toBeDefined();
+      expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
+    });
+
+    it('ignores a parent that resembles a provider without explicitly opting in', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+      const getSystemTransformations = jest.fn(() => ({ append: [transformer2config] }));
+      const parent = Object.assign(new TestSceneObject({ $data: transformationNode }), {
+        origin: 'plugin',
+        getSystemTransformations,
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      expect(parent).toBeDefined();
+      expect(getSystemTransformations).not.toHaveBeenCalled();
       expect(transformationNode.getResolvedSystemTransformations()).toEqual({ prepend: [], append: [] });
       expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
     });

@@ -425,6 +425,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
    * @internal
    * SystemTransformationsProvider. Identifies this panel's tier in its data pipeline; not for app code.
    */
+  public isSystemTransformationsProvider: true = true;
   public origin: TransformationOrigin = 'plugin';
 
   /**

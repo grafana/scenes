@@ -12,12 +12,7 @@ import {
  * Narrows SystemTransformationsProvider
  */
 export function isSystemTransformationsProvider(o: unknown): o is SystemTransformationsProvider {
-  return (
-    typeof o === 'object' &&
-    o !== null &&
-    'origin' in o &&
-    typeof (o as SystemTransformationsProvider).getSystemTransformations === 'function'
-  );
+  return typeof o === 'object' && o !== null && 'isSystemTransformationsProvider' in o;
 }
 
 /**

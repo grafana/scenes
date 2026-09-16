@@ -26,6 +26,7 @@ export type SystemTransformation = (
  * Nothing a provider contributes ever reaches `state.transformations`.
  */
 export interface SystemTransformationsProvider {
+  isSystemTransformationsProvider: true;
   origin: TransformationOrigin;
 
   /**
