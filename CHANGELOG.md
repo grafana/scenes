@@ -1,3 +1,22 @@
+# v8.18.0 (Wed Sep 16 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneDataTransformer: support system and URL provided transformations [#1614](https://github.com/grafana/scenes/pull/1614) ([@dprokop](https://github.com/dprokop) [@gtk-grafana](https://github.com/gtk-grafana))
+
+#### 🐛 Bug Fix
+
+- CI: Harden the release pipeline after the v8.17.0 release [#1642](https://github.com/grafana/scenes/pull/1642) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 3
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
 # v8.17.0 (Thu Sep 10 2026)
 
 #### 🚀 Enhancement
