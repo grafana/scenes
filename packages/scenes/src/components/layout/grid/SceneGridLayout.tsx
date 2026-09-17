@@ -172,6 +172,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       this._loadOldLayout = false;
     }
 
+    this._applyLayout(layout);
+  };
+
+  private _applyLayout(layout: ReactGridLayout.Layout[]) {
     for (const item of layout) {
       const child = this.getSceneLayoutChild(item.i);
 
@@ -190,7 +194,14 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     }
 
     this.setState({ children: sortChildrenByPosition(this.state.children) });
-  };
+  }
+
+  private _captureLayout(layout: ReactGridLayout.Layout[]): ReactGridLayout.Layout[] {
+    return layout.map((item) => {
+      const { x, y, width, height } = this.getSceneLayoutChild(item.i).state;
+      return { ...item, x: x!, y: y!, w: width!, h: height! };
+    });
+  }
 
   /**
    * Will also scan row children and return child of the row
@@ -213,29 +224,24 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     throw new Error('Scene layout child not found for GridItem');
   }
 
-  public onResizeStop: ReactGridLayout.ItemCallback = (_, o, n) => {
-    const child = this.getSceneLayoutChild(n.i);
-    const from = { width: child.state.width, height: child.state.height };
-    const to = { width: n.w, height: n.h };
+  public onResizeStop: ReactGridLayout.ItemCallback = (layout) => {
+    const from = this._captureLayout(layout);
+    const hasChanges = layout.some(
+      (item, i) => item.x !== from[i].x || item.y !== from[i].y || item.w !== from[i].w || item.h !== from[i].h
+    );
 
-    if (from.width === to.width && from.height === to.height) {
+    if (!hasChanges) {
       return;
     }
 
     this._commitState({
       source: this,
       description: t('grafana-scenes.components.layout.grid.scene-grid-layout.resize-panel', 'Resize panel'),
-      replay: () => {
-        child.setState(to);
-        // Unlike a live drag, react-grid-layout has no gesture
-        // to trigger reflow so we need to run it manually
-        this.forceRender();
-      },
-      revert: () => {
-        child.setState(from);
-        this.forceRender();
-      },
+      replay: () => this._applyLayout(layout),
+      revert: () => this._applyLayout(from),
     });
+
+    this._skipOnLayoutChange = true;
   };
 
   private _commitState(payload: StateCommittedPayload) {

@@ -892,45 +892,86 @@ describe('SceneGridLayout', () => {
   });
 
   describe('StateCommittedEvent (resize)', () => {
+    type GridLayout = Parameters<SceneGridLayout['onResizeStop']>[0];
+
     function setup() {
-      const layout = new SceneGridLayout({
-        children: [new SceneGridItem({ key: 'a', x: 0, y: 0, width: 1, height: 1, body: new TestObject({}) })],
-        isLazy: false,
-      });
+      /**
+       * |-----|
+       * |  a  | a: y 0 to 8
+       * |-----|
+       * |  b  | b: y 8 to 16
+       * |-----|
+       */
+      const a = new SceneGridItem({ key: 'a', x: 0, y: 0, width: 24, height: 8, body: new TestObject({}) });
+      const b = new SceneGridItem({ key: 'b', x: 0, y: 8, width: 24, height: 8, body: new TestObject({}) });
+      const layout = new SceneGridLayout({ children: [a, b], isLazy: false });
       const handler = jest.fn();
       layout.subscribeToEvent(StateCommittedEvent, handler);
-      return { layout, handler };
+      return { layout, handler, a, b };
     }
 
-    it('applies a resize, then supports revert() and replay() with the exact dimensions', () => {
-      const { layout, handler } = setup();
+    function resizeStop(layout: SceneGridLayout, gridLayout: GridLayout) {
+      // @ts-expect-error only the layout argument is used
+      layout.onResizeStop(gridLayout, {}, gridLayout[0], {}, {}, {});
+    }
 
-      layout.onResizeStop(
-        [],
-        // @ts-expect-error
-        {},
-        { i: 'a', x: 0, y: 0, w: 4, h: 4 },
-        {},
-        {},
-        {}
-      );
+    /**
+     * react-grid-layout compacts the layout before calling onResizeStop, so shrinking a also
+     * pulls b up. It then passes this same layout to onLayoutChange.
+     */
+    const shrinkA: GridLayout = [
+      { i: 'a', x: 0, y: 0, w: 24, h: 4 },
+      { i: 'b', x: 0, y: 4, w: 24, h: 8 },
+    ];
 
-      expect(layout.state.children[0].state.width).toEqual(4);
-      expect(layout.state.children[0].state.height).toEqual(4);
+    it('applies a resize, then supports revert() and replay() including sibling positions', () => {
+      const { layout, handler, a, b } = setup();
+
+      resizeStop(layout, shrinkA);
+
+      expect(a.state).toMatchObject({ x: 0, y: 0, width: 24, height: 4 });
+      expect(b.state).toMatchObject({ x: 0, y: 4, width: 24, height: 8 });
 
       expect(handler).toHaveBeenCalledTimes(1);
       const payload: StateCommittedPayload = handler.mock.calls[0][0].payload;
       expect(payload.source).toBe(layout);
+      expect(payload.description).toEqual('Resize panel');
 
       payload.revert();
 
-      expect(layout.state.children[0].state.width).toEqual(1);
-      expect(layout.state.children[0].state.height).toEqual(1);
+      // b has to move back as part of the undo, without waiting for react-grid-layout to reflow
+      expect(a.state).toMatchObject({ x: 0, y: 0, width: 24, height: 8 });
+      expect(b.state).toMatchObject({ x: 0, y: 8, width: 24, height: 8 });
 
       payload.replay();
 
-      expect(layout.state.children[0].state.width).toEqual(4);
-      expect(layout.state.children[0].state.height).toEqual(4);
+      expect(a.state).toMatchObject({ x: 0, y: 0, width: 24, height: 4 });
+      expect(b.state).toMatchObject({ x: 0, y: 4, width: 24, height: 8 });
+    });
+
+    it('skips the onLayoutChange react-grid-layout calls right after, as the resize applied it', () => {
+      const { layout, handler, a, b } = setup();
+
+      resizeStop(layout, shrinkA);
+      layout.onLayoutChange(shrinkA);
+
+      expect(handler).toHaveBeenCalledTimes(1);
+
+      handler.mock.calls[0][0].payload.revert();
+
+      expect(a.state).toMatchObject({ y: 0, height: 8 });
+      expect(b.state).toMatchObject({ y: 8, height: 8 });
+    });
+
+    it('does not commit anything when nothing changed, e.g. a click on the resize handle', () => {
+      const { layout, handler } = setup();
+
+      resizeStop(layout, [
+        { i: 'a', x: 0, y: 0, w: 24, h: 8 },
+        { i: 'b', x: 0, y: 8, w: 24, h: 8 },
+      ]);
+
+      expect(handler).not.toHaveBeenCalled();
     });
   });
 
