@@ -420,7 +420,7 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       },
       revert: () => {
         positionChanges.forEach(({ child, from }) => child.setState(from));
-        this.setState({ children: prevChildren });
+        this.setState({ children: sortChildrenByPosition(prevChildren) });
       },
     });
 
