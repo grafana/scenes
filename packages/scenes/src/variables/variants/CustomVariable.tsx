@@ -77,7 +77,11 @@ export class CustomVariable extends MultiValueVariable<CustomVariableState> {
         ? this.transformJsonToOptions(this.state.query)
         : this.transformCsvStringToOptions(this.state.query);
 
-    if (!options.length) {
+    // Skipping validation preserves a value that arrived from the URL for a query that
+    // legitimately resolves to nothing. A query interpolating another variable is different:
+    // resolving to nothing there means the dependency cleared, so the value should follow it
+    // rather than be preserved.
+    if (!options.length && !this.variableDependency?.getNames()?.size) {
       this.skipNextValidation = true;
     }
 
