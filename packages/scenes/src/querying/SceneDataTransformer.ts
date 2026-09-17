@@ -19,6 +19,8 @@ import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 import {
   ResolvedSystemTransformations,
+  RuntimeTransformationTag,
+  RuntimeTransformationsOptions,
   SystemTransformationsProvider,
 } from './systemTransformations/systemTransformationTypes';
 import {
@@ -74,6 +76,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    * cancelled by deactivation has applied neither, and must not be taken for one that landed.
    */
   private _lastPassSystem?: ResolvedSystemTransformations;
+  private _runtimeTransformations = new Map<
+    RuntimeTransformationTag,
+    RuntimeTransformationsOptions['transformations']
+  >();
+  private _runtimeRevision = 0;
+  private _lastPassRuntimeRevision = 0;
+  private _lastPassHadRuntimeTransformations = false;
 
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
@@ -102,7 +111,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     const providerChanged = this._discoverProvider();
 
     if (sourceData.state.data) {
-      this.transform(sourceData.state.data, providerChanged);
+      this.transform(sourceData.state.data, providerChanged || this._runtimeRevision !== this._lastPassRuntimeRevision);
     }
 
     this._hasActivatedBefore = true;
@@ -210,6 +219,35 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   /**
+   * Adds or replaces one owner's runtime transformations.
+   * Runtime transformations run after provider and saved transformations without entering scene state.
+   */
+  public upsertRuntimeTransformations({ tag, transformations }: RuntimeTransformationsOptions): void {
+    this._runtimeTransformations.set(tag, [...transformations]);
+    this._runtimeTransformationsChanged();
+  }
+
+  /**
+   * Removes one owner's runtime transformations. A missing tag has no effect.
+   */
+  public removeRuntimeTransformations(tag: RuntimeTransformationTag): void {
+    if (!this._runtimeTransformations.delete(tag)) {
+      return;
+    }
+
+    this._runtimeTransformationsChanged();
+  }
+
+  private _runtimeTransformationsChanged(): void {
+    this._runtimeRevision++;
+    this._resolvedSystem = undefined;
+
+    if (this.isActive) {
+      this.transform(this.getSourceData().state.data, true);
+    }
+  }
+
+  /**
    * The system transformations for the given source frames.
    * Public because provider output never reaches state, so this is the only way for readers
    * (the transformations editor, the inspect data tab) to see what the pipeline is running.
@@ -217,7 +255,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   public getResolvedSystemTransformations(series?: DataFrame[]): ResolvedSystemTransformations {
     const provider = this._provider;
 
-    if (!provider) {
+    if (!provider && this._runtimeTransformations.size === 0) {
       return NO_SYSTEM_TRANSFORMATIONS;
     }
 
@@ -228,11 +266,17 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
       return memo.resolved;
     }
 
-    const { prepend = [], append = [] } = this._resolveProvider(provider, frames);
+    const { prepend = [], append = [] } = provider ? this._resolveProvider(provider, frames) : {};
+    const runtime = Array.from(this._runtimeTransformations, ([tag, transformations]) =>
+      transformations.map((transformation) => toSystemTransformation(transformation, 'append', tag, tag))
+    ).flat();
 
     const resolved = freezeResolved({
-      prepend: prepend.map((t) => toSystemTransformation(t, 'prepend', provider.origin)),
-      append: append.map((t) => toSystemTransformation(t, 'append', provider.origin)),
+      prepend: provider ? prepend.map((t) => toSystemTransformation(t, 'prepend', provider.origin)) : [],
+      append: [
+        ...(provider ? append.map((t) => toSystemTransformation(t, 'append', provider.origin)) : []),
+        ...runtime,
+      ],
     });
 
     this._resolvedSystem = { series: frames, resolved };
@@ -272,7 +316,9 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    */
   private _systemTransformationsFor(series: DataFrame[]): ResolvedSystemTransformations {
     // Without a provider state already holds everything in pipeline order, so the common case stays free.
-    return this._provider ? this.getResolvedSystemTransformations(series) : NO_SYSTEM_TRANSFORMATIONS;
+    return this._provider || this._runtimeTransformations.size > 0
+      ? this.getResolvedSystemTransformations(series)
+      : NO_SYSTEM_TRANSFORMATIONS;
   }
 
   /**
@@ -333,9 +379,13 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   public clone(withState?: Partial<SceneDataTransformerState>) {
-    const clone = super.clone(withState);
+    const cloneState =
+      this._lastPassHadRuntimeTransformations && this._prevDataFromSource && withState?.data === undefined
+        ? { ...withState, data: this._prevDataFromSource }
+        : withState;
+    const clone = super.clone(cloneState);
 
-    if (this._prevDataFromSource) {
+    if (this._prevDataFromSource && !this._lastPassHadRuntimeTransformations) {
       clone['_prevDataFromSource'] = this._prevDataFromSource;
       clone['_lastPassSystem'] = this._lastPassSystem;
     }
@@ -391,6 +441,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   private transform(data: PanelData | undefined, force = false) {
+    const runtimeRevision = this._runtimeRevision;
+    const hasRuntimeTransformations = Array.from(this._runtimeTransformations.values()).some(
+      (transformations) => transformations.length > 0
+    );
     const timestamp = performance.now();
     // S3.1: Performance tracking entry point
     const profiler = findPanelProfiler(this);
@@ -422,6 +476,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
       this._prevDataFromSource = data;
       this._lastPassSystem = system;
+      this._lastPassRuntimeRevision = runtimeRevision;
+      this._lastPassHadRuntimeTransformations = hasRuntimeTransformations;
 
       // Any source state change re-runs this, so without the guard a passthrough panel publishes a state
       // change carrying data it already had - one no-op event per listener, DashboardSceneChangeTracker
@@ -565,6 +621,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         this._results.next({ origin: this, data: transformedData });
         this._prevDataFromSource = data;
         this._lastPassSystem = system;
+        this._lastPassRuntimeRevision = runtimeRevision;
+        this._lastPassHadRuntimeTransformations = hasRuntimeTransformations;
       });
   }
 

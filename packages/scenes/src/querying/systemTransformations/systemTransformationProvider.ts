@@ -2,6 +2,7 @@ import { DataTopic, DataTransformerConfig } from '@grafana/data';
 import { CustomTransformerDefinition } from '../../core/types';
 import {
   ResolvedSystemTransformations,
+  RuntimeTransformationTag,
   SystemTransformation,
   SystemTransformationPosition,
   SystemTransformationsProvider,
@@ -21,13 +22,20 @@ export function isSystemTransformationsProvider(o: unknown): o is SystemTransfor
 export function toSystemTransformation(
   transformation: DataTransformerConfig | CustomTransformerDefinition,
   position: SystemTransformationPosition,
-  origin: TransformationOrigin
+  origin: TransformationOrigin,
+  tag?: RuntimeTransformationTag
 ): SystemTransformation {
   if (typeof transformation === 'function') {
-    return { operator: transformation, topic: DataTopic.Series, origin, position };
+    return {
+      operator: transformation,
+      topic: DataTopic.Series,
+      origin,
+      position,
+      ...(tag !== undefined ? { tag } : {}),
+    };
   }
 
-  return { ...transformation, origin, position };
+  return { ...transformation, origin, position, ...(tag !== undefined ? { tag } : {}) };
 }
 
 /**

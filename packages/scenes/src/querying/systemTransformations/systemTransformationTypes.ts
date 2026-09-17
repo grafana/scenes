@@ -5,12 +5,26 @@ import { CustomTransformerDefinition } from '../../core/types';
  * Identifies the contributor that injected a system transformation.
  */
 export type TransformationOrigin = string;
+
+/**
+ * Identifies one runtime transformation contribution.
+ */
+export type RuntimeTransformationTag = string;
+
+/**
+ * A tagged group of transformations that runs outside scene state.
+ */
+export interface RuntimeTransformationsOptions {
+  tag: RuntimeTransformationTag;
+  transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
+}
+
 /**
  * Whether a system transformation runs before or after the user configured transformations.
  */
 export type SystemTransformationPosition = 'prepend' | 'append';
 /**
- * A provider contributed transformation.
+ * A system contributed transformation.
  */
 export type SystemTransformation = (
   | DataTransformerConfig
@@ -18,6 +32,7 @@ export type SystemTransformation = (
 ) & {
   origin: TransformationOrigin;
   position: SystemTransformationPosition;
+  tag?: RuntimeTransformationTag;
 };
 
 /**

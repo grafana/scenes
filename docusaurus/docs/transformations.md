@@ -175,6 +175,78 @@ The resulting table will look similar to the one that follows:
 | /api/v1/series             | 0                |
 | /api/v1/status/buildinfo   | 0                |
 
+## Add runtime transformations
+
+A runtime transformation changes the current output without adding transformation configuration to scene state. Use it for temporary behavior that a plugin or Grafana feature owns.
+
+Each runtime group needs a stable tag. A tag identifies one owner and one logical behavior. A namespaced value starts with an owner name. Use a value such as `table:column-filter` to prevent conflicts.
+
+The following example adds a runtime field filter:
+
+```ts
+transformedData.upsertRuntimeTransformations({
+  tag: 'table:column-filter',
+  transformations: [
+    {
+      id: 'filterFieldsByName',
+      options: {
+        include: {
+          names: ['handler', 'Value'],
+        },
+      },
+    },
+  ],
+});
+```
+
+Call `upsertRuntimeTransformations` again with the same tag. This call replaces only that group:
+
+```ts
+transformedData.upsertRuntimeTransformations({
+  tag: 'table:column-filter',
+  transformations: [
+    {
+      id: 'filterFieldsByName',
+      options: {
+        include: {
+          names: ['handler'],
+        },
+      },
+    },
+  ],
+});
+```
+
+Different tags do not replace each other. The groups run in the order that you first add their tags. An update keeps the original position of its tag.
+
+Runtime groups run after all transformations in this list:
+
+1. Provider prepend transformations.
+2. Saved transformations in `state.transformations`.
+3. Provider append transformations.
+
+When the behavior ends, remove its group:
+
+```ts
+transformedData.removeRuntimeTransformations('table:column-filter');
+```
+
+Removing a missing tag has no effect. If you remove and add a tag again, its group moves to the end of the runtime order.
+
+If the transformer is active, an update reprocesses the current source data. It does not run a new data source query. If the transformer is inactive, the transformer applies the update when it next activates.
+
+Runtime transformations do not enter `state.transformations`. Scenes does not serialize runtime transformations or copy them to clones. The owner must add them to each new transformer and remove them when the behavior ends.
+
+Variable interpolation replaces variable references with their values. Runtime transformation values do not support automatic variable interpolation. Resolve variable values before you call `upsertRuntimeTransformations`.
+
+A pipeline is an ordered set of transformations. Use `getResolvedSystemTransformations()` to inspect the active pipeline. Each runtime transformation appears in `append` with its `tag`, `origin`, and `position` metadata:
+
+```ts
+const runtimeTransformations = transformedData
+  .getResolvedSystemTransformations()
+  .append.filter((transformation) => transformation.tag === 'table:column-filter');
+```
+
 ## Add custom transformations
 
 In addition to all the transformations available in Grafana, scenes allow you to create custom transformations.
