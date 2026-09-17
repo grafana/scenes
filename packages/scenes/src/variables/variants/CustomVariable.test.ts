@@ -257,6 +257,39 @@ label-3 : value-3,`,
   });
 
   describe('When query contains other variables', () => {
+    it('Should keep skipping validation when a static query resolves to no options', async () => {
+      // The counterpart to the test below: with no variable to follow, a value that arrived
+      // from the URL is still worth preserving when the query produces nothing.
+      const variable = new CustomVariable({
+        name: 'static',
+        options: [],
+        query: '',
+        value: 'urlValue',
+        text: 'urlValue',
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toBe('urlValue');
+    });
+
+    it('Should not skip validation when the interpolated query resolves to no options', async () => {
+      const A = new CustomVariable({ name: 'A', options: [], query: 'value1', value: '', text: '' });
+      const B = new CustomVariable({ name: 'B', options: [], query: '$A', value: '', text: '' });
+
+      const scene = new TestScene({ $variables: new SceneVariableSet({ variables: [A, B] }) });
+      scene.activate();
+
+      expect(B.state.value).toBe('value1');
+
+      // A clearing leaves B with no options. B derives its value from A, so it should follow
+      // rather than keep a value that is no longer produced by its query. The set propagates
+      // this synchronously, so no explicit revalidation is needed.
+      A.changeValueTo('');
+
+      expect(B.state.value).toBe('');
+    });
+
     it('Should interpolate query', async () => {
       const A = new CustomVariable({
         name: 'A',
