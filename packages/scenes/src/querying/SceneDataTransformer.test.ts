@@ -1726,6 +1726,365 @@ describe('SceneDataTransformer', () => {
     });
   });
 
+  describe('runtime transformation layers', () => {
+    const multiply =
+      (factor: number): CustomTransformOperator =>
+      () =>
+      (source) =>
+        source.pipe(
+          map((frames) =>
+            frames.map((frame) => ({
+              ...frame,
+              fields: frame.fields.map((field) => ({
+                ...field,
+                values: field.values.map((value) => value * factor),
+              })),
+            }))
+          )
+        );
+
+    it('runs final layers after provider and saved transformations', () => {
+      const order: string[] = [];
+      const track =
+        (name: string): CustomTransformOperator =>
+        () =>
+        (source) => {
+          order.push(name);
+          return source;
+        };
+      const provider = new TestProvider({
+        resolve: () => ({ prepend: [track('provider prepend')], append: [track('provider append')] }),
+      });
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [track('saved')],
+      });
+
+      provider.setState({ child: transformationNode });
+      transformationNode.registerRuntimeTransformationLayer({
+        id: 'final-owner',
+        phase: 'final',
+        getTransformations: () => [track('final')],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      expect(order).toEqual(['provider prepend', 'saved', 'provider append', 'final']);
+    });
+
+    it('groups layers by phase while preserving insertion order within each phase', () => {
+      const order: string[] = [];
+      const track =
+        (name: string): CustomTransformOperator =>
+        () =>
+        (source) => {
+          order.push(name);
+          return source;
+        };
+      const provider = new TestProvider({
+        resolve: () => ({ prepend: [track('provider prepend')], append: [track('provider append')] }),
+      });
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [track('saved')],
+      });
+
+      provider.setState({ child: transformationNode });
+      transformationNode.registerRuntimeTransformationLayer({
+        id: 'final-first',
+        phase: 'final',
+        getTransformations: () => [track('final first')],
+      });
+      transformationNode.registerRuntimeTransformationLayer({
+        id: 'after',
+        phase: 'afterUser',
+        getTransformations: () => [track('after user')],
+      });
+      transformationNode.registerRuntimeTransformationLayer({
+        id: 'before',
+        phase: 'beforeUser',
+        getTransformations: () => [track('before user')],
+      });
+      transformationNode.registerRuntimeTransformationLayer({
+        id: 'final-second',
+        phase: 'final',
+        getTransformations: () => [track('final second')],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      expect(order).toEqual([
+        'provider prepend',
+        'before user',
+        'saved',
+        'provider append',
+        'after user',
+        'final first',
+        'final second',
+      ]);
+    });
+
+    it('applies a change made while inactive once on reactivation', () => {
+      let factor = 2;
+      const getTransformations = jest.fn(() => [multiply(factor)]);
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+      const registration = transformationNode.registerRuntimeTransformationLayer({
+        id: 'owner',
+        phase: 'final',
+        getTransformations,
+      });
+
+      sourceDataNode.activate();
+      const deactivate = transformationNode.activate();
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+
+      deactivate();
+      factor = 3;
+      registration.changed();
+
+      transformationNode.activate();
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
+      expect(getTransformations).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns a frozen last-pass snapshot without resolving suppliers', () => {
+      const provider = new TestProvider({ resolve: () => ({ append: [transformer2config] }) });
+      const getTransformations = jest.fn(() => [multiply(2)]);
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      provider.setState({ child: transformationNode });
+      const registration = transformationNode.registerRuntimeTransformationLayer({
+        id: 'owner',
+        phase: 'final',
+        getTransformations,
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      const snapshot = transformationNode.getResolvedRuntimeTransformationLayers();
+
+      expect(snapshot).toEqual([
+        expect.objectContaining({ phase: 'afterUser', origin: 'plugin' }),
+        expect.objectContaining({ id: 'owner', phase: 'final', origin: 'owner' }),
+      ]);
+      expect(Object.isFrozen(snapshot)).toBe(true);
+      expect(snapshot.every((layer) => Object.isFrozen(layer) && Object.isFrozen(layer.transformations))).toBe(true);
+
+      expect(transformationNode.getResolvedRuntimeTransformationLayers()).toBe(snapshot);
+      expect(getTransformations).toHaveBeenCalledTimes(1);
+      expect(provider.calls).toHaveLength(1);
+
+      registration.changed();
+
+      expect(transformationNode.getResolvedRuntimeTransformationLayers()).not.toBe(snapshot);
+      expect(getTransformations).toHaveBeenCalledTimes(2);
+      expect(provider.calls).toHaveLength(1);
+    });
+
+    it('does not copy runtime owners or their applied output into a clone', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+      transformationNode.registerRuntimeTransformationLayer({
+        id: 'owner',
+        phase: 'final',
+        getTransformations: () => [multiply(2)],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+
+      const clone = transformationNode.clone();
+      clone.activate();
+
+      expect(clone.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
+      expect(clone.getResolvedRuntimeTransformationLayers()).toEqual([]);
+    });
+
+    it('updates and disposes independent owners without re-resolving the others', () => {
+      let firstFactor = 2;
+      const firstSupplier = jest.fn(() => [multiply(firstFactor)]);
+      const secondSupplier = jest.fn(() => [multiply(3)]);
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+      const firstRegistration = transformationNode.registerRuntimeTransformationLayer({
+        id: 'first',
+        phase: 'final',
+        getTransformations: firstSupplier,
+      });
+      transformationNode.registerRuntimeTransformationLayer({
+        id: 'second',
+        phase: 'final',
+        getTransformations: secondSupplier,
+      });
+
+      expect(transformationNode.state.transformations).toEqual([]);
+      expect(transformationNode.toJSON().state.transformations).toEqual([]);
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+
+      const updates = subscribeToStateUpdates(transformationNode);
+      firstFactor = 4;
+      firstRegistration.changed();
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([12, 24, 36]);
+      expect(firstSupplier).toHaveBeenCalledTimes(2);
+      expect(secondSupplier).toHaveBeenCalledTimes(1);
+      expect(updates).toHaveLength(1);
+
+      firstRegistration.dispose();
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
+      expect(secondSupplier).toHaveBeenCalledTimes(1);
+      expect(updates).toHaveLength(2);
+      expect(transformationNode.getResolvedRuntimeTransformationLayers().map((layer) => layer.id)).toEqual(['second']);
+
+      firstRegistration.dispose();
+      expect(updates).toHaveLength(2);
+    });
+
+    it('rejects duplicate active IDs and allows reuse after disposal', () => {
+      const transformationNode = new SceneDataTransformer({ transformations: [] });
+      const registration = transformationNode.registerRuntimeTransformationLayer({
+        id: 'owner',
+        phase: 'final',
+        getTransformations: () => [],
+      });
+
+      expect(() =>
+        transformationNode.registerRuntimeTransformationLayer({
+          id: 'owner',
+          phase: 'beforeUser',
+          getTransformations: () => [],
+        })
+      ).toThrow("A runtime transformation layer with id 'owner' is already registered.");
+
+      registration.dispose();
+
+      expect(() =>
+        transformationNode.registerRuntimeTransformationLayer({
+          id: 'owner',
+          phase: 'beforeUser',
+          getTransformations: () => [],
+        })
+      ).not.toThrow();
+    });
+
+    it('applies a layer registered while inactive on reactivation', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+
+      sourceDataNode.activate();
+      const deactivate = transformationNode.activate();
+      deactivate();
+
+      transformationNode.registerRuntimeTransformationLayer({
+        id: 'owner',
+        phase: 'final',
+        getTransformations: () => [multiply(2)],
+      });
+      transformationNode.activate();
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([2, 4, 6]);
+    });
+
+    it('removes a layer disposed while inactive on reactivation', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [] });
+      const registration = transformationNode.registerRuntimeTransformationLayer({
+        id: 'owner',
+        phase: 'final',
+        getTransformations: () => [multiply(2)],
+      });
+
+      sourceDataNode.activate();
+      const deactivate = transformationNode.activate();
+      deactivate();
+      registration.dispose();
+      transformationNode.activate();
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([1, 2, 3]);
+    });
+
+    it('contains a supplier failure to the throwing layer', () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      const transformationNode = new SceneDataTransformer({
+        $data: sourceDataNode,
+        transformations: [multiply(2)],
+      });
+      transformationNode.registerRuntimeTransformationLayer({
+        id: 'throwing',
+        phase: 'final',
+        getTransformations: () => {
+          throw new Error('boom');
+        },
+      });
+      transformationNode.registerRuntimeTransformationLayer({
+        id: 'working',
+        phase: 'final',
+        getTransformations: () => [multiply(3)],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([6, 12, 18]);
+      expect(transformationNode.state.data?.state).not.toBe(LoadingState.Error);
+      expect(consoleError).toHaveBeenCalledWith(
+        "Error resolving runtime transformation layer 'throwing': ",
+        expect.any(Error)
+      );
+      consoleError.mockRestore();
+    });
+
+    it('does not reprocess when disposing an applied empty layer', () => {
+      const transformationNode = new SceneDataTransformer({ $data: sourceDataNode, transformations: [multiply(2)] });
+      const registration = transformationNode.registerRuntimeTransformationLayer({
+        id: 'empty',
+        phase: 'final',
+        getTransformations: () => [],
+      });
+
+      sourceDataNode.activate();
+      transformationNode.activate();
+      const updates = subscribeToStateUpdates(transformationNode);
+
+      registration.dispose();
+
+      expect(updates).toHaveLength(0);
+    });
+
+    it('reprocesses existing query results without issuing a new request', async () => {
+      let factor = 2;
+      const transformationNode = new SceneDataTransformer({
+        $data: new SceneQueryRunner({
+          queries: [{ refId: 'A' }],
+          $timeRange: new SceneTimeRange(),
+          maxDataPoints: 100,
+        }),
+        transformations: [],
+      });
+      const registration = transformationNode.registerRuntimeTransformationLayer({
+        id: 'owner',
+        phase: 'final',
+        getTransformations: () => [multiply(factor)],
+      });
+
+      transformationNode.activate();
+      await new Promise((resolve) => setTimeout(resolve, 1));
+      const requestCount = runRequestMock.mock.calls.length;
+
+      factor = 3;
+      registration.changed();
+      await new Promise((resolve) => setTimeout(resolve, 1));
+
+      expect(runRequestMock).toHaveBeenCalledTimes(requestCount);
+      expect(transformationNode.state.data?.series[0].fields[1].values).toEqual([3, 6, 9]);
+    });
+  });
+
   describe('Series <-> Annotations conversion', () => {
     it('should convert series frames to annotation frames', () => {
       // Custom transformer that converts series frames to annotation frames

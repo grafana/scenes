@@ -18,15 +18,33 @@ import { VariableDependencyConfig } from '../variables/VariableDependencyConfig'
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 import {
+  ResolvedRuntimeTransformationLayer,
   ResolvedSystemTransformations,
+  RuntimeTransformationLayer,
+  RuntimeTransformationRegistration,
   SystemTransformationsProvider,
 } from './systemTransformations/systemTransformationTypes';
 import {
+  freezeResolvedRuntimeLayer,
+  freezeResolvedRuntimeLayers,
   freezeResolved,
   isSystemTransformationsProvider,
+  systemTransformationsToRuntimeLayers,
   toSystemTransformation,
 } from './systemTransformations/systemTransformationProvider';
-import { NO_SERIES, NO_SYSTEM_TRANSFORMATIONS } from './systemTransformations/constants';
+import {
+  NO_RUNTIME_TRANSFORMATION_LAYERS,
+  NO_SERIES,
+  NO_SYSTEM_TRANSFORMATIONS,
+} from './systemTransformations/constants';
+
+interface RegisteredRuntimeTransformationLayer {
+  layer: RuntimeTransformationLayer;
+  memo?: {
+    series: DataFrame[];
+    resolved: ResolvedRuntimeTransformationLayer;
+  };
+}
 
 export interface SceneDataTransformerState extends SceneDataState {
   /**
@@ -74,6 +92,10 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
    * cancelled by deactivation has applied neither, and must not be taken for one that landed.
    */
   private _lastPassSystem?: ResolvedSystemTransformations;
+  private _runtimeLayers = new Map<string, RegisteredRuntimeTransformationLayer>();
+  private _lastPassRuntimeLayers: readonly ResolvedRuntimeTransformationLayer[] = NO_RUNTIME_TRANSFORMATION_LAYERS;
+  private _runtimeRevision = 0;
+  private _lastPassRuntimeRevision = 0;
 
   /**
    * Scan transformations for variable usage and re-process transforms when a variable values change
@@ -102,7 +124,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     const providerChanged = this._discoverProvider();
 
     if (sourceData.state.data) {
-      this.transform(sourceData.state.data, providerChanged);
+      this.transform(sourceData.state.data, providerChanged || this._runtimeRevision !== this._lastPassRuntimeRevision);
     }
 
     this._hasActivatedBefore = true;
@@ -202,11 +224,68 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     return last !== undefined && (last.prepend.length > 0 || last.append.length > 0);
   }
 
+  public getResolvedRuntimeTransformationLayers(): readonly ResolvedRuntimeTransformationLayer[] {
+    return this._lastPassRuntimeLayers;
+  }
+
   public reprocessTransformations() {
     // A provider can resolve differently for the same frames - a plugin that was not loaded on the last pass
     // is the reason callers reach for this - so the memo cannot survive a forced re-run.
     this._resolvedSystem = undefined;
     this.transform(this.getSourceData().state.data, true);
+  }
+
+  public registerRuntimeTransformationLayer(layer: RuntimeTransformationLayer): RuntimeTransformationRegistration {
+    if (this._runtimeLayers.has(layer.id)) {
+      throw new Error(`A runtime transformation layer with id '${layer.id}' is already registered.`);
+    }
+
+    const registered: RegisteredRuntimeTransformationLayer = { layer };
+    this._runtimeLayers.set(layer.id, registered);
+    this._runtimeRevision++;
+
+    let disposed = false;
+
+    if (this.isActive) {
+      this.transform(this.getSourceData().state.data, true);
+    }
+
+    return {
+      changed: () => {
+        if (disposed) {
+          return;
+        }
+
+        registered.memo = undefined;
+        this._runtimeRevision++;
+        if (this.isActive) {
+          this.transform(this.getSourceData().state.data, true);
+        }
+      },
+      dispose: () => {
+        if (disposed) {
+          return;
+        }
+
+        const appliedTransformations = this._lastPassRuntimeLayers.find(
+          (resolved) => resolved.id === layer.id && resolved.origin === layer.id
+        )?.transformations;
+        const pendingTransformations = registered.memo?.resolved.transformations;
+        const shouldReprocess =
+          this.isActive && ((appliedTransformations?.length ?? 0) > 0 || (pendingTransformations?.length ?? 0) > 0);
+
+        disposed = true;
+        registered.memo = undefined;
+        this._runtimeLayers.delete(layer.id);
+        this._runtimeRevision++;
+
+        if (shouldReprocess) {
+          this.transform(this.getSourceData().state.data, true);
+        } else if (this.isActive && this._lastPassRuntimeRevision === this._runtimeRevision - 1) {
+          this._lastPassRuntimeRevision = this._runtimeRevision;
+        }
+      },
+    };
   }
 
   /**
@@ -275,18 +354,52 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     return this._provider ? this.getResolvedSystemTransformations(series) : NO_SYSTEM_TRANSFORMATIONS;
   }
 
-  /**
-   * Places the user configured transformations between the system tiers, in prepend, user, append order.
-   */
-  private _withSystemTransformations(
-    system: ResolvedSystemTransformations,
+  private _resolveRuntimeTransformationLayers(
+    series: DataFrame[],
+    system: ResolvedSystemTransformations
+  ): readonly ResolvedRuntimeTransformationLayer[] {
+    const layers = this._provider ? systemTransformationsToRuntimeLayers(system, this._provider.origin) : [];
+
+    for (const registered of this._runtimeLayers.values()) {
+      const memo = registered.memo;
+      if (memo?.series === series) {
+        layers.push(memo.resolved);
+        continue;
+      }
+
+      let transformations: Array<DataTransformerConfig | CustomTransformerDefinition> = [];
+      try {
+        transformations = registered.layer.getTransformations({ series }) ?? [];
+      } catch (err) {
+        console.error(`Error resolving runtime transformation layer '${registered.layer.id}': `, err);
+      }
+
+      const resolved = freezeResolvedRuntimeLayer(
+        registered.layer.id,
+        registered.layer.phase,
+        registered.layer.id,
+        transformations
+      );
+      registered.memo = { series, resolved };
+      layers.push(resolved);
+    }
+
+    return layers.length > 0 ? freezeResolvedRuntimeLayers(layers) : NO_RUNTIME_TRANSFORMATION_LAYERS;
+  }
+
+  private _withRuntimeTransformationLayers(
+    layers: readonly ResolvedRuntimeTransformationLayer[],
     transformations: Array<DataTransformerConfig | CustomTransformerDefinition>
   ): Array<DataTransformerConfig | CustomTransformerDefinition> {
-    if (system.prepend.length === 0 && system.append.length === 0) {
+    if (layers.length === 0) {
       return transformations;
     }
 
-    return [...system.prepend, ...transformations, ...system.append];
+    const beforeUser = layers.flatMap((layer) => (layer.phase === 'beforeUser' ? layer.transformations : []));
+    const afterUser = layers.flatMap((layer) => (layer.phase === 'afterUser' ? layer.transformations : []));
+    const final = layers.flatMap((layer) => (layer.phase === 'final' ? layer.transformations : []));
+
+    return [...beforeUser, ...transformations, ...afterUser, ...final];
   }
 
   /**
@@ -391,6 +504,7 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   }
 
   private transform(data: PanelData | undefined, force = false) {
+    const runtimeRevision = this._runtimeRevision;
     const timestamp = performance.now();
     // S3.1: Performance tracking entry point
     const profiler = findPanelProfiler(this);
@@ -411,7 +525,12 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
     // Resolved once for the whole pass and handed to both tiers, rather than re-derived per position.
     const system = data ? this._systemTransformationsFor(data.series) : NO_SYSTEM_TRANSFORMATIONS;
-    const transformations = data ? this._withSystemTransformations(system, this.state.transformations) : [];
+    const runtimeLayers = data
+      ? this._resolveRuntimeTransformationLayers(data.series, system)
+      : NO_RUNTIME_TRANSFORMATION_LAYERS;
+    const transformations = data
+      ? this._withRuntimeTransformationLayers(runtimeLayers, this.state.transformations)
+      : [];
 
     if (transformations.length === 0 || !data) {
       // Transformations are asynchronous, so a pass started when there were some is likely still running.
@@ -422,6 +541,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
 
       this._prevDataFromSource = data;
       this._lastPassSystem = system;
+      this._lastPassRuntimeLayers = runtimeLayers;
+      this._lastPassRuntimeRevision = runtimeRevision;
 
       // Any source state change re-runs this, so without the guard a passthrough panel publishes a state
       // change carrying data it already had - one no-op event per listener, DashboardSceneChangeTracker
@@ -466,8 +587,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     }
 
     // Only the user transforms are interpolated.
-    const interpolatedTransformations = this._withSystemTransformations(
-      system,
+    const interpolatedTransformations = this._withRuntimeTransformationLayers(
+      runtimeLayers,
       this._interpolateVariablesInTransformationConfigs(data, this.state.transformations)
     );
 
@@ -565,6 +686,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
         this._results.next({ origin: this, data: transformedData });
         this._prevDataFromSource = data;
         this._lastPassSystem = system;
+        this._lastPassRuntimeLayers = runtimeLayers;
+        this._lastPassRuntimeRevision = runtimeRevision;
       });
   }
 

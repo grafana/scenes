@@ -175,6 +175,54 @@ The resulting table will look similar to the one that follows:
 | /api/v1/series             | 0                |
 | /api/v1/status/buildinfo   | 0                |
 
+## Add runtime transformation layers
+
+Use a runtime transformation layer when an independent feature owns temporary transformations that must not become part of the saved scene state. A layer has a unique ID and runs in one of these fixed phases:
+
+1. `beforeUser`
+2. Saved transformations from `SceneDataTransformer.state.transformations`
+3. `afterUser`
+4. `final`
+
+Grafana's panel-level prepend and append transformations occupy the `beforeUser` and `afterUser` phases. Registration order is preserved within each phase, so a `final` layer always runs after the panel append transformations regardless of when it is registered.
+
+The following holder owns a `final` layer. It updates the configuration held in its closure, tells only its registration that the configuration changed, and disposes the registration with its own lifecycle:
+
+```ts
+import { RuntimeTransformationRegistration, SceneDataTransformer } from '@grafana/scenes';
+import { DataTransformerConfig } from '@grafana/data';
+
+class GrafanaAdHocTransformations {
+  private transformations: DataTransformerConfig[] = [];
+  private registration: RuntimeTransformationRegistration;
+
+  public constructor(transformer: SceneDataTransformer) {
+    this.registration = transformer.registerRuntimeTransformationLayer({
+      id: 'grafana-table-ad-hoc',
+      phase: 'final',
+      getTransformations: () => this.transformations,
+    });
+  }
+
+  public update(transformations: DataTransformerConfig[]) {
+    this.transformations = transformations;
+    this.registration.changed();
+  }
+
+  public dispose() {
+    this.registration.dispose();
+  }
+}
+```
+
+Calling `changed()` reprocesses the existing source frames once when the transformer is active. It does not run the datasource query again. Calling `dispose()` removes only that registration and is safe to call more than once. Use `getResolvedRuntimeTransformationLayers()` to inspect the frozen layer snapshot that produced the current output. Registered layers use their ID as the snapshot origin, while panel-provided layers retain the provider origin. Reading the snapshot does not call layer suppliers.
+
+This API removes the need for Grafana integrations to replace `VizPanel.getSystemTransformations`, create custom stage operator identities, compose a whole provider value with read-modify-write updates, or call `reprocessTransformations()` directly.
+
+Runtime layers are not persistent. Their configurations do not enter `state.transformations`, scene serialization, cloned scenes, or persisted dashboard state, and they do not survive scene reconstruction or a browser reload. The API also does not expose the frames entering a layer, so it does not replace the table visualization's hidden-field restoration path.
+
+Phase 2 will decide whether origin-tagged ad hoc entries belong in `state.transformations` or in a separate state property. That decision requires a Grafana audit of serializers, the transformation editor, dirty-state tracking, clone and duplicate behavior, inspection, dashboard datasource consumers, and promotion into saved transformations.
+
 ## Add custom transformations
 
 In addition to all the transformations available in Grafana, scenes allow you to create custom transformations.

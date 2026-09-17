@@ -5,6 +5,28 @@ import { CustomTransformerDefinition } from '../../core/types';
  * Identifies the contributor that injected a system transformation.
  */
 export type TransformationOrigin = string;
+
+export type RuntimeTransformationPhase = 'beforeUser' | 'afterUser' | 'final';
+
+export type RuntimeTransformation = DataTransformerConfig | CustomTransformerDefinition;
+
+export interface RuntimeTransformationLayer {
+  readonly id: string;
+  readonly phase: RuntimeTransformationPhase;
+  getTransformations(ctx: { series: DataFrame[] }): RuntimeTransformation[];
+}
+
+export interface RuntimeTransformationRegistration {
+  changed(): void;
+  dispose(): void;
+}
+
+export interface ResolvedRuntimeTransformationLayer {
+  readonly id: string;
+  readonly phase: RuntimeTransformationPhase;
+  readonly origin: TransformationOrigin;
+  readonly transformations: readonly RuntimeTransformation[];
+}
 /**
  * Whether a system transformation runs before or after the user configured transformations.
  */

@@ -207,4 +207,9 @@ export type { SystemTransformation } from './querying/systemTransformations/syst
 export type { SystemTransformationPosition } from './querying/systemTransformations/systemTransformationTypes';
 export type { TransformationOrigin } from './querying/systemTransformations/systemTransformationTypes';
 export type { ResolvedSystemTransformations } from './querying/systemTransformations/systemTransformationTypes';
+export type { RuntimeTransformation } from './querying/systemTransformations/systemTransformationTypes';
+export type { RuntimeTransformationLayer } from './querying/systemTransformations/systemTransformationTypes';
+export type { RuntimeTransformationPhase } from './querying/systemTransformations/systemTransformationTypes';
+export type { RuntimeTransformationRegistration } from './querying/systemTransformations/systemTransformationTypes';
+export type { ResolvedRuntimeTransformationLayer } from './querying/systemTransformations/systemTransformationTypes';
 export { isSystemTransformationsProvider } from './querying/systemTransformations/systemTransformationProvider';
