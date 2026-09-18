@@ -94,6 +94,31 @@ describe('VizPanel runtime transformations', () => {
     expect(firstListener).toHaveBeenCalledTimes(2);
   });
 
+  it('copies nested transformation options into the owner snapshot', () => {
+    const panel = new VizPanel({ pluginId: 'table' });
+    const controller = panel.getRuntimeTransformations();
+    const options = { excludeByName: { B: true } };
+
+    controller.set('table:columns', [{ id: 'organize', options }]);
+    options.excludeByName.B = false;
+
+    expect(controller.get('table:columns')).toEqual([{ id: 'organize', options: { excludeByName: { B: true } } }]);
+  });
+
+  it('freezes nested transformation options in the owner snapshot', () => {
+    const panel = new VizPanel({ pluginId: 'table' });
+    const controller = panel.getRuntimeTransformations();
+
+    controller.set('table:columns', [{ id: 'organize', options: { excludeByName: { B: true } } }]);
+    const snapshot = controller.get('table:columns');
+    const options = snapshot[0].options as { excludeByName: { B: boolean } };
+
+    expect(() => {
+      options.excludeByName.B = false;
+    }).toThrow(TypeError);
+    expect(options.excludeByName.B).toBe(true);
+  });
+
   it('runs groups in active registration order and captures each stage input', () => {
     const { panel, transformer } = setup();
     const controller = panel.getRuntimeTransformations();
@@ -191,13 +216,16 @@ describe('VizPanel runtime transformations', () => {
     controller.set('owner', [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }]);
 
     const clone = panel.clone();
-    clone.activate();
     const clonedTransformer = clone.state.$data as SceneDataTransformer;
 
     expect(clone.getRuntimeTransformations()).not.toBe(controller);
     expect(clone.getRuntimeTransformations().get('owner')).toEqual([]);
-    expect(clonedTransformer.state.data?.series[0].fields[0].values).toEqual([1]);
+    expect(clonedTransformer.state.data).toBeUndefined();
     expect(transformer.state.data?.series[0].fields[0].values).toEqual([2]);
+
+    clone.activate();
+
+    expect(clonedTransformer.state.data?.series[0].fields[0].values).toEqual([1]);
   });
 
   it('restores the original field cleanup setting in a clone', () => {

@@ -4,6 +4,7 @@ import {
   type DataTransformerConfig,
   transformDataFrame,
 } from '@grafana/data';
+import { cloneDeep } from 'lodash';
 import { mergeMap, tap, type Unsubscribable } from 'rxjs';
 
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
@@ -11,6 +12,19 @@ import type { VizPanel } from './VizPanel';
 
 const NO_TRANSFORMATIONS: readonly DataTransformerConfig[] = Object.freeze([]);
 const NO_SERIES: readonly DataFrame[] = Object.freeze([]);
+
+function freezeDeep<T>(value: T, seen = new WeakSet<object>()): T {
+  if (value === null || typeof value !== 'object' || seen.has(value)) {
+    return value;
+  }
+
+  seen.add(value);
+  for (const nestedValue of Object.values(value)) {
+    freezeDeep(nestedValue, seen);
+  }
+
+  return Object.freeze(value) as T;
+}
 
 export interface VizPanelRuntimeTransformations {
   /** Returns the same immutable snapshot until this owner changes. */
@@ -78,7 +92,7 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
       group.operator = undefined;
       this._activeOwners = this._activeOwners.filter((activeOwner) => activeOwner !== owner);
     } else {
-      const snapshot = Object.freeze([...transformations]);
+      const snapshot = freezeDeep(cloneDeep(transformations));
       group.transformations = snapshot;
       group.operator = this._createOperator(group, snapshot);
 

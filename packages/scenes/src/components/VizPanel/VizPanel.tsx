@@ -791,11 +791,17 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
   };
 
   public clone(withState?: Partial<VizPanelState>) {
+    const dataWithoutRuntimeOutput =
+      this._runtimeTransformations.getOperators().length > 0 && this.state.$data instanceof SceneDataTransformer
+        ? { $data: this.state.$data.clone({ data: undefined }) }
+        : {};
+
     // Clear _pluginInstanceState and _pluginLoadError as it's not safe to clone
     return super.clone({
       _pluginInstanceState: undefined,
       _pluginLoadError: undefined,
       _UNSAFE_clearPreviousFieldValues: this._runtimeTransformations.getClearPreviousFieldValuesForClone(),
+      ...dataWithoutRuntimeOutput,
       ...withState,
     });
   }
