@@ -175,6 +175,48 @@ The resulting table will look similar to the one that follows:
 | /api/v1/series             | 0                |
 | /api/v1/status/buildinfo   | 0                |
 
+## Add runtime transformations to a panel
+
+A runtime transformation changes a panel's current output without adding configuration to scene state. Use it for temporary visualization behavior that must run after the panel's saved transformations.
+
+Get the panel-owned controller and set one owner's transformations:
+
+```ts
+const runtimeTransformations = panel.getRuntimeTransformations();
+
+runtimeTransformations.set('table:column-filter', [
+  {
+    id: 'filterFieldsByName',
+    options: {
+      include: {
+        names: ['handler', 'Value'],
+      },
+    },
+  },
+]);
+```
+
+The owner string identifies one logical behavior. Use a stable, namespaced value so independent features do not replace each other's transformations.
+
+Each owner runs in the order in which it first becomes active. Updating an active owner keeps its position. Passing an empty list removes it, and adding it again places it at the end:
+
+```ts
+runtimeTransformations.set('table:column-filter', []);
+```
+
+The complete panel pipeline runs in this order:
+
+1. Plugin prepend transformations.
+2. Saved transformations in `SceneDataTransformer.state.transformations`.
+3. Plugin append transformations.
+4. Runtime transformation owners.
+
+Use `getSourceSeries(owner)` to read the frames that entered that owner's stage. These frames include fields removed by that owner and the output of any earlier runtime owner. Use `subscribe(owner, callback)` with `get(owner)` when a UI must react to configuration changes.
+
+Runtime changes reprocess the transformer's current source frames. They do not issue a new data source query, enter `state.transformations`, or serialize with the scene. Runtime transformation values are not automatically interpolated.
+
+The controller belongs to `VizPanel`. It remains stable when the panel's `$data` transformer is replaced. Changing the panel plugin clears every runtime owner, and cloning a panel creates a new empty controller.
+
 ## Add custom transformations
 
 In addition to all the transformations available in Grafana, scenes allow you to create custom transformations.
