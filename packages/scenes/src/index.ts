@@ -207,6 +207,5 @@ export type { SystemTransformation } from './querying/systemTransformations/syst
 export type { SystemTransformationPosition } from './querying/systemTransformations/systemTransformationTypes';
 export type { TransformationOrigin } from './querying/systemTransformations/systemTransformationTypes';
 export type { ResolvedSystemTransformations } from './querying/systemTransformations/systemTransformationTypes';
-export type { RuntimeTransformationTag } from './querying/systemTransformations/systemTransformationTypes';
-export type { RuntimeTransformationsOptions } from './querying/systemTransformations/systemTransformationTypes';
+export type { VizPanelRuntimeTransformations } from './components/VizPanel/VizPanelRuntimeTransformations';
 export { isSystemTransformationsProvider } from './querying/systemTransformations/systemTransformationProvider';

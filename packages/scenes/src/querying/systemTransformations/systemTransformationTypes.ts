@@ -7,19 +7,6 @@ import { CustomTransformerDefinition } from '../../core/types';
 export type TransformationOrigin = string;
 
 /**
- * Identifies one runtime transformation contribution.
- */
-export type RuntimeTransformationTag = string;
-
-/**
- * A tagged group of transformations that runs outside scene state.
- */
-export interface RuntimeTransformationsOptions {
-  tag: RuntimeTransformationTag;
-  transformations: Array<DataTransformerConfig | CustomTransformerDefinition>;
-}
-
-/**
  * Whether a system transformation runs before or after the user configured transformations.
  */
 export type SystemTransformationPosition = 'prepend' | 'append';
@@ -32,7 +19,6 @@ export type SystemTransformation = (
 ) & {
   origin: TransformationOrigin;
   position: SystemTransformationPosition;
-  tag?: RuntimeTransformationTag;
 };
 
 /**

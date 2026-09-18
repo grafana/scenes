@@ -49,6 +49,10 @@ import {
   SystemTransformationsProvider,
   TransformationOrigin,
 } from '../../querying/systemTransformations/systemTransformationTypes';
+import {
+  type VizPanelRuntimeTransformations,
+  VizPanelRuntimeTransformationsController,
+} from './VizPanelRuntimeTransformations';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
@@ -163,6 +167,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
   private _prevData?: PanelData;
   private _dataWithFieldConfig?: PanelData;
   private _structureRev = 0;
+  private _runtimeTransformations: VizPanelRuntimeTransformationsController;
 
   public constructor(state: Partial<VizPanelState<TOptions, TFieldConfig>>) {
     super({
@@ -174,6 +179,8 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
       ...state,
     });
 
+    this._runtimeTransformations = new VizPanelRuntimeTransformationsController(this);
+
     this.addActivationHandler(() => {
       this._onActivate();
     });
@@ -181,6 +188,11 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     state.menu?.addActivationHandler(() => {
       this.publishEvent(new UserActionEvent({ origin: this, interaction: 'panel-menu-shown' }), true);
     });
+  }
+
+  /** Returns this panel's non-serializable runtime transformation controller. */
+  public getRuntimeTransformations(): VizPanelRuntimeTransformations {
+    return this._runtimeTransformations;
   }
 
   /**
@@ -441,13 +453,15 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     prepend?: Array<DataTransformerConfig | CustomTransformerDefinition>;
     append?: Array<DataTransformerConfig | CustomTransformerDefinition>;
   } {
-    if (series.length === 0) {
+    const plugin = series.length > 0 ? this._pluginForTransformations() : undefined;
+    const { prepend = [], append = [] } = plugin ? getPluginSystemTransformations(plugin, { series }) : {};
+    const runtime = this._runtimeTransformations.getOperators();
+
+    if (prepend.length === 0 && append.length === 0 && runtime.length === 0) {
       return {};
     }
 
-    const plugin = this._pluginForTransformations();
-
-    return plugin ? getPluginSystemTransformations(plugin, { series }) : {};
+    return { prepend, append: [...append, ...runtime] };
   }
 
   /**
@@ -778,7 +792,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
 
   public clone(withState?: Partial<VizPanelState>) {
     // Clear _pluginInstanceState and _pluginLoadError as it's not safe to clone
-    return super.clone({ _pluginInstanceState: undefined, _pluginLoadError: undefined, ...withState });
+    return super.clone({
+      _pluginInstanceState: undefined,
+      _pluginLoadError: undefined,
+      _UNSAFE_clearPreviousFieldValues: this._runtimeTransformations.getClearPreviousFieldValuesForClone(),
+      ...withState,
+    });
   }
 
   private buildPanelContext(): PanelContext {

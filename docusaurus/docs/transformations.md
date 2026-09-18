@@ -175,77 +175,47 @@ The resulting table will look similar to the one that follows:
 | /api/v1/series             | 0                |
 | /api/v1/status/buildinfo   | 0                |
 
-## Add runtime transformations
+## Add runtime transformations to a panel
 
-A runtime transformation changes the current output without adding transformation configuration to scene state. Use it for temporary behavior that a plugin or Grafana feature owns.
+A runtime transformation changes a panel's current output without adding configuration to scene state. Use it for temporary visualization behavior that must run after the panel's saved transformations.
 
-Each runtime group needs a stable tag. A tag identifies one owner and one logical behavior. A namespaced value starts with an owner name. Use a value such as `table:column-filter` to prevent conflicts.
-
-The following example adds a runtime field filter:
+Get the panel-owned controller and set one owner's transformations:
 
 ```ts
-transformedData.upsertRuntimeTransformations({
-  tag: 'table:column-filter',
-  transformations: [
-    {
-      id: 'filterFieldsByName',
-      options: {
-        include: {
-          names: ['handler', 'Value'],
-        },
+const runtimeTransformations = panel.getRuntimeTransformations();
+
+runtimeTransformations.set('table:column-filter', [
+  {
+    id: 'filterFieldsByName',
+    options: {
+      include: {
+        names: ['handler', 'Value'],
       },
     },
-  ],
-});
+  },
+]);
 ```
 
-Call `upsertRuntimeTransformations` again with the same tag. This call replaces only that group:
+The owner string identifies one logical behavior. Use a stable, namespaced value so independent features do not replace each other's transformations.
+
+Each owner runs in the order in which it first becomes active. Updating an active owner keeps its position. Passing an empty list removes it, and adding it again places it at the end:
 
 ```ts
-transformedData.upsertRuntimeTransformations({
-  tag: 'table:column-filter',
-  transformations: [
-    {
-      id: 'filterFieldsByName',
-      options: {
-        include: {
-          names: ['handler'],
-        },
-      },
-    },
-  ],
-});
+runtimeTransformations.set('table:column-filter', []);
 ```
 
-Different tags do not replace each other. The groups run in the order that you first add their tags. An update keeps the original position of its tag.
+The complete panel pipeline runs in this order:
 
-Runtime groups run after all transformations in this list:
+1. Plugin prepend transformations.
+2. Saved transformations in `SceneDataTransformer.state.transformations`.
+3. Plugin append transformations.
+4. Runtime transformation owners.
 
-1. Provider prepend transformations.
-2. Saved transformations in `state.transformations`.
-3. Provider append transformations.
+Use `getSourceSeries(owner)` to read the frames that entered that owner's stage. These frames include fields removed by that owner and the output of any earlier runtime owner. Use `subscribe(owner, callback)` with `get(owner)` when a UI must react to configuration changes.
 
-When the behavior ends, remove its group:
+Runtime changes reprocess the transformer's current source frames. They do not issue a new data source query, enter `state.transformations`, or serialize with the scene. Runtime transformation values are not automatically interpolated.
 
-```ts
-transformedData.removeRuntimeTransformations('table:column-filter');
-```
-
-Removing a missing tag has no effect. If you remove and add a tag again, its group moves to the end of the runtime order.
-
-If the transformer is active, an update reprocesses the current source data. It does not run a new data source query. If the transformer is inactive, the transformer applies the update when it next activates.
-
-Runtime transformations do not enter `state.transformations`. Scenes does not serialize runtime transformations or copy them to clones. The owner must add them to each new transformer and remove them when the behavior ends.
-
-Variable interpolation replaces variable references with their values. Runtime transformation values do not support automatic variable interpolation. Resolve variable values before you call `upsertRuntimeTransformations`.
-
-A pipeline is an ordered set of transformations. Use `getResolvedSystemTransformations()` to inspect the active pipeline. Each runtime transformation appears in `append` with its `tag`, `origin`, and `position` metadata:
-
-```ts
-const runtimeTransformations = transformedData
-  .getResolvedSystemTransformations()
-  .append.filter((transformation) => transformation.tag === 'table:column-filter');
-```
+The controller belongs to `VizPanel`. It remains stable when the panel's `$data` transformer is replaced. Changing the panel plugin clears every runtime owner, and cloning a panel creates a new empty controller.
 
 ## Add custom transformations
 
