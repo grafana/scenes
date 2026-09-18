@@ -1,3 +1,15 @@
+# v8.18.1 (Fri Sep 18 2026)
+
+#### 🐛 Bug Fix
+
+- CustomVariable: Do not keep a value after its dependency clears [#1649](https://github.com/grafana/scenes/pull/1649) ([@ericrshields](https://github.com/ericrshields))
+
+#### Authors: 1
+
+- Eric Shields ([@ericrshields](https://github.com/ericrshields))
+
+---
+
 # v8.18.0 (Wed Sep 16 2026)
 
 #### 🚀 Enhancement
