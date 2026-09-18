@@ -5,13 +5,12 @@ import { CustomTransformerDefinition } from '../../core/types';
  * Identifies the contributor that injected a system transformation.
  */
 export type TransformationOrigin = string;
-
 /**
  * Whether a system transformation runs before or after the user configured transformations.
  */
 export type SystemTransformationPosition = 'prepend' | 'append';
 /**
- * A system contributed transformation.
+ * A provider contributed transformation.
  */
 export type SystemTransformation = (
   | DataTransformerConfig

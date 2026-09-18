@@ -461,6 +461,7 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
       return {};
     }
 
+    // runtime transforms are appended after any plugin (system) transformations
     return { prepend, append: [...append, ...runtime] };
   }
 

@@ -24,12 +24,7 @@ export function toSystemTransformation(
   origin: TransformationOrigin
 ): SystemTransformation {
   if (typeof transformation === 'function') {
-    return {
-      operator: transformation,
-      topic: DataTopic.Series,
-      origin,
-      position,
-    };
+    return { operator: transformation, topic: DataTopic.Series, origin, position };
   }
 
   return { ...transformation, origin, position };
