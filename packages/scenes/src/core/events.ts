@@ -13,6 +13,21 @@ export class SceneObjectStateChangedEvent extends BusEventWithPayload<SceneObjec
   public static readonly type = 'scene-object-state-change';
 }
 
+export interface StateCommittedPayload {
+  source: SceneObject;
+  description: string;
+  replay: () => void;
+  revert: () => void;
+}
+
+/**
+ * Published by a SceneObject after it applies a discrete, user-driven change it wants to be
+ * undoable after already committed to state
+ */
+export class StateCommittedEvent extends BusEventWithPayload<StateCommittedPayload> {
+  public static readonly type = 'scene-object-state-committed';
+}
+
 type UserActionEventType =
   | 'panel-description-shown'
   | 'panel-status-message-clicked'
