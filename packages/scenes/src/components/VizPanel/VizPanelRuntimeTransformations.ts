@@ -6,9 +6,12 @@ import {
 } from '@grafana/data';
 import { cloneDeep } from 'lodash';
 import { mergeMap, tap, type Unsubscribable } from 'rxjs';
-
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
-import type { VizPanel } from './VizPanel';
+import {
+  RuntimeTransformationGroup,
+  RuntimeTransformationsPanel,
+  VizPanelRuntimeTransformations,
+} from './VizPanelRuntimeTypes';
 
 const NO_TRANSFORMATIONS: readonly DataTransformerConfig[] = Object.freeze([]);
 const NO_SERIES: readonly DataFrame[] = Object.freeze([]);
@@ -24,27 +27,6 @@ function freezeDeep<T>(value: T, seen = new WeakSet<object>()): T {
   }
 
   return Object.freeze(value) as T;
-}
-
-export interface VizPanelRuntimeTransformations {
-  /** Returns the same immutable snapshot until this owner changes. */
-  get(owner: string): readonly DataTransformerConfig[];
-
-  /** Replaces one owner's transformations. An empty list removes the owner. */
-  set(owner: string, transformations: readonly DataTransformerConfig[]): void;
-
-  /** Returns the frames entering this owner's transformation stage. */
-  getSourceSeries(owner: string): readonly DataFrame[];
-
-  /** Subscribes to changes for one owner. */
-  subscribe(owner: string, callback: () => void): () => void;
-}
-
-interface RuntimeTransformationGroup {
-  transformations: readonly DataTransformerConfig[];
-  sourceSeries: readonly DataFrame[];
-  sourceData?: unknown;
-  operator?: CustomTransformOperator;
 }
 
 /**
@@ -82,10 +64,10 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
   // Holds the current subscription to panel state changes.
   private _panelStateSubscription?: Unsubscribable;
   // Identifies the panel that owns this controller.
-  private _panel: VizPanel;
+  private _panel: RuntimeTransformationsPanel;
 
   /** Creates a controller and connects it to the panel lifecycle. */
-  public constructor(panel: VizPanel) {
+  public constructor(panel: RuntimeTransformationsPanel) {
     this._panel = panel;
     this._pluginId = panel.state.pluginId;
     this._data = panel.state.$data;

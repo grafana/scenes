@@ -49,10 +49,8 @@ import {
   SystemTransformationsProvider,
   TransformationOrigin,
 } from '../../querying/systemTransformations/systemTransformationTypes';
-import {
-  type VizPanelRuntimeTransformations,
-  VizPanelRuntimeTransformationsController,
-} from './VizPanelRuntimeTransformations';
+import { VizPanelRuntimeTransformationsController } from './VizPanelRuntimeTransformations';
+import { VizPanelRuntimeTransformations } from './VizPanelRuntimeTypes';
 
 export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneObjectState {
   /**
