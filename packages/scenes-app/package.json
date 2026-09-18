@@ -71,8 +71,8 @@
     "@grafana/schema": "^11.6.0",
     "@grafana/ui": "^11.6.0",
     "@types/lodash": "latest",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "react-router-dom": "^6.28.0"
   },
   "lint-staged": {
