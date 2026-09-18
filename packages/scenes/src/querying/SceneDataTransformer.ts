@@ -521,7 +521,11 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
             }
           });
 
-          return { ...data, series, annotations };
+          return {
+            ...data,
+            series,
+            annotations: annotations.length > 0 || data.annotations !== undefined ? annotations : undefined,
+          };
         }),
         catchError((err) => {
           const timestamp = performance.now();
