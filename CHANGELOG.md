@@ -1,3 +1,16 @@
+# v8.18.2 (Fri Sep 18 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Undo/redo support for scene objects [#1645](https://github.com/grafana/scenes/pull/1645) ([@ifrost](https://github.com/ifrost))
+
+#### Authors: 1
+
+- Piotr Jamróz ([@ifrost](https://github.com/ifrost))
+
+---
+
 # v8.18.1 (Fri Sep 18 2026)
 
 #### 🐛 Bug Fix
