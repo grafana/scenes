@@ -159,28 +159,26 @@ interface MultiValueApplyButtonProps {
   menuHeight: number;
 }
 
-export const MultiValueApplyButton = ({
-  onApply,
-  floatingElement,
-  maxOptionWidth,
-  menuHeight,
-}: MultiValueApplyButtonProps) => {
-  const styles = useStyles2(getStyles);
+export const MultiValueApplyButton = forwardRef<HTMLDivElement, MultiValueApplyButtonProps>(
+  function MultiValueApplyButton({ onApply, floatingElement, maxOptionWidth, menuHeight }, ref) {
+    const styles = useStyles2(getStyles);
 
-  const floatingElementRect = floatingElement?.getBoundingClientRect();
-  return (
-    <div
-      className={styles.multiValueApplyWrapper}
-      style={{
-        width: `${maxOptionWidth}px`,
-        transform: `translate(${floatingElementRect?.left}px,${
-          floatingElementRect ? floatingElementRect.top + menuHeight : 0
-        }px)`,
-      }}
-    >
-      <Button onClick={onApply} size="sm" tabIndex={-1}>
-        <Trans i18nKey="grafana-scenes.variables.multi-value-apply-button.apply">Apply</Trans>
-      </Button>
-    </div>
-  );
-};
+    const floatingElementRect = floatingElement?.getBoundingClientRect();
+    return (
+      <div
+        ref={ref}
+        className={styles.multiValueApplyWrapper}
+        style={{
+          width: `${maxOptionWidth}px`,
+          transform: `translate(${floatingElementRect?.left}px,${
+            floatingElementRect ? floatingElementRect.top + menuHeight : 0
+          }px)`,
+        }}
+      >
+        <Button onClick={onApply} size="sm">
+          <Trans i18nKey="grafana-scenes.variables.multi-value-apply-button.apply">Apply</Trans>
+        </Button>
+      </div>
+    );
+  }
+);
