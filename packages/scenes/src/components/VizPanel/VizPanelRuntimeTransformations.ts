@@ -1,7 +1,7 @@
 import { type DataFrame, type DataTransformerConfig, DataTopic, transformDataFrame } from '@grafana/data';
 import { cloneDeep } from 'lodash';
 import { mergeMap, tap, type Unsubscribable } from 'rxjs';
-import { type CustomTransformerDefinition } from '../../core/types';
+import { type CustomTransformerDefinition, type SceneDataProvider } from '../../core/types';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import {
   RuntimeTransformationGroup,
@@ -43,20 +43,13 @@ function freezeDeep<T>(value: T, seen = new WeakSet<object>()): T {
  * Access this controller through VizPanel.getRuntimeTransformations() instead of constructing it directly.
  */
 export class VizPanelRuntimeTransformationsController implements VizPanelRuntimeTransformations {
-  // Stores active owners in execution order with their configuration, captured source, and operator.
   private _groups = new Map<string, RuntimeTransformationGroup>();
-  // Stores change listeners by owner.
   private _listeners = new Map<string, Set<() => void>>();
-  // Tracks the plugin ID so plugin changes can clear runtime transformations.
   private _pluginId: string;
-  // Tracks the panel data provider so stale source captures can be discarded.
-  private _data: unknown;
-  // Holds the current subscription to panel state changes.
+  private _data?: SceneDataProvider;
   private _panelStateSubscription?: Unsubscribable;
-  // Identifies the panel that owns this controller.
   private _panel: RuntimeTransformationsPanel;
 
-  /** Creates a controller and connects it to the panel lifecycle. */
   public constructor(panel: RuntimeTransformationsPanel) {
     this._panel = panel;
     this._pluginId = panel.state.pluginId;
@@ -74,12 +67,10 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     });
   }
 
-  /** Returns the current immutable transformation snapshot for an owner. */
   public get(owner: string): readonly DataTransformerConfig[] {
     return this._groups.get(owner)?.transformations ?? NO_TRANSFORMATIONS;
   }
 
-  /** Replaces or removes an owner's transformations and refreshes panel data. */
   public set(owner: string, transformations: readonly DataTransformerConfig[]): void {
     if (transformations.length === 0) {
       if (!this._groups.delete(owner)) {
@@ -94,17 +85,15 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     this._listeners.get(owner)?.forEach((listener) => listener());
   }
 
-  /** Returns the frames that enter an owner's stage. */
   public getSourceSeries(owner: string): readonly DataFrame[] {
     const group = this._groups.get(owner);
-    if (group?.transformations.length) {
+    if (group) {
       return group.sourceSeries;
     }
 
     return this._getTransformer()?.state.data?.series ?? NO_SERIES;
   }
 
-  /** Registers a listener for changes to one owner. */
   public subscribe(owner: string, callback: () => void): () => void {
     let listeners = this._listeners.get(owner);
     if (!listeners) {
@@ -117,7 +106,6 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     return () => listeners.delete(callback);
   }
 
-  /** Returns active runtime operators in execution order. */
   public getOperators(): CustomTransformerDefinition[] {
     return Array.from(this._groups.values(), (group) => group.operators).flat();
   }
@@ -126,7 +114,6 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     return Array.from(this._groups.values()).flatMap((group) => Array.from(group.sourceSeries));
   }
 
-  /** Subscribes to panel state changes when no subscription is active. */
   private _subscribeToPanelState(): void {
     if (this._panelStateSubscription) {
       return;
@@ -135,7 +122,6 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     this._panelStateSubscription = this._panel.subscribeToState(() => this._handlePanelState());
   }
 
-  /** Handles plugin and data provider changes from the owning panel. */
   private _handlePanelState(): void {
     const { pluginId, $data } = this._panel.state;
 
@@ -149,6 +135,7 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     if ($data !== this._data) {
       this._data = $data;
       for (const group of this._groups.values()) {
+        // Replacement data may already have been captured before this state-change handler runs.
         if (group.sourceData !== $data) {
           group.sourceSeries = NO_SERIES;
           group.sourceData = undefined;
@@ -157,7 +144,6 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     }
   }
 
-  /** Removes all active owners and notifies their listeners. */
   private _clear(): void {
     const affectedOwners = Array.from(this._groups.keys());
     if (affectedOwners.length === 0) {
@@ -220,12 +206,10 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     return operators;
   }
 
-  /** Returns the panel's data provider when it is a transformer. */
   private _getTransformer(): SceneDataTransformer | undefined {
     return this._panel.state.$data instanceof SceneDataTransformer ? this._panel.state.$data : undefined;
   }
 
-  /** Reprocesses current data when the panel transformer is active. */
   private _reprocessTransformations(): void {
     const transformer = this._getTransformer();
     if (transformer?.isActive) {

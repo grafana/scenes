@@ -24,7 +24,7 @@ export interface VizPanelRuntimeTransformations {
 export interface RuntimeTransformationGroup {
   transformations: readonly DataTransformerConfig[];
   sourceSeries: readonly DataFrame[];
-  sourceData?: unknown;
+  sourceData?: SceneDataProvider;
   operators: CustomTransformerDefinition[];
 }
 
