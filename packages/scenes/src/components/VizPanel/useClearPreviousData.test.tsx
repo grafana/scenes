@@ -7,7 +7,7 @@ import { EmbeddedScene } from '../EmbeddedScene';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { mockTransformationsRegistry } from '../../utils/mockTransformationsRegistry';
 import { VizPanel } from './VizPanel';
-import { useClearPreviousData } from './useClearPreviousData';
+import { useClearPreviousData } from './VizPanelRenderer';
 
 function frame(values = [1, 2, 3]): DataFrame {
   return toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values }] });
