@@ -110,8 +110,9 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const rawData = dataObject.useState();
 
   useClearPreviousData(
-    _UNSAFE_clearPreviousFieldValues ? rawData.data : undefined,
-    _UNSAFE_clearPreviousFieldValues ? model.getRetainedDataFrames() : []
+    rawData.data,
+    _UNSAFE_clearPreviousFieldValues ? model.getRetainedDataFrames() : [],
+    _UNSAFE_clearPreviousFieldValues
   );
 
   const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
