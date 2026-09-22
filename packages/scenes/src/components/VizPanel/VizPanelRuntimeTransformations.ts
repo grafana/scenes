@@ -38,9 +38,7 @@ function freezeDeep<T>(value: T, seen = new WeakSet<object>()): T {
  * new empty controller and do not inherit runtime output.
  *
  * Transformation snapshots are deep-cloned and frozen so all changes go through set(), notify subscribers, and trigger
- * reprocessing. Captured source frames also require previous field values to remain available, so the controller
- * temporarily disables field-value cleanup while an owner is active and restores the prior setting after the last owner
- * is removed.
+ * reprocessing. Captured source frames are exposed internally so renderer cleanup can preserve their values.
  *
  * Access this controller through VizPanel.getRuntimeTransformations() instead of constructing it directly.
  */
@@ -49,10 +47,6 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
   private _groups = new Map<string, RuntimeTransformationGroup>();
   // Stores change listeners by owner.
   private _listeners = new Map<string, Set<() => void>>();
-  // Stores the cleanup setting that was active before the first runtime owner.
-  private _previousClearPreviousFieldValues?: boolean;
-  // Distinguishes a stored undefined cleanup setting from no stored setting.
-  private _hasPreviousClearPreviousFieldValues = false;
   // Tracks the plugin ID so plugin changes can clear runtime transformations.
   private _pluginId: string;
   // Tracks the panel data provider so stale source captures can be discarded.
@@ -96,7 +90,6 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
       this._groups.set(owner, this._createGroup(freezeDeep(cloneDeep(transformations)), this._groups.get(owner)));
     }
 
-    this._updatePreviousFieldValueCleanup();
     this._reprocessTransformations();
     this._listeners.get(owner)?.forEach((listener) => listener());
   }
@@ -129,11 +122,8 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     return Array.from(this._groups.values(), (group) => group.operators).flat();
   }
 
-  /** Returns the field cleanup setting that a clone must inherit. */
-  public getClearPreviousFieldValuesForClone(): boolean | undefined {
-    return this._hasPreviousClearPreviousFieldValues
-      ? this._previousClearPreviousFieldValues
-      : this._panel.state._UNSAFE_clearPreviousFieldValues;
+  public getRetainedDataFrames(): DataFrame[] {
+    return Array.from(this._groups.values()).flatMap((group) => Array.from(group.sourceSeries));
   }
 
   /** Subscribes to panel state changes when no subscription is active. */
@@ -176,7 +166,6 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
 
     this._groups.clear();
 
-    this._updatePreviousFieldValueCleanup();
     this._reprocessTransformations();
 
     for (const owner of affectedOwners) {
@@ -241,24 +230,6 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     const transformer = this._getTransformer();
     if (transformer?.isActive) {
       transformer.reprocessTransformations();
-    }
-  }
-
-  /** Disables field cleanup while runtime owners need retained source values. */
-  private _updatePreviousFieldValueCleanup(): void {
-    if (this._groups.size > 0 && !this._hasPreviousClearPreviousFieldValues) {
-      this._previousClearPreviousFieldValues = this._panel.state._UNSAFE_clearPreviousFieldValues;
-      this._hasPreviousClearPreviousFieldValues = true;
-
-      if (this._panel.state._UNSAFE_clearPreviousFieldValues) {
-        this._panel.setState({ _UNSAFE_clearPreviousFieldValues: false });
-      }
-    } else if (this._groups.size === 0 && this._hasPreviousClearPreviousFieldValues) {
-      if (this._panel.state._UNSAFE_clearPreviousFieldValues !== this._previousClearPreviousFieldValues) {
-        this._panel.setState({ _UNSAFE_clearPreviousFieldValues: this._previousClearPreviousFieldValues });
-      }
-      this._hasPreviousClearPreviousFieldValues = false;
-      this._previousClearPreviousFieldValues = undefined;
     }
   }
 }

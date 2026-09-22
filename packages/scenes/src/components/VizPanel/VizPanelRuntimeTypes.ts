@@ -31,7 +31,6 @@ export interface RuntimeTransformationGroup {
 interface RuntimeTransformationsPanelState {
   pluginId: string;
   $data?: SceneDataProvider;
-  _UNSAFE_clearPreviousFieldValues?: boolean;
 }
 
 export interface RuntimeTransformationsPanel {
@@ -40,6 +39,4 @@ export interface RuntimeTransformationsPanel {
   addActivationHandler(handler: SceneActivationHandler): void;
 
   subscribeToState(handler: SceneStateChangedHandler<RuntimeTransformationsPanelState>): Unsubscribable;
-
-  setState(update: Partial<RuntimeTransformationsPanelState>): void;
 }

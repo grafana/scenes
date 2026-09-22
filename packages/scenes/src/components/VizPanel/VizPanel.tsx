@@ -193,6 +193,20 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     return this._runtimeTransformations;
   }
 
+  /** @internal Values in these frames must survive renderer cleanup for subsequent transformations. */
+  public getRetainedDataFrames(): DataFrame[] {
+    const frames = this._runtimeTransformations.getRetainedDataFrames();
+    let provider = sceneGraph.getData(this);
+
+    while (provider instanceof SceneDataTransformer) {
+      provider = provider.getSourceData();
+      const data = provider.state.data;
+      frames.push(...(data?.series ?? []), ...(data?.annotations ?? []));
+    }
+
+    return frames;
+  }
+
   /**
    * Get the VizPanelRenderProfiler behavior if attached
    */
@@ -799,7 +813,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     return super.clone({
       _pluginInstanceState: undefined,
       _pluginLoadError: undefined,
-      _UNSAFE_clearPreviousFieldValues: this._runtimeTransformations.getClearPreviousFieldValuesForClone(),
       ...dataWithoutRuntimeOutput,
       ...withState,
     });
