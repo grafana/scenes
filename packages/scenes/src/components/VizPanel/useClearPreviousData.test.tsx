@@ -18,6 +18,14 @@ function panelData(series: DataFrame[], annotations?: DataFrame[]): PanelData {
 }
 
 describe('retained field value cleanup', () => {
+  const cleanups: Array<() => void> = [];
+
+  afterEach(() => {
+    while (cleanups.length > 0) {
+      cleanups.pop()!();
+    }
+  });
+
   beforeAll(() => {
     mockTransformationsRegistry([
       {
@@ -54,23 +62,24 @@ describe('retained field value cleanup', () => {
       const { _UNSAFE_clearPreviousFieldValues } = panel.useState();
       useClearPreviousData(_UNSAFE_clearPreviousFieldValues ? data : undefined, panel.getRetainedDataFrames());
     });
+    cleanups.push(() => {
+      hook.unmount();
+      deactivate();
+    });
     return {
       original,
       source,
       transformer,
       panel,
       controller: panel.getRuntimeTransformations(),
-      cleanup: () => {
-        hook.unmount();
-        deactivate();
-      },
     };
   }
 
   it('restores a hidden column without refetching or disabling cleanup', () => {
-    const { original, source, transformer, panel, controller, cleanup } = setup();
+    const { original, source, transformer, panel, controller } = setup();
     const sourceChanged = jest.fn();
     const subscription = source.subscribeToState(sourceChanged);
+    cleanups.push(() => subscription.unsubscribe());
 
     act(() => controller.set('columns', [{ id: 'hide', options: {} }]));
 
@@ -82,12 +91,10 @@ describe('retained field value cleanup', () => {
 
     expect(transformer.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
     expect(sourceChanged).not.toHaveBeenCalled();
-    subscription.unsubscribe();
-    cleanup();
   });
 
   it('restores filtered rows and clears obsolete transformed output', () => {
-    const { original, transformer, controller, cleanup } = setup();
+    const { original, transformer, controller } = setup();
     act(() => controller.set('rows', [{ id: 'filter', options: {} }]));
     const filteredValues = transformer.state.data!.series[0].fields[0].values;
 
@@ -98,11 +105,10 @@ describe('retained field value cleanup', () => {
 
     expect(transformer.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
     expect(filteredValues).toEqual([]);
-    cleanup();
   });
 
   it('clears deferred hidden values after a query refresh and unhides the new values', () => {
-    const { original, source, transformer, controller, cleanup } = setup();
+    const { original, source, transformer, controller } = setup();
     act(() => controller.set('columns', [{ id: 'hide', options: {} }]));
     const refreshed = frame([4, 5, 6]);
 
@@ -114,11 +120,10 @@ describe('retained field value cleanup', () => {
     act(() => controller.set('columns', []));
 
     expect(transformer.state.data?.series[0].fields[0].values).toEqual([4, 5, 6]);
-    cleanup();
   });
 
   it('protects an intermediate runtime capture absent from both query source and rendered output', () => {
-    const { original, transformer, controller, cleanup } = setup();
+    const { original, transformer, controller } = setup();
     act(() => controller.set('rows', [{ id: 'filter', options: {} }]));
     act(() => controller.set('columns', [{ id: 'hide', options: {} }]));
     const captured = controller.getSourceSeries('columns')[0].fields[0].values;
@@ -130,7 +135,6 @@ describe('retained field value cleanup', () => {
     act(() => controller.set('columns', []));
 
     expect(transformer.state.data?.series[0].fields[0].values).toEqual([1]);
-    cleanup();
   });
 
   it('protects shared values across series and annotation topics', () => {
@@ -191,12 +195,11 @@ describe('retained field value cleanup', () => {
     new EmbeddedScene({ $data: upstream, body: panel });
 
     const deactivateUpstream = upstream.activate();
+    cleanups.push(deactivateUpstream);
     const deactivate = transformer.activate();
+    cleanups.push(deactivate);
 
     expect(panel.getRetainedDataFrames()).toContain(original);
     expect(panel.getRetainedDataFrames()).toContain(annotation);
-
-    deactivate();
-    deactivateUpstream();
   });
 });
