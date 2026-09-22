@@ -60,7 +60,7 @@ describe('retained field value cleanup', () => {
     const hook = renderHook(() => {
       const { data } = transformer.useState();
       const { _UNSAFE_clearPreviousFieldValues } = panel.useState();
-      useClearPreviousData(_UNSAFE_clearPreviousFieldValues ? data : undefined, panel.getRetainedDataFrames());
+      useClearPreviousData(data, panel.getRetainedDataFrames(), _UNSAFE_clearPreviousFieldValues);
     });
     cleanups.push(() => {
       hook.unmount();
@@ -170,17 +170,48 @@ describe('retained field value cleanup', () => {
     expect(streaming.fields[0].values).toEqual([1, 2, 3]);
   });
 
-  it('stops tracking when cleanup is disabled', () => {
-    const ordinary = frame();
+  it.each([false, true])('preserves cleanup tracking across missing data (retained: %s)', (retained) => {
+    const original = frame();
+    const refreshed = frame([4, 5, 6]);
+    const { rerender } = renderHook<void, { data: PanelData | undefined; retainedFrames: DataFrame[] }>(
+      ({ data, retainedFrames }) => useClearPreviousData(data, retainedFrames),
+      { initialProps: { data: panelData([original]), retainedFrames: [original] } }
+    );
+
+    if (retained) {
+      rerender({ data: panelData([]), retainedFrames: [original] });
+    }
+    rerender({ data: undefined, retainedFrames: retained ? [original] : [] });
+    expect(original.fields[0].values).toEqual([1, 2, 3]);
+
+    rerender({ data: panelData([refreshed]), retainedFrames: [refreshed] });
+    expect(original.fields[0].values).toEqual([]);
+    expect(refreshed.fields[0].values).toEqual([4, 5, 6]);
+  });
+
+  it('preserves values reused after missing data', () => {
+    const original = frame();
     const { rerender } = renderHook<void, { data: PanelData | undefined }>(
       ({ data }) => useClearPreviousData(data, []),
-      {
-        initialProps: { data: panelData([ordinary]) },
-      }
+      { initialProps: { data: panelData([original]) } }
     );
 
     rerender({ data: undefined });
-    rerender({ data: panelData([]) });
+    rerender({ data: panelData([original]) });
+    expect(original.fields[0].values).toEqual([1, 2, 3]);
+  });
+
+  it.each([false, true])('stops tracking when cleanup is disabled (missing data: %s)', (missingData) => {
+    const ordinary = frame();
+    const { rerender } = renderHook<void, { data: PanelData | undefined; enabled: boolean }>(
+      ({ data, enabled }) => useClearPreviousData(data, [], enabled),
+      {
+        initialProps: { data: panelData([ordinary]), enabled: true },
+      }
+    );
+
+    rerender({ data: missingData ? undefined : panelData([ordinary]), enabled: false });
+    rerender({ data: panelData([]), enabled: true });
 
     expect(ordinary.fields[0].values).toEqual([1, 2, 3]);
   });

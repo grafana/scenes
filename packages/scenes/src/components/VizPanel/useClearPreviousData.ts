@@ -15,11 +15,20 @@ function getValues(frames: readonly DataFrame[]): Set<unknown[]> {
   return values;
 }
 
-export function useClearPreviousData(data: PanelData | undefined, retainedFrames: readonly DataFrame[]) {
+export function useClearPreviousData(
+  data: PanelData | undefined,
+  retainedFrames: readonly DataFrame[],
+  enabled = true
+) {
   const previousValues = useRef(new Set<unknown[]>());
 
-  if (!data) {
+  if (!enabled) {
     previousValues.current.clear();
+    return;
+  }
+
+  // Missing data can be temporary; keep candidates until the next result can establish ownership.
+  if (!data) {
     return;
   }
 
