@@ -161,7 +161,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
     return !isEqual(this._lastPassSystem, this.getResolvedSystemTransformations());
   }
 
-  private getSourceData(): SceneDataProvider {
+  /** @internal Used by renderer cleanup to protect values needed for reprocessing. */
+  public getSourceData(): SceneDataProvider {
     if (this.state.$data) {
       if (this.state.$data instanceof SceneDataLayerSet) {
         throw new Error('SceneDataLayerSet can not be used as data provider for SceneDataTransformer.');
