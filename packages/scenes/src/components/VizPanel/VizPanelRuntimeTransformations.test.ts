@@ -1,3 +1,5 @@
+import React from 'react';
+
 import {
   type DataFrame,
   type DataTransformerConfig,
@@ -7,10 +9,12 @@ import {
   toDataFrame,
 } from '@grafana/data';
 import { setPluginImportUtils } from '@grafana/runtime';
+import { act, render } from '@testing-library/react';
 import { type Observable, map } from 'rxjs';
 
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 import { SceneDataNode } from '../../core/SceneDataNode';
+import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { mockTransformationsRegistry } from '../../utils/mockTransformationsRegistry';
 import { VizPanel } from './VizPanel';
@@ -236,6 +240,32 @@ describe('VizPanel runtime transformations', () => {
 
     expect(panel.state._UNSAFE_clearPreviousFieldValues).toBe(false);
     expect(clone.state._UNSAFE_clearPreviousFieldValues).toBe(true);
+  });
+
+  it('clears previous field values after a cloned panel receives replacement data', () => {
+    const { panel } = setup({
+      $timeRange: new SceneTimeRange(),
+      _UNSAFE_clearPreviousFieldValues: true,
+    });
+    panel.getRuntimeTransformations().set('owner', [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }]);
+
+    const clone = panel.clone();
+    const clonedTransformer = clone.state.$data as SceneDataTransformer;
+    const clonedSource = clonedTransformer.state.$data as SceneDataNode;
+
+    render(React.createElement(clone.Component, { model: clone }));
+    const previousValues = clonedTransformer.state.data!.series[0].fields[0].values;
+
+    act(() => {
+      clonedSource.setState({
+        data: {
+          ...clonedSource.state.data,
+          series: [toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [2] }] })],
+        },
+      });
+    });
+
+    expect(previousValues).toHaveLength(0);
   });
 
   it('reprocesses the current frames without requesting source data again', () => {
