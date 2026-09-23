@@ -18,6 +18,7 @@ import { SceneDataNode } from '../../core/SceneDataNode';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { mockTransformationsRegistry } from '../../utils/mockTransformationsRegistry';
+import { EmbeddedScene } from '../EmbeddedScene';
 import { VizPanel } from './VizPanel';
 
 setPluginImportUtils({
@@ -261,6 +262,41 @@ describe('VizPanel runtime transformations', () => {
     clone.activate();
 
     expect(clonedTransformer.state.data?.series[0].fields[0].values).toEqual([1]);
+  });
+
+  it('reprocesses shared source data in a clone after adding a runtime owner while inactive', () => {
+    const source = new SceneDataNode({
+      data: {
+        state: LoadingState.Done,
+        timeRange: getDefaultTimeRange(),
+        series: [toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [1] }] })],
+      },
+    });
+    const transformer = new SceneDataTransformer({
+      transformations: [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }],
+    });
+    const panel = new VizPanel({ pluginId: 'table', $data: transformer });
+    const scene = new EmbeddedScene({ $data: source, body: panel });
+    const deactivate = transformer.activate();
+    expect(transformer.state.data?.series[0].fields[0].values).toEqual([2]);
+    deactivate();
+
+    panel
+      .getRuntimeTransformations()
+      .set('owner', [{ id: 'runtimeMath', options: { operation: 'multiply', value: 10 } }]);
+    const clone = panel.clone();
+    const clonedTransformer = clone.state.$data as SceneDataTransformer;
+    scene.setState({ body: clone });
+
+    expect(clonedTransformer.state.data).toBeUndefined();
+    expect(clone.getRuntimeTransformations().get('owner')).toEqual([]);
+
+    const deactivateClone = clonedTransformer.activate();
+    try {
+      expect(clonedTransformer.state.data?.series[0].fields[0].values).toEqual([2]);
+    } finally {
+      deactivateClone();
+    }
   });
 
   it('restores the original field cleanup setting in a clone', () => {

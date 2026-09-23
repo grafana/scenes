@@ -335,7 +335,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   public clone(withState?: Partial<SceneDataTransformerState>) {
     const clone = super.clone(withState);
 
-    if (this._prevDataFromSource) {
+    // A clone with cleared output must process its source again, even when the source is shared.
+    if (this._prevDataFromSource && clone.state.data !== undefined) {
       clone['_prevDataFromSource'] = this._prevDataFromSource;
       clone['_lastPassSystem'] = this._lastPassSystem;
     }
