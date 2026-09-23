@@ -116,8 +116,8 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
 
         timeRange.onTimeRangeChange(range);
       }}
-      timeZone={hideTimeSettings ? undefined : timeZone}
-      fiscalYearStartMonth={hideTimeSettings ? undefined : timeRangeState.fiscalYearStartMonth}
+      timeZone={timeZone}
+      fiscalYearStartMonth={timeRangeState.fiscalYearStartMonth}
       onMoveBackward={model.onMoveBackward}
       onMoveForward={model.onMoveForward}
       // @ts-expect-error (temporary till we update grafana/ui)
@@ -133,6 +133,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
         'Move {{moveBackwardDuration}} backward',
         { moveBackwardDuration }
       )}
+      hideTimeZone={hideTimeSettings}
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
