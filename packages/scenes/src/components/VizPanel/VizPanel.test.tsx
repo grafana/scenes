@@ -19,6 +19,7 @@ import {
   DataTopic,
   CustomTransformOperator,
   DataFrame,
+  StreamingDataFrame,
 } from '@grafana/data';
 import * as grafanaData from '@grafana/data';
 import { Observable, map as rxMap } from 'rxjs';
@@ -1415,6 +1416,48 @@ describe('VizPanel', () => {
 
       await expect(panel.getPluginAsync()).resolves.toBe(pluginB);
       expect(mockImportPanelPlugin).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('clearing previous field values', () => {
+    it('does not clear StreamingDataFrame-owned values when the frame leaves the panel data', async () => {
+      const stream = StreamingDataFrame.empty();
+      stream.push({
+        schema: {
+          fields: [{ name: 'value', type: FieldType.number }],
+        },
+        data: {
+          values: [[1, 2, 3]],
+        },
+      });
+      const source = new SceneDataNode({
+        data: {
+          state: LoadingState.Done,
+          timeRange: getDefaultTimeRange(),
+          series: [stream],
+        },
+      });
+      const panel = new VizPanel({
+        pluginId: 'custom-plugin-id',
+        $timeRange: new SceneTimeRange(),
+        $data: source,
+        _UNSAFE_clearPreviousFieldValues: true,
+      });
+      pluginToLoad = getTestPlugin1();
+
+      render(<panel.Component model={panel} />);
+      await screen.findByText('My custom panel');
+
+      act(() => {
+        source.setState({
+          data: {
+            ...source.state.data!,
+            series: [],
+          },
+        });
+      });
+
+      expect(stream.fields[0].values).toEqual([1, 2, 3]);
     });
   });
 
