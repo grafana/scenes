@@ -1,11 +1,7 @@
-import {
-  type CustomTransformOperator,
-  type DataFrame,
-  type DataTransformerConfig,
-  transformDataFrame,
-} from '@grafana/data';
+import { type DataFrame, type DataTransformerConfig, DataTopic, transformDataFrame } from '@grafana/data';
 import { cloneDeep } from 'lodash';
 import { mergeMap, tap, type Unsubscribable } from 'rxjs';
+import { type CustomTransformerDefinition } from '../../core/types';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import {
   RuntimeTransformationGroup,
@@ -96,14 +92,8 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
         return;
       }
     } else {
-      const snapshot = freezeDeep(cloneDeep(transformations));
-      const group = this._groups.get(owner);
-      if (group) {
-        group.transformations = snapshot;
-        group.operator = this._createOperator(group, snapshot);
-      } else {
-        this._groups.set(owner, this._createGroup(snapshot));
-      }
+      // Map.set keeps an existing owner's execution position
+      this._groups.set(owner, this._createGroup(freezeDeep(cloneDeep(transformations)), this._groups.get(owner)));
     }
 
     this._updatePreviousFieldValueCleanup();
@@ -135,8 +125,8 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
   }
 
   /** Returns active runtime operators in execution order. */
-  public getOperators(): CustomTransformOperator[] {
-    return Array.from(this._groups.values(), (group) => group.operator!);
+  public getOperators(): CustomTransformerDefinition[] {
+    return Array.from(this._groups.values(), (group) => group.operators).flat();
   }
 
   /** Returns the field cleanup setting that a clone must inherit. */
@@ -194,27 +184,51 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     }
   }
 
-  /** Creates an active owner group. */
-  private _createGroup(transformations: readonly DataTransformerConfig[]): RuntimeTransformationGroup {
-    const group: RuntimeTransformationGroup = { transformations, sourceSeries: NO_SERIES };
-    group.operator = this._createOperator(group, transformations);
+  /** Creates an active owner group, keeping the previous capture until the next pass replaces it. */
+  private _createGroup(
+    transformations: readonly DataTransformerConfig[],
+    previous?: RuntimeTransformationGroup
+  ): RuntimeTransformationGroup {
+    const group: RuntimeTransformationGroup = {
+      transformations,
+      sourceSeries: previous?.sourceSeries ?? NO_SERIES,
+      sourceData: previous?.sourceData,
+      operators: [],
+    };
+    group.operators = this._createOperators(group);
 
     return group;
   }
 
-  /** Creates an operator that captures its input before applying transformations. */
-  private _createOperator(
-    group: RuntimeTransformationGroup,
-    transformations: readonly DataTransformerConfig[]
-  ): CustomTransformOperator {
-    return (context) => (source) =>
-      source.pipe(
-        tap((frames) => {
-          group.sourceSeries = frames;
-          group.sourceData = this._panel.state.$data;
-        }),
-        mergeMap((frames) => transformDataFrame(Array.from(transformations), frames, context))
-      );
+  /** Creates one operator per topic, mirroring how SceneDataTransformer routes saved transformations. */
+  private _createOperators(group: RuntimeTransformationGroup): CustomTransformerDefinition[] {
+    const series = group.transformations.filter((t) => t.topic == null || t.topic === DataTopic.Series);
+    const annotations = group.transformations.filter((t) => t.topic === DataTopic.Annotations);
+
+    // The series operator always runs so getSourceSeries() has a capture even for annotation-only owners
+    const operators: CustomTransformerDefinition[] = [
+      {
+        topic: DataTopic.Series,
+        operator: (context) => (source) =>
+          source.pipe(
+            tap((frames) => {
+              group.sourceSeries = frames;
+              group.sourceData = this._panel.state.$data;
+            }),
+            mergeMap((frames) => transformDataFrame(series, frames, context))
+          ),
+      },
+    ];
+
+    if (annotations.length > 0) {
+      operators.push({
+        topic: DataTopic.Annotations,
+        operator: (context) => (source) =>
+          source.pipe(mergeMap((frames) => transformDataFrame(annotations, frames, context))),
+      });
+    }
+
+    return operators;
   }
 
   /** Returns the panel's data provider when it is a transformer. */

@@ -1,5 +1,10 @@
-import type { CustomTransformOperator, DataFrame, DataTransformerConfig } from '@grafana/data';
-import type { SceneActivationHandler, SceneDataProvider, SceneStateChangedHandler } from '../../core/types';
+import type { DataFrame, DataTransformerConfig } from '@grafana/data';
+import type {
+  CustomTransformerDefinition,
+  SceneActivationHandler,
+  SceneDataProvider,
+  SceneStateChangedHandler,
+} from '../../core/types';
 import type { Unsubscribable } from 'rxjs';
 
 export interface VizPanelRuntimeTransformations {
@@ -20,7 +25,7 @@ export interface RuntimeTransformationGroup {
   transformations: readonly DataTransformerConfig[];
   sourceSeries: readonly DataFrame[];
   sourceData?: unknown;
-  operator?: CustomTransformOperator;
+  operators: CustomTransformerDefinition[];
 }
 
 interface RuntimeTransformationsPanelState {

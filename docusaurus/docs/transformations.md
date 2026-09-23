@@ -211,6 +211,8 @@ The complete panel pipeline runs in this order:
 3. Plugin append transformations.
 4. Runtime transformation owners.
 
+Runtime transformations follow the same `topic` routing as saved transformations. A transformation with `topic: DataTopic.Annotations` runs on the annotation frames, and all other transformations run on the series frames.
+
 Use `getSourceSeries(owner)` to read the frames that entered that owner's stage. These frames include fields removed by that owner and the output of any earlier runtime owner. Use `subscribe(owner, callback)` with `get(owner)` when a UI must react to configuration changes.
 
 Runtime changes reprocess the transformer's current source frames. They do not issue a new data source query, enter `state.transformations`, or serialize with the scene. Runtime transformation values are not automatically interpolated.

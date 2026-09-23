@@ -3,6 +3,7 @@ import React from 'react';
 import {
   type DataFrame,
   type DataTransformerConfig,
+  DataTopic,
   FieldType,
   LoadingState,
   getDefaultTimeRange,
@@ -150,6 +151,36 @@ describe('VizPanel runtime transformations', () => {
     controller.set('first', [add(2)]);
 
     expect(transformer.state.data?.series[0].fields[0].values).toEqual([12]);
+  });
+
+  it.each([false, true])('routes annotation transformations by topic, runtime: %s', (runtime) => {
+    const { panel, source, transformer } = setup();
+    source.setState({
+      data: {
+        ...source.state.data!,
+        annotations: [
+          toDataFrame({
+            meta: { dataTopic: DataTopic.Annotations },
+            fields: [{ name: 'value', type: FieldType.number, values: [10] }],
+          }),
+        ],
+      },
+    });
+    const transformations = [
+      { id: 'runtimeMath', topic: DataTopic.Annotations, options: { operation: 'add', value: 1 } },
+    ];
+
+    if (runtime) {
+      panel.getRuntimeTransformations().set('annotations', transformations);
+    } else {
+      transformer.setState({ transformations });
+      transformer.reprocessTransformations();
+    }
+
+    expect({
+      series: transformer.state.data?.series[0].fields[0].values,
+      annotations: transformer.state.data?.annotations?.[0].fields[0].values,
+    }).toEqual({ series: [1], annotations: [11] });
   });
 
   it('clears every group and restores field cleanup when the plugin changes', () => {
