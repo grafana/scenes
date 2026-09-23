@@ -29,7 +29,7 @@ function setupScene(
     hidePicker: timePickerProps.hidePicker,
     quickRanges: timePickerProps.quickRanges,
     defaultQuickRanges: timePickerProps.defaultQuickRanges,
-    hideTimeZone: timePickerProps.hideTimeZone,
+    hideTimeSettings: timePickerProps.hideTimeSettings,
   });
 
   const scene = new EmbeddedScene({
@@ -81,13 +81,13 @@ describe('SceneTimePicker', () => {
     expect(screen.getByTestId(Components.TimeZonePicker.changeTimeSettingsButton)).toBeInTheDocument();
   });
 
-  it('hides the timezone/fiscal year footer when hideTimeZone is set', async () => {
+  it('hides the timezone/fiscal year footer when hideTimeSettings is set', async () => {
     const { scene } = setupScene(
       {
         from: 'now-12h',
         to: 'now',
       },
-      { hideTimeZone: true }
+      { hideTimeSettings: true }
     );
 
     render(<scene.Component model={scene} />);
