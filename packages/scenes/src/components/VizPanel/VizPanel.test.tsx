@@ -1466,6 +1466,39 @@ describe('VizPanel', () => {
       mockImportPanelPlugin = jest.fn(() => Promise.resolve(undefined));
     });
 
+    it('keeps runtime source values for reset while the renderer clears obsolete arrays', async () => {
+      const original = toDataFrame({ fields: [{ name: 'value', values: [1, 2, 3] }] });
+      const source = new SceneDataNode({
+        data: { state: LoadingState.Done, timeRange: getDefaultTimeRange(), series: [original] },
+      });
+      const transformer = new SceneDataTransformer({ $data: source, transformations: [] });
+      const panel = new VizPanel({
+        pluginId: 'custom-plugin-id',
+        $timeRange: new SceneTimeRange(),
+        $data: transformer,
+        _UNSAFE_clearPreviousFieldValues: true,
+      });
+      pluginToLoad = getTestPlugin1();
+
+      render(<panel.Component model={panel} />);
+      await screen.findByText('My custom panel');
+
+      act(() => panel.getRuntimeTransformations().set('test', [{ id: 'doubler', options: {} }]));
+      const transformedValues = panelProps!.data.series[0].fields[0].values;
+
+      expect(transformedValues).toEqual([2, 4, 6]);
+      expect(original.fields[0].values).toEqual([1, 2, 3]);
+      expect(panel.state._UNSAFE_clearPreviousFieldValues).toBe(true);
+
+      act(() => panel.getRuntimeTransformations().set('test', []));
+
+      expect(panelProps!.data.series[0].fields[0].values).toEqual([1, 2, 3]);
+      expect(transformedValues).toEqual([]);
+
+      act(() => source.setState({ data: { ...source.state.data, series: [] } }));
+      expect(original.fields[0].values).toEqual([]);
+    });
+
     it('contributes the transformations of the plugin for the current pluginId', () => {
       pluginToLoad = pluginContributing('custom-plugin-id', { append: [doubler] });
       const { panel, transformer } = setup();

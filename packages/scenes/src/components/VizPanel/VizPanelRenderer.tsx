@@ -1,6 +1,6 @@
 import { Trans, t } from '@grafana/i18n';
 import React, { memo, RefCallback, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { useMeasure, usePrevious } from 'react-use';
+import { useMeasure } from 'react-use';
 
 // @ts-ignore
 import {
@@ -109,9 +109,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   const rawData = dataObject.useState();
 
-  const { series, annotations } = _UNSAFE_clearPreviousFieldValues ? rawData.data ?? {} : {};
-  useClearPreviousData(series);
-  useClearPreviousData(annotations);
+  useClearPreviousData(
+    rawData.data,
+    _UNSAFE_clearPreviousFieldValues ? model.getRetainedDataFrames() : [],
+    _UNSAFE_clearPreviousFieldValues
+  );
 
   const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
   const dataWithFieldConfig = model.applyFieldConfig(dataWithSeriesLimit);
@@ -393,44 +395,54 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   );
 }
 
-function useClearPreviousData(data?: DataFrame[]) {
-  // this holds all value arrays from all series or anno frames
-  // so we can empty any previous ones that no longer appear in current data
-  // why? because React fiber: https://github.com/facebook/react/issues/36176
-  const prevVals = useRef<Set<any[]> | undefined>(undefined);
-  const currVals = useRef<Set<any[]> | undefined>(undefined);
-  prevVals.current ??= new Set();
-  currVals.current ??= new Set();
-
-  const currFrames = data;
-  const prevFrames = usePrevious(currFrames);
-
-  if (currFrames != null && currFrames !== prevFrames) {
-    // populate new
-    currVals.current.clear();
-
-    for (let i = 0; i < currFrames.length; i++) {
-      // skip legacy CircularDataFrame streaming frames
-      if ('appendRow' in currFrames[i]) {
-        continue;
-      }
-
-      let fields = currFrames[i].fields;
-
-      for (let j = 0; j < fields.length; j++) {
-        currVals.current.add(fields[j].values);
-      }
+function getValues(frames: readonly DataFrame[]): Set<unknown[]> {
+  const values = new Set<unknown[]>();
+  for (const frame of frames) {
+    // Legacy streaming frames own mutable buffers that must not be truncated.
+    if ('appendRow' in frame) {
+      continue;
     }
-
-    // empty out all prev not seen in new
-    prevVals.current.forEach((vals) => {
-      if (!currVals.current!.has(vals)) {
-        vals.length = 0;
-      }
-    });
-    prevVals.current.clear();
-    prevVals.current = new Set(currVals.current);
+    for (const field of frame.fields) {
+      values.add(field.values);
+    }
   }
+  return values;
+}
+
+export function useClearPreviousData(
+  data: PanelData | undefined,
+  retainedFrames: readonly DataFrame[],
+  enabled = true
+) {
+  const previousValues = useRef(new Set<unknown[]>());
+
+  if (!enabled) {
+    previousValues.current.clear();
+    return;
+  }
+
+  // Missing data can be temporary; keep candidates until the next result can establish ownership.
+  if (!data) {
+    return;
+  }
+
+  const currentValues = getValues([...(data.series ?? []), ...(data.annotations ?? [])]);
+  const retainedValues = getValues(retainedFrames);
+
+  // React can retain old panel props. Empty obsolete rendered arrays, but preserve shared arrays
+  // still needed by upstream data or a runtime stage, even when hidden from the current output.
+  for (const values of previousValues.current) {
+    if (currentValues.has(values)) {
+      continue;
+    }
+    if (retainedValues.has(values)) {
+      // Keep deferred candidates so a later query refresh can release them.
+      currentValues.add(values);
+    } else {
+      values.length = 0;
+    }
+  }
+  previousValues.current = currentValues;
 }
 
 function useDataWithSeriesLimit(data: PanelData | undefined, seriesLimit?: number, showAllSeries?: boolean) {
