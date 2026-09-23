@@ -28,6 +28,7 @@ import { getGroupByStatic } from './groupByStatic';
 import { getGroupByDatasource } from './groupByDatasource';
 import { getTransformationsTest } from './transformations';
 import { getRuntimeTransformationsDemo } from './runtimeTransformations';
+import { getRuntimeTransformationsCloneBugDemo } from './runtimeTransformationsCloneBug';
 import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
 import { getDataFilteringTest } from './filteringData';
 import { getNestedScenesAndVariablesDemo } from './nestedVariables';
@@ -237,6 +238,12 @@ export function getDemos(): DemoDescriptor[] {
       description: 'A table column picker that uses panel runtime transformations',
       getPage: getRuntimeTransformationsDemo,
       getSourceCodeModule: () => import('!!raw-loader!../demos/runtimeTransformations'),
+    },
+    {
+      title: 'Runtime transformations clone bug',
+      description: 'Repro: a clone made after an inactive runtime set renders no data',
+      getPage: getRuntimeTransformationsCloneBugDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/runtimeTransformationsCloneBug'),
     },
     {
       title: 'Dynamic panel options and field config',

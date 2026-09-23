@@ -256,7 +256,7 @@ function AppliedTransformations({ owner, panels }: { owner: string; panels: VizP
   );
 }
 
-function PanelTransformations({ owner, panel }: { owner: string; panel: VizPanel }) {
+export function PanelTransformations({ owner, panel }: { owner: string; panel: VizPanel }) {
   const transformations = useRuntimeTransformations(panel, owner);
 
   return (

@@ -335,7 +335,8 @@ export class SceneDataTransformer extends SceneObjectBase<SceneDataTransformerSt
   public clone(withState?: Partial<SceneDataTransformerState>) {
     const clone = super.clone(withState);
 
-    if (this._prevDataFromSource) {
+    // The memo claims state.data came from this source, which is false for a clone whose data was cleared
+    if (this._prevDataFromSource && clone.state.data) {
       clone['_prevDataFromSource'] = this._prevDataFromSource;
       clone['_lastPassSystem'] = this._lastPassSystem;
     }

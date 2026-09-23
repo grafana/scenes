@@ -16,6 +16,7 @@ import { type Observable, map } from 'rxjs';
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 import { SceneDataNode } from '../../core/SceneDataNode';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
+import { SceneFlexItem, SceneFlexLayout } from '../layout/SceneFlexLayout';
 import { SceneDataTransformer } from '../../querying/SceneDataTransformer';
 import { mockTransformationsRegistry } from '../../utils/mockTransformationsRegistry';
 import { VizPanel } from './VizPanel';
@@ -261,6 +262,32 @@ describe('VizPanel runtime transformations', () => {
     clone.activate();
 
     expect(clonedTransformer.state.data?.series[0].fields[0].values).toEqual([1]);
+  });
+
+  it('transforms shared parent data in a clone made after an owner was set while inactive', () => {
+    const source = new SceneDataNode({
+      data: {
+        state: LoadingState.Done,
+        timeRange: getDefaultTimeRange(),
+        series: [toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [1] }] })],
+      },
+    });
+    const transformer = new SceneDataTransformer({
+      transformations: [{ id: 'runtimeMath', options: { operation: 'multiply', value: 10 } }],
+    });
+    const panel = new VizPanel({ pluginId: 'table', $data: transformer });
+    new SceneFlexLayout({ $data: source, children: [new SceneFlexItem({ body: panel })] });
+
+    source.activate();
+    transformer.activate()();
+    panel.getRuntimeTransformations().set('owner', [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }]);
+
+    const clone = panel.clone();
+    new SceneFlexLayout({ $data: source, children: [new SceneFlexItem({ body: clone })] });
+    const clonedTransformer = clone.state.$data as SceneDataTransformer;
+    clonedTransformer.activate();
+
+    expect(clonedTransformer.state.data?.series[0].fields[0].values).toEqual([10]);
   });
 
   it('restores the original field cleanup setting in a clone', () => {
