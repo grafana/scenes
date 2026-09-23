@@ -1,3 +1,15 @@
+# v8.18.3 (Wed Sep 23 2026)
+
+#### 🐛 Bug Fix
+
+- Dashboards: Move PanelContextProvider above PanelChrome [#1654](https://github.com/grafana/scenes/pull/1654) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.18.2 (Fri Sep 18 2026)
 
 #### 🐛 Bug Fix
