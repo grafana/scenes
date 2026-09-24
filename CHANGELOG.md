@@ -1,3 +1,16 @@
+# v8.19.0 (Thu Sep 24 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneTimePicker: Hide timeSetings based on new state [#1658](https://github.com/grafana/scenes/pull/1658) ([@juanicabanas](https://github.com/juanicabanas))
+
+#### Authors: 1
+
+- Juan Cabanas ([@juanicabanas](https://github.com/juanicabanas))
+
+---
+
 # v8.18.3 (Wed Sep 23 2026)
 
 #### 🐛 Bug Fix
