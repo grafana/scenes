@@ -22,6 +22,7 @@ export interface SceneTimePickerState extends SceneObjectState {
   isOnCanvas?: boolean;
   quickRanges?: TimeOption[];
   defaultQuickRanges?: TimeOption[]; // Overrides default time ranges from server config, so not serialised back to JSON
+  hideTimeSettings?: boolean;
 }
 
 export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
@@ -76,7 +77,7 @@ export class SceneTimePicker extends SceneObjectBase<SceneTimePickerState> {
 }
 
 function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>) {
-  const { hidePicker, isOnCanvas, quickRanges, defaultQuickRanges } = model.useState();
+  const { hidePicker, isOnCanvas, quickRanges, defaultQuickRanges, hideTimeSettings } = model.useState();
   const timeRange = sceneGraph.getTimeRange(model);
   const timeZone = timeRange.getTimeZone();
   const timeRangeState = timeRange.useState();
@@ -132,6 +133,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
         'Move {{moveBackwardDuration}} backward',
         { moveBackwardDuration }
       )}
+      hideTimeZone={hideTimeSettings}
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
       onChangeFiscalYearStartMonth={model.onChangeFiscalYearStartMonth}
