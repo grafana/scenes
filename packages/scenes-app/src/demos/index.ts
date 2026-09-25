@@ -27,6 +27,7 @@ import { getAdhocFiltersDemo } from './adhocFiltersDemo';
 import { getGroupByStatic } from './groupByStatic';
 import { getGroupByDatasource } from './groupByDatasource';
 import { getTransformationsTest } from './transformations';
+import { getRuntimeTransformationsDemo } from './runtimeTransformations';
 import { getDynamicVizOptionsTest } from './dynamicPanelOptions';
 import { getDataFilteringTest } from './filteringData';
 import { getNestedScenesAndVariablesDemo } from './nestedVariables';
@@ -230,6 +231,12 @@ export function getDemos(): DemoDescriptor[] {
       description: 'Transformations support',
       getPage: getTransformationsTest,
       getSourceCodeModule: () => import('!!raw-loader!../demos/transformations'),
+    },
+    {
+      title: 'Runtime transformations',
+      description: 'A table column picker that uses panel runtime transformations',
+      getPage: getRuntimeTransformationsDemo,
+      getSourceCodeModule: () => import('!!raw-loader!../demos/runtimeTransformations'),
     },
     {
       title: 'Dynamic panel options and field config',
