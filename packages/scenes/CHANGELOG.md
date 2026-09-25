@@ -1,3 +1,16 @@
+# v8.20.0 (Fri Sep 25 2026)
+
+#### 🚀 Enhancement
+
+- VizPanel: Runtime transformations API [#1651](https://github.com/grafana/scenes/pull/1651) ([@gtk-grafana](https://github.com/gtk-grafana) [@fastfrwrd](https://github.com/fastfrwrd))
+
+#### Authors: 2
+
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+
+---
+
 # v8.19.0 (Thu Sep 24 2026)
 
 #### 🚀 Enhancement
