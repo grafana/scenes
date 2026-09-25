@@ -69,7 +69,7 @@ export function registerQueryWithController<T extends QueryResultWithState>(
 
       const sub = queryStream.subscribe({
         next: (v) => {
-          if (!markedAsCompleted && v.state !== LoadingState.Loading) {
+          if (!markedAsCompleted && v.state !== LoadingState.Loading && v.state !== LoadingState.PartialResult) {
             markedAsCompleted = true;
             queryControler.queryCompleted(entry);
             endQueryCallback?.(performance.now()); // Success case - no error
