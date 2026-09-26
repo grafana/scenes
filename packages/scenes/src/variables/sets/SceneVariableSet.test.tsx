@@ -852,6 +852,203 @@ describe('SceneVariableList', () => {
     });
   });
 
+  describe('When blockDependentsOnError is enabled', () => {
+    const origError = console.error;
+    beforeEach(() => (console.error = jest.fn()));
+    afterEach(() => (console.error = origError));
+
+    it('Should not update chained variables when a variable fails', () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], throwError: 'Boom!' });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+      const C = new TestVariable({ name: 'C', query: 'value=$B', value: '', text: '', options: [] });
+
+      const set = new SceneVariableSet({ variables: [C, B, A], blockDependentsOnError: true });
+      const scene = new TestScene({ $variables: set });
+
+      scene.activate();
+
+      // A failed
+      expect(A.state.error).toBe('Boom!');
+
+      // B and C should never have issued a query and should not be loading
+      expect(B.getValueOptionsCount).toBe(0);
+      expect(C.getValueOptionsCount).toBe(0);
+      expect(B.state.loading).toBeFalsy();
+      expect(C.state.loading).toBeFalsy();
+
+      // The whole involved set is considered to be in error state
+      expect(set.isVariableInErrorState(A)).toBe(true);
+      expect(set.isVariableInErrorState(B)).toBe(true);
+      expect(set.isVariableInErrorState(C)).toBe(true);
+    });
+
+    it('Should keep updating chained variables when the toggle is off (current behaviour)', () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], throwError: 'Boom!' });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+
+      const set = new SceneVariableSet({ variables: [B, A] });
+      const scene = new TestScene({ $variables: set });
+
+      scene.activate();
+
+      expect(A.state.error).toBe('Boom!');
+      // Without the toggle, B still runs its query (existing behaviour)
+      expect(B.getValueOptionsCount).toBe(1);
+      expect(set.isVariableInErrorState(B)).toBe(false);
+    });
+
+    it('Should treat an empty resolved value as an error when treatEmptyAsError is enabled', () => {
+      // A completes successfully but returns no options, resolving to an empty value
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+
+      const set = new SceneVariableSet({
+        variables: [B, A],
+        blockDependentsOnError: true,
+        treatEmptyAsError: true,
+      });
+      const scene = new TestScene({ $variables: set });
+
+      scene.activate();
+
+      expect(A.state.value).toBe('');
+      expect(set.isVariableInErrorState(A)).toBe(true);
+      expect(set.isVariableInErrorState(B)).toBe(true);
+      expect(B.getValueOptionsCount).toBe(0);
+    });
+
+    it('Should not treat an empty resolved value as an error when treatEmptyAsError is off', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+
+      const set = new SceneVariableSet({ variables: [B, A], blockDependentsOnError: true });
+      const scene = new TestScene({ $variables: set });
+
+      scene.activate();
+
+      expect(set.isVariableInErrorState(A)).toBe(false);
+      // B still runs because A only resolved to empty, which is not an error here
+      expect(B.getValueOptionsCount).toBe(1);
+    });
+
+    it('Should resume updating chained variables once the failed variable recovers', () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [], throwError: 'Boom!' });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+
+      const set = new SceneVariableSet({ variables: [B, A], blockDependentsOnError: true });
+      const scene = new TestScene({ $variables: set });
+
+      scene.activate();
+
+      expect(A.state.error).toBe('Boom!');
+      expect(B.getValueOptionsCount).toBe(0);
+
+      // Simulate A recovering on a subsequent run (a real variable clears its error when re-querying)
+      A.setState({ error: null, throwError: undefined });
+      A.changeValueTo('AB');
+
+      // B is now unblocked and runs
+      expect(set.isVariableInErrorState(A)).toBe(false);
+      expect(B.state.loading).toBe(true);
+      expect(B.getValueOptionsCount).toBe(1);
+    });
+  });
+
+  describe('When blockDependentsOnError corner cases', () => {
+    const origError = console.error;
+    beforeEach(() => (console.error = jest.fn()));
+    afterEach(() => (console.error = origError));
+
+    // Corner case P1: a multi-value variable with "Include All" that returns no options
+    // resolves its value to the special $__all token (hasAllValue() === true). That must NOT
+    // be treated as a non-empty value, otherwise dependents run an unscoped All-query against
+    // an empty option set instead of being blocked.
+    it('Should treat an empty "Include All" variable as an error when treatEmptyAsError is enabled', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        optionsToReturn: [],
+        includeAll: true,
+        isMulti: true,
+        delayMs: 0,
+      });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+
+      const set = new SceneVariableSet({
+        variables: [B, A],
+        blockDependentsOnError: true,
+        treatEmptyAsError: true,
+      });
+      const scene = new TestScene({ $variables: set });
+
+      scene.activate();
+
+      // A resolved to the All token because it has includeAll and no options
+      expect(A.hasAllValue()).toBe(true);
+
+      // ...but with no options there is nothing to scope by, so it must count as empty/error
+      expect(set.isVariableInErrorState(A)).toBe(true);
+      expect(set.isVariableInErrorState(B)).toBe(true);
+      expect(B.getValueOptionsCount).toBe(0);
+    });
+
+    // Corner case P2: the empty-as-error state must survive a deactivate/re-activate cycle.
+    // On re-activation the failed variable must not silently "recover" without re-validating,
+    // otherwise dependents get unblocked and issue queries against the still-empty value.
+    it('Should keep blocking dependents after deactivate/re-activate when value is still empty', () => {
+      const A = new TestVariable({
+        name: 'A',
+        query: 'A.*',
+        value: '',
+        text: '',
+        options: [],
+        optionsToReturn: [],
+        delayMs: 0,
+      });
+      const B = new TestVariable({ name: 'B', query: 'A.$A.*', value: '', text: '', options: [] });
+
+      const set = new SceneVariableSet({
+        variables: [B, A],
+        blockDependentsOnError: true,
+        treatEmptyAsError: true,
+      });
+      const scene = new TestScene({ $variables: set });
+
+      const deactivate = scene.activate();
+
+      expect(set.isVariableInErrorState(A)).toBe(true);
+      expect(B.getValueOptionsCount).toBe(0);
+
+      // Deactivate and re-activate without A's value changing (still empty)
+      deactivate();
+      scene.activate();
+
+      // A is still empty so it must still be in error state and B must stay blocked
+      expect(set.isVariableInErrorState(A)).toBe(true);
+      expect(set.isVariableInErrorState(B)).toBe(true);
+      expect(B.getValueOptionsCount).toBe(0);
+    });
+  });
+
   describe('When nesting SceneVariableSet', () => {
     it('Should update variables in dependency order', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
