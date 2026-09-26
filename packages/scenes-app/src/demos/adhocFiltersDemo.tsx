@@ -19,7 +19,7 @@ import {
 import { Button, Stack } from '@grafana/ui';
 import React from 'react';
 import { getEmbeddedSceneDefaults } from './utils';
-import { SimpleControllerDemo } from './adhocFiltersControllerExample';
+import { KeyLabelControllerDemo, SimpleControllerDemo } from './adhocFiltersControllerExample';
 
 export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
   return new SceneAppPage({
@@ -399,6 +399,33 @@ export function getAdhocFiltersDemo(defaults: SceneAppPageState) {
                 new SceneFlexItem({
                   ySizing: 'content',
                   body: new SimpleControllerDemo({}),
+                }),
+              ],
+            }),
+            $timeRange: new SceneTimeRange(),
+          });
+        },
+      }),
+      new SceneAppPage({
+        title: 'Key display name (spike)',
+        routePath: `key-label-spike`,
+        url: `${defaults.url}/key-label-spike`,
+        getScene: () => {
+          return new EmbeddedScene({
+            ...getEmbeddedSceneDefaults(),
+            body: new SceneFlexLayout({
+              direction: 'column',
+              children: [
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new SceneCanvasText({
+                    text: `Spike for grafana#129864 option B: a controller with enableKeyLabelEditing inserts an optional display-name step between key and operator. Pick a key, optionally edit the prefilled display name, press Enter, then continue with operator and value. The pill shows the display name while the raw key stays on the filter.`,
+                    fontSize: 14,
+                  }),
+                }),
+                new SceneFlexItem({
+                  ySizing: 'content',
+                  body: new KeyLabelControllerDemo({}),
                 }),
               ],
             }),
