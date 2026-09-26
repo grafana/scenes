@@ -250,6 +250,38 @@ describe('SceneVariableList', () => {
     });
   });
 
+  describe('When a variable completes while an ancestor is still inactive (RENDER_BEFORE_ACTIVATION = true)', () => {
+    beforeAll(() => (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true));
+    afterAll(() => (SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = false));
+
+    it('Should still notify active dependents deeper in the tree', () => {
+      const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
+      const dependent = new TestObjectWithVariableDependency({ title: '$A' });
+
+      const scene = new TestScene({
+        $timeRange: new SceneTimeRange(),
+        $variables: new SceneVariableSet({ variables: [A] }),
+        nested: new TestScene({ nested: dependent }),
+      });
+
+      const varSet = scene.state.$variables!;
+
+      // Children activate before their common ancestors
+      varSet.activate();
+      dependent.activate();
+
+      expect(scene.isActive).toBe(false);
+      expect(dependent.isActive).toBe(true);
+      expect(A.state.loading).toBe(true);
+
+      act(() => {
+        A.signalUpdateCompleted();
+      });
+
+      expect(dependent.state.didSomethingCount).toBe(1);
+    });
+  });
+
   describe('When activated with variables update at the same time', () => {
     it('Should not start variables multiple times', async () => {
       const A = new TestVariable({ name: 'A', query: 'A.*', value: '', text: '', options: [] });
