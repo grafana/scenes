@@ -144,6 +144,37 @@ describe('SceneDataLayerBase', () => {
     });
   });
 
+  describe('when disabling after being reactivated with existing data', () => {
+    // Like AnnotationsDataLayer, onEnable does not start a query, so querySub is only set by runLayer
+    class LayerWithoutQueryOnEnable extends TestAnnotationsDataLayer {
+      public onEnable(): void {}
+    }
+
+    it('should emit empty results even though no query ran since reactivation', () => {
+      const layer = new LayerWithoutQueryOnEnable({
+        name: 'Layer 1',
+        isEnabled: true,
+        onDisableSpy: disableSpy,
+      });
+
+      const deactivate = layer.activate();
+      layer.completeRun();
+      deactivate();
+
+      // Existing data means the layer does not run a query when reactivated
+      layer.activate();
+
+      const results: SceneDataProviderResult[] = [];
+      layer.getResultsStream().subscribe((r) => results.push(r));
+      expect(results[results.length - 1].data.series).not.toEqual([]);
+
+      layer.setState({ isEnabled: false });
+
+      expect(results[results.length - 1].data.series).toEqual([]);
+      expect(layer.state.data?.series).toEqual([]);
+    });
+  });
+
   describe('when enabling', () => {
     it('should call onEnable handler', (done) => {
       let result: SceneDataProviderResult | undefined = undefined;

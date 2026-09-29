@@ -214,12 +214,14 @@ export function getDataLayers(sceneObject: SceneObject, localOnly = false): Scen
     }
 
     // Check if data layer exists nested inside another data provider
-    if (isDataLayer(dataProvider)) {
-      collected = collected.concat(dataProvider);
-    } else {
-      if (dataProvider.state.$data && isDataLayer(dataProvider.state.$data)) {
-        collected = collected.concat(dataProvider.state.$data);
-      }
+    const dataLayer = isDataLayer(dataProvider)
+      ? dataProvider
+      : dataProvider.state.$data && isDataLayer(dataProvider.state.$data)
+      ? dataProvider.state.$data
+      : undefined;
+
+    if (dataLayer && (dataLayer.isVisibleTo?.(sceneObject) ?? true)) {
+      collected = collected.concat(dataLayer);
     }
 
     if (localOnly && collected.length > 0) {
