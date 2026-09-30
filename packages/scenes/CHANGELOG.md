@@ -1,3 +1,21 @@
+# v8.20.0 (Wed Sep 30 2026)
+
+#### 🚀 Enhancement
+
+- VizPanel: Runtime transformations API [#1651](https://github.com/grafana/scenes/pull/1651) ([@gtk-grafana](https://github.com/gtk-grafana) [@fastfrwrd](https://github.com/fastfrwrd))
+
+#### 🐛 Bug Fix
+
+- Adhoc filters: Use component height theme token [#1665](https://github.com/grafana/scenes/pull/1665) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 3
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+
+---
+
 # v8.19.0 (Thu Sep 24 2026)
 
 #### 🚀 Enhancement
