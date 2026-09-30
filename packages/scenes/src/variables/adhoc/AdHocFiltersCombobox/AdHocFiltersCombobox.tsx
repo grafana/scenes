@@ -1084,9 +1084,10 @@ const getStyles = (theme: GrafanaTheme2) => ({
     },
   }),
   dropdownWrapper: css({
-    backgroundColor: theme.colors.background.primary,
+    backgroundColor: theme.colors.background.elevated,
     color: theme.colors.text.primary,
     boxShadow: theme.shadows.z2,
+    borderRadius: theme.shape.radius.default,
     overflowY: 'auto',
     zIndex: theme.zIndex.portal,
   }),
