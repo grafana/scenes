@@ -1,3 +1,16 @@
+# v8.20.1 (Wed Sep 30 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - Chore: update adhoc filter styles [#1668](https://github.com/grafana/scenes/pull/1668) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
 # v8.20.0 (Wed Sep 30 2026)
 
 #### 🚀 Enhancement
