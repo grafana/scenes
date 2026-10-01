@@ -21,6 +21,10 @@ export class EmptyVariableSetImpl extends SceneObjectBase<SceneVariableSetState>
   public isVariableLoadingOrWaitingToUpdate(variable: SceneVariable<SceneVariableState>): boolean {
     return false;
   }
+
+  public isVariableInErrorState(variable: SceneVariable<SceneVariableState>): boolean {
+    return false;
+  }
 }
 
 export const EmptyVariableSet = new EmptyVariableSetImpl();
