@@ -59,6 +59,41 @@ describe('SceneQueryController', () => {
     expect((window as any).__grafanaRunningQueryCount).toBe(0);
   });
 
+  it('should NOT mark query as complete on PartialResult, only on Done', async () => {
+    const { query, streamFuncs } = registerQuery(scene);
+    let next = jest.fn();
+
+    query.subscribe({ next });
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(1);
+    expect(controller.state.isRunning).toBe(true);
+
+    // PartialResult emissions should not complete the query
+    streamFuncs.next({ state: LoadingState.PartialResult });
+    expect((window as any).__grafanaRunningQueryCount).toBe(1);
+    expect(controller.state.isRunning).toBe(true);
+
+    streamFuncs.next({ state: LoadingState.PartialResult });
+    expect((window as any).__grafanaRunningQueryCount).toBe(1);
+    expect(controller.state.isRunning).toBe(true);
+
+    // Final Done should complete it
+    streamFuncs.next({ state: LoadingState.Done });
+    expect((window as any).__grafanaRunningQueryCount).toBe(0);
+    expect(controller.state.isRunning).toBe(false);
+  });
+
+  it('should still mark query as complete on Streaming state', async () => {
+    const { query, streamFuncs } = registerQuery(scene);
+
+    query.subscribe(() => {});
+
+    expect(controller.state.isRunning).toBe(true);
+
+    streamFuncs.next({ state: LoadingState.Streaming });
+    expect(controller.state.isRunning).toBe(false);
+  });
+
   it('Last unsubscribe should set running to false', async () => {
     const { query: query1 } = registerQuery(scene);
 
