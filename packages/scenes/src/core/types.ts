@@ -18,7 +18,7 @@ import { DataQuery, DataTopic, TimeZone } from '@grafana/schema';
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
 import { VizPanel } from '../components/VizPanel/VizPanel';
-import { AdHocFilterWithLabels } from '../variables/adhoc/AdHocFiltersVariable';
+import type { AdHocFilterWithLabels } from '../variables/adhoc/AdHocFiltersVariable';
 import { WeekStart } from '@grafana/ui';
 
 export interface SceneObjectState {
@@ -209,7 +209,9 @@ export interface DataRequestEnricher {
 
 /**
  * Implemented by a scene root that needs to adjust the ad hoc filters a SceneQueryRunner sends, per request.
- * Only called when the runner has ad hoc filters to send (at least one applicable ad hoc variable).
+ * Called whenever the runner has at least one applicable ad hoc filters variable, so `filters` may be empty.
+ * Returning `[]` sends no filters. Do not mutate the filter objects (they are owned by variable state);
+ * return a new array instead.
  */
 export interface DataRequestFiltersEnricher {
   // Called with the ad hoc filters a SceneQueryRunner (source) is about to send. Return the filters to send instead.
