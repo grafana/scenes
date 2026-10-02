@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { map, Observable, of, Subject } from 'rxjs';
 
 // Mock crypto.randomUUID for generateOperationId
@@ -716,6 +717,143 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
         expect(scene.enrichDataRequestFilters).not.toHaveBeenCalled();
         expect(runRequestMock.mock.calls[0][1].filters).toBeUndefined();
+      });
+
+      it('should send an empty list when the root returns []', async () => {
+        const queryRunner = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+
+        const filtersVar = new AdHocFiltersVariable({
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
+        });
+
+        const scene = new SceneWithFiltersEnricher({
+          $data: queryRunner,
+          $variables: new SceneVariableSet({ variables: [filtersVar] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+        scene.enrichDataRequestFilters.mockImplementation(() => []);
+
+        deactivationHandlers.push(activateFullSceneTree(scene));
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(runRequestMock.mock.calls[0][1].filters).toEqual([]);
+      });
+
+      it('should call the root with [] when the ad hoc variable has no filters', async () => {
+        const queryRunner = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+
+        const filtersVar = new AdHocFiltersVariable({
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters: [],
+        });
+
+        const scene = new SceneWithFiltersEnricher({
+          $data: queryRunner,
+          $variables: new SceneVariableSet({ variables: [filtersVar] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+
+        deactivationHandlers.push(activateFullSceneTree(scene));
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(scene.enrichDataRequestFilters).toHaveBeenCalledWith(queryRunner, []);
+        expect(runRequestMock.mock.calls[0][1].filters).toEqual([]);
+      });
+
+      it('should let the root exclude a filter for one source only', async () => {
+        const runnerA = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+        const runnerB = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'B' }],
+        });
+
+        const filters: AdHocFilterWithLabels[] = [
+          { key: 'A', operator: '=', value: 'B', condition: '' },
+          { key: 'dropMe', operator: '=', value: 'C', condition: '' },
+        ];
+        const filtersVar = new AdHocFiltersVariable({
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters,
+        });
+        const filtersBefore = cloneDeep(filtersVar.state.filters);
+
+        const scene = new SceneWithFiltersEnricher({
+          $variables: new SceneVariableSet({ variables: [filtersVar] }),
+          body: new SceneFlexLayout({
+            children: [
+              new SceneFlexItem({ $data: runnerA, body: new SceneCanvasText({ text: 'A' }) }),
+              new SceneFlexItem({ $data: runnerB, body: new SceneCanvasText({ text: 'B' }) }),
+            ],
+          }),
+        });
+        scene.enrichDataRequestFilters.mockImplementation((source, f) =>
+          source === runnerA ? f.filter((filter) => filter.key !== 'dropMe') : f
+        );
+
+        deactivationHandlers.push(activateFullSceneTree(scene));
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        const requestFor = (refId: string) =>
+          runRequestMock.mock.calls.find((call) => call[1].targets[0].refId === refId)![1];
+
+        expect(requestFor('A').filters).toEqual([filters[0]]);
+        expect(requestFor('B').filters).toEqual(filters);
+        expect(filtersVar.state.filters).toEqual(filtersBefore);
+      });
+
+      it('should not affect group by keys or enrichDataRequest', async () => {
+        class SceneWithBothEnrichers extends SceneWithFiltersEnricher {
+          public enrichDataRequest() {
+            return { app: 'enriched' };
+          }
+        }
+
+        const queryRunner = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+
+        const filtersVar = new AdHocFiltersVariable({
+          name: 'filters',
+          datasource: { uid: 'test-uid' },
+          filters: [
+            { key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+            { key: 'B', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+            { key: 'dropMe', operator: '=', value: 'C', condition: '' },
+          ],
+          enableGroupBy: true,
+        });
+
+        const scene = new SceneWithBothEnrichers({
+          $data: queryRunner,
+          $variables: new SceneVariableSet({ variables: [filtersVar] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+
+        deactivationHandlers.push(activateFullSceneTree(scene));
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        const request = runRequestMock.mock.calls[0][1];
+        expect(request.groupByKeys).toEqual(['A', 'B']);
+        expect(request.app).toBe('enriched');
+        expect(request.filters).toEqual([]);
       });
     });
 
