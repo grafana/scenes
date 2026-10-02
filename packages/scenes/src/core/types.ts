@@ -210,6 +210,9 @@ export interface DataRequestEnricher {
 /**
  * Implemented by a scene root that needs to adjust the ad hoc filters a SceneQueryRunner sends, per request.
  * Called whenever the runner has at least one applicable ad hoc filters variable, so `filters` may be empty.
+ * The hook receives the raw filters (scope-derived, then each variable's originFilters + filters, root to leaf)
+ * before deduplication and before incomplete, non-applicable, groupBy and match-all filters are removed, so it
+ * may receive duplicates and filters that will not be sent. Its result is then deduplicated and filtered.
  * Returning `[]` sends no filters. Do not mutate the filter objects (they are owned by variable state);
  * return a new array instead.
  */
