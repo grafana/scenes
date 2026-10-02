@@ -817,6 +817,60 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         expect(filtersVar.state.filters).toEqual(filtersBefore);
       });
 
+      it('should enrich filters before deduplicating identical dashboard and section filters', async () => {
+        const queryRunner = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+
+        const dashboardFilter: AdHocFilterWithLabels<{ owner: string }> = {
+          key: 'job',
+          operator: '=',
+          value: 'prom-a',
+          condition: '',
+          meta: { owner: 'dashboard' },
+        };
+        const sectionFilter: AdHocFilterWithLabels<{ owner: string }> = {
+          ...dashboardFilter,
+          meta: { owner: 'section' },
+        };
+
+        const dashboardFilters = new AdHocFiltersVariable({
+          name: 'filter0',
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters: [dashboardFilter],
+        });
+
+        const sectionFilters = new AdHocFiltersVariable({
+          name: 'filter0',
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters: [sectionFilter],
+        });
+
+        const scene = new SceneWithFiltersEnricher({
+          $variables: new SceneVariableSet({ variables: [dashboardFilters] }),
+          body: new TestScene({
+            $data: queryRunner,
+            $variables: new SceneVariableSet({ variables: [sectionFilters] }),
+          }),
+        });
+        scene.enrichDataRequestFilters.mockImplementation((_source, filters) =>
+          filters.filter((f) => (f.meta as { owner?: string } | undefined)?.owner !== 'dashboard')
+        );
+
+        deactivationHandlers.push(activateFullSceneTree(scene));
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(scene.enrichDataRequestFilters).toHaveBeenCalledWith(queryRunner, [
+          dashboardFilters.state.filters[0],
+          sectionFilters.state.filters[0],
+        ]);
+        expect(runRequestMock.mock.calls[0][1].filters).toEqual([sectionFilters.state.filters[0]]);
+      });
+
       it('should not affect group by keys or enrichDataRequest', async () => {
         class SceneWithBothEnrichers extends SceneWithFiltersEnricher {
           public enrichDataRequest() {

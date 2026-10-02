@@ -775,12 +775,12 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       ...getEnrichedDataRequest(this),
     };
 
-    const filters = this._drilldownDependenciesManager.getFilters();
+    // This lets the scene root adjust the ad hoc filters sent by this runner, before they are deduplicated
+    const filters = this._drilldownDependenciesManager.getFilters((f) => getEnrichedDataRequestFilters(this, f));
     const groupByKeys = this._drilldownDependenciesManager.getGroupByKeys();
 
     if (filters) {
-      // This lets the scene root adjust the ad hoc filters sent by this runner
-      request.filters = getEnrichedDataRequestFilters(this, filters);
+      request.filters = filters;
     }
 
     if (groupByKeys) {
