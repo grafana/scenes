@@ -18,6 +18,7 @@ import { DataQuery, DataTopic, TimeZone } from '@grafana/schema';
 import { SceneVariableDependencyConfigLike, SceneVariables } from '../variables/types';
 import { SceneObjectRef } from './SceneObjectRef';
 import { VizPanel } from '../components/VizPanel/VizPanel';
+import { AdHocFilterWithLabels } from '../variables/adhoc/AdHocFiltersVariable';
 import { WeekStart } from '@grafana/ui';
 
 export interface SceneObjectState {
@@ -206,6 +207,15 @@ export interface DataRequestEnricher {
   enrichDataRequest(source: SceneObject): Partial<DataQueryRequest> | null;
 }
 
+/**
+ * Implemented by a scene root that needs to adjust the ad hoc filters a SceneQueryRunner sends, per request.
+ * Only called when the runner has ad hoc filters to send (at least one applicable ad hoc variable).
+ */
+export interface DataRequestFiltersEnricher {
+  // Called with the ad hoc filters a SceneQueryRunner (source) is about to send. Return the filters to send instead.
+  enrichDataRequestFilters(source: SceneObject, filters: AdHocFilterWithLabels[]): AdHocFilterWithLabels[];
+}
+
 export interface FiltersRequestEnricher {
   // Return partial getTagKeys or getTagValues query request that will be merged with the original request provided by ad hoc or group by variable
   enrichFiltersRequest(
@@ -215,6 +225,10 @@ export interface FiltersRequestEnricher {
 
 export function isDataRequestEnricher(obj: any): obj is DataRequestEnricher {
   return 'enrichDataRequest' in obj;
+}
+
+export function isDataRequestFiltersEnricher(obj: any): obj is DataRequestFiltersEnricher {
+  return 'enrichDataRequestFilters' in obj;
 }
 
 export function isFiltersRequestEnricher(obj: any): obj is FiltersRequestEnricher {
