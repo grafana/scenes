@@ -3,6 +3,7 @@ import { SceneObject } from '../core/types';
 import { wrapInSafeSerializableSceneObject } from './wrapInSafeSerializableSceneObject';
 import { getDataSourceSrv } from '@grafana/runtime';
 import { DataQuery } from '@grafana/schema';
+import { config } from '@grafana/runtime';
 
 /**
  * Returns URL to Grafana explore for the queries in the given panel data and time range.
@@ -59,7 +60,7 @@ export async function getExploreURL(
       })
     );
 
-    return `/explore?left=${left}`;
+    return `${config.appSubUrl}/explore?left=${left}`;
   }
   return '';
 }
