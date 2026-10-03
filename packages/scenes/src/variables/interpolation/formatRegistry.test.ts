@@ -77,6 +77,11 @@ describe('formatRegistry', () => {
       `'test','test''value2','test\\"value3'`
     );
 
+    expect(formatValue('backtick', 'A')).toBe('`A`');
+    expect(formatValue('backtick', ['A', 'B', 'C'])).toBe('`A`,`B`,`C`');
+    expect(formatValue('backtick', [101, 102])).toBe('`101`,`102`');
+    expect(formatValue('backtick', [])).toBe('');
+
     expect(formatValue(VariableFormatID.Date, 1594671549254)).toBe('2020-07-13T20:19:09.254Z');
     expect(formatValue(VariableFormatID.Date, 1594671549254, 'text', ['seconds'])).toBe('1594671549');
     expect(formatValue(VariableFormatID.Date, 1594671549254, 'text', ['iso'])).toBe('2020-07-13T20:19:09.254Z');
