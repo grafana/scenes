@@ -4,7 +4,7 @@ import { IntervalMacro, TimeFromAndToMacro, TimezoneMacro, UrlTimeRangeMacro } f
 import { AllVariablesMacro } from './AllVariablesMacro';
 import { DataMacro, FieldMacro, SeriesMacro, ValueMacro } from './dataMacros';
 import { UrlMacro } from './urlMacros';
-import { NamespaceMacro, OrgMacro, UserMacro } from './contextMacros';
+import { NamespaceMacro, OrgMacro, ThemeMacro, UserMacro } from './contextMacros';
 
 export const macrosIndex = new Map<string, MacroVariableConstructor>([
   [DataLinkBuiltInVars.includeVars, AllVariablesMacro],
@@ -20,6 +20,7 @@ export const macrosIndex = new Map<string, MacroVariableConstructor>([
   ['__user', UserMacro],
   ['__org', OrgMacro],
   ['__namespace', NamespaceMacro],
+  ['__theme', ThemeMacro],
   ['__interval', IntervalMacro],
   ['__interval_ms', IntervalMacro],
 ]);
