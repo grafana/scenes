@@ -806,8 +806,11 @@ export class AdHocFiltersVariable
       return '';
     }
 
+    // A match all filter doesn't restrict anything, so any specific filter on the same key wins.
+    const matches = keyFilters.filter((f) => !isMatchAllFilter(f));
+
     if (accessor === 'operator') {
-      return keyFilters[0].operator;
+      return (matches[0] ?? keyFilters[0]).operator;
     }
 
     if (accessor !== undefined) {
@@ -815,8 +818,6 @@ export class AdHocFiltersVariable
       return '';
     }
 
-    // A match all filter doesn't restrict anything, so any specific filter on the same key wins.
-    const matches = keyFilters.filter((f) => !isMatchAllFilter(f));
     if (matches.length === 0) {
       return ALL_VARIABLE_TEXT;
     }
