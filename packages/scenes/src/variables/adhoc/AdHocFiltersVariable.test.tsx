@@ -2066,6 +2066,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         filters: [{ key: 'env', operator: '=', value: 'prod' }],
       });
       expect(variable.getValue('["env"]')).toBe('prod');
+      expect(variable.getValue('["env"].operator')).toBe('=');
     });
 
     it('flattens multiple filters sharing a key into one array', () => {
