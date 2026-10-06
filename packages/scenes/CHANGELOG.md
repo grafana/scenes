@@ -1,3 +1,15 @@
+# v8.21.0 (Tue Oct 06 2026)
+
+#### 🚀 Enhancement
+
+- Macros: Add ${__theme} macro for theme tokens [#1672](https://github.com/grafana/scenes/pull/1672) ([@adela-almasan](https://github.com/adela-almasan))
+
+#### Authors: 1
+
+- Adela Almasan ([@adela-almasan](https://github.com/adela-almasan))
+
+---
+
 # v8.20.1 (Wed Sep 30 2026)
 
 #### 🐛 Bug Fix
