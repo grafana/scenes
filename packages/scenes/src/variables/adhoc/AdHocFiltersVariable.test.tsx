@@ -2047,11 +2047,17 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(variable.getValue('["env"]')).toEqual(['prod', 'staging']);
     });
 
-    it('skips All-value filters', () => {
+    it('resolves an All-value filter to All', () => {
       const variable = makeVariable({
         originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
       });
-      expect(variable.getValue('["env"]')).toBe('');
+      expect(variable.getValue('["env"]')).toBe('All');
+      expect(variable.getValue('["env"].operator')).toBe('=|');
+    });
+
+    it('resolves a regex match-all filter to All', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=~', value: '.*' }] });
+      expect(variable.getValue('["env"]')).toBe('All');
     });
 
     it('returns only concrete values when an All-value filter shares the key', () => {

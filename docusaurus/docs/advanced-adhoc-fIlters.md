@@ -159,6 +159,7 @@ The operator token of the (first) matching filter is available via the `.operato
 ### Notes and limitations
 
 - A missing key renders as an empty string (`${filters["unknown"]}` -> ``), including with a formatter.
+- A filter that matches everything (the `All` value, or `=~ .*`) renders as `All`. If the key also has a filter with concrete values, those values render instead.
 - An unrecognized accessor (anything other than `.operator`) renders as an empty string.
 - The dot form `${filters.env}` is **not** a per-key accessor. It falls through to the whole-expression behavior and logs a development-mode warning advising bracket syntax. Always use brackets for per-key access.
 - The output shape depends on cardinality: a single-value key returns a scalar, so `${filters["env"]:json}` yields the raw string `"prod"` rather than `["prod"]`. This matches multi-value-variable behavior.
