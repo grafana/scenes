@@ -39,7 +39,7 @@ import { getQueryController } from '../../core/sceneGraph/getQueryController';
 import { FILTER_REMOVED_INTERACTION, FILTER_RESTORED_INTERACTION } from '../../performance/interactionConstants';
 import { AdHocFiltersVariableController } from './controller/AdHocFiltersVariableController';
 import { AdHocFiltersRecommendations } from './AdHocFiltersRecommendations';
-import { ALL_VARIABLE_VALUE } from '../constants';
+import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 
 export interface AdHocFilterWithLabels<M extends Record<string, any> = {}> extends AdHocVariableFilter {
   keyLabel?: string;
@@ -791,27 +791,34 @@ export class AdHocFiltersVariable
    * build `filterExpression`. Returns:
    *  - value accessor (default): the flattened value(s) of all filters matching `key` - a scalar
    *    string when exactly one value resolves, otherwise a `string[]` for the formatter to render.
+   *    When every match is a match all filter, `All`.
    *  - `operator` accessor: the operator token of the first matching filter.
    *  - any other accessor, or a missing key: an empty string.
    */
   private getFilterValueByKey(key: string, accessor?: string): VariableValue {
     const { originFilters, filters, _wip } = this.state;
 
-    const matches = [...(originFilters ?? []), ...filters].filter(
-      (f) => f !== _wip && !isGroupByFilter(f) && !isMatchAllFilter(f) && f.key === key
+    const keyFilters = [...(originFilters ?? []), ...filters].filter(
+      (f) => f !== _wip && !isGroupByFilter(f) && f.key === key
     );
 
-    if (matches.length === 0) {
+    if (keyFilters.length === 0) {
       return '';
     }
 
     if (accessor === 'operator') {
-      return matches[0].operator;
+      return keyFilters[0].operator;
     }
 
     if (accessor !== undefined) {
       // Unrecognized accessor (e.g. `.foo`).
       return '';
+    }
+
+    // A match all filter doesn't restrict anything, so any specific filter on the same key wins.
+    const matches = keyFilters.filter((f) => !isMatchAllFilter(f));
+    if (matches.length === 0) {
+      return ALL_VARIABLE_TEXT;
     }
 
     const values = matches.flatMap((f) =>
