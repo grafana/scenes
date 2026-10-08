@@ -1215,6 +1215,90 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
     });
 
+    it('should stop passing a default group by dimension once it is dismissed', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [],
+        originFilters: [{ key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '', origin: 'dashboard' }],
+        enableGroupBy: true,
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls[0][1].groupByKeys).toEqual(['A']);
+
+      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      expect(runRequestMock.mock.calls[1][1].groupByKeys).toBeUndefined();
+    });
+
+    function setupInactiveGroupByScene() {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [],
+        originFilters: [{ key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '', origin: 'dashboard' }],
+        enableGroupBy: true,
+      });
+      const variables = new SceneVariableSet({ variables: [filtersVar] });
+      // On the body rather than the scene's own $data, which scene activation would keep active.
+      const scene = new EmbeddedScene({
+        $variables: variables,
+        body: new SceneCanvasText({ text: 'x', $data: queryRunner }),
+      });
+      deactivationHandlers.push(scene.activate());
+      return { queryRunner, filtersVar };
+    }
+
+    it('does not re-run on reactivation when nothing changed while inactive', async () => {
+      const { queryRunner } = setupInactiveGroupByScene();
+      const deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      deactivateRunner();
+      deactivationHandlers.push(queryRunner.activate());
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+    });
+
+    it('re-runs on reactivation when a default group by was dismissed while inactive', async () => {
+      const { queryRunner, filtersVar } = setupInactiveGroupByScene();
+      const deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls[0][1].groupByKeys).toEqual(['A']);
+
+      deactivateRunner();
+      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      deactivationHandlers.push(queryRunner.activate());
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      expect(runRequestMock.mock.calls[1][1].groupByKeys).toBeUndefined();
+    });
+
     it('should not pass group by dimensions when enableGroupBy is false', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },

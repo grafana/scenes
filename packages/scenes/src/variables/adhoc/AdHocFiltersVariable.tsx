@@ -10,9 +10,17 @@ import {
   SelectableValue,
 } from '@grafana/data';
 import { SceneObjectBase } from '../../core/SceneObjectBase';
-import { SceneVariable, SceneVariableState, SceneVariableValueChangedEvent, VariableValue } from '../types';
+import {
+  CustomVariableValue,
+  SceneVariable,
+  SceneVariableState,
+  SceneVariableValueChangedEvent,
+  VariableCustomFormatterFn,
+  VariableValue,
+} from '../types';
 import { ControlsLayout, SceneComponentProps, SceneDataQuery, SceneObject } from '../../core/types';
-import { DataSourceRef } from '@grafana/schema';
+import { DataSourceRef, VariableFormatID } from '@grafana/schema';
+import { t } from '@grafana/i18n';
 import {
   dataFromResponse,
   escapeOriginFilterUrlDelimiters,
@@ -480,6 +488,9 @@ export class AdHocFiltersVariable
   public setState(update: Partial<AdHocFiltersVariableState>): void {
     let filterExpressionChanged = false;
     let groupByChanged = false;
+    // Match-all filters are left out of the expression, so adding or removing one can change
+    // `${filters["key"]}` interpolation without changing the expression or the group-by keys.
+    let perKeyValuesChanged = false;
 
     if (
       ((update.filters && update.filters !== this.state.filters) ||
@@ -495,11 +506,15 @@ export class AdHocFiltersVariable
         [...(this.state.originFilters ?? []), ...this.state.filters],
         [...(originFilters ?? []), ...filters]
       );
+      perKeyValuesChanged = havePerKeyValuesChanged(
+        getPerKeyCandidates([...(this.state.originFilters ?? []), ...this.state.filters], this.state._wip),
+        getPerKeyCandidates([...(originFilters ?? []), ...filters], '_wip' in update ? update._wip : this.state._wip)
+      );
     }
 
     super.setState(update);
 
-    if (filterExpressionChanged || groupByChanged) {
+    if (filterExpressionChanged || groupByChanged || perKeyValuesChanged) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -561,15 +576,18 @@ export class AdHocFiltersVariable
   ): void {
     let filterExpressionChanged = false;
     let groupByChanged = false;
+    let perKeyValuesChanged = false;
     let filterExpression: string | undefined = undefined;
 
     if (filters && filters !== this.state.filters) {
-      filterExpression = renderExpression(this.state.expressionBuilder, [
-        ...(this.state.originFilters ?? []),
-        ...filters,
-      ]);
+      const originFilters = this.state.originFilters ?? [];
+      filterExpression = renderExpression(this.state.expressionBuilder, [...originFilters, ...filters]);
       filterExpressionChanged = filterExpression !== this.state.filterExpression;
       groupByChanged = haveGroupByKeysChanged(this.state.filters, filters);
+      perKeyValuesChanged = havePerKeyValuesChanged(
+        getPerKeyCandidates([...originFilters, ...this.state.filters], this.state._wip),
+        getPerKeyCandidates([...originFilters, ...filters], this.state._wip)
+      );
     }
 
     super.setState({
@@ -577,7 +595,10 @@ export class AdHocFiltersVariable
       filterExpression,
     });
 
-    if (((filterExpressionChanged || groupByChanged) && options?.skipPublish !== true) || options?.forcePublish) {
+    if (
+      ((filterExpressionChanged || groupByChanged || perKeyValuesChanged) && options?.skipPublish !== true) ||
+      options?.forcePublish
+    ) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -786,32 +807,39 @@ export class AdHocFiltersVariable
   }
 
   /**
-   * Resolves a single filter key (and optional accessor) to its value(s). Candidate filters are
-   * the combined origin + user filters, excluding groupBy and WIP filters - the same set used to
-   * build `filterExpression`. Returns:
-   *  - value accessor (default): the flattened value(s) of all filters matching `key` - a scalar
-   *    string when exactly one value resolves, otherwise a `string[]` for the formatter to render.
-   *  - `operator` accessor: the operator token of the first matching filter.
+   * Resolves a single filter key (and optional accessor) to its value(s). Candidates are the origin
+   * and user filters on `key`, excluding group-by and WIP entries; unlike `filterExpression`, they
+   * include match-all and non-applicable filters. Returns:
+   *  - value accessor (default): the flattened values of the concrete (non match-all) candidates - a
+   *    scalar string when exactly one value resolves, otherwise a `string[]` for the formatter. When
+   *    every candidate is match-all, a `MatchAllFilterKeyValue` that formats itself per format.
+   *  - `operator` accessor: the operator of the first concrete candidate, else of the first one.
    *  - any other accessor, or a missing key: an empty string.
    */
   private getFilterValueByKey(key: string, accessor?: string): VariableValue {
-    const { originFilters, filters, _wip } = this.state;
+    const keyFilters = getPerKeyCandidates(
+      [...(this.state.originFilters ?? []), ...this.state.filters],
+      this.state._wip
+    ).filter((f) => f.key === key);
 
-    const matches = [...(originFilters ?? []), ...filters].filter(
-      (f) => f !== _wip && !isGroupByFilter(f) && !isMatchAllFilter(f) && f.key === key
-    );
-
-    if (matches.length === 0) {
+    if (keyFilters.length === 0) {
       return '';
     }
 
+    // A match all filter doesn't restrict anything, so any specific filter on the same key wins.
+    const matches = keyFilters.filter((f) => !isMatchAllFilter(f));
+
     if (accessor === 'operator') {
-      return matches[0].operator;
+      return (matches[0] ?? keyFilters[0]).operator;
     }
 
     if (accessor !== undefined) {
       // Unrecognized accessor (e.g. `.foo`).
       return '';
+    }
+
+    if (matches.length === 0) {
+      return new MatchAllFilterKeyValue();
     }
 
     const values = matches.flatMap((f) =>
@@ -1360,6 +1388,51 @@ function renderExpression(
   return (builder ?? renderPrometheusLabelFilters)(
     filters?.filter((f) => isFilterApplicable(f) && !isGroupByFilter(f) && !isMatchAllFilter(f)) ?? []
   );
+}
+
+/**
+ * Per-key interpolation (`${filters["key"]}`) value for a key whose filters all match everything,
+ * in either form (`=|` with All, only offered on default filters, or `=~ .*`). Both mean "no
+ * restriction on this key" - they're left out of queries, never expanded to a list of values - so
+ * like a multi-value variable's custom All value it formats itself: the display text for `text`
+ * (which panel titles use), a match-everything regex for query formats rather than the literal text
+ * `All` (which would match a label value), and no parameter at all for `queryparam`, since there's
+ * no restriction to carry over and an All user filter isn't a valid state.
+ */
+export class MatchAllFilterKeyValue implements CustomVariableValue {
+  public formatter(formatNameOrFn?: string | VariableCustomFormatterFn): string {
+    if (formatNameOrFn === VariableFormatID.Text) {
+      return t('grafana-scenes.components.adhoc-filters-combobox.all-values', 'All');
+    }
+    if (formatNameOrFn === VariableFormatID.QueryParam) {
+      return '';
+    }
+    return '.*';
+  }
+}
+
+function getPerKeyCandidates(
+  filters: AdHocFilterWithLabels[],
+  wip: AdHocFilterWithLabels | undefined
+): AdHocFilterWithLabels[] {
+  return filters.filter((f) => f !== wip && !isGroupByFilter(f));
+}
+
+// Takes candidates (see getPerKeyCandidates) so each side is computed with its own WIP filter.
+function havePerKeyValuesChanged(prev: AdHocFilterWithLabels[], next: AdHocFilterWithLabels[]): boolean {
+  const signature = (filters: AdHocFilterWithLabels[]) =>
+    JSON.stringify(filters.map((f) => [f.key, f.operator, f.value, f.values ?? null]));
+  return signature(prev) !== signature(next);
+}
+
+/**
+ * The group-by keys a query applies from a variable with `enableGroupBy`: complete, applicable,
+ * non-dismissed group-by entries across origin and user filters, in order.
+ */
+export function getActiveGroupByKeys(variable: AdHocFiltersVariable): string[] {
+  return [...(variable.state.originFilters ?? []), ...variable.state.filters]
+    .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && isFilterApplicable(f) && !f.dismissedGroupBy)
+    .map((f) => f.key);
 }
 
 function getGroupByKeys(filters: AdHocFilterWithLabels[]): string[] {
