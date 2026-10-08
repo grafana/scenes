@@ -508,9 +508,8 @@ export class AdHocFiltersVariable
         [...(originFilters ?? []), ...filters]
       );
       perKeyValuesChanged = havePerKeyValuesChanged(
-        [...(this.state.originFilters ?? []), ...this.state.filters],
-        [...(originFilters ?? []), ...filters],
-        update._wip ?? this.state._wip
+        getPerKeyCandidates([...(this.state.originFilters ?? []), ...this.state.filters], this.state._wip),
+        getPerKeyCandidates([...(originFilters ?? []), ...filters], '_wip' in update ? update._wip : this.state._wip)
       );
     }
 
@@ -587,9 +586,8 @@ export class AdHocFiltersVariable
       filterExpressionChanged = filterExpression !== this.state.filterExpression;
       groupByChanged = haveGroupByKeysChanged(this.state.filters, filters);
       perKeyValuesChanged = havePerKeyValuesChanged(
-        [...originFilters, ...this.state.filters],
-        [...originFilters, ...filters],
-        this.state._wip
+        getPerKeyCandidates([...originFilters, ...this.state.filters], this.state._wip),
+        getPerKeyCandidates([...originFilters, ...filters], this.state._wip)
       );
     }
 
@@ -1422,13 +1420,10 @@ function getPerKeyCandidates(
   return filters.filter((f) => f !== wip && !isGroupByFilter(f));
 }
 
-function havePerKeyValuesChanged(
-  prev: AdHocFilterWithLabels[],
-  next: AdHocFilterWithLabels[],
-  wip: AdHocFilterWithLabels | undefined
-): boolean {
+// Takes candidates (see getPerKeyCandidates) so each side is computed with its own WIP filter.
+function havePerKeyValuesChanged(prev: AdHocFilterWithLabels[], next: AdHocFilterWithLabels[]): boolean {
   const signature = (filters: AdHocFilterWithLabels[]) =>
-    JSON.stringify(getPerKeyCandidates(filters, wip).map((f) => [f.key, f.operator, f.value, f.values ?? null]));
+    JSON.stringify(filters.map((f) => [f.key, f.operator, f.value, f.values ?? null]));
   return signature(prev) !== signature(next);
 }
 
