@@ -2073,14 +2073,16 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(sceneGraph.interpolate(scene, template)).toBe(expected);
     });
 
-    it('publishes a value change when an All selection is committed from the WIP filter', () => {
-      const variable = makeVariable({ filters: [], _wip: { key: 'env', operator: '=|', value: '' } });
+    it('publishes a value change when a default All filter is removed', () => {
+      const variable = makeVariable({
+        originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+      });
       const onChange = jest.fn();
       variable.subscribeToEvent(SceneVariableValueChangedEvent, onChange);
 
-      variable._updateFilter(variable.state._wip!, { value: '$__all', values: ['$__all'] });
+      variable.setState({ originFilters: [] });
 
-      expect(variable.state.filters).toHaveLength(1);
+      expect(variable.getValue('["env"]')).toBe('');
       expect(onChange).toHaveBeenCalled();
     });
 
@@ -2094,20 +2096,20 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(sceneGraph.interpolate(scene, '${filters["env"]:regex}')).toBe('All');
     });
 
-    it('formats a match-all filter for queryparam as a URL parameter that restores the filter', () => {
-      const variable = makeVariable({ filters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'] }] });
+    it.each([
+      [
+        'a default All filter',
+        { originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }] },
+      ],
+      ['a regex match-all filter', { filters: [{ key: 'env', operator: '=~', value: '.*' }] }],
+    ])('formats %s for queryparam as no parameter, since it restricts nothing', (_, state) => {
+      const variable = makeVariable(state as Partial<AdHocFiltersVariableState>);
       const scene = new EmbeddedScene({
         $variables: new SceneVariableSet({ variables: [variable] }),
         body: new SceneCanvasText({ text: '' }),
       });
 
-      const param = new URLSearchParams(sceneGraph.interpolate(scene, '${filters["env"]:queryparam}'));
-      const restored = makeVariable({});
-      restored.urlSync?.updateFromUrl({ 'var-filters': param.getAll('var-filters') });
-
-      expect(restored.state.filters).toEqual([
-        expect.objectContaining({ key: 'env', operator: '=|', values: ['$__all'] }),
-      ]);
+      expect(sceneGraph.interpolate(scene, 'x=1&${filters["env"]:queryparam}')).toBe('x=1&');
     });
 
     it('resolves a regex match-all filter to All', () => {
