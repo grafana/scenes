@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "Filter mit Schlüssel {{keyLabel}} bearbeiten",
         "managed-filter": "{{origin}} verwalteter Filter",
         "non-applicable": "Der Filter ist nicht anwendbar",
         "remove-filter-with-key": "Filter mit Schlüssel {{keyLabel}} entfernen"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "Filterwert entfernen – {{itemLabel}}",
         "use-custom-value": "Benutzerdefinierten Wert verwenden: {{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "Wird in diesem Dashboard standardmäßig angewendet. Wenn es bearbeitet wird, wird es auf andere Dashboards übertragen.",
         "group-by-key": "Gruppieren nach {{keyLabel}}",
         "remove-group-by-key": "Gruppe nach {{keyLabel}} entfernen"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Szene ausblenden",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Plugin-Panel wird geladen …",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "Das Panel-Plugin hat keine Panel-Komponente"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "Abfrage abbrechen"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -182,6 +196,7 @@
         "placeholder-enter-value": "Wert eingeben"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "Wert auswählen"
       }
     }

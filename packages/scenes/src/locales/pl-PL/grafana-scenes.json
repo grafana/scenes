@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "Edytuj filtr z kluczem {{keyLabel}}",
         "managed-filter": "Filtr zarządzany ({{origin}})",
         "non-applicable": "Filtr nie ma zastosowania",
         "remove-filter-with-key": "Usuń filtr z kluczem {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "Usuń wartość filtra – {{itemLabel}}",
         "use-custom-value": "Użyj wartości niestandardowej: {{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "Zastosowano domyślnie do tego pulpitu. W przypadku edycji zmiana zostanie uwzględniona na innych pulpitach.",
         "group-by-key": "Grupuj według: {{keyLabel}}",
         "remove-group-by-key": "Usuń grupowanie według: {{keyLabel}}"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Zwiń scenę",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Ładowanie panelu wtyczki…",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "Wtyczka panelu nie zawiera komponentu panelu"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "Anuluj zapytanie"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -186,6 +200,7 @@
         "placeholder-enter-value": "Wprowadź wartość"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "Wybierz wartość"
       }
     }
