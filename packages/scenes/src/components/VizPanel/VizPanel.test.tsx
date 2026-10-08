@@ -37,6 +37,7 @@ import { mockTransformationsRegistry } from '../../utils/mockTransformationsRegi
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneVariableSet } from '../../variables/sets/SceneVariableSet';
 import { TestVariable } from '../../variables/variants/TestVariable';
+import { AdHocFiltersVariable } from '../../variables/adhoc/AdHocFiltersVariable';
 
 let pluginToLoad: PanelPlugin | undefined;
 /** Plugins the import cache holds per id, for the tests that need it to answer differently per plugin. */
@@ -1339,6 +1340,32 @@ describe('VizPanel', () => {
 
       expect(forceRenderSpy).toHaveBeenCalled();
       expect(panel.applyFieldConfig(testData)).not.toBe(first);
+    });
+
+    it('re-renders a title interpolating a filter key when a match-all filter on it is removed', async () => {
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'ds' },
+        applyMode: 'manual',
+        filters: [{ key: 'env', operator: '=~', value: '.*' }],
+      });
+      const panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        title: 'Env ${filters["env"]}',
+        $timeRange: new SceneTimeRange(),
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+      });
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+      await Promise.resolve();
+      expect(panel.interpolate(panel.state.title, undefined, 'text')).toBe('Env All');
+
+      const forceRenderSpy = jest.spyOn(panel, 'forceRender');
+      filtersVar.updateFilters([]);
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(forceRenderSpy).toHaveBeenCalled();
+      expect(panel.interpolate(panel.state.title, undefined, 'text')).toBe('Env ');
     });
 
     it('should keep the cache when the changed variable is not referenced by the panel', async () => {

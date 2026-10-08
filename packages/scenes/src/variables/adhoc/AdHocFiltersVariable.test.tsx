@@ -1,8 +1,10 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen, within } from '@testing-library/react';
 import { SceneVariable, SceneVariableValueChangedEvent } from '../types';
+import { sceneGraph } from '../../core/sceneGraph';
 import {
   AdHocFiltersVariable,
+  MatchAllFilterKeyValue,
   AdHocFiltersVariableState,
   AdHocFilterWithLabels,
   GROUP_BY_OPERATOR,
@@ -2051,13 +2053,55 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       const variable = makeVariable({
         originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
       });
-      expect(variable.getValue('["env"]')).toBe('All');
+      expect(variable.getValue('["env"]')).toBeInstanceOf(MatchAllFilterKeyValue);
+      expect((variable.getValue('["env"]') as MatchAllFilterKeyValue).formatter('text')).toBe('All');
       expect(variable.getValue('["env"].operator')).toBe('=|');
+    });
+
+    it.each([
+      ['text', '${filters["env"]:text}', 'All'],
+      ['regex', '${filters["env"]:regex}', '.*'],
+      ['raw', '${filters["env"]:raw}', '.*'],
+    ])('formats a match-all filter for %s', (_, template, expected) => {
+      const variable = makeVariable({
+        originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+      });
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        body: new SceneCanvasText({ text: '' }),
+      });
+      expect(sceneGraph.interpolate(scene, template)).toBe(expected);
+    });
+
+    it('keeps a real label value named All distinct from match-all in query formats', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'All' }] });
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        body: new SceneCanvasText({ text: '' }),
+      });
+
+      expect(sceneGraph.interpolate(scene, '${filters["env"]:regex}')).toBe('All');
+    });
+
+    it('formats a match-all filter for queryparam as a URL parameter that restores the filter', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'] }] });
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        body: new SceneCanvasText({ text: '' }),
+      });
+
+      const param = new URLSearchParams(sceneGraph.interpolate(scene, '${filters["env"]:queryparam}'));
+      const restored = makeVariable({});
+      restored.urlSync?.updateFromUrl({ 'var-filters': param.getAll('var-filters') });
+
+      expect(restored.state.filters).toEqual([
+        expect.objectContaining({ key: 'env', operator: '=|', values: ['$__all'] }),
+      ]);
     });
 
     it('resolves a regex match-all filter to All', () => {
       const variable = makeVariable({ filters: [{ key: 'env', operator: '=~', value: '.*' }] });
-      expect(variable.getValue('["env"]')).toBe('All');
+      expect((variable.getValue('["env"]') as MatchAllFilterKeyValue).formatter('text')).toBe('All');
     });
 
     it('returns only concrete values when an All-value filter shares the key', () => {
