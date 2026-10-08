@@ -83,9 +83,10 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
 
     // Subscribe to layer state changes and enable/disable layer accordingly.
     this.subscribeToState((n, p) => {
-      if (!n.isEnabled && this.querySub) {
+      // querySub alone is not enough to detect this: a layer reactivated with existing data has results but no querySub
+      if (!n.isEnabled && p.isEnabled) {
         // When layer disabled, cancel query and call onDisable that should publish empty results.
-        this.querySub.unsubscribe();
+        this.querySub?.unsubscribe();
         this.querySub = undefined;
         this.onDisable();
 
