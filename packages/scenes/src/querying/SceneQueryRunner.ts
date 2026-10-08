@@ -43,7 +43,7 @@ import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { QueryProfilerLike, registerQueryWithController } from './registerQueryWithController';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
-import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable, getActiveGroupByKeys } from '../variables/adhoc/AdHocFiltersVariable';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
@@ -309,6 +309,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _timeSubRange?: SceneTimeRangeLike;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
+  // Group-by keys aren't part of an ad hoc variable's value, so the recorder above can't see a group
+  // by dismissed while this runner was inactive. Remember what the last query applied instead.
+  private _lastGroupBy?: { variable: AdHocFiltersVariable; keys: string[] };
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _layerAnnotations?: DataFrame[];
@@ -489,6 +492,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private shouldRunQueriesOnActivate() {
+    if (this._lastGroupBy && !isEqual(getActiveGroupByKeys(this._lastGroupBy.variable), this._lastGroupBy.keys)) {
+      writeSceneLog(
+        'SceneQueryRunner',
+        'Group by keys changed while inactive, shouldRunQueriesOnActivate returns true'
+      );
+      return true;
+    }
+
     if (this._variableValueRecorder.hasDependenciesChanged(this)) {
       writeSceneLog(
         'SceneQueryRunner',
@@ -742,6 +753,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     clone['_variableValueRecorder'] = this._variableValueRecorder.cloneAndRecordCurrentValuesForSceneObject(this);
+    clone['_lastGroupBy'] = this._lastGroupBy;
     clone['_containerWidth'] = this._containerWidth;
     clone['_results'].next({ origin: this, data: this.state.data ?? emptyPanelData });
 
@@ -784,6 +796,11 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (groupByKeys) {
       request.groupByKeys = groupByKeys;
     }
+
+    const groupByVariable = this._drilldownDependenciesManager.adHocFiltersVar;
+    this._lastGroupBy = groupByVariable?.state.enableGroupBy
+      ? { variable: groupByVariable, keys: getActiveGroupByKeys(groupByVariable) }
+      : undefined;
 
     request.targets = request.targets.map((query) => {
       if (

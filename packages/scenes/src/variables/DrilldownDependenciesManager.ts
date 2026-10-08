@@ -10,6 +10,7 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import {
   AdHocFilterWithLabels,
   AdHocFiltersVariable,
+  getActiveGroupByKeys,
   isFilterApplicable,
   isFilterComplete,
   isGroupByFilter,
@@ -205,10 +206,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
    */
   public getGroupByKeys(): string[] | undefined {
     if (this._adhocFiltersVar?.state.enableGroupBy) {
-      const groupByKeys = [...(this._adhocFiltersVar.state.originFilters ?? []), ...this._adhocFiltersVar.state.filters]
-        .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && isFilterApplicable(f) && !f.dismissedGroupBy)
-        .map((f) => f.key);
-
+      const groupByKeys = getActiveGroupByKeys(this._adhocFiltersVar);
       return groupByKeys.length > 0 ? groupByKeys : undefined;
     }
 

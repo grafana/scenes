@@ -159,7 +159,7 @@ The operator token of the (first) matching filter is available via the `.operato
 ### Notes and limitations
 
 - A missing key renders as an empty string (`${filters["unknown"]}` -> ``), including with a formatter.
-- A filter that matches everything (the `All` value, or `=~ .*`) renders as `All`. If the key also has a filter with concrete values, those values render instead.
+- A key whose filters all match everything (the `All` value, or `=~ .*`) formats like a variable's custom All value: `All` (translated) for the `text` format, which panel titles use; a match-everything `.*` for query formats such as `regex`, `raw`, `pipe`, or the default; and the filter itself for `queryparam`, so a link can carry it to another dashboard. If the key also has a filter with concrete values, those values render instead.
 - An unrecognized accessor (anything other than `.operator`) renders as an empty string.
 - The dot form `${filters.env}` is **not** a per-key accessor. It falls through to the whole-expression behavior and logs a development-mode warning advising bracket syntax. Always use brackets for per-key access.
 - The output shape depends on cardinality: a single-value key returns a scalar, so `${filters["env"]:json}` yields the raw string `"prod"` rather than `["prod"]`. This matches multi-value-variable behavior.
