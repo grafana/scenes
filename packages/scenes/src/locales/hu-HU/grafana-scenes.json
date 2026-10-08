@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "{{keyLabel}} kulcsos szűrő szerkesztése",
         "managed-filter": "{{origin}} által kezelt szűrő",
         "non-applicable": "A szűrő nem alkalmazható",
         "remove-filter-with-key": "{{keyLabel}} kulcsos szűrő eltávolítása"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "Szűrőérték eltávolítása – {{itemLabel}}",
         "use-custom-value": "Egyéni érték használata: {{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "Ezen a műszerfalon alapértelmezés szerint aktív. Ha módosítja, a többi műszerfalra is érvényes lesz.",
         "group-by-key": "Csoportosítás {{keyLabel}} szerint",
         "remove-group-by-key": "{{keyLabel}} szerinti csoportosítás törlése"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Jelenet összecsukása",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Bővítménypanel betöltése…",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "A panelbővítménynek nincs panelösszetevője"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "A lekérdezés megszakítása"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -182,6 +196,7 @@
         "placeholder-enter-value": "Érték megadása"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "Érték kiválasztása"
       }
     }

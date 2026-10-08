@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "Редактировать фильтр с ключом {{keyLabel}}",
         "managed-filter": "фильтр, управляемый {{origin}}",
         "non-applicable": "Фильтр не применим",
         "remove-filter-with-key": "Удалить фильтр с ключом {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "Удалить значение фильтра ({{itemLabel}})",
         "use-custom-value": "Использовать пользовательское значение: {{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "Применяется по умолчанию на этом дашборде. При редактировании переносится на другие дашборды.",
         "group-by-key": "Группировать по {{keyLabel}}",
         "remove-group-by-key": "Удалить группу по {{keyLabel}}"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Свернуть сцену",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Загрузка панели плагинов...",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "Плагин не имеет свойства панели"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "Отмена запроса"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -186,6 +200,7 @@
         "placeholder-enter-value": "Ввести значение"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "Выбрать значение"
       }
     }

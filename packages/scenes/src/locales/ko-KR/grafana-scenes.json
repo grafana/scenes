@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "{{keyLabel}} 키로 필터 편집",
         "managed-filter": "{{origin}} 관리 필터",
         "non-applicable": "필터를 적용할 수 없습니다",
         "remove-filter-with-key": "{{keyLabel}} 키로 필터 제거"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "필터 값 제거 - {{itemLabel}}",
         "use-custom-value": "사용자 지정 값 사용: {{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "이 대시보드에서 기본적으로 적용됩니다. 편집하면 다른 대시보드로 이전됩니다.",
         "group-by-key": "{{keyLabel}} 기준으로 그룹화",
         "remove-group-by-key": "{{keyLabel}} 기준으로 그룹 제거"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "장면 접기",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "플러그인 패널 로딩 중...",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "패널 플러그인에 패널 구성 요소가 없습니다."
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "쿼리 취소"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -180,6 +194,7 @@
         "placeholder-enter-value": "값 입력"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "값 선택"
       }
     }

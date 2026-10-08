@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "使用鍵 {{keyLabel}} 編輯篩選條件",
         "managed-filter": "{{origin}} 受管理的篩選條件",
         "non-applicable": "篩選條件不適用",
         "remove-filter-with-key": "使用鍵 {{keyLabel}} 移除篩選條件"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "移除篩選條件值 - {{itemLabel}}",
         "use-custom-value": "使用自訂值：{{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "在此儀表板中預設套用。如果編輯，它會轉移到其他儀表板。",
         "group-by-key": "分組依據：{{keyLabel}}",
         "remove-group-by-key": "移除分組依據「{{keyLabel}}」"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "收闔場景",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "正在載入外掛程式面板…",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "面板外掛程式沒有面板元件"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "取消查詢"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -180,6 +194,7 @@
         "placeholder-enter-value": "輸入值"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "選擇值"
       }
     }
