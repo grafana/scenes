@@ -2073,6 +2073,17 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(sceneGraph.interpolate(scene, template)).toBe(expected);
     });
 
+    it('publishes a value change when an All selection is committed from the WIP filter', () => {
+      const variable = makeVariable({ filters: [], _wip: { key: 'env', operator: '=|', value: '' } });
+      const onChange = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, onChange);
+
+      variable._updateFilter(variable.state._wip!, { value: '$__all', values: ['$__all'] });
+
+      expect(variable.state.filters).toHaveLength(1);
+      expect(onChange).toHaveBeenCalled();
+    });
+
     it('keeps a real label value named All distinct from match-all in query formats', () => {
       const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'All' }] });
       const scene = new EmbeddedScene({
