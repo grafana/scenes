@@ -1,8 +1,11 @@
-import { DataQuery, DataSourceApi, PluginType } from '@grafana/data';
+import { DataQuery, DataSourceApi, DataSourceInstanceSettings, PluginType } from '@grafana/data';
+import { getDataSourceSrv } from '@grafana/runtime';
 
 export abstract class RuntimeDataSource<TQuery extends DataQuery = DataQuery> extends DataSourceApi<TQuery> {
+  public instanceSettings: DataSourceInstanceSettings;
+
   public constructor(pluginId: string, uid: string) {
-    super({
+    const instanceSettings: DataSourceInstanceSettings = {
       name: 'RuntimeDataSource-' + pluginId,
       uid: uid,
       type: pluginId,
@@ -31,7 +34,10 @@ export abstract class RuntimeDataSource<TQuery extends DataQuery = DataQuery> ex
         module: '',
         baseUrl: '',
       },
-    });
+    };
+
+    super(instanceSettings);
+    this.instanceSettings = instanceSettings;
   }
 
   public testDatasource(): Promise<any> {
@@ -55,4 +61,15 @@ export function registerRuntimeDataSource({ dataSource }: RuntimeDataSourceOptio
   }
 
   runtimeDataSources.set(dataSource.uid, dataSource);
+
+  // Scenes is bundled per plugin, so the map above is invisible to Grafana. Warn rather than throw,
+  // because another plugin may already own the uid in Grafana's registry.
+  try {
+    getDataSourceSrv().registerRuntimeDataSource({ dataSource });
+  } catch (error) {
+    console.warn(
+      `Could not register runtime data source ${dataSource.uid} with Grafana, it is only available within scenes`,
+      error
+    );
+  }
 }
