@@ -1,5 +1,5 @@
 import { LoadingState } from '@grafana/schema';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { SceneObject } from '../core/types';
 import { TestScene } from '../variables/TestScene';
 import { SceneQueryController } from './SceneQueryController';
@@ -105,6 +105,47 @@ describe('SceneQueryController', () => {
     sub.unsubscribe();
 
     expect((window as any).__grafanaRunningQueryCount).toBe(0);
+  });
+
+  it('tracks each subscription of the same query separately', async () => {
+    const source = new Subject<QueryResultWithState>();
+    const query = source.pipe(registerQueryWithController({ type: 'data', origin: scene }));
+
+    query.subscribe(() => {});
+    query.subscribe(() => {});
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(2);
+    expect(controller.runningQueriesCount()).toBe(2);
+
+    source.next({ state: LoadingState.Done });
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(0);
+    expect(controller.state.isRunning).toBe(false);
+  });
+
+  it('cancel all completes every subscription of the same query', async () => {
+    const source = new Subject<QueryResultWithState>();
+    const query = source.pipe(registerQueryWithController({ type: 'data', origin: scene }));
+
+    const sub1 = query.subscribe(() => {});
+    const sub2 = query.subscribe(() => {});
+
+    controller.cancelAll();
+
+    expect(sub1.closed).toBe(true);
+    expect(sub2.closed).toBe(true);
+    expect((window as any).__grafanaRunningQueryCount).toBe(0);
+  });
+
+  it('does not count a duplicate start of the same entry', async () => {
+    const entry = { type: 'data', origin: scene };
+
+    controller.queryStarted(entry);
+    controller.queryStarted(entry);
+    controller.queryCompleted(entry);
+
+    expect((window as any).__grafanaRunningQueryCount).toBe(0);
+    expect(controller.state.isRunning).toBe(false);
   });
 });
 

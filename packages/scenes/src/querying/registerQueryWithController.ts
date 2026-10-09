@@ -26,9 +26,12 @@ export function registerQueryWithController<T extends QueryResultWithState>(
     }
 
     return new Observable<T>((observer) => {
-      if (!entry.cancel) {
-        entry.cancel = () => observer.complete();
-      }
+      // A copy per subscription keeps the controller's running set and the global query counter in sync
+      // when the same piped observable is subscribed more than once.
+      const subscriptionEntry: SceneQueryControllerEntry = {
+        ...entry,
+        cancel: entry.cancel ?? (() => observer.complete()),
+      };
 
       // Use existing request ID if available, otherwise generate one
       const queryId = entry.request?.requestId || `${entry.type}-${Math.floor(performance.now()).toString(36)}`;
@@ -38,7 +41,7 @@ export function registerQueryWithController<T extends QueryResultWithState>(
 
       if (profiler) {
         // Panel query: Use panel profiler
-        endQueryCallback = profiler.onQueryStarted(startTimestamp, entry, queryId);
+        endQueryCallback = profiler.onQueryStarted(startTimestamp, subscriptionEntry, queryId);
       } else {
         // Non-panel query: Track directly with simple approach
         const operationId = generateOperationId('query');
@@ -64,14 +67,14 @@ export function registerQueryWithController<T extends QueryResultWithState>(
         };
       }
 
-      queryControler.queryStarted(entry);
+      queryControler.queryStarted(subscriptionEntry);
       let markedAsCompleted = false;
 
       const sub = queryStream.subscribe({
         next: (v) => {
           if (!markedAsCompleted && v.state !== LoadingState.Loading) {
             markedAsCompleted = true;
-            queryControler.queryCompleted(entry);
+            queryControler.queryCompleted(subscriptionEntry);
             endQueryCallback?.(performance.now()); // Success case - no error
           }
 
@@ -80,7 +83,7 @@ export function registerQueryWithController<T extends QueryResultWithState>(
         error: (e) => {
           if (!markedAsCompleted) {
             markedAsCompleted = true;
-            queryControler.queryCompleted(entry);
+            queryControler.queryCompleted(subscriptionEntry);
             endQueryCallback?.(performance.now(), e); // Error case - pass error
           }
           observer.error(e);
@@ -94,7 +97,7 @@ export function registerQueryWithController<T extends QueryResultWithState>(
         sub.unsubscribe();
 
         if (!markedAsCompleted) {
-          queryControler.queryCompleted(entry);
+          queryControler.queryCompleted(subscriptionEntry);
           endQueryCallback?.(performance.now()); // Cleanup case - no error
         }
       };

@@ -55,6 +55,11 @@ export class SceneQueryController
   }
 
   public queryStarted(entry: SceneQueryControllerEntry) {
+    // queryCompleted only decrements once per entry, so counting a duplicate start would pin the global counter
+    if (this.#running.has(entry)) {
+      return;
+    }
+
     this.#running.add(entry);
     this.changeRunningQueryCount(1, entry);
 
