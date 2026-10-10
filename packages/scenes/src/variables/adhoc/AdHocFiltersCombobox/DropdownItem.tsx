@@ -142,6 +142,16 @@ export const ExpressionHintPlaceholder = () => {
   );
 };
 
+export const KeyLabelHintPlaceholder = () => {
+  return (
+    <DropdownItem nonInteractive onClick={(e) => e.stopPropagation()}>
+      <Trans i18nKey="grafana-scenes.variables.key-label-hint-placeholder.press-enter-to-continue">
+        Optional display name - press Enter to continue
+      </Trans>
+    </DropdownItem>
+  );
+};
+
 export const OptionsErrorPlaceholder = ({ handleFetchOptions }: { handleFetchOptions: () => void }) => {
   return (
     <DropdownItem onClick={handleFetchOptions}>
