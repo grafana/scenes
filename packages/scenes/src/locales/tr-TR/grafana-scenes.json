@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Tümü",
         "edit-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla düzenle",
         "managed-filter": "{{origin}} yönetimli filtre",
         "non-applicable": "Filtre uygulanamaz",
         "remove-filter-with-key": "Filtreyi {{keyLabel}} anahtarıyla kaldır"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Tümü",
         "remove-filter-value": "Filtre değerini kaldır - {{itemLabel}}",
         "use-custom-value": "Özel değer kullan: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Paneli taşı",
+            "resize-panel": "Paneli yeniden boyutlandır"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Eklenti paneli yükleniyor...",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Beklenmedik bir hata oluştu. \"{{pluginName}}\" eklentisini en son sürüme güncellemek sorunu çözebilir.",
         "panel-plugin-has-no-panel-component": "Panel eklentisinde panel bileşeni yok"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Sorguyu iptal et"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Zaman karşılaştırması için veri döndürülmedi"
       }
     },
     "variables": {
@@ -142,7 +142,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Bu pano tarafından ayarlanmış groupby kümesini geri yükleyin."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Uygulamak için Enter tuşuna basın"
       },
       "format-registry": {
         "formats": {
@@ -196,7 +196,7 @@
         "placeholder-enter-value": "Değer girin"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Tümü",
         "placeholder-select-value": "Değer seçin"
       }
     }

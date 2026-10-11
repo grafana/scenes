@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Tout",
         "edit-filter-with-key": "Modifier le filtre ayant pour clé {{keyLabel}}",
         "managed-filter": "Filtre géré {{origin}}",
         "non-applicable": "Filtre non applicable",
         "remove-filter-with-key": "Supprimer le filtre ayant pour clé {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Tout",
         "remove-filter-value": "Supprimer la valeur du filtre – {{itemLabel}}",
         "use-custom-value": "Utiliser une valeur personnalisée : {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Déplacer le panneau",
+            "resize-panel": "Redimensionner le panneau"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Chargement du panneau du plugin…",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Une erreur inattendue est survenue. La mise à niveau du plugin « {{pluginName}} » vers sa version la plus récente peut résoudre le problème.",
         "panel-plugin-has-no-panel-component": "Le plugin de panneau ne contient aucun composant de panneau"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Annuler la requête"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Aucune donnée renvoyée pour la comparaison dans le temps"
       }
     },
     "variables": {
@@ -142,7 +142,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Restaurer le groupage défini par ce tableau de bord."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Appuyez sur Entrée pour appliquer"
       },
       "format-registry": {
         "formats": {
@@ -196,7 +196,7 @@
         "placeholder-enter-value": "Saisir une valeur"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Tout",
         "placeholder-select-value": "Sélectionner une valeur"
       }
     }

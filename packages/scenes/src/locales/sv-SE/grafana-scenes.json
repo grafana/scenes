@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Alla",
         "edit-filter-with-key": "Redigera filter med nyckeln {{keyLabel}}",
         "managed-filter": "Filter som hanteras av {{origin}}",
         "non-applicable": "Filtret är inte tillämpligt",
         "remove-filter-with-key": "Ta bort filter med nyckeln {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Alla",
         "remove-filter-value": "Ta bort filtervärde – {{itemLabel}}",
         "use-custom-value": "Använd anpassat värde: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Flytta panelen",
+            "resize-panel": "Ändra storlek på panelen"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Läser in tilläggspanel …",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Ett oväntat fel inträffade. Om du uppdaterar tillägget ”{{pluginName}}” till den senaste versionen kan det åtgärda problemet.",
         "panel-plugin-has-no-panel-component": "Paneltillägg har ingen panelkomponent"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Avbryt fråga"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Inga data returnerades för tidsjämförelse"
       }
     },
     "variables": {
@@ -142,7 +142,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Återställ gruppering som inställts av denna panel."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Tryck på Enter för att tillämpa"
       },
       "format-registry": {
         "formats": {
@@ -196,7 +196,7 @@
         "placeholder-enter-value": "Ange ett värde"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Alla",
         "placeholder-select-value": "Välj värde"
       }
     }

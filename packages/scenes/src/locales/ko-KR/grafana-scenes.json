@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "전체",
         "edit-filter-with-key": "{{keyLabel}} 키로 필터 편집",
         "managed-filter": "{{origin}} 관리 필터",
         "non-applicable": "필터를 적용할 수 없습니다",
         "remove-filter-with-key": "{{keyLabel}} 키로 필터 제거"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "전체",
         "remove-filter-value": "필터 값 제거 - {{itemLabel}}",
         "use-custom-value": "사용자 지정 값 사용: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "패널 이동",
+            "resize-panel": "패널 크기 조정"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "플러그인 패널 로딩 중...",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "예기치 않은 오류가 발생했습니다. '{{pluginName}}' 플러그인을 최신 버전으로 업데이트하면 문제 해결에 도움이 될 수 있습니다.",
         "panel-plugin-has-no-panel-component": "패널 플러그인에 패널 구성 요소가 없습니다."
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "쿼리 취소"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "시간 비교를 위한 데이터가 반환되지 않음"
       }
     },
     "variables": {
@@ -140,7 +140,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "이 대시보드에서 설정한 '그룹별'을 복원합니다."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "적용하려면 엔터 키를 누르세요."
       },
       "format-registry": {
         "formats": {
@@ -194,7 +194,7 @@
         "placeholder-enter-value": "값 입력"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "전체",
         "placeholder-select-value": "값 선택"
       }
     }

@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Semua",
         "edit-filter-with-key": "Edit filter dengan kunci {{keyLabel}}",
         "managed-filter": "Filter {{origin}} yang dikelola",
         "non-applicable": "Filter tidak berlaku",
         "remove-filter-with-key": "Hapus filter dengan kunci {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Semua",
         "remove-filter-value": "Hapus nilai filter - {{itemLabel}}",
         "use-custom-value": "Gunakan nilai kustom: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Pindahkan panel",
+            "resize-panel": "Ubah ukuran panel"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Memuat panel plugin...",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Kesalahan tidak terduga terjadi. Memperbarui plugin \"{{pluginName}}\" ke versi terbaru mungkin dapat mengatasi masalah ini.",
         "panel-plugin-has-no-panel-component": "Plugin panel tidak memiliki komponen panel"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Batalkan kueri"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Tidak ada data yang dikembalikan untuk perbandingan waktu"
       }
     },
     "variables": {
@@ -140,7 +140,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Pulihkan groupby yang ditetapkan oleh dasbor ini."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Tekan Enter untuk menerapkan"
       },
       "format-registry": {
         "formats": {
@@ -194,7 +194,7 @@
         "placeholder-enter-value": "Masukkan nilai"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Semua",
         "placeholder-select-value": "Pilih nilai"
       }
     }

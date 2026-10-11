@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Все",
         "edit-filter-with-key": "Редактировать фильтр с ключом {{keyLabel}}",
         "managed-filter": "фильтр, управляемый {{origin}}",
         "non-applicable": "Фильтр не применим",
         "remove-filter-with-key": "Удалить фильтр с ключом {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Все",
         "remove-filter-value": "Удалить значение фильтра ({{itemLabel}})",
         "use-custom-value": "Использовать пользовательское значение: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Переместить панель",
+            "resize-panel": "Изменить размер панели"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Загрузка панели плагинов...",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Непредвиденная ошибка. Обновление плагина «{{pluginName}}» до последней версии может решить проблему.",
         "panel-plugin-has-no-panel-component": "Плагин не имеет свойства панели"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Отмена запроса"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Нет возвращенных данных для сравнения периодов"
       }
     },
     "variables": {
@@ -146,7 +146,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Восстановить критерий группирования, заданный этим дашбордом."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Чтобы применить, нажмите Enter"
       },
       "format-registry": {
         "formats": {
@@ -200,7 +200,7 @@
         "placeholder-enter-value": "Ввести значение"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Все",
         "placeholder-select-value": "Выбрать значение"
       }
     }

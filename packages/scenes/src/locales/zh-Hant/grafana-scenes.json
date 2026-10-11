@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "全部",
         "edit-filter-with-key": "使用鍵 {{keyLabel}} 編輯篩選條件",
         "managed-filter": "{{origin}} 受管理的篩選條件",
         "non-applicable": "篩選條件不適用",
         "remove-filter-with-key": "使用鍵 {{keyLabel}} 移除篩選條件"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "全部",
         "remove-filter-value": "移除篩選條件值 - {{itemLabel}}",
         "use-custom-value": "使用自訂值：{{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "移動面板",
+            "resize-panel": "調整面板大小"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "正在載入外掛程式面板…",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "發生未預期的錯誤。將「{{pluginName}}」外掛程式更新到最新版本可能會解決此問題。",
         "panel-plugin-has-no-panel-component": "面板外掛程式沒有面板元件"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "取消查詢"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "沒有返回用於時間比較的資料"
       }
     },
     "variables": {
@@ -140,7 +140,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "還原此儀表板設定的分組依據。"
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "按 Enter 鍵套用"
       },
       "format-registry": {
         "formats": {
@@ -194,7 +194,7 @@
         "placeholder-enter-value": "輸入值"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "全部",
         "placeholder-select-value": "選擇值"
       }
     }
