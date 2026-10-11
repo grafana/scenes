@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Wszystkie",
         "edit-filter-with-key": "Edytuj filtr z kluczem {{keyLabel}}",
         "managed-filter": "Filtr zarządzany ({{origin}})",
         "non-applicable": "Filtr nie ma zastosowania",
         "remove-filter-with-key": "Usuń filtr z kluczem {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Wszystkie",
         "remove-filter-value": "Usuń wartość filtra – {{itemLabel}}",
         "use-custom-value": "Użyj wartości niestandardowej: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Przenieś panel",
+            "resize-panel": "Zmień rozmiar panelu"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Ładowanie panelu wtyczki…",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Wystąpił nieoczekiwany błąd. Ten problem może rozwiązać zaktualizowanie wtyczki „{{pluginName}}” do najnowszej wersji.",
         "panel-plugin-has-no-panel-component": "Wtyczka panelu nie zawiera komponentu panelu"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Anuluj zapytanie"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Nie zwrócono danych do porównania zakresów czasu"
       }
     },
     "variables": {
@@ -146,7 +146,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Przywróć grupowanie ustawione przez ten pulpit."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Naciśnij klawisz Enter, aby zastosować"
       },
       "format-registry": {
         "formats": {
@@ -200,7 +200,7 @@
         "placeholder-enter-value": "Wprowadź wartość"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Wszystkie",
         "placeholder-select-value": "Wybierz wartość"
       }
     }

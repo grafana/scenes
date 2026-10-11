@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Alle",
         "edit-filter-with-key": "Filter bewerken met sleutel {{keyLabel}}",
         "managed-filter": "{{origin}} beheerde filter",
         "non-applicable": "Filter is niet van toepassing",
         "remove-filter-with-key": "Filter verwijderen met sleutel {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Alle",
         "remove-filter-value": "Filterwaarde verwijderen - {{itemLabel}}",
         "use-custom-value": "Aangepaste waarde gebruiken: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Paneel verplaatsen",
+            "resize-panel": "Paneelgrootte wijzigen"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Plug-inpaneel laden...",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Er is een onverwachte fout opgetreden. Het bijwerken van de plug-in ''{{pluginName}}'' naar de nieuwste versie kan het probleem oplossen.",
         "panel-plugin-has-no-panel-component": "Paneelplug-in heeft geen paneelcomponent"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Query annuleren"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Geen gegevens geretourneerd voor tijdvergelijking"
       }
     },
     "variables": {
@@ -142,7 +142,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Herstel groupby ingesteld door dit dashboard."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Druk op Enter om toe te passen"
       },
       "format-registry": {
         "formats": {
@@ -196,7 +196,7 @@
         "placeholder-enter-value": "Voer waarde in"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Alle",
         "placeholder-select-value": "Waarde selecteren"
       }
     }

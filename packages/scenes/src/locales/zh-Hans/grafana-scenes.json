@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "全部",
         "edit-filter-with-key": "使用 {{keyLabel}} 键编辑筛选器",
         "managed-filter": "{{origin}} 托管筛选器",
         "non-applicable": "筛选条件不适用",
         "remove-filter-with-key": "使用 {{keyLabel}} 键移除筛选器"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "全部",
         "remove-filter-value": "移除筛选器值 - {{itemLabel}}",
         "use-custom-value": "使用自定义值：{{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "移动面板",
+            "resize-panel": "调整面板大小"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "正在加载插件面板…",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "发生意外错误。尝试将“{{pluginName}}”插件更新到最新版或许就能解决问题。",
         "panel-plugin-has-no-panel-component": "面板插件没有面板组件"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "取消查询"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "未返回时间对比数据"
       }
     },
     "variables": {
@@ -140,7 +140,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "还原此数据面板设置的分组。"
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "按回车键确认应用"
       },
       "format-registry": {
         "formats": {
@@ -194,7 +194,7 @@
         "placeholder-enter-value": "输入数值"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "全部",
         "placeholder-select-value": "选择值"
       }
     }

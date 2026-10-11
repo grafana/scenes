@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Todos",
         "edit-filter-with-key": "Editar filtro com chave {{keyLabel}}",
         "managed-filter": "Filtro gerenciado de {{origin}}",
         "non-applicable": "O filtro não é aplicável",
         "remove-filter-with-key": "Remover filtro com chave {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Todos",
         "remove-filter-value": "Remover valor do filtro: {{itemLabel}}",
         "use-custom-value": "Usar valor personalizado: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Mover painel",
+            "resize-panel": "Redimensionar painel"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Carregando painel do plug-in…",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Ocorreu um erro inesperado. Atualizar o plug-in \"{{pluginName}}\" para a versão mais recente pode corrigir o problema.",
         "panel-plugin-has-no-panel-component": "O plug-in do painel não possui componente de painel"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Cancelar consulta"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Nenhum dado retornado para comparação de tempo"
       }
     },
     "variables": {
@@ -142,7 +142,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Restaura a função groupby definida por este painel."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Pressione Enter para aplicar"
       },
       "format-registry": {
         "formats": {
@@ -196,7 +196,7 @@
         "placeholder-enter-value": "Digite um valor"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Todos",
         "placeholder-select-value": "Selecionar valor"
       }
     }
