@@ -1,3 +1,17 @@
+# v8.21.1 (Mon Oct 12 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Add test ids to the filters combobox and fix duplicate group by input id [#1684](https://github.com/grafana/scenes/pull/1684) ([@mdvictor](https://github.com/mdvictor))
+- I18n: Download translations from Crowdin [#1678](https://github.com/grafana/scenes/pull/1678) ([@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 2
+
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.21.0 (Tue Oct 06 2026)
 
 #### 🚀 Enhancement
