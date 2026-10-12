@@ -766,6 +766,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   }, [activeIndex, rowVirtualizer]);
 
   const keyLabel = filter?.keyLabel ?? filter?.key;
+  const controlId = controller.getControlId?.();
+  let inputTestId: string | undefined;
+  if (isAlwaysWip) {
+    inputTestId = isGroupBy
+      ? 'data-testid ad hoc filters combobox group by input'
+      : 'data-testid ad hoc filters combobox filter input';
+  }
 
   return (
     <div className={styles.comboboxWrapper}>
@@ -787,6 +794,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
                 'grafana-scenes.variables.ad-hoc-combobox.aria-label-edit-filter-operator',
                 'Edit filter operator'
               )}
+              data-testid="data-testid ad hoc filters combobox operator pill"
               tabIndex={filter.origin ? -1 : 0}
               onClick={(event) => {
                 if (filter.origin) {
@@ -833,7 +841,8 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       <input
         {...getReferenceProps({
           ref: refs.setReference,
-          id: controller.getControlId?.(),
+          // the filter input owns the variable control id, which the variable label targets
+          id: isGroupBy && controlId ? `${controlId}-group-by` : controlId,
           onChange,
           value: inputValue,
           // dynamic placeholder to display operator and/or value in filter edit mode
@@ -861,6 +870,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
           },
         })}
         className={cx(styles.inputStyle)}
+        data-testid={inputTestId}
         onClick={(event) => {
           event.stopPropagation();
           onInputClick?.();

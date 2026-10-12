@@ -241,6 +241,7 @@ export const AdHocFiltersComboboxRenderer = memo(function AdHocFiltersComboboxRe
               size="md"
               className={styles.controlButton}
               tooltip={t('grafana-scenes.variables.adhoc-filters-combobox-renderer.clear-all', 'Clear all')}
+              data-testid="data-testid ad hoc filters combobox clear all button"
               onClick={clearAll}
             />
           )}
