@@ -52,6 +52,7 @@ import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { TestVariable } from '../variants/TestVariable';
 import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
+import { getVariableControlId } from '../utils';
 
 function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariableFilter[] {
   setTemplateSrv({
@@ -5006,6 +5007,63 @@ describe('group-by', () => {
 
         expect(filtersVar.isGroupByRestorable()).toBe(true);
       });
+    });
+  });
+
+  describe('combobox test ids and control ids', () => {
+    function setupGroupByScene() {
+      return setup({
+        layout: 'combobox',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+    }
+
+    it('renders test ids for the wip inputs, pills and clear all button', () => {
+      setupGroupByScene();
+
+      expect(screen.getByTestId('data-testid ad hoc filters combobox filter input')).toBe(getAdHocInputElement());
+      expect(screen.getByTestId('data-testid ad hoc filters combobox group by input')).toBe(
+        screen.getByPlaceholderText('+ key')
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox filter pill key1')).toBe(
+        screen.getByRole('button', { name: 'Edit filter with key key1' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox filter pill remove key1')).toBe(
+        screen.getByRole('button', { name: 'Remove filter with key key1' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox group by pill region')).toBe(
+        screen.getByRole('button', { name: 'Group by region' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox group by pill remove region')).toBe(
+        screen.getByRole('button', { name: 'Remove group by region' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox clear all button')).toBe(
+        screen.getByRole('button', { name: 'Clear all' })
+      );
+    });
+
+    it('renders a test id for the operator pill in filter edit mode', async () => {
+      setupGroupByScene();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Edit filter with key key1' }));
+
+      expect(screen.getByTestId('data-testid ad hoc filters combobox operator pill')).toBe(
+        screen.getByRole('button', { name: 'Edit filter operator', hidden: true })
+      );
+    });
+
+    it('gives the group by input a distinct id and keeps the control id on the filter input', () => {
+      const { filtersVar } = setupGroupByScene();
+      const controlId = getVariableControlId(filtersVar.state.type, filtersVar.state.key);
+
+      expect(getAdHocInputElement()).toHaveAttribute('id', controlId);
+      expect(screen.getByPlaceholderText('+ key')).toHaveAttribute('id', `${controlId}-group-by`);
+      expect(document.querySelectorAll(`[id="${controlId}"]`)).toHaveLength(1);
+      expect(screen.getByLabelText(filtersVar.state.name)).toBe(getAdHocInputElement());
     });
   });
 });
