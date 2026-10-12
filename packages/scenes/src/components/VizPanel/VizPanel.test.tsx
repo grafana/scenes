@@ -1006,7 +1006,7 @@ describe('VizPanel', () => {
 
       it('links to the alert rule when a ruleUID is present', async () => {
         const { container } = setup({
-          dashboardId: 1,
+          dashboardUID: '1',
           panelId: 1,
           id: 1,
           state: AlertState.Alerting,
@@ -1022,7 +1022,7 @@ describe('VizPanel', () => {
 
       it('renders a non-interactive icon when there is no ruleUID', async () => {
         const { container } = setup({
-          dashboardId: 1,
+          dashboardUID: '1',
           panelId: 1,
           id: 1,
           state: AlertState.OK,

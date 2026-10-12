@@ -9,12 +9,20 @@ import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import userEvent from '@testing-library/user-event';
 
-const translations: Record<string, string> = {};
+jest.mock('@grafana/i18n', () => {
+  const translations: Record<string, string> = {};
+  return {
+    ...jest.requireActual('@grafana/i18n'),
+    t: (id: string, defaultMessage: string) => translations[id] ?? defaultMessage,
+    mockTranslations: translations,
+  };
+});
 
-jest.mock('@grafana/i18n', () => ({
-  ...jest.requireActual('@grafana/i18n'),
-  t: (id: string, defaultMessage: string) => translations[id] ?? defaultMessage,
-}));
+// @grafana/ui calls t() while it is being imported, before a top-level const in this file is initialised,
+// so the mock owns the translation map and the tests reach it through the mocked module.
+const { mockTranslations: translations } = jest.requireMock<{ mockTranslations: Record<string, string> }>(
+  '@grafana/i18n'
+);
 
 const ALL_LABEL_KEY = 'grafana-scenes.variables.variable-value-select.all-label';
 
@@ -235,11 +243,11 @@ describe('VariableValueSelectMulti', () => {
   });
 
   it('should fall back to the All value every time the selection is cleared', async () => {
-    const { model, container } = setupMultiVariable({ value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
+    const { model } = setupMultiVariable({ value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
 
     for (const _attempt of [1, 2]) {
       await userEvent.click(screen.getByRole('combobox'));
-      await userEvent.click(container.querySelector('[aria-label="select-clear-value"]')!);
+      await userEvent.click(screen.getByRole('button', { name: 'Clear value' }));
       await userEvent.click(screen.getByTestId('outside'));
 
       expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
@@ -248,19 +256,19 @@ describe('VariableValueSelectMulti', () => {
   });
 
   it('should commit the clear even when the picker was never focused', async () => {
-    const { model, container } = setupMultiVariable({ value: ['A', 'B'], text: ['A', 'B'] });
+    const { model } = setupMultiVariable({ value: ['A', 'B'], text: ['A', 'B'] });
 
-    await userEvent.click(container.querySelector('[aria-label="select-clear-value"]')!);
+    await userEvent.click(screen.getByRole('button', { name: 'Clear value' }));
 
     expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
     expect(screen.getByText(ALL_VARIABLE_TEXT)).toBeInTheDocument();
   });
 
   it('should fall back to the first option when the selection is cleared and defaultToAll is false', async () => {
-    const { model, container } = setupMultiVariable({ defaultToAll: false, value: ['B'], text: ['B'] });
+    const { model } = setupMultiVariable({ defaultToAll: false, value: ['B'], text: ['B'] });
 
     await userEvent.click(screen.getByRole('combobox'));
-    await userEvent.click(container.querySelector('[aria-label="select-clear-value"]')!);
+    await userEvent.click(screen.getByRole('button', { name: 'Clear value' }));
     await userEvent.click(screen.getByTestId('outside'));
 
     expect(model.state.value).toEqual(['A']);

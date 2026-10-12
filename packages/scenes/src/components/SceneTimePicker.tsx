@@ -132,6 +132,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
         'Move {{moveBackwardDuration}} backward',
         { moveBackwardDuration }
       )}
+      // @ts-expect-error - this prop is only available in grafana>=13.3
       hideTimeZone={hideTimeSettings}
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}
