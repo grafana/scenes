@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "Modifier le filtre ayant pour clé {{keyLabel}}",
         "managed-filter": "Filtre géré {{origin}}",
         "non-applicable": "Filtre non applicable",
         "remove-filter-with-key": "Supprimer le filtre ayant pour clé {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "Supprimer la valeur du filtre – {{itemLabel}}",
         "use-custom-value": "Utiliser une valeur personnalisée : {{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "Appliqué par défaut dans ce tableau de bord. En cas de modification, s’applique aussi aux autres tableaux de bord.",
         "group-by-key": "Regrouper par {{keyLabel}}",
         "remove-group-by-key": "Supprimer le regroupement par {{keyLabel}}"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Réduire la scène",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Chargement du panneau du plugin…",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "Le plugin de panneau ne contient aucun composant de panneau"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "Annuler la requête"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -182,6 +196,7 @@
         "placeholder-enter-value": "Saisir une valeur"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "Sélectionner une valeur"
       }
     }

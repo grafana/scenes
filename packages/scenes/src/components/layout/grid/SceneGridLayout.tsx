@@ -1,6 +1,9 @@
 import { PointerEvent } from 'react';
 import ReactGridLayout from 'react-grid-layout';
 
+import { t } from '@grafana/i18n';
+
+import { StateCommittedEvent, StateCommittedPayload } from '../../../core/events';
 import { SceneObjectBase } from '../../../core/SceneObjectBase';
 import { SceneLayout, SceneObjectState } from '../../../core/types';
 import { DEFAULT_PANEL_SPAN } from './constants';
@@ -169,6 +172,10 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       this._loadOldLayout = false;
     }
 
+    this._applyLayout(layout);
+  };
+
+  private _applyLayout(layout: ReactGridLayout.Layout[]) {
     for (const item of layout) {
       const child = this.getSceneLayoutChild(item.i);
 
@@ -187,7 +194,14 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     }
 
     this.setState({ children: sortChildrenByPosition(this.state.children) });
-  };
+  }
+
+  private _captureLayout(layout: ReactGridLayout.Layout[]): ReactGridLayout.Layout[] {
+    return layout.map((item) => {
+      const { x, y, width, height } = this.getSceneLayoutChild(item.i).state;
+      return { ...item, x: x!, y: y!, w: width!, h: height! };
+    });
+  }
 
   /**
    * Will also scan row children and return child of the row
@@ -210,13 +224,30 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     throw new Error('Scene layout child not found for GridItem');
   }
 
-  public onResizeStop: ReactGridLayout.ItemCallback = (_, o, n) => {
-    const child = this.getSceneLayoutChild(n.i);
-    child.setState({
-      width: n.w,
-      height: n.h,
+  public onResizeStop: ReactGridLayout.ItemCallback = (layout) => {
+    const from = this._captureLayout(layout);
+    const hasChanges = layout.some(
+      (item, i) => item.x !== from[i].x || item.y !== from[i].y || item.w !== from[i].w || item.h !== from[i].h
+    );
+
+    if (!hasChanges) {
+      return;
+    }
+
+    this._commitState({
+      source: this,
+      description: t('grafana-scenes.components.layout.grid.scene-grid-layout.resize-panel', 'Resize panel'),
+      replay: () => this._applyLayout(layout),
+      revert: () => this._applyLayout(from),
     });
+
+    this._skipOnLayoutChange = true;
   };
+
+  private _commitState(payload: StateCommittedPayload) {
+    payload.replay();
+    this.publishEvent(new StateCommittedEvent(payload), true);
+  }
 
   private pushChildDown(child: SceneGridItemLike, amount: number) {
     child.setState({
@@ -329,18 +360,20 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
     // Update the parent if the child if it has moved to a row or back to the grid
     const indexOfUpdatedItem = gridLayout.findIndex((item) => item.i === updatedItem.i);
     let newParent = this.findGridItemSceneParent(gridLayout, indexOfUpdatedItem - 1);
-    let newChildren = this.state.children;
 
-    // Update children positions if they have changed
+    // Collect position changes instead of applying them immediately, so we can capture a
+    // consistent "from" snapshot before anything mutates (see _commitState).
+    const positionChanges: PositionChange[] = [];
     for (let i = 0; i < gridLayout.length; i++) {
       const gridItem = gridLayout[i];
       const child = this.getSceneLayoutChild(gridItem.i)!;
       const childSize = child.state;
 
       if (childSize?.x !== gridItem.x || childSize?.y !== gridItem.y) {
-        child.setState({
-          x: gridItem.x,
-          y: gridItem.y,
+        positionChanges.push({
+          child,
+          from: { x: childSize.x, y: childSize.y },
+          to: { x: gridItem.x, y: gridItem.y },
         });
       }
     }
@@ -361,11 +394,36 @@ export class SceneGridLayout extends SceneObjectBase<SceneGridLayoutState> imple
       newParent = this;
     }
 
-    if (newParent !== sceneChild.parent && !this._loadOldLayout) {
-      newChildren = this.moveChildTo(sceneChild, newParent);
+    const isReparenting = newParent !== sceneChild.parent && !this._loadOldLayout;
+    const prevChildren = this.state.children;
+
+    if (this._loadOldLayout) {
+      positionChanges.forEach(({ child, to }) => child.setState(to));
+      const nextChildren = isReparenting ? this.moveChildTo(sceneChild, newParent) : prevChildren;
+      this.setState({ children: sortChildrenByPosition(nextChildren) });
+      this._skipOnLayoutChange = true;
+      return;
     }
 
-    this.setState({ children: sortChildrenByPosition(newChildren) });
+    if (positionChanges.length === 0 && !isReparenting) {
+      this._skipOnLayoutChange = true;
+      return;
+    }
+
+    this._commitState({
+      source: this,
+      description: t('grafana-scenes.components.layout.grid.scene-grid-layout.move-panel', 'Move panel'),
+      replay: () => {
+        positionChanges.forEach(({ child, to }) => child.setState(to));
+        const nextChildren = isReparenting ? this.moveChildTo(sceneChild, newParent) : prevChildren;
+        this.setState({ children: sortChildrenByPosition(nextChildren) });
+      },
+      revert: () => {
+        positionChanges.forEach(({ child, from }) => child.setState(from));
+        this.setState({ children: sortChildrenByPosition(prevChildren) });
+      },
+    });
+
     this._skipOnLayoutChange = true;
   };
 
@@ -444,4 +502,10 @@ function sortChildrenByPosition(children: SceneGridItemLike[]) {
 
 function sortGridLayout(layout: ReactGridLayout.Layout[]) {
   return [...layout].sort((a, b) => a.y - b.y || a.x! - b.x);
+}
+
+interface PositionChange {
+  child: SceneGridItemLike;
+  from: SceneGridItemPlacement;
+  to: SceneGridItemPlacement;
 }

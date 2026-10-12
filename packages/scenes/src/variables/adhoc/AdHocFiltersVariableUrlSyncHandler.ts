@@ -77,7 +77,10 @@ export class AdHocFiltersVariableUrlSyncHandler implements SceneObjectUrlSyncHan
     const originFilters = updateOriginFilters([...(this._variable.state.originFilters || [])], filters);
 
     this._variable.setState({
-      filters: filters.filter((f) => !f.origin),
+      // A groupBy filter with no key is never real filter data - it's the "default groupBy
+      // dismissed, nothing left to serialize" URL marker (see getUrlState) - so it must never
+      // surface as an active filter, regardless of what updateOriginFilters did with its origin.
+      filters: filters.filter((f) => !f.origin && !(isGroupByFilter(f) && f.key === '')),
       originFilters,
     });
   }

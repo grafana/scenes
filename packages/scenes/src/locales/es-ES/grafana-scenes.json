@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "Editar filtro con la clave {{keyLabel}}",
         "managed-filter": "Filtro gestionado de {{origin}}",
         "non-applicable": "El filtro no es aplicable",
         "remove-filter-with-key": "Eliminar filtro con la clave {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "Eliminar valor del filtro: {{itemLabel}}",
         "use-custom-value": "Usar valor personalizado: {{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "Se aplica de forma predeterminada en este dashboard. Si se edita, se transfiere a otros dashboards.",
         "group-by-key": "Agrupar por {{keyLabel}}",
         "remove-group-by-key": "Eliminar grupo por {{keyLabel}}"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Contraer escena",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Cargando panel de plugins...",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "El plugin del panel no tiene ningún componente de panel"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "Cancelar consulta"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -182,6 +196,7 @@
         "placeholder-enter-value": "Introducir valor"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "Seleccionar valor"
       }
     }

@@ -17,7 +17,7 @@ import {
   SetPanelAttentionEvent,
 } from '@grafana/data';
 
-import { getAppEvents } from '@grafana/runtime';
+import { config, getAppEvents } from '@grafana/runtime';
 import { PanelChrome, ErrorBoundaryAlert, PanelContextProvider, Tooltip, useStyles2, Icon } from '@grafana/ui';
 
 import { sceneGraph } from '../../core/sceneGraph';
@@ -198,17 +198,23 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   }
 
   if (dataWithFieldConfig.alertState) {
+    const alertState = dataWithFieldConfig.alertState;
+    // @ts-expect-error ruleUID is added in a newer @grafana/data version
+    const ruleUID: string | undefined = alertState.ruleUID;
+    const alertRuleHref = ruleUID ? `${config.appSubUrl ?? ''}/alerting/grafana/${ruleUID}/view` : undefined;
+
     titleItemsElement.push(
-      <Tooltip content={dataWithFieldConfig.alertState.state ?? 'unknown'} key={`alert-states-icon-${model.state.key}`}>
+      <Tooltip content={alertState.state ?? 'unknown'} key={`alert-states-icon-${model.state.key}`}>
         <PanelChrome.TitleItem
+          href={alertRuleHref}
           className={cx({
-            [alertStateStyles.ok]: dataWithFieldConfig.alertState.state === AlertState.OK,
-            [alertStateStyles.pending]: dataWithFieldConfig.alertState.state === AlertState.Pending,
-            [alertStateStyles.alerting]: dataWithFieldConfig.alertState.state === AlertState.Alerting,
+            [alertStateStyles.ok]: alertState.state === AlertState.OK,
+            [alertStateStyles.pending]: alertState.state === AlertState.Pending,
+            [alertStateStyles.alerting]: alertState.state === AlertState.Alerting,
           })}
         >
           <Icon
-            name={dataWithFieldConfig.alertState.state === 'alerting' ? 'heart-break' : 'heart'}
+            name={alertState.state === 'alerting' ? 'heart-break' : 'heart'}
             className="panel-alert-icon"
             size="md"
           />
@@ -258,66 +264,67 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     { pluginName: plugin.meta.name }
   );
 
+  // Wraps the whole chrome, not just the panel body, so header-slot content
+  // can also reach PanelContext via usePanelContext() instead of being passed
+  // props explicitly. PanelChrome itself reads onOpenInspector/onInvestigateErrors from this
+  // context rather than through props.
   const panelChrome = (
-    <PanelChrome
-      title={titleInterpolated}
-      description={description?.trim() ? model.getDescription : undefined}
-      // @ts-expect-error remove this on next grafana/ui update
-      subtitle={subtitleContent}
-      loadingState={data.state}
-      statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
-      statusItems={showNewPanelErrorsUI ? getChromeStatusItems(data, _pluginLoadError) : undefined}
-      statusMessageOnClick={() => {
-        // Report the interaction for analytics, then let the container (e.g. dashboard) open the inspector.
-        model.onStatusMessageClick();
-        // @ts-expect-error onOpenInspector is added in a newer @grafana/ui version
-        context.onOpenInspector?.();
-      }}
-      width={width === 0 ? undefined : width}
-      // In fit-content mode the height is content-driven: leave it undefined so
-      // PanelChrome flows. A min-height floor keeps the chrome filled when
-      // content is short; the layout's CSS caps the max.
-      height={fitContent ? undefined : height === 0 ? undefined : height}
-      minHeight={fitContent ? fitMinHeight : undefined}
-      selectionId={model.state.key}
-      displayMode={displayMode}
-      titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
-      dragClass={dragClass}
-      actions={actionsElement}
-      dragClassCancel={dragClassCancel}
-      padding={plugin.noPadding ? 'none' : 'md'}
-      menu={panelMenu}
-      onCancelQuery={model.onCancelQuery}
-      onFocus={setPanelAttention}
-      onMouseEnter={setPanelAttention}
-      onMouseMove={debouncedMouseMove}
-      subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
-      onDragStart={(e: React.PointerEvent) => {
-        dragHooks.onDragStart?.(e, model);
-      }}
-      showMenuAlways={showMenuAlways}
-      {...(collapsible
-        ? {
-            collapsible: Boolean(collapsible),
-            collapsed,
-            onToggleCollapse: model.onToggleCollapse,
+    <PanelContextProvider value={context}>
+      <PanelChrome
+        title={titleInterpolated}
+        description={description?.trim() ? model.getDescription : undefined}
+        // @ts-expect-error remove this on next grafana/ui update
+        subtitle={subtitleContent}
+        loadingState={data.state}
+        statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
+        statusItems={showNewPanelErrorsUI ? getChromeStatusItems(data, _pluginLoadError) : undefined}
+        // Report the interaction for analytics; PanelChrome opens the inspector itself via
+        // PanelContext's onOpenInspector.
+        statusMessageOnClick={() => model.onStatusMessageClick()}
+        width={width === 0 ? undefined : width}
+        // In fit-content mode the height is content-driven: leave it undefined so
+        // PanelChrome flows. A min-height floor keeps the chrome filled when
+        // content is short; the layout's CSS caps the max.
+        height={fitContent ? undefined : height === 0 ? undefined : height}
+        minHeight={fitContent ? fitMinHeight : undefined}
+        selectionId={model.state.key}
+        displayMode={displayMode}
+        titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
+        dragClass={dragClass}
+        actions={actionsElement}
+        dragClassCancel={dragClassCancel}
+        padding={plugin.noPadding ? 'none' : 'md'}
+        menu={panelMenu}
+        onCancelQuery={model.onCancelQuery}
+        onFocus={setPanelAttention}
+        onMouseEnter={setPanelAttention}
+        onMouseMove={debouncedMouseMove}
+        subHeaderContent={subHeaderElement.length ? subHeaderElement : undefined}
+        onDragStart={(e: React.PointerEvent) => {
+          dragHooks.onDragStart?.(e, model);
+        }}
+        showMenuAlways={showMenuAlways}
+        {...(collapsible
+          ? {
+              collapsible: Boolean(collapsible),
+              collapsed,
+              onToggleCollapse: model.onToggleCollapse,
+            }
+          : { hoverHeader, hoverHeaderOffset })}
+      >
+        {(innerWidth, innerHeight) => {
+          // In fit-content mode height is auto (innerHeight is 0/undefined by
+          // design), so only width gates rendering.
+          if (innerWidth === 0 || (!fitContent && innerHeight === 0)) {
+            return null;
           }
-        : { hoverHeader, hoverHeaderOffset })}
-    >
-      {(innerWidth, innerHeight) => {
-        // In fit-content mode height is auto (innerHeight is 0/undefined by
-        // design), so only width gates rendering.
-        if (innerWidth === 0 || (!fitContent && innerHeight === 0)) {
-          return null;
-        }
 
-        return (
-          <ErrorBoundaryAlert
-            title={plugin.meta.hasUpdate ? outdatedPluginError : undefined}
-            dependencies={[plugin, data]}
-          >
-            <PluginContextProvider meta={plugin.meta}>
-              <PanelContextProvider value={context}>
+          return (
+            <ErrorBoundaryAlert
+              title={plugin.meta.hasUpdate ? outdatedPluginError : undefined}
+              dependencies={[plugin, data]}
+            >
+              <PluginContextProvider meta={plugin.meta}>
                 {isReadyToRender && (
                   <PanelComponent
                     id={panelId}
@@ -340,12 +347,12 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                     eventBus={context.eventBus}
                   />
                 )}
-              </PanelContextProvider>
-            </PluginContextProvider>
-          </ErrorBoundaryAlert>
-        );
-      }}
-    </PanelChrome>
+              </PluginContextProvider>
+            </ErrorBoundaryAlert>
+          );
+        }}
+      </PanelChrome>
+    </PanelContextProvider>
   );
 
   // Fit-content: render the panel in normal flow (no absolute positioning) so
@@ -386,8 +393,8 @@ function useClearPreviousData(data?: DataFrame[]) {
   // this holds all value arrays from all series or anno frames
   // so we can empty any previous ones that no longer appear in current data
   // why? because React fiber: https://github.com/facebook/react/issues/36176
-  const prevVals = useRef<Set<any[]>>();
-  const currVals = useRef<Set<any[]>>();
+  const prevVals = useRef<Set<any[]> | undefined>(undefined);
+  const currVals = useRef<Set<any[]> | undefined>(undefined);
   prevVals.current ??= new Set();
   currVals.current ??= new Set();
 

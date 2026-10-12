@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "{{keyLabel}}キーでフィルターを編集 ",
         "managed-filter": "{{origin}}管理フィルター",
         "non-applicable": "フィルターは適用されません",
         "remove-filter-with-key": "{{keyLabel}}キーでフィルターを削除 "
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "フィルター値を削除 - {{itemLabel}}",
         "use-custom-value": "カスタム値を使用：{{itemLabel}} "
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "このダッシュボードでデフォルトで適用されます。編集した場合、他のダッシュボードに引き継がれます。",
         "group-by-key": "{{keyLabel}}によりグループ化",
         "remove-group-by-key": "{{keyLabel}}によるグループ化を削除"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "シーンを折りたたむ",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "プラグインパネルを読み込み中...",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "パネルプラグインにパネルコンポーネントがありません"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "クエリをキャンセル"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -180,6 +194,7 @@
         "placeholder-enter-value": "値を入力"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "値を選択"
       }
     }

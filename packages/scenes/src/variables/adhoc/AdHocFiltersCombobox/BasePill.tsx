@@ -10,6 +10,12 @@ const LABEL_MAX_VISIBLE_LENGTH = 28;
 
 export interface BasePillProps {
   label: string;
+  /**
+   * Trailing portion of the pill text rendered in a muted colour - e.g. the value of a filter
+   * that is not currently narrowing anything. Deliberately not the `disabled` treatment: the
+   * pill stays interactive, so it keeps its border, its hover state and its primary text colour.
+   */
+  mutedValue?: string;
   removable?: boolean;
   onRemove?: () => void;
   onClick?: (e: React.MouseEvent) => void;
@@ -20,12 +26,15 @@ export interface BasePillProps {
   strikethrough?: boolean;
   ariaLabel?: string;
   removeAriaLabel?: string;
+  testId?: string;
+  removeTestId?: string;
   additionalIcons?: ReactNode;
 }
 
 export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BasePill(
   {
     label,
+    mutedValue,
     onRemove,
     removable = !!onRemove,
     onClick,
@@ -36,13 +45,24 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
     strikethrough,
     ariaLabel,
     removeAriaLabel,
+    testId,
+    removeTestId,
     additionalIcons,
   },
   ref
 ) {
   const styles = useStyles2(getStyles);
 
-  const pillText = <span className={cx(styles.pillText, strikethrough && styles.strikethrough)}>{label}</span>;
+  // Tooltip, truncation and the remove-button label all describe the pill as the user reads it,
+  // so they use the full text rather than just the unmuted leading portion.
+  const fullLabel = mutedValue ? `${label} ${mutedValue}` : label;
+
+  const pillText = (
+    <span className={cx(styles.pillText, strikethrough && styles.strikethrough)}>
+      {label}
+      {mutedValue ? <span className={styles.mutedPillValue}>{` ${mutedValue}`}</span> : null}
+    </span>
+  );
 
   return (
     <div
@@ -56,13 +76,14 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
       onKeyDown={onKeyDown}
       role={readOnly ? undefined : 'button'}
       aria-label={ariaLabel}
+      data-testid={testId}
       tabIndex={0}
       ref={ref}
     >
-      {label.length < LABEL_MAX_VISIBLE_LENGTH ? (
+      {fullLabel.length < LABEL_MAX_VISIBLE_LENGTH ? (
         pillText
       ) : (
-        <Tooltip content={<div className={styles.tooltipText}>{label}</div>} placement="top">
+        <Tooltip content={<div className={styles.tooltipText}>{fullLabel}</div>} placement="top">
           {pillText}
         </Tooltip>
       )}
@@ -82,8 +103,11 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
           }}
           name="times"
           size="md"
+          data-testid={removeTestId}
           className={cx(styles.pillIcon, disabled && styles.disabledPillIcon)}
-          tooltip={removeAriaLabel ?? t('grafana-scenes.components.base-pill.remove', 'Remove {{label}}', { label })}
+          tooltip={
+            removeAriaLabel ?? t('grafana-scenes.components.base-pill.remove', 'Remove {{label}}', { label: fullLabel })
+          }
         />
       )}
 
@@ -132,6 +156,9 @@ export const getBasePillStyles = (theme: GrafanaTheme2) => ({
     '&:hover': {
       color: theme.colors.text.primary,
     },
+  }),
+  mutedPillValue: css({
+    color: theme.colors.text.disabled,
   }),
   pillText: css({
     maxWidth: '280px',

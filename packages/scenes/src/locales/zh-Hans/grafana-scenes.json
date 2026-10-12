@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "使用 {{keyLabel}} 键编辑筛选器",
         "managed-filter": "{{origin}} 托管筛选器",
         "non-applicable": "筛选条件不适用",
         "remove-filter-with-key": "使用 {{keyLabel}} 键移除筛选器"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "移除筛选器值 - {{itemLabel}}",
         "use-custom-value": "使用自定义值：{{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "在此数据面板中默认应用。如果编辑，它将转移到其他数据面板。",
         "group-by-key": "按{{keyLabel}}分组",
         "remove-group-by-key": "按{{keyLabel}}移除分组"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "收起场景",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "正在加载插件面板…",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "面板插件没有面板组件"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "取消查询"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -180,6 +194,7 @@
         "placeholder-enter-value": "输入数值"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "选择值"
       }
     }

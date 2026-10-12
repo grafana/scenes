@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import { DataSourceSrv, locationService, setDataSourceSrv, setRunRequest, setTemplateSrv } from '@grafana/runtime';
 import { DataQueryRequest, DataSourceApi, getDefaultTimeRange, LoadingState, PanelData } from '@grafana/data';
 import { Observable, of } from 'rxjs';
@@ -24,7 +24,6 @@ import {
   MAX_RECENT_DRILLDOWNS,
   MAX_STORED_RECENT_DRILLDOWNS,
 } from './AdHocFiltersRecommendations';
-import { act } from 'react-dom/test-utils';
 
 const templateSrv = {
   getAdhocFilters: jest.fn().mockReturnValue([{ key: 'origKey', operator: '=', value: '' }]),

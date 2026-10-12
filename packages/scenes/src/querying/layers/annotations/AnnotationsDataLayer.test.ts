@@ -22,7 +22,7 @@ import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithR
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 import { config, RefreshEvent } from '@grafana/runtime';
 import { ScopesVariable } from '../../../variables/variants/ScopesVariable';
-import { act } from 'react-dom/test-utils';
+import { act } from '@testing-library/react';
 import { AdHocFiltersVariable } from '../../../variables/adhoc/AdHocFiltersVariable';
 import { GroupByVariable } from '../../../variables/groupby/GroupByVariable';
 import { allActiveGroupByVariables } from '../../../variables/groupby/findActiveGroupByVariablesByUid';

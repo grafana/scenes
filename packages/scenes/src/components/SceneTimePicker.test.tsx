@@ -29,6 +29,7 @@ function setupScene(
     hidePicker: timePickerProps.hidePicker,
     quickRanges: timePickerProps.quickRanges,
     defaultQuickRanges: timePickerProps.defaultQuickRanges,
+    hideTimeSettings: timePickerProps.hideTimeSettings,
   });
 
   const scene = new EmbeddedScene({
@@ -66,6 +67,35 @@ describe('SceneTimePicker', () => {
     render(<scene.Component model={scene} />);
 
     expect(screen.getByText('Last 12 hours')).toBeInTheDocument();
+  });
+
+  it('shows the timezone/fiscal year footer by default', async () => {
+    const { scene } = setupScene({
+      from: 'now-12h',
+      to: 'now',
+    });
+
+    render(<scene.Component model={scene} />);
+    await userEvent.click(screen.getByTestId(Components.TimePicker.openButton));
+
+    expect(screen.getByTestId(Components.TimeZonePicker.changeTimeSettingsButton)).toBeInTheDocument();
+  });
+
+  // Skipped: hideTimeZone isn't forwarded by the currently-published @grafana/ui's TimeRangePicker
+  // yet (grafana/grafana#133414 adds it), so this can't pass until that release lands here.
+  it.skip('hides the timezone/fiscal year footer when hideTimeSettings is set', async () => {
+    const { scene } = setupScene(
+      {
+        from: 'now-12h',
+        to: 'now',
+      },
+      { hideTimeSettings: true }
+    );
+
+    render(<scene.Component model={scene} />);
+    await userEvent.click(screen.getByTestId(Components.TimePicker.openButton));
+
+    expect(screen.queryByTestId(Components.TimeZonePicker.changeTimeSettingsButton)).not.toBeInTheDocument();
   });
 
   it('zooms when onZoom is called', () => {

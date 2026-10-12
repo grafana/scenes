@@ -1,3 +1,166 @@
+# v8.21.1 (Mon Oct 12 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Add test ids to the filters combobox and fix duplicate group by input id [#1684](https://github.com/grafana/scenes/pull/1684) ([@mdvictor](https://github.com/mdvictor))
+- I18n: Download translations from Crowdin [#1678](https://github.com/grafana/scenes/pull/1678) ([@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 2
+
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.21.0 (Tue Oct 06 2026)
+
+#### 🚀 Enhancement
+
+- Macros: Add ${__theme} macro for theme tokens [#1672](https://github.com/grafana/scenes/pull/1672) ([@adela-almasan](https://github.com/adela-almasan))
+
+#### Authors: 1
+
+- Adela Almasan ([@adela-almasan](https://github.com/adela-almasan))
+
+---
+
+# v8.20.1 (Wed Sep 30 2026)
+
+#### 🐛 Bug Fix
+
+- Chore: update adhoc filter styles [#1668](https://github.com/grafana/scenes/pull/1668) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 1
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+
+---
+
+# v8.20.0 (Wed Sep 30 2026)
+
+#### 🚀 Enhancement
+
+- VizPanel: Runtime transformations API [#1651](https://github.com/grafana/scenes/pull/1651) ([@gtk-grafana](https://github.com/gtk-grafana) [@fastfrwrd](https://github.com/fastfrwrd))
+
+#### 🐛 Bug Fix
+
+- Adhoc filters: Use component height theme token [#1665](https://github.com/grafana/scenes/pull/1665) ([@ashharrison90](https://github.com/ashharrison90))
+
+#### Authors: 3
+
+- Ashley Harrison ([@ashharrison90](https://github.com/ashharrison90))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+
+---
+
+# v8.19.0 (Thu Sep 24 2026)
+
+#### 🚀 Enhancement
+
+- SceneTimePicker: Hide timeSetings based on new state [#1658](https://github.com/grafana/scenes/pull/1658) ([@juanicabanas](https://github.com/juanicabanas))
+
+#### Authors: 1
+
+- Juan Cabanas ([@juanicabanas](https://github.com/juanicabanas))
+
+---
+
+# v8.18.3 (Wed Sep 23 2026)
+
+#### 🐛 Bug Fix
+
+- Dashboards: Move PanelContextProvider above PanelChrome [#1654](https://github.com/grafana/scenes/pull/1654) ([@mdvictor](https://github.com/mdvictor))
+
+#### Authors: 1
+
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.18.2 (Fri Sep 18 2026)
+
+#### 🐛 Bug Fix
+
+- Undo/redo support for scene objects [#1645](https://github.com/grafana/scenes/pull/1645) ([@ifrost](https://github.com/ifrost))
+
+#### Authors: 1
+
+- Piotr Jamróz ([@ifrost](https://github.com/ifrost))
+
+---
+
+# v8.18.1 (Fri Sep 18 2026)
+
+#### 🐛 Bug Fix
+
+- CustomVariable: Do not keep a value after its dependency clears [#1649](https://github.com/grafana/scenes/pull/1649) ([@ericrshields](https://github.com/ericrshields))
+
+#### Authors: 1
+
+- Eric Shields ([@ericrshields](https://github.com/ericrshields))
+
+---
+
+# v8.18.0 (Wed Sep 16 2026)
+
+#### 🚀 Enhancement
+
+- SceneDataTransformer: support system and URL provided transformations [#1614](https://github.com/grafana/scenes/pull/1614) ([@dprokop](https://github.com/dprokop) [@gtk-grafana](https://github.com/gtk-grafana))
+
+#### Authors: 2
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+
+---
+
+# v8.17.0 (Thu Sep 10 2026)
+
+#### 🚀 Enhancement
+
+- Macros: Add $__namespace macro [#1639](https://github.com/grafana/scenes/pull/1639) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Deps: Migrate to React 19.2.8 [#1620](https://github.com/grafana/scenes/pull/1620) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+- AdhocFilters: Fixes incorrect border color [#1624](https://github.com/grafana/scenes/pull/1624) ([@torkelo](https://github.com/torkelo))
+
+#### 🐛 Bug Fix
+
+- Variables: Localize the native All option label [#1638](https://github.com/grafana/scenes/pull/1638) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+- AdHocFiltersVariable: Stop rendering match all pills as disabled [#1622](https://github.com/grafana/scenes/pull/1622) ([@samjewell](https://github.com/samjewell))
+- QueryVariable: surface query errors reported only via data.errors [#1635](https://github.com/grafana/scenes/pull/1635) ([@tskarhed](https://github.com/tskarhed))
+- Filters: Do not store empty groupBy values [#1633](https://github.com/grafana/scenes/pull/1633) ([@mdvictor](https://github.com/mdvictor))
+- Variables: Fix multi value picker leaving the variable out of sync when clearing [#1631](https://github.com/grafana/scenes/pull/1631) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Dashboards: Add assistant button in panel status popup [#1629](https://github.com/grafana/scenes/pull/1629) ([@mdvictor](https://github.com/mdvictor))
+- Variables: Fix multi value picker staying empty after clearing the selection [#1630](https://github.com/grafana/scenes/pull/1630) ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- fix(SceneQueryRunner): secondary query behavior fixes [#1597](https://github.com/grafana/scenes/pull/1597) ([@gtk-grafana](https://github.com/gtk-grafana) [@drew08t](https://github.com/drew08t))
+- Performance: Export POST_STORM_WINDOW from SceneRenderProfiler [#1618](https://github.com/grafana/scenes/pull/1618) ([@mmandrus](https://github.com/mmandrus))
+
+#### Authors: 9
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+- Drew Slobodnjak ([@drew08t](https://github.com/drew08t))
+- Galen Kistler ([@gtk-grafana](https://github.com/gtk-grafana))
+- Ivan Ortega Alba ([@ivanortegaalba](https://github.com/ivanortegaalba))
+- Michael Mandrus ([@mmandrus](https://github.com/mmandrus))
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+- Tobias Skarhed ([@tskarhed](https://github.com/tskarhed))
+- Torkel Ödegaard ([@torkelo](https://github.com/torkelo))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.16.1 (Thu Aug 20 2026)
+
+#### 🐛 Bug Fix
+
+- VizPanel: Link the alert icon to its alert rule [#1619](https://github.com/grafana/scenes/pull/1619) ([@dprokop](https://github.com/dprokop))
+
+#### Authors: 1
+
+- Dominik Prokop ([@dprokop](https://github.com/dprokop))
+
+---
+
 # v8.16.0 (Wed Aug 19 2026)
 
 #### 🚀 Enhancement

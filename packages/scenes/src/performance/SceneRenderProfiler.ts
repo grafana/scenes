@@ -10,7 +10,7 @@ import { SceneObject } from '../core/types';
 import { VizPanel } from '../components/VizPanel/VizPanel';
 import { LongFrameDetector } from './LongFrameDetector';
 
-const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
+export const POST_STORM_WINDOW = 2000; // Time after last query to observe slow frames
 const DEFAULT_LONG_FRAME_THRESHOLD = 30; // Threshold for tail recording slow frames
 
 /**

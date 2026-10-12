@@ -52,6 +52,7 @@ import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { TestVariable } from '../variants/TestVariable';
 import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
+import { getVariableControlId } from '../utils';
 
 function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariableFilter[] {
   setTemplateSrv({
@@ -1171,6 +1172,25 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       valueLabels: ['newDbFilterValue'],
       condition: '',
     });
+  });
+
+  it('drops the dismissed-groupBy URL marker instead of surfacing it as a normal filter', () => {
+    // this dashboard has no matching groupBy default either
+    const { filtersVar } = setup();
+
+    // the previous dashboard serialized "default groupBy was dismissed, but restorable"
+    // as this key-less marker (see AdHocFiltersVariableUrlSyncHandler#getUrlState), which
+    // survives navigation to this unrelated dashboard via the shared var-filters URL param
+    const urlValues = {
+      'var-filters': ['|groupBy#dashboard#restorable'],
+    };
+
+    act(() => {
+      locationService.partial(urlValues);
+    });
+
+    expect(filtersVar.state.filters).toEqual([]);
+    expect(filtersVar.state.originFilters).toEqual([]);
   });
 
   it('url updates origin filters properly', async () => {
@@ -3199,7 +3219,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       await userEvent.keyboard('{Escape}');
 
-      expect(screen.getByText('pod =~ All')).toBeInTheDocument();
+      expect(screen.getByLabelText('Edit filter with key pod')).toHaveTextContent('pod =~ All');
     });
 
     it('should turn multi value origin filter to match-all when value is removed', async () => {
@@ -3226,7 +3246,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await userEvent.keyboard('{Escape}');
 
       // one-of filters keep their operator and carry the All value instead of the regex form
-      expect(screen.getByText('pod =| All')).toBeInTheDocument();
+      expect(screen.getByLabelText('Edit filter with key pod')).toHaveTextContent('pod =| All');
     });
   });
 
@@ -3320,7 +3340,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
       expect(updateToMatchAllSpy).not.toHaveBeenCalled();
 
-      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Edit filter with key pod')).toHaveTextContent('pod =| All');
       expect(filtersVar.state.originFilters?.[0]).toMatchObject({
         operator: '=|',
         value: '$__all',
@@ -3357,7 +3377,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       });
 
       // pill label falls back to "All" from the sentinel even without valueLabels
-      await userEvent.click(await screen.findByText('pod =| All'));
+      await userEvent.click(await screen.findByLabelText('Edit filter with key pod'));
 
       const allOption = await screen.findByTestId(allOptionTestId);
       expect(within(allOption).getByRole('checkbox')).toBeChecked();
@@ -3371,8 +3391,51 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         layout: 'combobox',
       });
 
-      expect(await screen.findByText('job =~ .*')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Edit filter with key job')).toHaveTextContent('job =~ .*');
       expect(screen.getByRole('button', { name: 'Remove filter with key job' })).toBeInTheDocument();
+    });
+
+    it('mutes only the value, leaving the pill interactive rather than disabled', async () => {
+      setup({
+        originFilters: [{ key: 'pod', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+        layout: 'combobox',
+      });
+
+      const pill = await screen.findByLabelText('Edit filter with key pod');
+      expect(pill).toHaveTextContent('pod =| All');
+
+      // The value sits in its own node so it alone can be muted. The pill keeps its primary
+      // text colour, border and hover, because a match all filter is still fully interactive -
+      // it must not get the disabled treatment.
+      const value = within(pill).getByText('All');
+      expect(value).not.toBe(pill);
+      expect(value.textContent?.trim()).toBe('All');
+      expect(pill).toHaveAttribute('role', 'button');
+
+      await userEvent.click(pill);
+
+      expect(screen.queryByLabelText('Edit filter with key pod')).not.toBeInTheDocument();
+      expect(await screen.findByTestId(allOptionTestId)).toBeInTheDocument();
+    });
+
+    it('mutes the value of the regex match-all form too', async () => {
+      setup({
+        filters: [{ key: 'job', operator: '=~', value: '.*' }],
+        layout: 'combobox',
+      });
+
+      const pill = await screen.findByLabelText('Edit filter with key job');
+      expect(pill).toHaveTextContent('job =~ .*');
+
+      const value = within(pill).getByText('.*');
+      expect(value).not.toBe(pill);
+      expect(value.textContent?.trim()).toBe('.*');
+      expect(pill).toHaveAttribute('role', 'button');
+
+      await userEvent.click(pill);
+
+      expect(screen.queryByLabelText('Edit filter with key job')).not.toBeInTheDocument();
+      expect(await screen.findByTestId('data-testid ad hoc filter option value val3')).toBeInTheDocument();
     });
 
     it('does not offer removal for a default authored as All', async () => {
@@ -3382,7 +3445,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         layout: 'combobox',
       });
 
-      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Edit filter with key pod')).toHaveTextContent('pod =| All');
       expect(screen.queryByRole('button', { name: 'Remove filter with key pod' })).not.toBeInTheDocument();
     });
 
@@ -3398,7 +3461,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       await userEvent.click(await screen.findByTestId(allOptionTestId));
       await userEvent.click(screen.getByRole('button', { name: 'Apply' }));
 
-      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Edit filter with key pod')).toHaveTextContent('pod =| All');
 
       await userEvent.click(screen.getByRole('button', { name: 'Restore the value set by this dashboard.' }));
 
@@ -3511,7 +3574,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         layout: 'combobox',
       });
 
-      expect(await screen.findByText('pod =| All')).toBeInTheDocument();
+      expect(await screen.findByLabelText('Edit filter with key pod')).toHaveTextContent('pod =| All');
     });
   });
 
@@ -4944,6 +5007,63 @@ describe('group-by', () => {
 
         expect(filtersVar.isGroupByRestorable()).toBe(true);
       });
+    });
+  });
+
+  describe('combobox test ids and control ids', () => {
+    function setupGroupByScene() {
+      return setup({
+        layout: 'combobox',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+    }
+
+    it('renders test ids for the wip inputs, pills and clear all button', () => {
+      setupGroupByScene();
+
+      expect(screen.getByTestId('data-testid ad hoc filters combobox filter input')).toBe(getAdHocInputElement());
+      expect(screen.getByTestId('data-testid ad hoc filters combobox group by input')).toBe(
+        screen.getByPlaceholderText('+ key')
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox filter pill key1')).toBe(
+        screen.getByRole('button', { name: 'Edit filter with key key1' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox filter pill remove key1')).toBe(
+        screen.getByRole('button', { name: 'Remove filter with key key1' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox group by pill region')).toBe(
+        screen.getByRole('button', { name: 'Group by region' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox group by pill remove region')).toBe(
+        screen.getByRole('button', { name: 'Remove group by region' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox clear all button')).toBe(
+        screen.getByRole('button', { name: 'Clear all' })
+      );
+    });
+
+    it('renders a test id for the operator pill in filter edit mode', async () => {
+      setupGroupByScene();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Edit filter with key key1' }));
+
+      expect(screen.getByTestId('data-testid ad hoc filters combobox operator pill')).toBe(
+        screen.getByRole('button', { name: 'Edit filter operator', hidden: true })
+      );
+    });
+
+    it('gives the group by input a distinct id and keeps the control id on the filter input', () => {
+      const { filtersVar } = setupGroupByScene();
+      const controlId = getVariableControlId(filtersVar.state.type, filtersVar.state.key);
+
+      expect(getAdHocInputElement()).toHaveAttribute('id', controlId);
+      expect(screen.getByPlaceholderText('+ key')).toHaveAttribute('id', `${controlId}-group-by`);
+      expect(document.querySelectorAll(`[id="${controlId}"]`)).toHaveLength(1);
+      expect(screen.getByLabelText(filtersVar.state.name)).toBe(getAdHocInputElement());
     });
   });
 });

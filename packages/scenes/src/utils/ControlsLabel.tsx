@@ -62,7 +62,7 @@ export function ControlsLabel(props: ControlsLabelProps) {
 
   const testId =
     typeof props.label === 'string' ? selectors.pages.Dashboard.SubMenu.submenuItemLabels(props.label) : '';
-  let labelElement: JSX.Element;
+  let labelElement: React.JSX.Element;
 
   // The vertical layout has different css class and order of elements (label always first)
 

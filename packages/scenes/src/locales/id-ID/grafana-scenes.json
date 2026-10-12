@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "Edit filter dengan kunci {{keyLabel}}",
         "managed-filter": "Filter {{origin}} yang dikelola",
         "non-applicable": "Filter tidak berlaku",
         "remove-filter-with-key": "Hapus filter dengan kunci {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "Hapus nilai filter - {{itemLabel}}",
         "use-custom-value": "Gunakan nilai kustom: {{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "Diterapkan secara default di dasbor ini. Jika diedit, ini akan diteruskan ke dasbor lain.",
         "group-by-key": "Kelompokkan berdasarkan {{keyLabel}}",
         "remove-group-by-key": "Hapus kelompokkan berdasarkan {{keyLabel}}"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Ciutkan tampilan",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Memuat panel plugin...",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "Plugin panel tidak memiliki komponen panel"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "Batalkan kueri"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -180,6 +194,7 @@
         "placeholder-enter-value": "Masukkan nilai"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "Pilih nilai"
       }
     }

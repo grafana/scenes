@@ -2,12 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
+        "all-values": "",
         "edit-filter-with-key": "Upravit filtr pomocí klíče {{keyLabel}}",
         "managed-filter": "Spravovaný filtr: {{origin}}",
         "non-applicable": "Filtr není použitelný",
         "remove-filter-with-key": "Odebrat filtr pomocí klíče {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
+        "all-values": "",
         "remove-filter-value": "Odebrat hodnotu filtru – {{itemLabel}}",
         "use-custom-value": "Použít vlastní hodnotu: {{itemLabel}}"
       },
@@ -30,6 +32,14 @@
         "applied-by-default": "Použito ve výchozím nastavení na této nástěnce. Pokud je upraveno, přenese se na jiné nástěnky.",
         "group-by-key": "Seskupit podle {{keyLabel}}",
         "remove-group-by-key": "Odebrat skupinu podle {{keyLabel}}"
+      },
+      "layout": {
+        "grid": {
+          "scene-grid-layout": {
+            "move-panel": "",
+            "resize-panel": ""
+          }
+        }
       },
       "nested-scene-renderer": {
         "collapse-button-label": "Sbalit scénu",
@@ -71,6 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Načítání panelu pluginu…",
+        "outdated-plugin-error": "",
         "panel-plugin-has-no-panel-component": "Plugin panelu nemá žádnou komponentu panelu"
       },
       "viz-panel-series-limit": {
@@ -84,6 +95,9 @@
       },
       "loading-indicator": {
         "content-cancel-query": "Zrušit dotaz"
+      },
+      "time-shift-alignment-processor": {
+        "no-data-notice": ""
       }
     },
     "variables": {
@@ -186,6 +200,7 @@
         "placeholder-enter-value": "Zadat hodnotu"
       },
       "variable-value-select": {
+        "all-label": "",
         "placeholder-select-value": "Vybrat hodnotu"
       }
     }

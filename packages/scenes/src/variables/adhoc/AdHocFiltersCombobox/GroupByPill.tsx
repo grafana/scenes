@@ -47,6 +47,8 @@ export function GroupByPill({ filter, controller, readOnly, focusOnWipInputRef }
         ariaLabel={t('grafana-scenes.components.group-by-pill.group-by-key', 'Group by {{keyLabel}}', { keyLabel })}
         onRemove={handleRemove}
         removable={!readOnly}
+        testId={`data-testid ad hoc filters combobox group by pill ${filter.key}`}
+        removeTestId={`data-testid ad hoc filters combobox group by pill remove ${filter.key}`}
         removeAriaLabel={t(
           'grafana-scenes.components.group-by-pill.remove-group-by-key',
           'Remove group by {{keyLabel}}',

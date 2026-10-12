@@ -166,7 +166,7 @@ function collectFlexItemElements(children: React.ReactNode): Array<React.ReactEl
       return;
     }
 
-    if (React.isValidElement(child) && child.type === React.Fragment) {
+    if (React.isValidElement<{ children?: React.ReactNode }>(child) && child.type === React.Fragment) {
       result.push(...collectFlexItemElements(child.props.children));
       return;
     }
