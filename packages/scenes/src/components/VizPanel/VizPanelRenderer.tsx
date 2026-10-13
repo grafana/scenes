@@ -15,6 +15,7 @@ import {
   QueryResultMetaNotice,
   renderMarkdown,
   SetPanelAttentionEvent,
+  StreamingDataFrame,
 } from '@grafana/data';
 
 import { config, getAppEvents } from '@grafana/runtime';
@@ -406,8 +407,8 @@ function useClearPreviousData(data?: DataFrame[]) {
     currVals.current.clear();
 
     for (let i = 0; i < currFrames.length; i++) {
-      // skip legacy CircularDataFrame streaming frames
-      if ('appendRow' in currFrames[i]) {
+      // skip streaming frames whose value arrays are owned and mutated in place
+      if ('appendRow' in currFrames[i] || currFrames[i] instanceof StreamingDataFrame) {
         continue;
       }
 
