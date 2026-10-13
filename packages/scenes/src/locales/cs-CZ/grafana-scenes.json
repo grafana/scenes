@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Vše",
         "edit-filter-with-key": "Upravit filtr pomocí klíče {{keyLabel}}",
         "managed-filter": "Spravovaný filtr: {{origin}}",
         "non-applicable": "Filtr není použitelný",
         "remove-filter-with-key": "Odebrat filtr pomocí klíče {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Vše",
         "remove-filter-value": "Odebrat hodnotu filtru – {{itemLabel}}",
         "use-custom-value": "Použít vlastní hodnotu: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Přesunout panel",
+            "resize-panel": "Změnit velikost panelu"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Načítání panelu pluginu…",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Nastala neočekávaná chyba. Aktualizace pluginu „{{pluginName}}“ na nejnovější verzi může problém vyřešit.",
         "panel-plugin-has-no-panel-component": "Plugin panelu nemá žádnou komponentu panelu"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Zrušit dotaz"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Porovnání času nevrátilo žádná data"
       }
     },
     "variables": {
@@ -146,7 +146,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Obnovit skupinu nastavenou touto nástěnkou."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Stiskněte klávesu Enter pro použití"
       },
       "format-registry": {
         "formats": {
@@ -200,7 +200,7 @@
         "placeholder-enter-value": "Zadat hodnotu"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Vše",
         "placeholder-select-value": "Vybrat hodnotu"
       }
     }
