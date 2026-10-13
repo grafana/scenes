@@ -1,3 +1,15 @@
+# v8.21.2 (Tue Oct 13 2026)
+
+#### 🐛 Bug Fix
+
+- I18n: Download translations from Crowdin [#1680](https://github.com/grafana/scenes/pull/1680) ([@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 1
+
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+
+---
+
 # v8.21.1 (Mon Oct 12 2026)
 
 #### 🐛 Bug Fix
