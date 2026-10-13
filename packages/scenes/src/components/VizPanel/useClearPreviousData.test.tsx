@@ -1,6 +1,14 @@
-import { act, renderHook } from '@testing-library/react';
-import { DataFrame, FieldType, LoadingState, PanelData, getDefaultTimeRange, toDataFrame } from '@grafana/data';
-import { map, Observable } from 'rxjs';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import {
+  DataFrame,
+  FieldType,
+  LoadingState,
+  PanelData,
+  getDefaultTimeRange,
+  standardTransformers,
+  toDataFrame,
+} from '@grafana/data';
+import { delay, map, Observable } from 'rxjs';
 
 import { SceneDataNode } from '../../core/SceneDataNode';
 import { EmbeddedScene } from '../EmbeddedScene';
@@ -28,6 +36,11 @@ describe('retained field value cleanup', () => {
 
   beforeAll(() => {
     mockTransformationsRegistry([
+      {
+        ...standardTransformers.organizeFieldsTransformer,
+        operator: (options, context) => (source: Observable<DataFrame[]>) =>
+          source.pipe(standardTransformers.organizeFieldsTransformer.operator(options, context), delay(0)),
+      },
       {
         id: 'hide',
         name: 'hide',
@@ -105,6 +118,38 @@ describe('retained field value cleanup', () => {
 
     expect(transformer.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
     expect(filteredValues).toEqual([]);
+  });
+
+  it('restores values after removing the last runtime transform with asynchronous saved organize fields', async () => {
+    const { source, transformer, controller } = setup();
+    const original = toDataFrame({
+      fields: ['savedHidden', 'runtimeHidden', 'visible'].map((name) => ({
+        name,
+        type: FieldType.number,
+        values: [1, 2, 3],
+      })),
+    });
+    act(() => {
+      source.setState({ data: panelData([original]) });
+      transformer.setState({
+        transformations: [{ id: 'organize', options: { excludeByName: { savedHidden: true } } }],
+      });
+      transformer.reprocessTransformations();
+    });
+    await waitFor(() =>
+      expect(transformer.state.data?.series[0].fields.map((field) => field.name)).toEqual(['runtimeHidden', 'visible'])
+    );
+
+    act(() => controller.set('columns', [{ id: 'organize', options: { excludeByName: { runtimeHidden: true } } }]));
+    await waitFor(() =>
+      expect(transformer.state.data?.series[0].fields.map((field) => field.name)).toEqual(['visible'])
+    );
+
+    act(() => controller.set('columns', []));
+    await waitFor(() =>
+      expect(transformer.state.data?.series[0].fields.map((field) => field.name)).toEqual(['runtimeHidden', 'visible'])
+    );
+    expect(transformer.state.data?.series[0].fields[0].values).toEqual([1, 2, 3]);
   });
 
   it('clears deferred hidden values after a query refresh and unhides the new values', () => {
