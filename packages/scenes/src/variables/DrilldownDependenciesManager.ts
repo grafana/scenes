@@ -206,7 +206,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   public getGroupByKeys(): string[] | undefined {
     if (this._adhocFiltersVar?.state.enableGroupBy) {
       const groupByKeys = [...(this._adhocFiltersVar.state.originFilters ?? []), ...this._adhocFiltersVar.state.filters]
-        .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && isFilterApplicable(f))
+        .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && isFilterApplicable(f) && !f.dismissedGroupBy)
         .map((f) => f.key);
 
       return groupByKeys.length > 0 ? groupByKeys : undefined;
