@@ -1,3 +1,15 @@
+# v8.21.3 (Wed Oct 14 2026)
+
+#### 🐛 Bug Fix
+
+- Preserve runtime transformation source values during panel cleanup [#1655](https://github.com/grafana/scenes/pull/1655) ([@fastfrwrd](https://github.com/fastfrwrd))
+
+#### Authors: 1
+
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+
+---
+
 # v8.21.2 (Tue Oct 13 2026)
 
 #### 🐛 Bug Fix
