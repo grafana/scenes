@@ -1324,6 +1324,53 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestMock.mock.calls[requestsBefore][1].groupByKeys).toBeUndefined();
     });
 
+    it('checks the applied ad hoc variable on reactivation when a closer one shares its name', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [],
+        originFilters: [{ key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '', origin: 'dashboard' }],
+        enableGroupBy: true,
+      });
+      // Not applied to the runner's queries, but it's what a lookup by name from the runner returns.
+      const manualVar = new AdHocFiltersVariable({
+        name: 'filters',
+        applyMode: 'manual',
+        datasource: { uid: 'test-uid' },
+        filters: [{ key: 'env', operator: '=', value: 'prod', condition: '' }],
+      });
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneFlexLayout({
+          $variables: new SceneVariableSet({ variables: [manualVar] }),
+          children: [new SceneFlexItem({ body: new SceneCanvasText({ text: 'x', $data: queryRunner }) })],
+        }),
+      });
+      deactivationHandlers.push(scene.activate());
+
+      let deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls[0][1].groupByKeys).toEqual(['A']);
+
+      deactivateRunner();
+      deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+
+      deactivateRunner();
+      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      deactivationHandlers.push(queryRunner.activate());
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      expect(runRequestMock.mock.calls[1][1].groupByKeys).toBeUndefined();
+    });
+
     it('re-runs on reactivation when only a per-key value changed while inactive', async () => {
       const { queryRunner, filtersVar } = setupInactiveGroupByScene();
       const deactivateRunner = queryRunner.activate();

@@ -56,19 +56,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   public findAndSubscribeToDrilldowns(interpolatedUid: string | undefined, sceneObject?: SceneObject) {
     this._sceneObject = sceneObject;
 
-    // Every discovery path converges here, so this is the one place the applyMode rule is enforced —
-    // the finders below deliberately match on datasource alone. Enforcing it here means a new finder,
-    // or a new kind of drilldown variable, cannot reintroduce manual-mode variables into query requests
-    // by omission. That is how this bug reached users twice: the rule used to be implied by which
-    // collection was iterated, so swapping the collection silently dropped it.
-    const filtersVars = (
-      sceneObject
-        ? findAllAdHocFiltersInHierarchy(interpolatedUid, sceneObject)
-        : (() => {
-            const globalVar = findGlobalAdHocFilterVariableByUid(interpolatedUid);
-            return globalVar ? [globalVar] : [];
-          })()
-    ).filter((variable) => appliesAutomaticallyToDatasource(variable, interpolatedUid));
+    const filtersVars = findAutoAppliedAdHocFiltersVars(interpolatedUid, sceneObject);
 
     // Closest is last in root → leaf order
     const filtersVar = filtersVars.length > 0 ? filtersVars[filtersVars.length - 1] : undefined;
@@ -233,4 +221,27 @@ function filterIdentityKey(filter: AdHocFilterWithLabels): string {
   // Scope filters dedupe by key/operator/value so they are not applied twice when
   // both getScopes() and a variable's originFilters contain the same scope filter.
   return `${filter.origin ?? ''}|${filter.key}|${filter.operator}|${values}`;
+}
+
+/**
+ * The AdHocFiltersVariables a data provider applies for the given datasource, root → leaf.
+ * When sceneObject is provided, walks up the hierarchy; otherwise searches the global active variable sets.
+ */
+export function findAutoAppliedAdHocFiltersVars(
+  interpolatedUid: string | undefined,
+  sceneObject?: SceneObject
+): AdHocFiltersVariable[] {
+  // Every discovery path converges here, so this is the one place the applyMode rule is enforced —
+  // the finders below deliberately match on datasource alone. Enforcing it here means a new finder,
+  // or a new kind of drilldown variable, cannot reintroduce manual-mode variables into query requests
+  // by omission. That is how this bug reached users twice: the rule used to be implied by which
+  // collection was iterated, so swapping the collection silently dropped it.
+  const filtersVars = sceneObject
+    ? findAllAdHocFiltersInHierarchy(interpolatedUid, sceneObject)
+    : (() => {
+        const globalVar = findGlobalAdHocFilterVariableByUid(interpolatedUid);
+        return globalVar ? [globalVar] : [];
+      })();
+
+  return filtersVars.filter((variable) => appliesAutomaticallyToDatasource(variable, interpolatedUid));
 }
