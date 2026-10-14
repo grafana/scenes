@@ -229,6 +229,45 @@ describe('VizPanel runtime transformations', () => {
     expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([5]);
   });
 
+  it('waits for a new owner source capture after inactive panel data is replaced', () => {
+    const { panel, deactivateTransformer } = setup();
+    const controller = panel.getRuntimeTransformations();
+    const transformations = [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }];
+    controller.set('owner', transformations);
+    expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([1]);
+    deactivateTransformer();
+
+    const replacementSource = new SceneDataNode({
+      data: {
+        state: LoadingState.Done,
+        timeRange: getDefaultTimeRange(),
+        series: [toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [5] }] })],
+      },
+    });
+    const replacement = new SceneDataTransformer({
+      $data: replacementSource,
+      transformations: [{ id: 'runtimeMath', options: { operation: 'multiply', value: 10 } }],
+    });
+    const deactivateBeforeSwap = replacement.activate();
+    deactivateBeforeSwap();
+    expect(replacement.state.data?.series[0].fields[0].values).toEqual([50]);
+
+    panel.setState({ $data: replacement });
+
+    expect(replacement.isActive).toBe(false);
+    expect(controller.get('owner')).toEqual(transformations);
+    expect(controller.getSourceSeries('owner')).toEqual([]);
+    expect(controller.getSourceSeries('unregistered')).toBe(replacement.state.data?.series);
+
+    const deactivateReplacement = replacement.activate();
+    try {
+      expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([50]);
+      expect(replacement.state.data?.series[0].fields[0].values).toEqual([51]);
+    } finally {
+      deactivateReplacement();
+    }
+  });
+
   it('applies an owner update made while the transformer is inactive', () => {
     const { deactivateTransformer, panel, transformer } = setup();
     const controller = panel.getRuntimeTransformations();

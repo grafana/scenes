@@ -88,6 +88,7 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
   public getSourceSeries(owner: string): readonly DataFrame[] {
     const group = this._groups.get(owner);
     if (group) {
+      // An existing owner's input may not be captured yet; panel output is not a substitute.
       return group.sourceSeries;
     }
 
