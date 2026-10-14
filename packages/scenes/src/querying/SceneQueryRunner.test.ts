@@ -1299,6 +1299,48 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestMock.mock.calls[1][1].groupByKeys).toBeUndefined();
     });
 
+    it('re-runs a cloned runner on reactivation when its cloned variable dismissed a group by while inactive', async () => {
+      const { queryRunner } = setupInactiveGroupByScene();
+      const deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+      deactivateRunner();
+
+      const scene = queryRunner.parent!.parent as EmbeddedScene;
+      const clonedScene = scene.clone();
+      const clonedRunner = (clonedScene.state.body as SceneCanvasText).state.$data as SceneQueryRunner;
+      const clonedVar = clonedScene.state.$variables!.state.variables[0] as AdHocFiltersVariable;
+      deactivationHandlers.push(clonedScene.activate());
+
+      const deactivateClone = clonedRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+      deactivateClone();
+      const requestsBefore = runRequestMock.mock.calls.length;
+
+      clonedVar.updateToMatchAll(clonedVar.state.originFilters![0]);
+      deactivationHandlers.push(clonedRunner.activate());
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(requestsBefore + 1);
+      expect(runRequestMock.mock.calls[requestsBefore][1].groupByKeys).toBeUndefined();
+    });
+
+    it('re-runs on reactivation when only a per-key value changed while inactive', async () => {
+      const { queryRunner, filtersVar } = setupInactiveGroupByScene();
+      const deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      deactivateRunner();
+      // A match-all filter is left out of the expression, but changes `${filters["env"]}`.
+      filtersVar.setState({
+        filters: [{ key: 'env', operator: '=~', value: '.*', condition: '' }],
+      });
+      expect(filtersVar.state.filterExpression).toBe('');
+      deactivationHandlers.push(queryRunner.activate());
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+    });
+
     it('should not pass group by dimensions when enableGroupBy is false', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },

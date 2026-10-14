@@ -43,7 +43,7 @@ import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
 import { QueryProfilerLike, registerQueryWithController } from './registerQueryWithController';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
-import { AdHocFiltersVariable, getActiveGroupByKeys } from '../variables/adhoc/AdHocFiltersVariable';
+import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
@@ -309,9 +309,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _timeSubRange?: SceneTimeRangeLike;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
-  // Group-by keys aren't part of an ad hoc variable's value, so the recorder above can't see a group
-  // by dismissed while this runner was inactive. Remember what the last query applied instead.
-  private _lastGroupBy?: { variable: AdHocFiltersVariable; keys: string[] };
+  // The recorder above compares getValue(), which for ad hoc filters is only the expression, so it can't
+  // see group-by or per-key changes made while this runner was inactive. Keyed by variable name, not
+  // instance, so a clone checks its own cloned variables.
+  private _lastAdHocValues?: Record<string, string>;
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _layerAnnotations?: DataFrame[];
@@ -492,10 +493,10 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private shouldRunQueriesOnActivate() {
-    if (this._lastGroupBy && !isEqual(getActiveGroupByKeys(this._lastGroupBy.variable), this._lastGroupBy.keys)) {
+    if (this.haveAdHocValuesChanged()) {
       writeSceneLog(
         'SceneQueryRunner',
-        'Group by keys changed while inactive, shouldRunQueriesOnActivate returns true'
+        'Ad hoc filters changed while inactive, shouldRunQueriesOnActivate returns true'
       );
       return true;
     }
@@ -519,6 +520,13 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     return false;
+  }
+
+  private haveAdHocValuesChanged() {
+    return Object.entries(this._lastAdHocValues ?? {}).some(([name, value]) => {
+      const variable = sceneGraph.lookupVariable(name, this);
+      return variable instanceof AdHocFiltersVariable && variable.getChangeDetectionValue() !== value;
+    });
   }
 
   private _isDataTimeRangeStale(data: PanelData) {
@@ -753,7 +761,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     clone['_variableValueRecorder'] = this._variableValueRecorder.cloneAndRecordCurrentValuesForSceneObject(this);
-    clone['_lastGroupBy'] = this._lastGroupBy;
+    clone['_lastAdHocValues'] = this._lastAdHocValues;
     clone['_containerWidth'] = this._containerWidth;
     clone['_results'].next({ origin: this, data: this.state.data ?? emptyPanelData });
 
@@ -797,10 +805,9 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       request.groupByKeys = groupByKeys;
     }
 
-    const groupByVariable = this._drilldownDependenciesManager.adHocFiltersVar;
-    this._lastGroupBy = groupByVariable?.state.enableGroupBy
-      ? { variable: groupByVariable, keys: getActiveGroupByKeys(groupByVariable) }
-      : undefined;
+    this._lastAdHocValues = Object.fromEntries(
+      this._drilldownDependenciesManager.adHocFiltersVars.map((v) => [v.state.name, v.getChangeDetectionValue()])
+    );
 
     request.targets = request.targets.map((query) => {
       if (

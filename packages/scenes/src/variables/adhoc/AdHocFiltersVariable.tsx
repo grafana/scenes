@@ -486,11 +486,7 @@ export class AdHocFiltersVariable
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
-    let filterExpressionChanged = false;
-    let groupByChanged = false;
-    // Match-all filters are left out of the expression, so adding or removing one can change
-    // `${filters["key"]}` interpolation without changing the expression or the group-by keys.
-    let perKeyValuesChanged = false;
+    let previousSignature: string | undefined;
 
     if (
       ((update.filters && update.filters !== this.state.filters) ||
@@ -500,21 +496,13 @@ export class AdHocFiltersVariable
       const filters = update.filters ?? this.state.filters;
       const originFilters = update.originFilters ?? this.state.originFilters;
 
+      previousSignature = this.getChangeDetectionValue();
       update.filterExpression = renderExpression(this.state.expressionBuilder, [...(originFilters ?? []), ...filters]);
-      filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
-      groupByChanged = haveGroupByKeysChanged(
-        [...(this.state.originFilters ?? []), ...this.state.filters],
-        [...(originFilters ?? []), ...filters]
-      );
-      perKeyValuesChanged = havePerKeyValuesChanged(
-        getPerKeyCandidates([...(this.state.originFilters ?? []), ...this.state.filters], this.state._wip),
-        getPerKeyCandidates([...(originFilters ?? []), ...filters], '_wip' in update ? update._wip : this.state._wip)
-      );
     }
 
     super.setState(update);
 
-    if (filterExpressionChanged || groupByChanged || perKeyValuesChanged) {
+    if (previousSignature !== undefined && previousSignature !== this.getChangeDetectionValue()) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -574,20 +562,16 @@ export class AdHocFiltersVariable
       forcePublish?: boolean;
     }
   ): void {
-    let filterExpressionChanged = false;
-    let groupByChanged = false;
-    let perKeyValuesChanged = false;
+    let changed = false;
     let filterExpression: string | undefined = undefined;
 
     if (filters && filters !== this.state.filters) {
-      const originFilters = this.state.originFilters ?? [];
-      filterExpression = renderExpression(this.state.expressionBuilder, [...originFilters, ...filters]);
-      filterExpressionChanged = filterExpression !== this.state.filterExpression;
-      groupByChanged = haveGroupByKeysChanged(this.state.filters, filters);
-      perKeyValuesChanged = havePerKeyValuesChanged(
-        getPerKeyCandidates([...originFilters, ...this.state.filters], this.state._wip),
-        getPerKeyCandidates([...originFilters, ...filters], this.state._wip)
-      );
+      const previousSignature = this.getChangeDetectionValue();
+      filterExpression = renderExpression(this.state.expressionBuilder, [
+        ...(this.state.originFilters ?? []),
+        ...filters,
+      ]);
+      changed = previousSignature !== getChangeDetectionValue({ ...this.state, filters, filterExpression });
     }
 
     super.setState({
@@ -595,10 +579,7 @@ export class AdHocFiltersVariable
       filterExpression,
     });
 
-    if (
-      ((filterExpressionChanged || groupByChanged || perKeyValuesChanged) && options?.skipPublish !== true) ||
-      options?.forcePublish
-    ) {
+    if ((changed && options?.skipPublish !== true) || options?.forcePublish) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -804,6 +785,16 @@ export class AdHocFiltersVariable
     }
 
     return this.state.filterExpression;
+  }
+
+  /**
+   * @internal
+   * Everything a query can read from this variable: the filter expression, the active group-by keys
+   * and the per-key (`${filters["key"]}`) values. A change to it publishes a value change, and query
+   * runners compare it on reactivation, since `getValue()` only returns the expression.
+   */
+  public getChangeDetectionValue(): string {
+    return getChangeDetectionValue(this.state);
   }
 
   /**
@@ -1418,11 +1409,15 @@ function getPerKeyCandidates(
   return filters.filter((f) => f !== wip && !isGroupByFilter(f));
 }
 
-// Takes candidates (see getPerKeyCandidates) so each side is computed with its own WIP filter.
-function havePerKeyValuesChanged(prev: AdHocFilterWithLabels[], next: AdHocFilterWithLabels[]): boolean {
-  const signature = (filters: AdHocFilterWithLabels[]) =>
-    JSON.stringify(filters.map((f) => [f.key, f.operator, f.value, f.values ?? null]));
-  return signature(prev) !== signature(next);
+function getChangeDetectionValue(
+  state: Pick<AdHocFiltersVariableState, 'filterExpression' | 'filters' | 'originFilters' | '_wip'>
+): string {
+  const filters = [...(state.originFilters ?? []), ...state.filters];
+  return JSON.stringify([
+    state.filterExpression,
+    getActiveGroupByKeysFromFilters(filters),
+    getPerKeyCandidates(filters, state._wip).map((f) => [f.key, f.operator, f.value, f.values ?? null]),
+  ]);
 }
 
 /**
@@ -1430,27 +1425,13 @@ function havePerKeyValuesChanged(prev: AdHocFilterWithLabels[], next: AdHocFilte
  * non-dismissed group-by entries across origin and user filters, in order.
  */
 export function getActiveGroupByKeys(variable: AdHocFiltersVariable): string[] {
-  return [...(variable.state.originFilters ?? []), ...variable.state.filters]
+  return getActiveGroupByKeysFromFilters([...(variable.state.originFilters ?? []), ...variable.state.filters]);
+}
+
+function getActiveGroupByKeysFromFilters(filters: AdHocFilterWithLabels[]): string[] {
+  return filters
     .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && isFilterApplicable(f) && !f.dismissedGroupBy)
     .map((f) => f.key);
-}
-
-function getGroupByKeys(filters: AdHocFilterWithLabels[]): string[] {
-  return filters
-    .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && !f.dismissedGroupBy)
-    .map((f) => f.key)
-    .sort();
-}
-
-function haveGroupByKeysChanged(prev: AdHocFilterWithLabels[], next: AdHocFilterWithLabels[]): boolean {
-  const prevKeys = getGroupByKeys(prev);
-  const nextKeys = getGroupByKeys(next);
-
-  if (prevKeys.length !== nextKeys.length) {
-    return true;
-  }
-
-  return prevKeys.some((key, i) => key !== nextKeys[i]);
 }
 
 export function AdHocFiltersVariableRenderer({ model }: SceneComponentProps<AdHocFiltersVariable>) {
