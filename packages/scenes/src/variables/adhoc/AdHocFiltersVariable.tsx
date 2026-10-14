@@ -1384,21 +1384,16 @@ function renderExpression(
 /**
  * Per-key interpolation (`${filters["key"]}`) value for a key whose filters all match everything,
  * in either form (`=|` with All, only offered on default filters, or `=~ .*`). Both mean "no
- * restriction on this key" - they're left out of queries, never expanded to a list of values - so
- * like a multi-value variable's custom All value it formats itself: the display text for `text`
- * (which panel titles use), a match-everything regex for query formats rather than the literal text
- * `All` (which would match a label value), and no parameter at all for `queryparam`, since there's
- * no restriction to carry over and an All user filter isn't a valid state.
+ * restriction on this key", so they're never sent to the datasource: this renders the display text
+ * for `text` (which panel titles and subtitles use) as a visual aid, and nothing for every other
+ * format, including datasources' own query formatters.
  */
 export class MatchAllFilterKeyValue implements CustomVariableValue {
   public formatter(formatNameOrFn?: string | VariableCustomFormatterFn): string {
     if (formatNameOrFn === VariableFormatID.Text) {
       return t('grafana-scenes.components.adhoc-filters-combobox.all-values', 'All');
     }
-    if (formatNameOrFn === VariableFormatID.QueryParam) {
-      return '';
-    }
-    return '.*';
+    return '';
   }
 }
 

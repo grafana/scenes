@@ -2061,8 +2061,9 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
 
     it.each([
       ['text', '${filters["env"]:text}', 'All'],
-      ['regex', '${filters["env"]:regex}', '.*'],
-      ['raw', '${filters["env"]:raw}', '.*'],
+      ['regex', '${filters["env"]:regex}', ''],
+      ['raw', '${filters["env"]:raw}', ''],
+      ['the default format', '${filters["env"]}', ''],
     ])('formats a match-all filter for %s', (_, template, expected) => {
       const variable = makeVariable({
         originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
@@ -2072,6 +2073,18 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         body: new SceneCanvasText({ text: '' }),
       });
       expect(sceneGraph.interpolate(scene, template)).toBe(expected);
+    });
+
+    it('renders nothing for a match-all filter through a datasource formatter function', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=~', value: '.*' }] });
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        body: new SceneCanvasText({ text: '' }),
+      });
+      const formatter = jest.fn((value: unknown) => `formatted(${String(value)})`);
+
+      expect(sceneGraph.interpolate(scene, 'env=~"${filters["env"]}"', undefined, formatter)).toBe('env=~""');
+      expect(formatter).not.toHaveBeenCalled();
     });
 
     it('publishes a value change when a default All filter is removed', () => {
