@@ -49,10 +49,7 @@ import { SceneVariable } from '../variables/types';
 import { DataLayersMerger } from './DataLayersMerger';
 import { interpolate } from '../core/sceneGraph/sceneGraph';
 import { wrapInSafeSerializableSceneObject } from '../utils/wrapInSafeSerializableSceneObject';
-import {
-  DrilldownDependenciesManager,
-  findAutoAppliedAdHocFiltersVars,
-} from '../variables/DrilldownDependenciesManager';
+import { DrilldownDependenciesManager } from '../variables/DrilldownDependenciesManager';
 import {
   getDatasourceVariableSelectionCount,
   getSimpleVariableNameFromDatasourceUid,
@@ -312,10 +309,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _timeSubRange?: SceneTimeRangeLike;
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
-  // The recorder above compares getValue(), which for ad hoc filters is only the expression, so it can't
-  // see group-by or per-key changes made while this runner was inactive. Holds no variable instances, so a
-  // clone checks the variables in its own scene.
-  private _lastAdHocValues?: { datasourceUid: string | undefined; values: string[] };
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
   private _layerAnnotations?: DataFrame[];
@@ -496,7 +489,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private shouldRunQueriesOnActivate() {
-    if (this.haveAdHocValuesChanged()) {
+    if (this._drilldownDependenciesManager.haveAppliedValuesChanged(this)) {
       writeSceneLog(
         'SceneQueryRunner',
         'Ad hoc filters changed while inactive, shouldRunQueriesOnActivate returns true'
@@ -523,16 +516,6 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     return false;
-  }
-
-  private haveAdHocValuesChanged() {
-    if (!this._lastAdHocValues) {
-      return false;
-    }
-
-    const { datasourceUid, values } = this._lastAdHocValues;
-    const current = findAutoAppliedAdHocFiltersVars(datasourceUid, this).map((v) => v.getChangeDetectionValue());
-    return !isEqual(current, values);
   }
 
   private _isDataTimeRangeStale(data: PanelData) {
@@ -767,7 +750,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     clone['_variableValueRecorder'] = this._variableValueRecorder.cloneAndRecordCurrentValuesForSceneObject(this);
-    clone['_lastAdHocValues'] = this._lastAdHocValues;
+    clone['_drilldownDependenciesManager'].copyAppliedValuesFrom(this._drilldownDependenciesManager);
     clone['_containerWidth'] = this._containerWidth;
     clone['_results'].next({ origin: this, data: this.state.data ?? emptyPanelData });
 
@@ -811,10 +794,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       request.groupByKeys = groupByKeys;
     }
 
-    this._lastAdHocValues = {
-      datasourceUid: ds.uid,
-      values: this._drilldownDependenciesManager.adHocFiltersVars.map((v) => v.getChangeDetectionValue()),
-    };
+    this._drilldownDependenciesManager.recordAppliedValues();
 
     request.targets = request.targets.map((query) => {
       if (

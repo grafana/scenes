@@ -22,6 +22,7 @@ import { VariableDependencyConfig } from '../variables/VariableDependencyConfig'
 import { SceneObject, SceneObjectState } from '../core/types';
 import { getScopes } from '../core/sceneGraph/sceneGraph';
 import { SCOPES_VARIABLE_NAME } from '../variables/constants';
+import { isEqual } from 'lodash';
 
 /**
  * Manages ad-hoc filters and group-by variables for data providers.
@@ -41,6 +42,10 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   private _adhocFiltersVars: AdHocFiltersVariable[] = [];
   private _groupByVar?: GroupByVariable;
   private _sceneObject?: SceneObject;
+  private _interpolatedUid?: string;
+  // What the last query applied, kept across cleanup(). Holds no variable instances, so a clone checks the
+  // variables in its own scene.
+  private _appliedValues?: { interpolatedUid: string | undefined; values: string[] };
   private _variableDependency: VariableDependencyConfig<TState>;
 
   public constructor(variableDependency: VariableDependencyConfig<TState>) {
@@ -55,6 +60,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
    */
   public findAndSubscribeToDrilldowns(interpolatedUid: string | undefined, sceneObject?: SceneObject) {
     this._sceneObject = sceneObject;
+    this._interpolatedUid = interpolatedUid;
 
     const filtersVars = findAutoAppliedAdHocFiltersVars(interpolatedUid, sceneObject);
 
@@ -124,6 +130,38 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
 
   public isSubscribedAdHocFiltersVar(variable: AdHocFiltersVariable): boolean {
     return this._adhocFiltersVars.includes(variable);
+  }
+
+  /**
+   * Records what the subscribed ad hoc variables apply, for haveAppliedValuesChanged(). Call when issuing a
+   * query: the variable value recorder compares getValue(), which for ad hoc filters is only the expression,
+   * so it can't see group-by or per-key changes made while the data provider was inactive.
+   */
+  public recordAppliedValues(): void {
+    this._appliedValues = {
+      interpolatedUid: this._interpolatedUid,
+      values: this._adhocFiltersVars.map((v) => v.getChangeDetectionValue()),
+    };
+  }
+
+  /**
+   * Whether the ad hoc variables that apply to sceneObject now differ from what was last recorded. Runs the
+   * discovery again rather than reusing the subscribed variables, which cleanup() clears on deactivation.
+   */
+  public haveAppliedValuesChanged(sceneObject: SceneObject): boolean {
+    if (!this._appliedValues) {
+      return false;
+    }
+
+    const { interpolatedUid, values } = this._appliedValues;
+    const current = findAutoAppliedAdHocFiltersVars(interpolatedUid, sceneObject).map((v) =>
+      v.getChangeDetectionValue()
+    );
+    return !isEqual(current, values);
+  }
+
+  public copyAppliedValuesFrom(other: DrilldownDependenciesManager<TState>): void {
+    this._appliedValues = other._appliedValues;
   }
 
   private _getMergedFilters(): AdHocFilterWithLabels[] {
@@ -202,6 +240,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   }
 
   public cleanup(): void {
+    this._interpolatedUid = undefined;
     this._adhocFiltersVar = undefined;
     this._adhocFiltersVars = [];
     this._groupByVar = undefined;
@@ -227,7 +266,7 @@ function filterIdentityKey(filter: AdHocFilterWithLabels): string {
  * The AdHocFiltersVariables a data provider applies for the given datasource, root → leaf.
  * When sceneObject is provided, walks up the hierarchy; otherwise searches the global active variable sets.
  */
-export function findAutoAppliedAdHocFiltersVars(
+function findAutoAppliedAdHocFiltersVars(
   interpolatedUid: string | undefined,
   sceneObject?: SceneObject
 ): AdHocFiltersVariable[] {
