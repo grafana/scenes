@@ -261,6 +261,27 @@ describe('retained field value cleanup', () => {
     expect(ordinary.fields[0].values).toEqual([1, 2, 3]);
   });
 
+  it.each(['series', 'annotations'] as const)(
+    'retains large upstream %s lists without overflowing the stack',
+    (topic) => {
+      const first = frame();
+      const last = frame([4, 5, 6]);
+      const frames = Array<DataFrame>(200_000).fill(first);
+      frames[frames.length - 1] = last;
+      const source = new SceneDataNode({
+        data: panelData(topic === 'series' ? frames : [], topic === 'annotations' ? frames : []),
+      });
+      const transformer = new SceneDataTransformer({ $data: source, transformations: [] });
+      const panel = new VizPanel({ pluginId: 'table', $data: transformer });
+
+      const retained = panel.getRetainedDataFrames();
+
+      expect(retained).toHaveLength(frames.length);
+      expect(retained[0]).toBe(first);
+      expect(retained[retained.length - 1]).toBe(last);
+    }
+  );
+
   it('protects nested and inherited transformer sources, including annotations', () => {
     const original = frame();
     const annotation = frame([10]);

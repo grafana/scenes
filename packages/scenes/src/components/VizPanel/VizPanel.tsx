@@ -201,7 +201,12 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     while (provider instanceof SceneDataTransformer) {
       provider = provider.getSourceData();
       const data = provider.state.data;
-      frames.push(...(data?.series ?? []), ...(data?.annotations ?? []));
+      for (const frame of data?.series ?? []) {
+        frames.push(frame);
+      }
+      for (const frame of data?.annotations ?? []) {
+        frames.push(frame);
+      }
     }
 
     return frames;
