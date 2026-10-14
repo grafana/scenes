@@ -111,8 +111,8 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     return Array.from(this._groups.values(), (group) => group.operators).flat();
   }
 
-  public getRetainedDataFrames(): DataFrame[] {
-    return Array.from(this._groups.values()).flatMap((group) => Array.from(group.sourceSeries));
+  public getRetainedDataFrameSources(): Array<readonly DataFrame[]> {
+    return Array.from(this._groups.values(), (group) => group.sourceSeries);
   }
 
   private _subscribeToPanelState(): void {

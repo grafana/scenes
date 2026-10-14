@@ -111,7 +111,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
 
   useClearPreviousData(
     rawData.data,
-    _UNSAFE_clearPreviousFieldValues ? model.getRetainedDataFrames() : [],
+    _UNSAFE_clearPreviousFieldValues ? model.getRetainedDataFrameSources() : [],
     _UNSAFE_clearPreviousFieldValues
   );
 
@@ -391,9 +391,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   );
 }
 
-function getValues(frames: readonly DataFrame[]): Set<unknown[]> {
-  const values = new Set<unknown[]>();
-  for (const frame of frames) {
+function collectValues(frames: readonly DataFrame[] | undefined, values: Set<unknown[]>): void {
+  for (const frame of frames ?? []) {
     // Legacy streaming frames own mutable buffers that must not be truncated.
     if ('appendRow' in frame) {
       continue;
@@ -402,18 +401,36 @@ function getValues(frames: readonly DataFrame[]): Set<unknown[]> {
       values.add(field.values);
     }
   }
-  return values;
+}
+
+interface CleanupTracking {
+  previousValues: Set<unknown[]>;
+  currentValues: Set<unknown[]>;
+  retainedValues: Set<unknown[]>;
+  series?: DataFrame[];
+  annotations?: DataFrame[];
+  sources?: ReadonlyArray<readonly DataFrame[]>;
 }
 
 export function useClearPreviousData(
   data: PanelData | undefined,
-  retainedFrames: readonly DataFrame[],
+  retainedSources: ReadonlyArray<readonly DataFrame[]>,
   enabled = true
 ) {
-  const previousValues = useRef(new Set<unknown[]>());
+  const tracking = useRef<CleanupTracking | null>(null);
+  const cache = (tracking.current ??= {
+    previousValues: new Set(),
+    currentValues: new Set(),
+    retainedValues: new Set(),
+  });
 
   if (!enabled) {
-    previousValues.current.clear();
+    cache.previousValues.clear();
+    cache.currentValues.clear();
+    cache.retainedValues.clear();
+    cache.series = undefined;
+    cache.annotations = undefined;
+    cache.sources = undefined;
     return;
   }
 
@@ -422,12 +439,26 @@ export function useClearPreviousData(
     return;
   }
 
-  const currentValues = getValues([...(data.series ?? []), ...(data.annotations ?? [])]);
-  const retainedValues = getValues(retainedFrames);
+  // Upstream data and runtime captures can change before an asynchronous pass publishes new output.
+  if (
+    cache.series === data.series &&
+    cache.annotations === data.annotations &&
+    cache.sources?.length === retainedSources.length &&
+    cache.sources.every((source, index) => source === retainedSources[index])
+  ) {
+    return;
+  }
+
+  const { previousValues, currentValues, retainedValues } = cache;
+  collectValues(data.series, currentValues);
+  collectValues(data.annotations, currentValues);
+  for (const source of retainedSources) {
+    collectValues(source, retainedValues);
+  }
 
   // React can retain old panel props. Empty obsolete rendered arrays, but preserve shared arrays
   // still needed by upstream data or a runtime stage, even when hidden from the current output.
-  for (const values of previousValues.current) {
+  for (const values of previousValues) {
     if (currentValues.has(values)) {
       continue;
     }
@@ -438,7 +469,13 @@ export function useClearPreviousData(
       values.length = 0;
     }
   }
-  previousValues.current = currentValues;
+  previousValues.clear();
+  retainedValues.clear();
+  cache.previousValues = currentValues;
+  cache.currentValues = previousValues;
+  cache.series = data.series;
+  cache.annotations = data.annotations;
+  cache.sources = retainedSources.slice();
 }
 
 function useDataWithSeriesLimit(data: PanelData | undefined, seriesLimit?: number, showAllSeries?: boolean) {

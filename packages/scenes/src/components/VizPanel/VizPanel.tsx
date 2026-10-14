@@ -193,23 +193,23 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     return this._runtimeTransformations;
   }
 
-  /** @internal Values in these frames must survive renderer cleanup for subsequent transformations. */
-  public getRetainedDataFrames(): DataFrame[] {
-    const frames = this._runtimeTransformations.getRetainedDataFrames();
+  /** @internal Source array identities let renderer cleanup skip unchanged frames without scanning their fields. */
+  public getRetainedDataFrameSources(): ReadonlyArray<readonly DataFrame[]> {
+    const sources = this._runtimeTransformations.getRetainedDataFrameSources();
     let provider = sceneGraph.getData(this);
 
     while (provider instanceof SceneDataTransformer) {
       provider = provider.getSourceData();
       const data = provider.state.data;
-      for (const frame of data?.series ?? []) {
-        frames.push(frame);
+      if (data?.series) {
+        sources.push(data.series);
       }
-      for (const frame of data?.annotations ?? []) {
-        frames.push(frame);
+      if (data?.annotations) {
+        sources.push(data.annotations);
       }
     }
 
-    return frames;
+    return sources;
   }
 
   /**
