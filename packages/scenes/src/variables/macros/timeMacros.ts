@@ -57,6 +57,11 @@ export class TimeFromAndToMacro implements FormatVariable {
       return dateTimeFormat(timeRange.state.value.to, { timeZone: timeRange.getTimeZone() });
     }
   }
+
+  public getTimeZone() {
+    const timeRange = getTimeRange(this._sceneObject);
+    return timeRange.getTimeZone();
+  }
 }
 
 /**
