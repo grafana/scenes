@@ -247,23 +247,103 @@ jobs:
           GITHUB_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
 
       - name: Open release PR
+        id: pr
         if: steps.bump.outputs.bump != ''
         # `no-changelog` keeps this PR out of the next release's changelog via the
         # omit-commits plugin. It carries no major/minor/patch label, so with
         # onlyPublishWithReleaseLabel it contributes no bump of its own.
+        #
+        # Auto-merge is armed here, before the approval below is attempted, so that
+        # every way the approval can fail degrades to the old behaviour: the PR sits
+        # queued and a human approval releases it.
         run: |
           PR_URL="$(gh pr create \
             --base main \
             --head "release/v${VERSION}" \
             --title "Release v${VERSION}" \
             --label no-changelog \
-            --body "Automated release of v${VERSION}. Needs one approval; merging then publishes to npm and creates the git tag and GitHub release.")"
+            --body "Automated release of v${VERSION}. Merging publishes to npm and creates the git tag and GitHub release.")"
           echo "Opened ${PR_URL}"
-          echo "Release PR for v${VERSION} is open and needs an approval before it can merge: ${PR_URL}" >> "$GITHUB_STEP_SUMMARY"
+          # Parsed off the URL rather than read back over the API, which would only
+          # reintroduce a call that can fail between creating and recording the PR.
+          PR_NUMBER="$(printf '%s' "$PR_URL" | grep -oE '[0-9]+$')"
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Could not parse a PR number out of '${PR_URL}'" >&2
+            exit 1
+          fi
+          echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
           gh pr merge "$PR_URL" --auto --squash
         env:
           GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
           VERSION: ${{ steps.version.outputs.version }}
+
+      # The ruleset requires an approving review from an identity other than the one
+      # that pushed the last commit, so the release app cannot sign off on its own PR
+      # and `grafana-pr-approver` does it instead — the same split grafana/grafana uses
+      # for its Crowdin PRs. Approving is only defensible because of the check in front
+      # of it: the diff is validated first, and a failure there leaves the PR open for a
+      # human, which is exactly the pre-existing flow.
+      - name: Verify the release PR changes nothing but versions and changelogs
+        if: steps.bump.outputs.bump != ''
+        run: node ./scripts/verify-release-pr.js
+        env:
+          GH_TOKEN: ${{ steps.get-github-app-token.outputs.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          VERSION: ${{ steps.version.outputs.version }}
+          RELEASE_BOT: scenes-repo-bot-access-token
+          # The commit this run created, and the main tip it was built on. Every
+          # assertion is made about these two shas rather than about the PR's current
+          # head, and the review below is submitted against the same sha.
+          EXPECTED_SHA: ${{ steps.release-commit.outputs.commit-hash }}
+          EXPECTED_PARENT: ${{ github.sha }}
+
+      - name: Get approver app token
+        id: get-approver-token
+        if: steps.bump.outputs.bump != ''
+        # A second app, deliberately holding only pull_requests:write. It cannot write
+        # repository contents, so the identity that approves a release is incapable of
+        # authoring one.
+        uses: grafana/shared-workflows/actions/create-github-app-token@46f48da11e78ebdba7a8747ae456b11062fac83e # create-github-app-token/v0.3.1
+        with:
+          github_app: grafana-pr-approver
+
+      - name: Approve the release PR
+        if: steps.bump.outputs.bump != ''
+        # The review is read back because an approval that does not satisfy the ruleset
+        # is invisible otherwise: `require_extra_approval_for_unattributed_changes` means
+        # a release commit GitHub cannot attribute needs a second sign-off, and without
+        # this assertion that release would sit open indefinitely on a green run. Retried
+        # because reviewDecision lags the review that caused it by a moment.
+        run: |
+          # `gh pr review` always reviews whatever the head is when it runs, which would
+          # hand a push landing since the verification an approval made for other
+          # content. The REST API takes the sha explicitly, and a review pinned to a
+          # superseded commit does not satisfy `require_last_push_approval`, so the race
+          # degrades to a PR waiting for a human instead of merging unreviewed.
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/reviews" \
+            -f "commit_id=${EXPECTED_SHA}" \
+            -f "event=APPROVE" \
+            -f "body=Approved by the release pipeline: verified that ${EXPECTED_SHA} only bumps versions to v${VERSION} and appends changelog entries. The code being released was reviewed on the pull requests the changelog lists." \
+            --silent
+          DECISION=""
+          for _ in 1 2 3; do
+            DECISION="$(gh pr view "$PR_NUMBER" --json reviewDecision --jq .reviewDecision)"
+            if [ "$DECISION" = "APPROVED" ]; then
+              break
+            fi
+            sleep 5
+          done
+          if [ "$DECISION" != "APPROVED" ]; then
+            echo "::error::Release PR #${PR_NUMBER} is ${DECISION:-unreviewed} after approving it; it needs a human approval before it can merge"
+            exit 1
+          fi
+          echo "Release PR for v${VERSION} is approved and merges once checks pass: ${PR_URL}" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          GH_TOKEN: ${{ steps.get-approver-token.outputs.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_URL: https://github.com/${{ github.repository }}/pull/${{ steps.pr.outputs.number }}
+          VERSION: ${{ steps.version.outputs.version }}
+          EXPECTED_SHA: ${{ steps.release-commit.outputs.commit-hash }}
 
   publish:
     name: Publish release
