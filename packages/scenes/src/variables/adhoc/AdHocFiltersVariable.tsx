@@ -486,7 +486,9 @@ export class AdHocFiltersVariable
   }
 
   public setState(update: Partial<AdHocFiltersVariableState>): void {
-    let previousSignature: string | undefined;
+    let filterExpressionChanged = false;
+    let groupByChanged = false;
+    let perKeyChanged = false;
 
     if (
       ((update.filters && update.filters !== this.state.filters) ||
@@ -496,13 +498,22 @@ export class AdHocFiltersVariable
       const filters = update.filters ?? this.state.filters;
       const originFilters = update.originFilters ?? this.state.originFilters;
 
-      previousSignature = this.getChangeDetectionValue();
       update.filterExpression = renderExpression(this.state.expressionBuilder, [...(originFilters ?? []), ...filters]);
+      filterExpressionChanged = update.filterExpression !== this.state.filterExpression;
+      groupByChanged = haveGroupByKeysChanged(
+        [...(this.state.originFilters ?? []), ...this.state.filters],
+        [...(originFilters ?? []), ...filters]
+      );
+      perKeyChanged = havePerKeyValuesChanged(
+        [...(this.state.originFilters ?? []), ...this.state.filters],
+        [...(originFilters ?? []), ...filters],
+        this.state._wip
+      );
     }
 
     super.setState(update);
 
-    if (previousSignature !== undefined && previousSignature !== this.getChangeDetectionValue()) {
+    if (filterExpressionChanged || groupByChanged || perKeyChanged) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -562,16 +573,19 @@ export class AdHocFiltersVariable
       forcePublish?: boolean;
     }
   ): void {
-    let changed = false;
+    let filterExpressionChanged = false;
+    let groupByChanged = false;
+    let perKeyChanged = false;
     let filterExpression: string | undefined = undefined;
 
     if (filters && filters !== this.state.filters) {
-      const previousSignature = this.getChangeDetectionValue();
       filterExpression = renderExpression(this.state.expressionBuilder, [
         ...(this.state.originFilters ?? []),
         ...filters,
       ]);
-      changed = previousSignature !== getChangeDetectionValue({ ...this.state, filters, filterExpression });
+      filterExpressionChanged = filterExpression !== this.state.filterExpression;
+      groupByChanged = haveGroupByKeysChanged(this.state.filters, filters);
+      perKeyChanged = havePerKeyValuesChanged(this.state.filters, filters, this.state._wip);
     }
 
     super.setState({
@@ -579,7 +593,10 @@ export class AdHocFiltersVariable
       filterExpression,
     });
 
-    if ((changed && options?.skipPublish !== true) || options?.forcePublish) {
+    if (
+      ((filterExpressionChanged || groupByChanged || perKeyChanged) && options?.skipPublish !== true) ||
+      options?.forcePublish
+    ) {
       this.publishEvent(new SceneVariableValueChangedEvent(this), true);
     }
   }
@@ -785,16 +802,6 @@ export class AdHocFiltersVariable
     }
 
     return this.state.filterExpression;
-  }
-
-  /**
-   * @internal
-   * Everything a query can read from this variable: the filter expression, the active group-by keys
-   * and the per-key (`${filters["key"]}`) values. A change to it publishes a value change, and query
-   * runners compare it on reactivation, since `getValue()` only returns the expression.
-   */
-  public getChangeDetectionValue(): string {
-    return getChangeDetectionValue(this.state);
   }
 
   /**
@@ -1404,15 +1411,35 @@ function getPerKeyCandidates(
   return filters.filter((f) => f !== wip && !isGroupByFilter(f));
 }
 
-function getChangeDetectionValue(
-  state: Pick<AdHocFiltersVariableState, 'filterExpression' | 'filters' | 'originFilters' | '_wip'>
-): string {
-  const filters = [...(state.originFilters ?? []), ...state.filters];
-  return JSON.stringify([
-    state.filterExpression,
-    getActiveGroupByKeysFromFilters(filters),
-    getPerKeyCandidates(filters, state._wip).map((f) => [f.key, f.operator, f.value, f.values ?? null]),
-  ]);
+function getGroupByKeys(filters: AdHocFilterWithLabels[]): string[] {
+  return filters
+    .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && !f.dismissedGroupBy)
+    .map((f) => f.key)
+    .sort();
+}
+
+function haveGroupByKeysChanged(prev: AdHocFilterWithLabels[], next: AdHocFilterWithLabels[]): boolean {
+  const prevKeys = getGroupByKeys(prev);
+  const nextKeys = getGroupByKeys(next);
+
+  if (prevKeys.length !== nextKeys.length) {
+    return true;
+  }
+
+  return prevKeys.some((key, i) => key !== nextKeys[i]);
+}
+
+// Per-key interpolation (`${filters["key"]}`) also reads match-all and non-applicable filters, which
+// filterExpression leaves out, so changing only those must still publish a value change.
+function havePerKeyValuesChanged(
+  prev: AdHocFilterWithLabels[],
+  next: AdHocFilterWithLabels[],
+  wip: AdHocFilterWithLabels | undefined
+): boolean {
+  const toComparable = (filters: AdHocFilterWithLabels[]) =>
+    getPerKeyCandidates(filters, wip).map((f) => [f.key, f.operator, f.value, f.values ?? null]);
+
+  return !isEqual(toComparable(prev), toComparable(next));
 }
 
 /**
@@ -1420,11 +1447,7 @@ function getChangeDetectionValue(
  * non-dismissed group-by entries across origin and user filters, in order.
  */
 export function getActiveGroupByKeys(variable: AdHocFiltersVariable): string[] {
-  return getActiveGroupByKeysFromFilters([...(variable.state.originFilters ?? []), ...variable.state.filters]);
-}
-
-function getActiveGroupByKeysFromFilters(filters: AdHocFilterWithLabels[]): string[] {
-  return filters
+  return [...(variable.state.originFilters ?? []), ...variable.state.filters]
     .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && isFilterApplicable(f) && !f.dismissedGroupBy)
     .map((f) => f.key);
 }

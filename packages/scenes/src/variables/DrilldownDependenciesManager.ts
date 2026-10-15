@@ -45,7 +45,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   private _interpolatedUid?: string;
   // What the last query applied, kept across cleanup(). Holds no variable instances, so a clone checks the
   // variables in its own scene.
-  private _appliedValues?: { interpolatedUid: string | undefined; values: string[] };
+  private _appliedValues?: { interpolatedUid: string | undefined; values: AppliedAdHocValues[] };
   private _variableDependency: VariableDependencyConfig<TState>;
 
   public constructor(variableDependency: VariableDependencyConfig<TState>) {
@@ -135,12 +135,12 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   /**
    * Records what the subscribed ad hoc variables apply, for haveAppliedValuesChanged(). Call when issuing a
    * query: the variable value recorder compares getValue(), which for ad hoc filters is only the expression,
-   * so it can't see group-by or per-key changes made while the data provider was inactive.
+   * so it can't see group-by changes made while the data provider was inactive.
    */
   public recordAppliedValues(): void {
     this._appliedValues = {
       interpolatedUid: this._interpolatedUid,
-      values: this._adhocFiltersVars.map((v) => v.getChangeDetectionValue()),
+      values: this._adhocFiltersVars.map(getAppliedAdHocValues),
     };
   }
 
@@ -154,9 +154,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     }
 
     const { interpolatedUid, values } = this._appliedValues;
-    const current = findAutoAppliedAdHocFiltersVars(interpolatedUid, sceneObject).map((v) =>
-      v.getChangeDetectionValue()
-    );
+    const current = findAutoAppliedAdHocFiltersVars(interpolatedUid, sceneObject).map(getAppliedAdHocValues);
     return !isEqual(current, values);
   }
 
@@ -283,4 +281,10 @@ function findAutoAppliedAdHocFiltersVars(
       })();
 
   return filtersVars.filter((variable) => appliesAutomaticallyToDatasource(variable, interpolatedUid));
+}
+
+type AppliedAdHocValues = [filterExpression: string, groupByKeys: string[]];
+
+function getAppliedAdHocValues(variable: AdHocFiltersVariable): AppliedAdHocValues {
+  return [variable.state.filterExpression ?? '', getActiveGroupByKeys(variable)];
 }

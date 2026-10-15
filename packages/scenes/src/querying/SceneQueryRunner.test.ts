@@ -1371,23 +1371,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestMock.mock.calls[1][1].groupByKeys).toBeUndefined();
     });
 
-    it('re-runs on reactivation when only a per-key value changed while inactive', async () => {
-      const { queryRunner, filtersVar } = setupInactiveGroupByScene();
-      const deactivateRunner = queryRunner.activate();
-      await new Promise((r) => setTimeout(r, 1));
-
-      deactivateRunner();
-      // A match-all filter is left out of the expression, but changes `${filters["env"]}`.
-      filtersVar.setState({
-        filters: [{ key: 'env', operator: '=~', value: '.*', condition: '' }],
-      });
-      expect(filtersVar.state.filterExpression).toBe('');
-      deactivationHandlers.push(queryRunner.activate());
-      await new Promise((r) => setTimeout(r, 1));
-
-      expect(runRequestMock.mock.calls.length).toEqual(2);
-    });
-
     it('should not pass group by dimensions when enableGroupBy is false', async () => {
       const queryRunner = new SceneQueryRunner({
         datasource: { uid: 'test-uid' },
