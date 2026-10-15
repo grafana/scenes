@@ -325,6 +325,18 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
       },
     },
     {
+      id: VariableFormatID.TextUpper,
+      name: 'Text Uppercase',
+      description: 'Format variables in their uppercase text representation. Example in multi-variable scenario a + b + c => A + B + C.',
+      formatter: (value, _args, variable) => {
+        if (variable.getValueText) {
+          return variable.getValueText().toUpperCase();
+        }
+
+        return String(value);
+      },
+    },
+    {
       id: VariableFormatID.QueryParam,
       name: 'Query parameter',
       description:
