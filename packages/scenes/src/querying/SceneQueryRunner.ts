@@ -489,6 +489,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   }
 
   private shouldRunQueriesOnActivate() {
+    if (this._drilldownDependenciesManager.haveAppliedValuesChanged(this)) {
+      writeSceneLog(
+        'SceneQueryRunner',
+        'Ad hoc filters changed while inactive, shouldRunQueriesOnActivate returns true'
+      );
+      return true;
+    }
+
     if (this._variableValueRecorder.hasDependenciesChanged(this)) {
       writeSceneLog(
         'SceneQueryRunner',
@@ -742,6 +750,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     }
 
     clone['_variableValueRecorder'] = this._variableValueRecorder.cloneAndRecordCurrentValuesForSceneObject(this);
+    clone['_drilldownDependenciesManager'].copyAppliedValuesFrom(this._drilldownDependenciesManager);
     clone['_containerWidth'] = this._containerWidth;
     clone['_results'].next({ origin: this, data: this.state.data ?? emptyPanelData });
 
@@ -784,6 +793,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     if (groupByKeys) {
       request.groupByKeys = groupByKeys;
     }
+
+    this._drilldownDependenciesManager.recordAppliedValues();
 
     request.targets = request.targets.map((query) => {
       if (

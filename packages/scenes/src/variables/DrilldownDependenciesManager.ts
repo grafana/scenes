@@ -10,6 +10,7 @@ import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import {
   AdHocFilterWithLabels,
   AdHocFiltersVariable,
+  getActiveGroupByKeys,
   isFilterApplicable,
   isFilterComplete,
   isGroupByFilter,
@@ -21,6 +22,7 @@ import { VariableDependencyConfig } from '../variables/VariableDependencyConfig'
 import { SceneObject, SceneObjectState } from '../core/types';
 import { getScopes } from '../core/sceneGraph/sceneGraph';
 import { SCOPES_VARIABLE_NAME } from '../variables/constants';
+import { isEqual } from 'lodash';
 
 /**
  * Manages ad-hoc filters and group-by variables for data providers.
@@ -40,6 +42,10 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   private _adhocFiltersVars: AdHocFiltersVariable[] = [];
   private _groupByVar?: GroupByVariable;
   private _sceneObject?: SceneObject;
+  private _interpolatedUid?: string;
+  // What the last query applied, kept across cleanup(). Holds no variable instances, so a clone checks the
+  // variables in its own scene.
+  private _appliedValues?: { interpolatedUid: string | undefined; values: AppliedAdHocValues[] };
   private _variableDependency: VariableDependencyConfig<TState>;
 
   public constructor(variableDependency: VariableDependencyConfig<TState>) {
@@ -54,20 +60,9 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
    */
   public findAndSubscribeToDrilldowns(interpolatedUid: string | undefined, sceneObject?: SceneObject) {
     this._sceneObject = sceneObject;
+    this._interpolatedUid = interpolatedUid;
 
-    // Every discovery path converges here, so this is the one place the applyMode rule is enforced —
-    // the finders below deliberately match on datasource alone. Enforcing it here means a new finder,
-    // or a new kind of drilldown variable, cannot reintroduce manual-mode variables into query requests
-    // by omission. That is how this bug reached users twice: the rule used to be implied by which
-    // collection was iterated, so swapping the collection silently dropped it.
-    const filtersVars = (
-      sceneObject
-        ? findAllAdHocFiltersInHierarchy(interpolatedUid, sceneObject)
-        : (() => {
-            const globalVar = findGlobalAdHocFilterVariableByUid(interpolatedUid);
-            return globalVar ? [globalVar] : [];
-          })()
-    ).filter((variable) => appliesAutomaticallyToDatasource(variable, interpolatedUid));
+    const filtersVars = findAutoAppliedAdHocFiltersVars(interpolatedUid, sceneObject);
 
     // Closest is last in root → leaf order
     const filtersVar = filtersVars.length > 0 ? filtersVars[filtersVars.length - 1] : undefined;
@@ -135,6 +130,36 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
 
   public isSubscribedAdHocFiltersVar(variable: AdHocFiltersVariable): boolean {
     return this._adhocFiltersVars.includes(variable);
+  }
+
+  /**
+   * Records what the subscribed ad hoc variables apply, for haveAppliedValuesChanged(). Call when issuing a
+   * query: the variable value recorder compares getValue(), which for ad hoc filters is only the expression,
+   * so it can't see group-by changes made while the data provider was inactive.
+   */
+  public recordAppliedValues(): void {
+    this._appliedValues = {
+      interpolatedUid: this._interpolatedUid,
+      values: this._adhocFiltersVars.map(getAppliedAdHocValues),
+    };
+  }
+
+  /**
+   * Whether the ad hoc variables that apply to sceneObject now differ from what was last recorded. Runs the
+   * discovery again rather than reusing the subscribed variables, which cleanup() clears on deactivation.
+   */
+  public haveAppliedValuesChanged(sceneObject: SceneObject): boolean {
+    if (!this._appliedValues) {
+      return false;
+    }
+
+    const { interpolatedUid, values } = this._appliedValues;
+    const current = findAutoAppliedAdHocFiltersVars(interpolatedUid, sceneObject).map(getAppliedAdHocValues);
+    return !isEqual(current, values);
+  }
+
+  public copyAppliedValuesFrom(other: DrilldownDependenciesManager<TState>): void {
+    this._appliedValues = other._appliedValues;
   }
 
   private _getMergedFilters(): AdHocFilterWithLabels[] {
@@ -205,10 +230,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
    */
   public getGroupByKeys(): string[] | undefined {
     if (this._adhocFiltersVar?.state.enableGroupBy) {
-      const groupByKeys = [...(this._adhocFiltersVar.state.originFilters ?? []), ...this._adhocFiltersVar.state.filters]
-        .filter((f) => isGroupByFilter(f) && isFilterComplete(f) && isFilterApplicable(f))
-        .map((f) => f.key);
-
+      const groupByKeys = getActiveGroupByKeys(this._adhocFiltersVar);
       return groupByKeys.length > 0 ? groupByKeys : undefined;
     }
 
@@ -216,6 +238,7 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   }
 
   public cleanup(): void {
+    this._interpolatedUid = undefined;
     this._adhocFiltersVar = undefined;
     this._adhocFiltersVars = [];
     this._groupByVar = undefined;
@@ -235,4 +258,33 @@ function filterIdentityKey(filter: AdHocFilterWithLabels): string {
   // Scope filters dedupe by key/operator/value so they are not applied twice when
   // both getScopes() and a variable's originFilters contain the same scope filter.
   return `${filter.origin ?? ''}|${filter.key}|${filter.operator}|${values}`;
+}
+
+/**
+ * The AdHocFiltersVariables a data provider applies for the given datasource, root → leaf.
+ * When sceneObject is provided, walks up the hierarchy; otherwise searches the global active variable sets.
+ */
+function findAutoAppliedAdHocFiltersVars(
+  interpolatedUid: string | undefined,
+  sceneObject?: SceneObject
+): AdHocFiltersVariable[] {
+  // Every discovery path converges here, so this is the one place the applyMode rule is enforced —
+  // the finders below deliberately match on datasource alone. Enforcing it here means a new finder,
+  // or a new kind of drilldown variable, cannot reintroduce manual-mode variables into query requests
+  // by omission. That is how this bug reached users twice: the rule used to be implied by which
+  // collection was iterated, so swapping the collection silently dropped it.
+  const filtersVars = sceneObject
+    ? findAllAdHocFiltersInHierarchy(interpolatedUid, sceneObject)
+    : (() => {
+        const globalVar = findGlobalAdHocFilterVariableByUid(interpolatedUid);
+        return globalVar ? [globalVar] : [];
+      })();
+
+  return filtersVars.filter((variable) => appliesAutomaticallyToDatasource(variable, interpolatedUid));
+}
+
+type AppliedAdHocValues = [filterExpression: string, groupByKeys: string[]];
+
+function getAppliedAdHocValues(variable: AdHocFiltersVariable): AppliedAdHocValues {
+  return [variable.state.filterExpression ?? '', getActiveGroupByKeys(variable)];
 }
