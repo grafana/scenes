@@ -41,6 +41,7 @@ import { ExtraQueryDataProcessor, ExtraQueryProvider, isExtraQueryProvider } fro
 import { extraQueryProcessingOperator, passthroughProcessor } from './extraQueryProcessingOperator';
 import { filterAnnotations } from './layers/annotations/filterAnnotations';
 import { getEnrichedDataRequest } from './getEnrichedDataRequest';
+import { getEnrichedDataRequestFilters } from './getEnrichedDataRequestFilters';
 import { QueryProfilerLike, registerQueryWithController } from './registerQueryWithController';
 import { findPanelProfiler } from '../utils/findPanelProfiler';
 import { AdHocFiltersVariable } from '../variables/adhoc/AdHocFiltersVariable';
@@ -774,7 +775,8 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       ...getEnrichedDataRequest(this),
     };
 
-    const filters = this._drilldownDependenciesManager.getFilters();
+    // This lets the scene root adjust the ad hoc filters sent by this runner, before they are deduplicated
+    const filters = this._drilldownDependenciesManager.getFilters((f) => getEnrichedDataRequestFilters(this, f));
     const groupByKeys = this._drilldownDependenciesManager.getGroupByKeys();
 
     if (filters) {

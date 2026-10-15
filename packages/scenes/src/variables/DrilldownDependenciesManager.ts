@@ -137,48 +137,66 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     return this._adhocFiltersVars.includes(variable);
   }
 
-  private _getMergedFilters(): AdHocFilterWithLabels[] {
+  private _getMergedFilters(transform?: AdHocFiltersTransform): AdHocFilterWithLabels[] {
     if (this._adhocFiltersVars.length === 0) {
       return [];
+    }
+
+    // Ancestor then section AdHoc originFilters + filters (root → leaf)
+    const varFilters: AdHocFilterWithLabels[] = [];
+    for (const filtersVar of this._adhocFiltersVars) {
+      varFilters.push(...(filtersVar.state.originFilters ?? []), ...filtersVar.state.filters);
+    }
+
+    const scopeFilters: AdHocFilterWithLabels[] = [];
+    if (this._sceneObject) {
+      const scopes = getScopes(this._sceneObject);
+      if (scopes?.length) {
+        scopeFilters.push(...getAdHocFiltersFromScopes(scopes));
+      }
+    }
+
+    let candidateVarFilters = varFilters;
+    let candidateScopeFilters = scopeFilters;
+
+    if (transform) {
+      // The transform sees every filter before deduplication. Filters it returns that were not
+      // derived from scopes are treated as variable filters.
+      const scopeDerived = new Set(scopeFilters);
+      const transformed = transform([...scopeFilters, ...varFilters]);
+      candidateScopeFilters = transformed.filter((f) => scopeDerived.has(f));
+      candidateVarFilters = transformed.filter((f) => !scopeDerived.has(f));
     }
 
     const fromVars: AdHocFilterWithLabels[] = [];
     const seen = new Set<string>();
     const scopeKeysFromVars = new Set<string>();
 
-    // Ancestor then section AdHoc originFilters + filters (root → leaf)
-    for (const filtersVar of this._adhocFiltersVars) {
-      for (const filter of [...(filtersVar.state.originFilters ?? []), ...filtersVar.state.filters]) {
-        const key = filterIdentityKey(filter);
-        if (seen.has(key)) {
-          continue;
-        }
-        seen.add(key);
-        if (filter.origin === 'scope') {
-          scopeKeysFromVars.add(filter.key);
-        }
-        fromVars.push(filter);
+    for (const filter of candidateVarFilters) {
+      const key = filterIdentityKey(filter);
+      if (seen.has(key)) {
+        continue;
       }
+      seen.add(key);
+      if (filter.origin === 'scope') {
+        scopeKeysFromVars.add(filter.key);
+      }
+      fromVars.push(filter);
     }
 
     // Scope filters from the scene that are not already present on any AdHoc var
     // (covers section-only AdHoc before originFilters are populated)
     const fromScopes: AdHocFilterWithLabels[] = [];
-    if (this._sceneObject) {
-      const scopes = getScopes(this._sceneObject);
-      if (scopes?.length) {
-        for (const filter of getAdHocFiltersFromScopes(scopes)) {
-          if (scopeKeysFromVars.has(filter.key)) {
-            continue;
-          }
-          const key = filterIdentityKey(filter);
-          if (seen.has(key)) {
-            continue;
-          }
-          seen.add(key);
-          fromScopes.push(filter);
-        }
+    for (const filter of candidateScopeFilters) {
+      if (scopeKeysFromVars.has(filter.key)) {
+        continue;
       }
+      const key = filterIdentityKey(filter);
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      fromScopes.push(filter);
     }
 
     return [...fromScopes, ...fromVars];
@@ -187,13 +205,18 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
   /**
    * Returns only "real" ad-hoc filters, excluding groupBy entries embedded in the filters array.
    * Merges scope + ancestor + section filters when multiple AdHoc vars exist in the hierarchy.
+   *
+   * An optional `transform` receives the raw filters (scope-derived, then every variable's
+   * originFilters + filters, root to leaf) before deduplication and before incomplete, non-applicable,
+   * groupBy and match-all filters are removed. Its result is then deduplicated and filtered.
+   * It is not called when there are no AdHoc variables.
    */
-  public getFilters(): AdHocFilterWithLabels[] | undefined {
+  public getFilters(transform?: AdHocFiltersTransform): AdHocFilterWithLabels[] | undefined {
     if (this._adhocFiltersVars.length === 0) {
       return undefined;
     }
 
-    return this._getMergedFilters().filter(
+    return this._getMergedFilters(transform).filter(
       (f) => isFilterComplete(f) && isFilterApplicable(f) && !isGroupByFilter(f) && !isMatchAllFilter(f)
     );
   }
@@ -222,6 +245,8 @@ export class DrilldownDependenciesManager<TState extends SceneObjectState> {
     this._sceneObject = undefined;
   }
 }
+
+export type AdHocFiltersTransform = (filters: AdHocFilterWithLabels[]) => AdHocFilterWithLabels[];
 
 function areSameAdHocVars(a: AdHocFiltersVariable[], b: AdHocFiltersVariable[]): boolean {
   if (a.length !== b.length) {
