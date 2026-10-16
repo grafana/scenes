@@ -12,3 +12,8 @@ services:
       - ./dist:/var/lib/grafana/plugins/grafana-scenes-app
       - ./provisioning:/etc/grafana/provisioning
       - ./provisioning/custom.ini:/etc/grafana/grafana.ini
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    volumes:
+      - ./provisioning/prometheus:/etc/prometheus
