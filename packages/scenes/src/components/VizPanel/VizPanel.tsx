@@ -355,7 +355,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
 
     _UNSAFE_customMigrationHandler?.(panel, plugin);
 
-    //@ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/108998)
     const needsMigration = currentVersion !== pluginVersion || plugin.shouldMigrate?.(panel);
 
     if (plugin.onPanelMigration && needsMigration && !isAfterPluginChange) {

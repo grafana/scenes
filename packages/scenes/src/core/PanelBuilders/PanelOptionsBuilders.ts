@@ -44,10 +44,7 @@ import {
   Options as StatusHistoryOptions,
   defaultOptions as defaultStatusHistoryOptions,
 } from '@grafana/schema/dist/esm/raw/composable/statushistory/panelcfg/x/StatusHistoryPanelCfg_types.gen';
-import {
-  Options as TableOptions,
-  defaultOptions as defaultTableOptions,
-} from '@grafana/schema/dist/esm/raw/composable/table/panelcfg/x/TablePanelCfg_types.gen';
+import { Options as TableOptions } from '@grafana/schema/dist/esm/raw/composable/table/panelcfg/x/TablePanelCfg_types.gen';
 import {
   Options as TextOptions,
   defaultOptions as defaultTextOptions,
@@ -105,7 +102,7 @@ export const PanelOptionsBuilders = {
     return new PanelOptionsBuilder<StatusHistoryOptions>(() => defaultStatusHistoryOptions);
   },
   table() {
-    return new PanelOptionsBuilder<TableOptions>(() => defaultTableOptions);
+    return new PanelOptionsBuilder<TableOptions>();
   },
   text() {
     return new PanelOptionsBuilder<TextOptions>(() => defaultTextOptions);

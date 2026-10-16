@@ -15,6 +15,7 @@ import {
   SceneObjectUrlValues,
   PanelBuilders,
 } from '@grafana/scenes';
+import { TableFieldOptions } from '@grafana/schema';
 import { Button } from '@grafana/ui';
 
 import { getVariablesDefinitions } from './utils';
@@ -29,13 +30,13 @@ export function getTrafficScene(): EmbeddedScene {
       })
     )
     .setTitle('Handlers')
-    .setOption('footer', { enablePagination: true })
+    .setOption('enablePagination', true)
     .setOverrides((b) =>
       b
         .matchFieldsWithNameByRegex('.*')
         .overrideFilterable(false)
         .matchFieldsWithName('Time')
-        .overrideCustomFieldConfig('hidden', true)
+        .overrideCustomFieldConfig('hideFrom.viz' as keyof TableFieldOptions, true)
         .matchFieldsWithName('Value')
         .overrideDisplayName('Duration (Avg)')
         .matchFieldsWithName('handler')
@@ -103,7 +104,13 @@ export class HandlerDrilldownViewBehavior extends SceneObjectBase<HandlerDrilldo
         )
         .setTitle(`Handler: ${handler} details`)
         .setHeaderActions(
-          <Button size="sm" variant="secondary" icon="times" onClick={() => this.setState({ handler: undefined })} />
+          <Button
+            size="sm"
+            variant="secondary"
+            icon="times"
+            aria-label="Close"
+            onClick={() => this.setState({ handler: undefined })}
+          />
         )
         .build(),
     });
