@@ -208,6 +208,7 @@ describe('sceneInterpolator', () => {
     });
 
     expect(sceneInterpolator(scene, '${test:date:YYYY-MM}')).toBe('2020-07');
+    expect(sceneInterpolator(scene, '${test:date:utc:YYYY-MM-DD HH:mm:ss}')).toBe('2020-07-13 20:19:09');
   });
 
   it('Can use scopedVars', () => {
