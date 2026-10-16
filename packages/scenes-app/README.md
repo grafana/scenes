@@ -18,6 +18,8 @@ To learn more about @grafana/scenes please refer to [Scenes documentation](https
 1. From Grafana Scenes root directory run `./scripts/demo.sh`
 1. Navigate to [http://localhost:3001/a/grafana-scenes-app](http://localhost:3001/a/grafana-scenes-app)
 
+The docker setup runs `grafana/grafana:13.2.4` together with a Prometheus instance that backs the `gdev-prometheus` data source used by some of the demos. To run a different Grafana build, set `GRAFANA_IMAGE` and `GRAFANA_VERSION`, i.e. `GRAFANA_IMAGE=grafana-dev GRAFANA_VERSION=<build-tag> ./scripts/demo.sh`.
+
 ### Using local Grafana instance
 
 1. Modify Grafana config to load demo app plugin, i.e.
