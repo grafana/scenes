@@ -165,6 +165,26 @@ exports[`VizPanelBuilder options and field config standard panels defaults provi
 }
 `;
 
+exports[`VizPanelBuilder options and field config standard panels defaults provides logstable defaults 1`] = `
+{
+  "displayedFields": [],
+  "fieldSelectorWidth": 220,
+  "showControls": true,
+  "showCopyLogLink": false,
+  "showInspectLogLine": true,
+  "sortOrder": "Descending",
+}
+`;
+
+exports[`VizPanelBuilder options and field config standard panels defaults provides logstable defaults 2`] = `
+{
+  "defaults": {
+    "custom": {},
+  },
+  "overrides": [],
+}
+`;
+
 exports[`VizPanelBuilder options and field config standard panels defaults provides news defaults 1`] = `
 {
   "showImage": true,
