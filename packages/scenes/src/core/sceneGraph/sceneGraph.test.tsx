@@ -151,6 +151,46 @@ describe('sceneGraph', () => {
       expect(result).toHaveLength(2);
     });
 
+    describe('when a data layer implements isVisibleTo', () => {
+      class ScopedDataLayerSet extends SceneDataLayerSet {
+        public isVisibleTo(sceneObject: SceneObject) {
+          return sceneObject.state.key !== 'hidden';
+        }
+      }
+
+      function buildScene() {
+        const visibleItem = new SceneFlexItem({ key: 'visible', body: new SceneCanvasText({ text: 'A' }) });
+        const hiddenItem = new SceneFlexItem({ key: 'hidden', body: new SceneCanvasText({ text: 'B' }) });
+        const scopedSet = new ScopedDataLayerSet({
+          name: 'scoped',
+          layers: [new TestAnnotationsDataLayer({ name: 'Layer 2' })],
+        });
+
+        new EmbeddedScene({
+          $data: new SceneDataLayerSet({
+            name: 'root',
+            layers: [new TestAnnotationsDataLayer({ name: 'Layer 1' })],
+          }),
+          body: new SceneFlexLayout({ $data: scopedSet, children: [visibleItem, hiddenItem] }),
+        });
+
+        return { visibleItem, hiddenItem };
+      }
+
+      it('skips the layer for scene objects it is not visible to and keeps collecting from ancestors', () => {
+        const { visibleItem, hiddenItem } = buildScene();
+
+        expect(sceneGraph.getDataLayers(visibleItem).map((l) => l.state.name)).toEqual(['scoped', 'root']);
+        expect(sceneGraph.getDataLayers(hiddenItem).map((l) => l.state.name)).toEqual(['root']);
+      });
+
+      it('resolves the closest visible layer when localOnly is set', () => {
+        const { hiddenItem } = buildScene();
+
+        expect(sceneGraph.getDataLayers(hiddenItem, true).map((l) => l.state.name)).toEqual(['root']);
+      });
+    });
+
     describe('resolving the closest data layers', () => {
       it('when in a hierarchy', () => {
         const item1 = new SceneFlexItem({
