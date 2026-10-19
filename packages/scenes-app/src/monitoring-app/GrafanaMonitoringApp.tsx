@@ -30,7 +30,7 @@ export function getMainPageScene() {
     title: 'Grafana Monitoring',
     subTitle: 'A custom app with embedded scenes to monitor your Grafana server',
     url: prefixRoute('grafana-monitoring'),
-    routePath: 'grafana-monitoring/*',
+    routePath: '*',
     hideFromBreadcrumbs: false,
     getScene: getOverviewScene,
     tabs: [
@@ -49,7 +49,7 @@ export function getMainPageScene() {
         preserveUrlKeys: ['from', 'to', 'var-instance'],
         drilldowns: [
           {
-            routePath: prefixRoute('grafana-monitoring/handlers/:handler'),
+            routePath: 'handlers/:handler/*',
             getPage: getHandlerDrilldownPage,
           },
         ],
