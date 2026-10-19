@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Az összes",
         "edit-filter-with-key": "{{keyLabel}} kulcsos szűrő szerkesztése",
         "managed-filter": "{{origin}} által kezelt szűrő",
         "non-applicable": "A szűrő nem alkalmazható",
         "remove-filter-with-key": "{{keyLabel}} kulcsos szűrő eltávolítása"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Az összes",
         "remove-filter-value": "Szűrőérték eltávolítása – {{itemLabel}}",
         "use-custom-value": "Egyéni érték használata: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Panel áthelyezése",
+            "resize-panel": "Panel átméretezése"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Bővítménypanel betöltése…",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Váratlan hiba történt. A(z) „{{pluginName}}” bővítmény legújabb verzióra történő frissítése megoldhatja a problémát.",
         "panel-plugin-has-no-panel-component": "A panelbővítménynek nincs panelösszetevője"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "A lekérdezés megszakítása"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Nincs visszaadott adat az időbeli összehasonlításhoz"
       }
     },
     "variables": {
@@ -142,7 +142,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "A jelen irányítópult által beállított csoportosítási szempont visszaállítása."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Az alkalmazáshoz nyomja le az Enter billentyűt"
       },
       "format-registry": {
         "formats": {
@@ -196,7 +196,7 @@
         "placeholder-enter-value": "Érték megadása"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Az összes",
         "placeholder-select-value": "Érték kiválasztása"
       }
     }

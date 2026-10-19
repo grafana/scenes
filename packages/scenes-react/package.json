@@ -1,6 +1,6 @@
 {
   "name": "@grafana/scenes-react",
-  "version": "8.21.1",
+  "version": "8.22.0",
   "description": "Grafana framework for building dynamic dashboards",
   "author": "Grafana Labs",
   "license": "Apache-2.0",
@@ -32,7 +32,7 @@
   },
   "scripts": {
     "tsc": "tsc -p ./tsconfig.build.json",
-    "dev": "yarn clean && yarn build:dev --watch",
+    "dev": "yarn build:dev --watch",
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build:dev": "yarn build --environment NODE_ENV:development",
     "clean": "rimraf ./dist ./compiled ./package.tgz",

@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Todos",
         "edit-filter-with-key": "Editar filtro con la clave {{keyLabel}}",
         "managed-filter": "Filtro gestionado de {{origin}}",
         "non-applicable": "El filtro no es aplicable",
         "remove-filter-with-key": "Eliminar filtro con la clave {{keyLabel}}"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Todos",
         "remove-filter-value": "Eliminar valor del filtro: {{itemLabel}}",
         "use-custom-value": "Usar valor personalizado: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Mover panel",
+            "resize-panel": "Cambiar el tamaño del panel"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Cargando panel de plugins...",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Ocurrió un error inesperado. Actualizar el complemento «{{pluginName}}» a la última versión puede solucionar el problema.",
         "panel-plugin-has-no-panel-component": "El plugin del panel no tiene ningún componente de panel"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Cancelar consulta"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "No se han devuelto datos para la comparación de tiempo"
       }
     },
     "variables": {
@@ -142,7 +142,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Restaura la función groupby definida por este dashboard."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Pulsa Intro para aplicar"
       },
       "format-registry": {
         "formats": {
@@ -196,7 +196,7 @@
         "placeholder-enter-value": "Introducir valor"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Todos",
         "placeholder-select-value": "Seleccionar valor"
       }
     }
