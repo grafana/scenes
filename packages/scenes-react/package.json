@@ -32,7 +32,7 @@
   },
   "scripts": {
     "tsc": "tsc -p ./tsconfig.build.json",
-    "dev": "yarn clean && yarn build:dev --watch",
+    "dev": "yarn build:dev --watch",
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build:dev": "yarn build --environment NODE_ENV:development",
     "clean": "rimraf ./dist ./compiled ./package.tgz",
