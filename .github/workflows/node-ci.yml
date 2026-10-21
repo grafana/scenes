@@ -303,9 +303,17 @@ jobs:
         # A second app, deliberately holding only pull_requests:write. It cannot write
         # repository contents, so the identity that approves a release is incapable of
         # authoring one.
+        #
+        # Its permission set is bound in Vault to refs/heads/main and the push event,
+        # which is what confines minting to this job: this workflow is attacker
+        # controlled on a pull_request branch, so an unbound role would let a crafted
+        # branch mint an approver token and approve its own PR. The set is named rather
+        # than `default` because the role is keyed on repository, workflow path and set
+        # name, and `default` already belongs to the release app's wider claims.
         uses: grafana/shared-workflows/actions/create-github-app-token@46f48da11e78ebdba7a8747ae456b11062fac83e # create-github-app-token/v0.3.1
         with:
           github_app: grafana-pr-approver
+          permission_set: approver
 
       - name: Approve the release PR
         if: steps.bump.outputs.bump != ''
