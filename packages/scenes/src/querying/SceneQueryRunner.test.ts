@@ -3045,6 +3045,28 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(queryRunner.state.data?.annotations).toHaveLength(1);
     });
 
+    it('should emit layer data changes on the results stream', async () => {
+      const layer = new TestAnnotationsDataLayer({ name: 'Layer 1' });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+        $data: new SceneDataLayerSet({ layers: [layer] }),
+      });
+
+      let data: PanelData | undefined;
+      queryRunner.getResultsStream().subscribe((result) => (data = result.data));
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+      layer.completeRun();
+
+      expect(data?.annotations).toHaveLength(1);
+
+      layer.setState({ isEnabled: false });
+
+      expect(data?.annotations).toHaveLength(0);
+    });
+
     it('should not cause unnessaray state updates', async () => {
       const layer = new TestAnnotationsDataLayer({ name: 'Layer 1' });
       const queryRunner = new SceneQueryRunner({
