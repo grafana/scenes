@@ -1,4 +1,4 @@
-import { MultiOrSingleValueSelect } from './VariableValueSelect';
+import { getVariableSelectedCount, MultiOrSingleValueSelect } from './VariableValueSelect';
 import React from 'react';
 import { render, screen, within } from '@testing-library/react';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
@@ -267,16 +267,91 @@ describe('VariableValueSelectMulti', () => {
   });
 
   it('should commit the selection made while the menu was open', async () => {
+    const { model } = setupMultiVariable({ value: ['A'], text: ['A'], defaultToAll: false });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('B'));
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual(['A', 'B']);
+    expect(
+      screen.getByTestId(selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts('A,B'))
+    ).toBeInTheDocument();
+  });
+
+  it('counts every individual option when `$__all` is selected', () => {
+    const options = [
+      { value: ALL_VARIABLE_VALUE, label: 'All' },
+      { value: 'A', label: 'A' },
+      { value: 'B', label: 'B' },
+      { value: 'C', label: 'C' },
+    ];
+
+    expect(getVariableSelectedCount([{ value: ALL_VARIABLE_VALUE }], options)).toBe(3);
+    expect(getVariableSelectedCount([{ value: 'A' }, { value: 'B' }], options)).toBe(2);
+    expect(getVariableSelectedCount([], options)).toBe(0);
+  });
+
+  it('checking All selects every value', async () => {
+    const { model } = setupMultiVariable({
+      value: ['A'],
+      text: ['A'],
+      defaultToAll: false,
+    });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    const allLabels = screen.getAllByText(ALL_VARIABLE_TEXT);
+    await userEvent.click(allLabels[allLabels.length - 1]);
+
+    // All + every individual checkbox should be checked
+    const checked = screen.getAllByRole('checkbox').filter((el) => (el as HTMLInputElement).checked);
+    expect(checked.length).toBeGreaterThanOrEqual(4); // Selected header + All + A,B,C (header may also be checked)
+
+    await userEvent.click(screen.getByTestId('outside'));
+    expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
+  });
+
+  it('unchecking All clears every value', async () => {
+    const { model } = setupMultiVariable({
+      value: [ALL_VARIABLE_VALUE],
+      text: [ALL_VARIABLE_TEXT],
+      defaultToAll: true,
+    });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    const allLabels = screen.getAllByText(ALL_VARIABLE_TEXT);
+    await userEvent.click(allLabels[allLabels.length - 1]);
+
+    const checked = screen.getAllByRole('checkbox').filter((el) => (el as HTMLInputElement).checked);
+    expect(checked).toHaveLength(0);
+
+    await userEvent.click(screen.getByTestId('outside'));
+    // Unchecking All must clear — not fall back to `$__all` via changeValueTo([])
+    expect(model.state.value).toEqual([]);
+  });
+
+  it('should exit All and keep remaining values when one value is unchecked while `$__all` is active', async () => {
     const { model } = setupMultiVariable({ value: [ALL_VARIABLE_VALUE], text: [ALL_VARIABLE_TEXT] });
 
     await userEvent.click(screen.getByRole('combobox'));
     await userEvent.click(screen.getByText('B'));
     await userEvent.click(screen.getByTestId('outside'));
 
-    expect(model.state.value).toEqual(['B']);
-    expect(
-      screen.getByTestId(selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts('B'))
-    ).toBeInTheDocument();
+    expect(model.state.value).toEqual(['A', 'C']);
+  });
+
+  it('should collapse to `$__all` when every individual value becomes selected', async () => {
+    const { model } = setupMultiVariable({
+      value: ['A', 'B'],
+      text: ['A', 'B'],
+      defaultToAll: false,
+    });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('C'));
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
   });
 });
 
