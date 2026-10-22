@@ -326,8 +326,9 @@ describe('VariableValueSelectMulti', () => {
     expect(checked).toHaveLength(0);
 
     await userEvent.click(screen.getByTestId('outside'));
-    // Unchecking All must clear — not fall back to `$__all` via changeValueTo([])
+    // Unchecking All commits [] via changeValueTo(..., { allowEmpty: true })
     expect(model.state.value).toEqual([]);
+    expect(model.state.text).toEqual([]);
   });
 
   it('should exit All and keep remaining values when one value is unchecked while `$__all` is active', async () => {
@@ -352,6 +353,21 @@ describe('VariableValueSelectMulti', () => {
     await userEvent.click(screen.getByTestId('outside'));
 
     expect(model.state.value).toEqual([ALL_VARIABLE_VALUE]);
+  });
+
+  it('should keep an explicit full selection when Include All is disabled', async () => {
+    const { model } = setupMultiVariable({
+      includeAll: false,
+      defaultToAll: false,
+      value: ['A', 'B'],
+      text: ['A', 'B'],
+    });
+
+    await userEvent.click(screen.getByRole('combobox'));
+    await userEvent.click(screen.getByText('C'));
+    await userEvent.click(screen.getByTestId('outside'));
+
+    expect(model.state.value).toEqual(['A', 'B', 'C']);
   });
 });
 

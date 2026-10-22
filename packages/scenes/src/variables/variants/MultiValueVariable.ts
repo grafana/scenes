@@ -155,11 +155,21 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       const validValues = currentValues.filter((v) => options.find((o) => o.value === v));
       const validTexts = validValues.map((v) => options.find((o) => o.value === v)!.label);
 
-      // If no valid values pick the first option
+      // If no valid values pick the first option — keep intentional empty ([] / []) from allowEmpty
       if (validValues.length === 0) {
-        const defaultState = this.getDefaultMultiState(options);
-        stateUpdate.value = defaultState.value;
-        stateUpdate.text = defaultState.text;
+        if (
+          Array.isArray(currentValue) &&
+          currentValue.length === 0 &&
+          Array.isArray(currentText) &&
+          currentText.length === 0
+        ) {
+          stateUpdate.value = [];
+          stateUpdate.text = [];
+        } else {
+          const defaultState = this.getDefaultMultiState(options);
+          stateUpdate.value = defaultState.value;
+          stateUpdate.text = defaultState.text;
+        }
       } else {
         // We have valid values, if it's different from current valid values update current values
         if (!isEqual(validValues, currentValue)) {
@@ -306,8 +316,14 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 
   /**
    * Change the value and publish SceneVariableValueChangedEvent event.
+   * Pass `{ allowEmpty: true }` to keep an empty multi selection (skip defaultToAll / first-option fallback).
    */
-  public changeValueTo(value: VariableValue, text?: VariableValue, isUserAction = false) {
+  public changeValueTo(
+    value: VariableValue,
+    text?: VariableValue,
+    isUserAction = false,
+    options?: { allowEmpty?: boolean }
+  ) {
     // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
@@ -323,10 +339,15 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 
     if (Array.isArray(value)) {
       // If we are a multi valued variable is cleared (empty array) we need to set the default empty state
+      // unless the caller (or noValueOnClear) explicitly allows a lasting empty selection
       if (value.length === 0) {
-        const state = this.getDefaultMultiState(this.state.options);
-        value = state.value;
-        text = state.text;
+        if (options?.allowEmpty || this.state.noValueOnClear) {
+          text = [];
+        } else {
+          const state = this.getDefaultMultiState(this.state.options);
+          value = state.value;
+          text = state.text;
+        }
       }
 
       // If last value is the All value then replace all with it
@@ -469,11 +490,14 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     let urlValue: string | string[] | null = null;
     let value = this._sceneObject.state.value;
 
-    if (Array.isArray(value) && value.length > 1) {
+    if (Array.isArray(value) && value.length === 0) {
+      // Empty multi selection — do not encode as [""] via String([])
+      urlValue = [];
+    } else if (Array.isArray(value) && value.length > 1) {
       urlValue = value.map(String);
     } else if ((this, this._sceneObject.state.isMulti)) {
       // If we are inMulti mode we must return an array here as otherwise UrlSyncManager will not pass all values (in an array) in updateFromUrl
-      urlValue = [String(value)];
+      urlValue = [String(Array.isArray(value) ? value[0] : value)];
     } else {
       urlValue = String(value);
     }

@@ -336,6 +336,28 @@ describe('MultiValueVariable', () => {
       expect(variable.state.value).toEqual([ALL_VARIABLE_VALUE]);
     });
 
+    it('Should keep empty selection when allowEmpty is set', () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        isMulti: true,
+        defaultToAll: true,
+        optionsToReturn: [],
+        value: [ALL_VARIABLE_VALUE],
+        text: [ALL_VARIABLE_TEXT],
+        delayMs: 0,
+      });
+
+      variable.changeValueTo([], undefined, true, { allowEmpty: true });
+
+      expect(variable.state.value).toEqual([]);
+      expect(variable.state.text).toEqual([]);
+      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: [] });
+    });
+
     it('When changing to all value', () => {
       const variable = new TestVariable({
         name: 'test',

@@ -1,5 +1,5 @@
 import { t } from '@grafana/i18n';
-import { isArray, isEqual } from 'lodash';
+import { isArray } from 'lodash';
 import React, { RefCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Checkbox,
@@ -14,7 +14,7 @@ import {
 
 import { MultiValueVariable, MultiValueVariableState } from '../variants/MultiValueVariable';
 import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
-import { SceneVariableValueChangedEvent, VariableValue, VariableValueSingle } from '../types';
+import { VariableValue, VariableValueSingle } from '../types';
 import { selectors } from '@grafana/e2e-selectors';
 import { GrafanaTheme2, SelectableValue } from '@grafana/data';
 import { css, cx } from '@emotion/css';
@@ -177,17 +177,10 @@ export function VariableValueSelectMulti({
   }, [arrayValue]);
 
   const commitValue = (next: VariableValueSingle[]) => {
-    // changeValueTo([]) falls back to `$__all` / first option. Only bypass when All was unchecked.
-    if (next.length === 0 && clearedByAllToggleRef.current) {
-      clearedByAllToggleRef.current = false;
-      if (!isEqual(model.state.value, []) || !isEqual(model.state.text, [])) {
-        model.setState({ value: [], text: [] });
-        model.publishEvent(new SceneVariableValueChangedEvent(model), true);
-      }
-      return;
-    }
+    const allowEmpty = next.length === 0 && clearedByAllToggleRef.current;
     clearedByAllToggleRef.current = false;
-    model.changeValueTo(next, undefined, true);
+    // allowEmpty keeps [] after unchecking All (still goes through history / query profile)
+    model.changeValueTo(next, undefined, true, allowEmpty ? { allowEmpty: true } : undefined);
   };
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
@@ -321,8 +314,9 @@ export function VariableValueSelectMulti({
 
         const next = newValue.map((x) => x.value!).filter((v) => v !== ALL_VARIABLE_VALUE);
 
-        // Selecting every individual value collapses to `$__all` (All stays checked)
-        if (isFullySelected(next, allIndividualValues)) {
+        // Only collapse to `$__all` when Include All is enabled — otherwise a full
+        // selection would be rewritten to the first option after validation/reload
+        if (includeAll && isFullySelected(next, allIndividualValues)) {
           updateUncommitted([ALL_VARIABLE_VALUE]);
           return;
         }
