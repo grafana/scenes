@@ -200,6 +200,24 @@ describe('SceneTimeRange', () => {
         timeRange.onTimeZoneChange('junk');
         expect(timeRange.getTimeZone()).toBe(browserTimeZone);
       });
+      it('normalizes an invalid time zone before refreshing a relative range', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
+        try {
+          const timeRange = new SceneTimeRange({ from: 'now-30s', to: 'now', timeZone: 'default' });
+          const initialTo = timeRange.state.value.to.valueOf();
+
+          expect(timeRange.state.timeZone).toBeUndefined();
+          expect(timeRange.getTimeZone()).toBe(browserTimeZone);
+
+          jest.advanceTimersByTime(1000);
+          timeRange.onRefresh();
+
+          expect(timeRange.state.value.to.valueOf()).toBeGreaterThan(initialTo);
+        } finally {
+          jest.useRealTimers();
+        }
+      });
       it(`should default to ${browserTimeZone} on update`, () => {
         const timeRange = new SceneTimeRange({ from: 'now-1h', to: 'now', timeZone: 'utc' });
         expect(timeRange.getTimeZone()).toBe('utc');
