@@ -75,6 +75,9 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   protected onActivate(): CancelActivationHandler {
     if (this.state.isEnabled) {
       this.onEnable();
+    } else if (this.state.data?.series.length) {
+      // Layer was disabled while inactive, so the disable handler below never cleared the results
+      this.clearResults();
     }
 
     if (this.shouldRunLayerOnActivate()) {
@@ -89,11 +92,7 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
         this.querySub?.unsubscribe();
         this.querySub = undefined;
         this.onDisable();
-
-        // Manually publishing the results to state and results stream as publishPublish results has a guard for the layer to be enabled.
-        this._results.next({ origin: this, data: emptyPanelData });
-
-        this.setStateHelper({ data: emptyPanelData });
+        this.clearResults();
       }
 
       if (n.isEnabled && !p.isEnabled) {
@@ -139,6 +138,12 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
     }
   }
 
+  // Bypasses publishResults as it has a guard for the layer to be enabled.
+  private clearResults() {
+    this._results.next({ origin: this, data: emptyPanelData });
+    this.setStateHelper({ data: emptyPanelData });
+  }
+
   public getResultsStream() {
     return this._results;
   }
@@ -156,7 +161,8 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
       return true;
     }
 
-    if (!this.state.data) {
+    // emptyPanelData is only set when the layer was disabled or its query canceled, so there are no real results to reuse
+    if (!this.state.data || this.state.data === emptyPanelData) {
       return true;
     }
 

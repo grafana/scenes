@@ -162,16 +162,71 @@ describe('SceneDataLayerBase', () => {
       deactivate();
 
       // Existing data means the layer does not run a query when reactivated
-      layer.activate();
+      const deactivateAgain = layer.activate();
 
       const results: SceneDataProviderResult[] = [];
-      layer.getResultsStream().subscribe((r) => results.push(r));
+      const sub = layer.getResultsStream().subscribe((r) => results.push(r));
       expect(results[results.length - 1].data.series).not.toEqual([]);
 
       layer.setState({ isEnabled: false });
 
       expect(results[results.length - 1].data.series).toEqual([]);
       expect(layer.state.data?.series).toEqual([]);
+      expect(disableSpy).toHaveBeenCalledTimes(2);
+
+      sub.unsubscribe();
+      deactivateAgain();
+    });
+  });
+
+  describe('when disabled while inactive', () => {
+    it('should emit empty results on next activation', () => {
+      const layer = new TestAnnotationsDataLayer({
+        name: 'Layer 1',
+        isEnabled: true,
+      });
+
+      const deactivate = layer.activate();
+      layer.completeRun();
+      deactivate();
+
+      layer.setState({ isEnabled: false });
+
+      const deactivateAgain = layer.activate();
+
+      const results: SceneDataProviderResult[] = [];
+      const sub = layer.getResultsStream().subscribe((r) => results.push(r));
+
+      expect(results).toHaveLength(1);
+      expect(results[0].data.series).toEqual([]);
+      expect(layer.state.data?.series).toEqual([]);
+
+      sub.unsubscribe();
+      deactivateAgain();
+    });
+  });
+
+  describe('when enabled while inactive after being disabled', () => {
+    it('should run layer on next activation', () => {
+      const layer = new TestAnnotationsDataLayer({
+        name: 'Layer 1',
+        isEnabled: true,
+        runLayerSpy: runLayerSpy,
+      });
+
+      const deactivate = layer.activate();
+      layer.completeRun();
+      layer.setState({ isEnabled: false });
+      deactivate();
+
+      layer.setState({ isEnabled: true });
+      runLayerSpy.mockClear();
+
+      const deactivateAgain = layer.activate();
+
+      expect(runLayerSpy).toHaveBeenCalledTimes(1);
+
+      deactivateAgain();
     });
   });
 
