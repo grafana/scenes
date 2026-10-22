@@ -157,12 +157,12 @@ describe('SceneDataLayerBase', () => {
         onDisableSpy: disableSpy,
       });
 
-      const deactivate = layer.activate();
+      let deactivate = layer.activate();
       layer.completeRun();
       deactivate();
 
       // Existing data means the layer does not run a query when reactivated
-      const deactivateAgain = layer.activate();
+      deactivate = layer.activate();
 
       const results: SceneDataProviderResult[] = [];
       const sub = layer.getResultsStream().subscribe((r) => results.push(r));
@@ -175,7 +175,7 @@ describe('SceneDataLayerBase', () => {
       expect(disableSpy).toHaveBeenCalledTimes(2);
 
       sub.unsubscribe();
-      deactivateAgain();
+      deactivate();
     });
   });
 
@@ -186,13 +186,13 @@ describe('SceneDataLayerBase', () => {
         isEnabled: true,
       });
 
-      const deactivate = layer.activate();
+      let deactivate = layer.activate();
       layer.completeRun();
       deactivate();
 
       layer.setState({ isEnabled: false });
 
-      const deactivateAgain = layer.activate();
+      deactivate = layer.activate();
 
       const results: SceneDataProviderResult[] = [];
       const sub = layer.getResultsStream().subscribe((r) => results.push(r));
@@ -202,7 +202,7 @@ describe('SceneDataLayerBase', () => {
       expect(layer.state.data?.series).toEqual([]);
 
       sub.unsubscribe();
-      deactivateAgain();
+      deactivate();
     });
   });
 
@@ -214,7 +214,7 @@ describe('SceneDataLayerBase', () => {
         runLayerSpy: runLayerSpy,
       });
 
-      const deactivate = layer.activate();
+      let deactivate = layer.activate();
       layer.completeRun();
       layer.setState({ isEnabled: false });
       deactivate();
@@ -222,11 +222,11 @@ describe('SceneDataLayerBase', () => {
       layer.setState({ isEnabled: true });
       runLayerSpy.mockClear();
 
-      const deactivateAgain = layer.activate();
+      deactivate = layer.activate();
 
       expect(runLayerSpy).toHaveBeenCalledTimes(1);
 
-      deactivateAgain();
+      deactivate();
     });
   });
 
