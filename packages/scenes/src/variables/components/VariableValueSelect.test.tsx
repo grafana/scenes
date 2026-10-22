@@ -27,8 +27,9 @@ describe('VariableValueSelect', () => {
       query: 'A,B,C',
       isMulti: true,
       allowCustomValue: true,
-      value: [],
-      text: '',
+      // Non-empty initial value — [] is treated as an intentional empty selection
+      value: ['A'],
+      text: ['Option A'],
       options: [
         { value: 'A', label: 'Option A' },
         { value: 'B', label: 'Option B' },
@@ -61,8 +62,8 @@ describe('VariableValueSelect', () => {
       name: 'test',
       query: 'A,B,C',
       isMulti: true,
-      value: [],
-      text: '',
+      value: ['A'],
+      text: ['Option A'],
       options: [
         { value: 'A', label: 'Option A' },
         { value: 'B', label: 'Option B' },
@@ -96,8 +97,8 @@ describe('VariableValueSelect', () => {
       name: 'test',
       query: 'A,B,C',
       isMulti: true,
-      value: [],
-      text: '',
+      value: ['A'],
+      text: ['Option A'],
       options: [
         { value: 'A', label: 'Option A' },
         { value: 'B', label: 'Option B' },
