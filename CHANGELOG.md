@@ -1,3 +1,21 @@
+# v9.0.0 (Fri Oct 23 2026)
+
+#### 💥 Breaking Change
+
+- `scenes-app`, `@grafana/scenes-react`, `@grafana/scenes`
+  - Deps: Require Grafana >=12.4 and update to latest 12.x [#1569](https://github.com/grafana/scenes/pull/1569) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### 🏠 Internal
+
+- `scenes-app`, `@grafana/scenes-react`
+  - Scenes app: Fix the demo app with docker and local Grafana [#1691](https://github.com/grafana/scenes/pull/1691) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v8.22.0 (Thu Oct 15 2026)
 
 #### 🚀 Enhancement
