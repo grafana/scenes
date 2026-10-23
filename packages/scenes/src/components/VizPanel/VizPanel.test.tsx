@@ -315,6 +315,31 @@ describe('VizPanel', () => {
     };
   });
 
+  describe('custom chrome', () => {
+    it('renders the custom chrome component around the plugin body', async () => {
+      const panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        title: 'My title',
+        $timeRange: new SceneTimeRange(),
+        $data: getDataNodeWithTestData(),
+        chrome: ({ panel: chromePanel, title, children }) => (
+          <section data-testid="custom-chrome" data-panel-key={chromePanel.state.key}>
+            <h1>{title}</h1>
+            {children(300, 200)}
+          </section>
+        ),
+      });
+
+      pluginToLoad = getTestPlugin1();
+
+      render(<panel.Component model={panel} />);
+
+      expect(await screen.findByText('My custom panel')).toBeInTheDocument();
+      expect(screen.getByTestId('custom-chrome')).toHaveAttribute('data-panel-key', panel.state.key);
+      expect(screen.getByRole('heading', { name: 'My title' })).toBeInTheDocument();
+    });
+  });
+
   describe('when activated', () => {
     let panel: VizPanel<OptionsPlugin1, FieldConfigPlugin1>;
 

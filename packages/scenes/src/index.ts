@@ -113,6 +113,12 @@ export { SceneObjectUrlSyncConfig } from './services/SceneObjectUrlSyncConfig';
 export { EmbeddedScene, type EmbeddedSceneState } from './components/EmbeddedScene';
 export { VizPanel, type VizPanelState } from './components/VizPanel/VizPanel';
 export { VizPanelFitScope, type VizPanelFitScopeProps } from './components/VizPanel/VizPanelFitContext';
+export {
+  VizPanelDefaultChrome,
+  type VizPanelChromeProps,
+  type VizPanelChromeComponent,
+  type PanelStatusItem,
+} from './components/VizPanel/VizPanelChrome';
 export { VizPanelMenu } from './components/VizPanel/VizPanelMenu';
 export { VizPanelExploreButton } from './components/VizPanel/VizPanelExploreButton';
 export { NestedScene } from './components/NestedScene';
