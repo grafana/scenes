@@ -3064,6 +3064,47 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(stateUpdates).toHaveLength(1);
     });
 
+    it('should not subscribe to or activate data layers that are not visible to it', async () => {
+      class HiddenDataLayerSet extends SceneDataLayerSet {
+        public isVisibleTo() {
+          return false;
+        }
+      }
+
+      const hiddenLayer = new TestAnnotationsDataLayer({ name: 'Hidden layer' });
+      const visibleLayer = new TestAnnotationsDataLayer({ name: 'Visible layer' });
+      const hiddenSet = new HiddenDataLayerSet({ layers: [hiddenLayer] });
+      const queryRunner = new SceneQueryRunner({
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+
+      new SceneFlexLayout({
+        $data: new SceneDataLayerSet({ layers: [visibleLayer] }),
+        children: [
+          new SceneFlexLayout({
+            $data: hiddenSet,
+            children: [new SceneFlexItem({ $data: queryRunner, body: new SceneCanvasText({ text: 'Test' }) })],
+          }),
+        ],
+      });
+
+      queryRunner.activate();
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(hiddenSet.isActive).toBe(false);
+      expect(hiddenLayer.isActive).toBe(false);
+      expect(visibleLayer.isActive).toBe(true);
+
+      hiddenLayer.completeRun();
+      expect(queryRunner.state.data?.annotations).toHaveLength(0);
+
+      visibleLayer.completeRun();
+      expect(queryRunner.state.data?.annotations).toHaveLength(1);
+      expect(queryRunner.state.data?.annotations?.[0].fields[1].values).toEqual(['Visible layer: Test annotation']);
+    });
+
     describe('canceling queries', () => {
       it('should unsubscribe from data layers when query is canceled', async () => {
         const layer1 = new TestAnnotationsDataLayer({ name: 'Layer 1' });

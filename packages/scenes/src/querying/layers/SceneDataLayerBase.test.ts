@@ -144,6 +144,92 @@ describe('SceneDataLayerBase', () => {
     });
   });
 
+  describe('when disabling after being reactivated with existing data', () => {
+    // Like AnnotationsDataLayer, onEnable does not start a query, so querySub is only set by runLayer
+    class LayerWithoutQueryOnEnable extends TestAnnotationsDataLayer {
+      public onEnable(): void {}
+    }
+
+    it('should emit empty results even though no query ran since reactivation', () => {
+      const layer = new LayerWithoutQueryOnEnable({
+        name: 'Layer 1',
+        isEnabled: true,
+        onDisableSpy: disableSpy,
+      });
+
+      let deactivate = layer.activate();
+      layer.completeRun();
+      deactivate();
+
+      // Existing data means the layer does not run a query when reactivated
+      deactivate = layer.activate();
+
+      const results: SceneDataProviderResult[] = [];
+      const sub = layer.getResultsStream().subscribe((r) => results.push(r));
+      expect(results[results.length - 1].data.series).not.toEqual([]);
+
+      layer.setState({ isEnabled: false });
+
+      expect(results[results.length - 1].data.series).toEqual([]);
+      expect(layer.state.data?.series).toEqual([]);
+      expect(disableSpy).toHaveBeenCalledTimes(2);
+
+      sub.unsubscribe();
+      deactivate();
+    });
+  });
+
+  describe('when disabled while inactive', () => {
+    it('should emit empty results on next activation', () => {
+      const layer = new TestAnnotationsDataLayer({
+        name: 'Layer 1',
+        isEnabled: true,
+      });
+
+      let deactivate = layer.activate();
+      layer.completeRun();
+      deactivate();
+
+      layer.setState({ isEnabled: false });
+
+      deactivate = layer.activate();
+
+      const results: SceneDataProviderResult[] = [];
+      const sub = layer.getResultsStream().subscribe((r) => results.push(r));
+
+      expect(results).toHaveLength(1);
+      expect(results[0].data.series).toEqual([]);
+      expect(layer.state.data?.series).toEqual([]);
+
+      sub.unsubscribe();
+      deactivate();
+    });
+  });
+
+  describe('when enabled while inactive after being disabled', () => {
+    it('should run layer on next activation', () => {
+      const layer = new TestAnnotationsDataLayer({
+        name: 'Layer 1',
+        isEnabled: true,
+        runLayerSpy: runLayerSpy,
+      });
+
+      let deactivate = layer.activate();
+      layer.completeRun();
+      layer.setState({ isEnabled: false });
+      deactivate();
+
+      layer.setState({ isEnabled: true });
+      runLayerSpy.mockClear();
+
+      deactivate = layer.activate();
+
+      expect(runLayerSpy).toHaveBeenCalledTimes(1);
+
+      deactivate();
+    });
+  });
+
   describe('when enabling', () => {
     it('should call onEnable handler', (done) => {
       let result: SceneDataProviderResult | undefined = undefined;

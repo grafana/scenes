@@ -200,7 +200,7 @@ export function findAllObjects(scene: SceneObject, check: (obj: SceneObject) => 
 
 /**
  * Will walk up the scene object graph up until the root and collect all SceneDataLayerProvider objects.
- * When localOnly set to true, it will only collect the closest layers.
+ * When localOnly set to true, it will only collect the closest layers that are visible to the scene object (see SceneDataLayerProvider.isVisibleTo).
  */
 export function getDataLayers(sceneObject: SceneObject, localOnly = false): SceneDataLayerProvider[] {
   let currentLevel: SceneObject | undefined = sceneObject;
@@ -214,12 +214,15 @@ export function getDataLayers(sceneObject: SceneObject, localOnly = false): Scen
     }
 
     // Check if data layer exists nested inside another data provider
+    let dataLayer: SceneDataLayerProvider | undefined;
     if (isDataLayer(dataProvider)) {
-      collected = collected.concat(dataProvider);
-    } else {
-      if (dataProvider.state.$data && isDataLayer(dataProvider.state.$data)) {
-        collected = collected.concat(dataProvider.state.$data);
-      }
+      dataLayer = dataProvider;
+    } else if (dataProvider.state.$data && isDataLayer(dataProvider.state.$data)) {
+      dataLayer = dataProvider.state.$data;
+    }
+
+    if (dataLayer && (dataLayer.isVisibleTo?.(sceneObject) ?? true)) {
+      collected = collected.concat(dataLayer);
     }
 
     if (localOnly && collected.length > 0) {

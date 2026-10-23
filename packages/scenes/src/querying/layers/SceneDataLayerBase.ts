@@ -75,6 +75,9 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
   protected onActivate(): CancelActivationHandler {
     if (this.state.isEnabled) {
       this.onEnable();
+    } else if (this.state.data?.series.length) {
+      // Layer was disabled while inactive, so the disable handler below never cleared the results
+      this.clearResults();
     }
 
     if (this.shouldRunLayerOnActivate()) {
@@ -83,16 +86,13 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
 
     // Subscribe to layer state changes and enable/disable layer accordingly.
     this.subscribeToState((n, p) => {
-      if (!n.isEnabled && this.querySub) {
+      // querySub alone is not enough to detect this: a layer reactivated with existing data has results but no querySub
+      if (!n.isEnabled && p.isEnabled) {
         // When layer disabled, cancel query and call onDisable that should publish empty results.
-        this.querySub.unsubscribe();
+        this.querySub?.unsubscribe();
         this.querySub = undefined;
         this.onDisable();
-
-        // Manually publishing the results to state and results stream as publishPublish results has a guard for the layer to be enabled.
-        this._results.next({ origin: this, data: emptyPanelData });
-
-        this.setStateHelper({ data: emptyPanelData });
+        this.clearResults();
       }
 
       if (n.isEnabled && !p.isEnabled) {
@@ -138,6 +138,12 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
     }
   }
 
+  // Bypasses publishResults as it has a guard for the layer to be enabled.
+  private clearResults() {
+    this._results.next({ origin: this, data: emptyPanelData });
+    this.setStateHelper({ data: emptyPanelData });
+  }
+
   public getResultsStream() {
     return this._results;
   }
@@ -155,7 +161,8 @@ export abstract class SceneDataLayerBase<T extends SceneDataLayerProviderState>
       return true;
     }
 
-    if (!this.state.data) {
+    // emptyPanelData is only set when the layer was disabled or its query canceled, so there are no real results to reuse
+    if (!this.state.data || this.state.data === emptyPanelData) {
       return true;
     }
 
