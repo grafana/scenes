@@ -1,7 +1,7 @@
 import { isArray, isEqual, property } from 'lodash';
 import { map, Observable } from 'rxjs';
 
-import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
+import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE, EMPTY_VARIABLE_VALUE } from '../constants';
 
 import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SceneObjectUrlSyncHandler, SceneObjectUrlValues } from '../../core/types';
@@ -39,6 +39,11 @@ export interface MultiValueVariableState extends SceneVariableState {
    */
   maxVisibleValues?: number;
   noValueOnClear?: boolean;
+  /**
+   * When true, an empty multi selection was intentional (e.g. unchecking All) and should survive
+   * option re-validation and clone()/remount. Not set when options were only temporarily empty.
+   */
+  allowEmptySelection?: boolean;
   isReadOnly?: boolean;
 }
 
@@ -58,6 +63,16 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
    * Set to true to skip next value validation to maintain the current value even it it's not among the options (ie valid values)
    */
   public skipNextValidation?: boolean;
+
+  public constructor(state: TState) {
+    const isEmptyMulti = Boolean(state.isMulti) && Array.isArray(state.value) && state.value.length === 0;
+    super({
+      ...state,
+      // Persist in state so clone() / dashboard remount with saved [] keep an intentional empty
+      allowEmptySelection:
+        state.allowEmptySelection ?? (Boolean(state.noValueOnClear) || isEmptyMulti),
+    });
+  }
 
   /**
    * The source of value options.
@@ -125,6 +140,10 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       } else if (this.state.isMulti) {
         stateUpdate.value = [];
         stateUpdate.text = [];
+        // Temporary empty from missing options — do not treat as intentional unless already allowed
+        if (!this.isEmptySelectionAllowed()) {
+          stateUpdate.allowEmptySelection = false;
+        }
       } else {
         stateUpdate.value = '';
         stateUpdate.text = '';
@@ -155,11 +174,20 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       const validValues = currentValues.filter((v) => options.find((o) => o.value === v));
       const validTexts = validValues.map((v) => options.find((o) => o.value === v)!.label);
 
-      // If no valid values pick the first option
+      // If no valid values pick the first option — keep only intentional empty (allowEmpty / noValueOnClear)
       if (validValues.length === 0) {
-        const defaultState = this.getDefaultMultiState(options);
-        stateUpdate.value = defaultState.value;
-        stateUpdate.text = defaultState.text;
+        if (
+          this.isEmptySelectionAllowed() &&
+          Array.isArray(currentValue) &&
+          currentValue.length === 0
+        ) {
+          stateUpdate.value = [];
+          stateUpdate.text = [];
+        } else {
+          const defaultState = this.getDefaultMultiState(options);
+          stateUpdate.value = defaultState.value;
+          stateUpdate.text = defaultState.text;
+        }
       } else {
         // We have valid values, if it's different from current valid values update current values
         if (!isEqual(validValues, currentValue)) {
@@ -306,8 +334,14 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
 
   /**
    * Change the value and publish SceneVariableValueChangedEvent event.
+   * Pass `{ allowEmpty: true }` to keep an empty multi selection (skip defaultToAll / first-option fallback).
    */
-  public changeValueTo(value: VariableValue, text?: VariableValue, isUserAction = false) {
+  public changeValueTo(
+    value: VariableValue,
+    text?: VariableValue,
+    isUserAction = false,
+    options?: { allowEmpty?: boolean }
+  ) {
     // Ignore if there is no change
     if (value === this.state.value && text === this.state.text) {
       return;
@@ -321,34 +355,52 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
       }
     }
 
+    let allowEmptySelection = this.state.allowEmptySelection;
+
     if (Array.isArray(value)) {
       // If we are a multi valued variable is cleared (empty array) we need to set the default empty state
+      // unless the caller (or noValueOnClear) explicitly allows a lasting empty selection
       if (value.length === 0) {
-        const state = this.getDefaultMultiState(this.state.options);
-        value = state.value;
-        text = state.text;
-      }
+        if (options?.allowEmpty || this.state.noValueOnClear) {
+          text = [];
+          allowEmptySelection = true;
+        } else {
+          const state = this.getDefaultMultiState(this.state.options);
+          value = state.value;
+          text = state.text;
+          allowEmptySelection = false;
+        }
+      } else {
+        allowEmptySelection = false;
 
-      // If last value is the All value then replace all with it
-      if (value[value.length - 1] === ALL_VARIABLE_VALUE) {
-        value = [ALL_VARIABLE_VALUE];
-        text = [ALL_VARIABLE_TEXT];
-      }
-      // If the first value is the ALL value and we have other values, then remove the All value
-      else if (value[0] === ALL_VARIABLE_VALUE && value.length > 1) {
-        value.shift();
-        if (Array.isArray(text)) {
-          text.shift();
+        // If last value is the All value then replace all with it
+        if (value[value.length - 1] === ALL_VARIABLE_VALUE) {
+          value = [ALL_VARIABLE_VALUE];
+          text = [ALL_VARIABLE_TEXT];
+        }
+        // If the first value is the ALL value and we have other values, then remove the All value
+        else if (value[0] === ALL_VARIABLE_VALUE && value.length > 1) {
+          value.shift();
+          if (Array.isArray(text)) {
+            text.shift();
+          }
         }
       }
+    } else {
+      allowEmptySelection = false;
     }
 
-    // Do nothing if value and text are the same
-    if (isEqual(value, this.state.value) && isEqual(text, this.state.text)) {
+    // Do nothing if value, text, and empty-selection flag are the same
+    if (
+      isEqual(value, this.state.value) &&
+      isEqual(text, this.state.text) &&
+      allowEmptySelection === this.state.allowEmptySelection
+    ) {
       return;
     }
 
-    const stateChangeAction = () => this.setStateHelper({ value, text, loading: false });
+    const stateChangeAction = () =>
+      this.setStateHelper({ value, text, loading: false, allowEmptySelection });
     /**
      * Because variable state changes can cause a whole chain of downstream state changes in other variables (that also cause URL update)
      * Only some variable changes should add new history items to make sure the browser history contains valid URL states to go back to.
@@ -362,6 +414,11 @@ export abstract class MultiValueVariable<TState extends MultiValueVariableState 
     }
 
     this.publishEvent(new SceneVariableValueChangedEvent(this), true);
+  }
+
+  /** Whether an empty multi selection should be preserved through validation / URL restore */
+  public isEmptySelectionAllowed() {
+    return Boolean(this.state.allowEmptySelection || this.state.noValueOnClear);
   }
 
   private findLabelTextForValue(value: VariableValueSingle): VariableValueSingle {
@@ -469,11 +526,14 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     let urlValue: string | string[] | null = null;
     let value = this._sceneObject.state.value;
 
-    if (Array.isArray(value) && value.length > 1) {
+    if (Array.isArray(value) && value.length === 0) {
+      // Distinct from a real '' option — keeps the query param present for history/reload
+      urlValue = [EMPTY_VARIABLE_VALUE];
+    } else if (Array.isArray(value) && value.length > 1) {
       urlValue = value.map(String);
     } else if ((this, this._sceneObject.state.isMulti)) {
       // If we are inMulti mode we must return an array here as otherwise UrlSyncManager will not pass all values (in an array) in updateFromUrl
-      urlValue = [String(value)];
+      urlValue = [String(Array.isArray(value) ? value[0] : value)];
     } else {
       urlValue = String(value);
     }
@@ -485,6 +545,23 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
     let urlValue = values[this.getKey()];
 
     if (urlValue != null) {
+      /**
+       * Initial URL Sync happens before scene objects are activated.
+       * We need to skip validation in this case to make sure values set via URL are maintained.
+       */
+      if (!this._sceneObject.isActive) {
+        this._sceneObject.skipNextValidation = true;
+      }
+
+      // Cleared multi selection is encoded as [$__empty] (legacy [''] only when '' is not an option)
+      if (
+        this._sceneObject.state.isMulti &&
+        isClearedMultiUrlValue(urlValue, this._sceneObject.state.options)
+      ) {
+        this._sceneObject.changeValueTo([], [], false, { allowEmpty: true });
+        return;
+      }
+
       // This is to be backwards compatible with old url all value
       if (this._sceneObject.state.includeAll) {
         urlValue = handleLegacyUrlAllValue(urlValue);
@@ -494,14 +571,6 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
       // We want the variable to maintain the "All" meta value not the actual custom vall value. (Fixes https://github.com/grafana/grafana/issues/28635)
       if (this._sceneObject.state.allValue && this._sceneObject.state.allValue === urlValue) {
         urlValue = ALL_VARIABLE_VALUE;
-      }
-
-      /**
-       * Initial URL Sync happens before scene objects are activated.
-       * We need to skip validation in this case to make sure values set via URL are maintained.
-       */
-      if (!this._sceneObject.isActive) {
-        this._sceneObject.skipNextValidation = true;
       }
 
       this._sceneObject.changeValueTo(urlValue);
@@ -527,6 +596,25 @@ function handleLegacyUrlAllValue(value: string | string[]) {
   }
 
   return value;
+}
+
+/** True when the URL encodes an intentional cleared multi selection (not a real '' option). */
+function isClearedMultiUrlValue(value: string | string[], options: VariableValueOption[]) {
+  if (value === EMPTY_VARIABLE_VALUE) {
+    return true;
+  }
+  if (isArray(value) && value.length === 1 && value[0] === EMPTY_VARIABLE_VALUE) {
+    return true;
+  }
+
+  // Legacy encoding used [''] / '' — only treat as cleared when '' is not among the options
+  const isLegacyEmpty =
+    value === '' || (isArray(value) && (value.length === 0 || (value.length === 1 && value[0] === '')));
+  if (isLegacyEmpty && !options.some((o) => o.value === '')) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
