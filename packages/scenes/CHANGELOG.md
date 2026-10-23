@@ -1,3 +1,15 @@
+# v9.0.0 (Fri Oct 23 2026)
+
+#### 💥 Breaking Change
+
+- Deps: Require Grafana >=12.4 and update to latest 12.x [#1569](https://github.com/grafana/scenes/pull/1569) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
 # v8.22.0 (Thu Oct 15 2026)
 
 #### 🚀 Enhancement
