@@ -25,6 +25,7 @@ import { isSceneObject, SceneComponentProps, SceneLayout, SceneObject } from '..
 
 import { VizPanel } from './VizPanel';
 import { VizPanelFitContext } from './VizPanelFitContext';
+import { VizPanelHeaderMenuContext } from './VizPanelHeaderMenuContext';
 import { css, cx } from '@emotion/css';
 import { debounce } from 'lodash';
 import { VizPanelSeriesLimit } from './VizPanelSeriesLimit';
@@ -55,6 +56,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   } = model.useState();
   let [ref, { width, height }] = useMeasure();
   const { enabled: fitContent, minHeight: fitMinHeight } = useContext(VizPanelFitContext);
+  const { hideOnHover: hideMenuOnHover } = useContext(VizPanelHeaderMenuContext);
   const appEvents = useMemo(() => getAppEvents(), []);
 
   const setPanelAttention = useCallback(() => {
@@ -306,6 +308,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           dragHooks.onDragStart?.(e, model);
         }}
         showMenuAlways={showMenuAlways}
+        hideMenuOnHover={hideMenuOnHover}
         {...(collapsible
           ? {
               collapsible: Boolean(collapsible),
