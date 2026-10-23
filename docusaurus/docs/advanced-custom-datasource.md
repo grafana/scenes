@@ -34,7 +34,9 @@ class MyCustomDS extends RuntimeDataSource {
 sceneUtils.registerRuntimeDataSource({ dataSource: new MyCustomDS('my-custom-ds', 'my-custom-ds-uid') });
 ```
 
-You can now use this data source in `SceneQueryRunner` queries using the same uid. If you want to mix queries to standard data sources and your custom data source in the same `SceneQueryRunner`, use the mixed data source.
+You can now use this data source in `SceneQueryRunner` queries using the same uid. The data source is also registered with Grafana, so Grafana features outside your scenes, such as the data source APIs in `@grafana/runtime`, can resolve it by uid. If another plugin has already registered the same uid with Grafana, a warning is logged and the data source is only available within your scenes.
+
+If you want to mix queries to standard data sources and your custom data source in the same `SceneQueryRunner`, use the mixed data source.
 
 Example:
 
