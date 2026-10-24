@@ -283,19 +283,21 @@ export const formatRegistry = new Registry<FormatRegistryItem>(() => {
           return 'NaN';
         }
 
-        const arg = args[0] ?? 'iso';
+        const isUtc = args[0] === 'utc';
+        const formatArgs = isUtc ? args.slice(1) : args;
+        const date = isUtc ? dateTime(nrValue).utc() : dateTime(nrValue);
+
+        const arg = formatArgs[0] ?? 'iso';
         switch (arg) {
           case 'ms':
             return String(value);
           case 'seconds':
             return `${Math.round(nrValue! / 1000)}`;
           case 'iso':
-            return dateTime(nrValue).toISOString();
+            return date.toISOString();
           default:
-            if ((args || []).length > 1) {
-              return dateTime(nrValue).format(args.join(':'));
-            }
-            return dateTime(nrValue).format(arg);
+            // Formats can contain ':' (e.g. HH:mm:ss), which was split into separate args
+            return date.format(formatArgs.join(':'));
         }
       },
     },
