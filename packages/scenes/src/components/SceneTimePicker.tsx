@@ -120,7 +120,6 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
       fiscalYearStartMonth={timeRangeState.fiscalYearStartMonth}
       onMoveBackward={model.onMoveBackward}
       onMoveForward={model.onMoveForward}
-      // @ts-expect-error (temporary till we update grafana/ui)
       moveForwardTooltip={
         moveForwardDuration
           ? t('grafana-scenes.components.time-picker.move-forward-tooltip', 'Move {{moveForwardDuration}} forward', {
@@ -133,6 +132,7 @@ function SceneTimePickerRenderer({ model }: SceneComponentProps<SceneTimePicker>
         'Move {{moveBackwardDuration}} backward',
         { moveBackwardDuration }
       )}
+      // @ts-expect-error - this prop is only available in grafana>=13.3
       hideTimeZone={hideTimeSettings}
       onZoom={model.onZoom}
       onChangeTimeZone={timeRange.onTimeZoneChange}

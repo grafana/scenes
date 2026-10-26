@@ -37,6 +37,7 @@ import { mockTransformationsRegistry } from '../../utils/mockTransformationsRegi
 import { SceneQueryRunner } from '../../querying/SceneQueryRunner';
 import { SceneVariableSet } from '../../variables/sets/SceneVariableSet';
 import { TestVariable } from '../../variables/variants/TestVariable';
+import { AdHocFiltersVariable } from '../../variables/adhoc/AdHocFiltersVariable';
 
 let pluginToLoad: PanelPlugin | undefined;
 /** Plugins the import cache holds per id, for the tests that need it to answer differently per plugin. */
@@ -694,7 +695,6 @@ describe('VizPanel', () => {
 
       pluginToLoad = getTestPlugin1();
       pluginToLoad.onPanelMigration = onPanelMigration;
-      // @ts-expect-error
       pluginToLoad.shouldMigrate = shouldMigrate.mockReturnValue(true);
 
       await panel.activate();
@@ -712,7 +712,6 @@ describe('VizPanel', () => {
 
       pluginToLoad = getTestPlugin1();
       pluginToLoad.onPanelMigration = onPanelMigration;
-      // @ts-expect-error
       pluginToLoad.shouldMigrate = shouldMigrate.mockReturnValue(false);
 
       await panel.activate();
@@ -730,7 +729,6 @@ describe('VizPanel', () => {
 
       pluginToLoad = getTestPlugin1();
       pluginToLoad.onPanelMigration = onPanelMigration;
-      // @ts-expect-error
       pluginToLoad.shouldMigrate = shouldMigrate.mockReturnValue(false);
 
       await panel.activate();
@@ -1009,7 +1007,7 @@ describe('VizPanel', () => {
 
       it('links to the alert rule when a ruleUID is present', async () => {
         const { container } = setup({
-          dashboardId: 1,
+          dashboardUID: '1',
           panelId: 1,
           id: 1,
           state: AlertState.Alerting,
@@ -1025,7 +1023,7 @@ describe('VizPanel', () => {
 
       it('renders a non-interactive icon when there is no ruleUID', async () => {
         const { container } = setup({
-          dashboardId: 1,
+          dashboardUID: '1',
           panelId: 1,
           id: 1,
           state: AlertState.OK,
@@ -1341,6 +1339,32 @@ describe('VizPanel', () => {
       expect(panel.applyFieldConfig(testData)).not.toBe(first);
     });
 
+    it('re-renders a title interpolating a filter key when a match-all filter on it is removed', async () => {
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'ds' },
+        applyMode: 'manual',
+        filters: [{ key: 'env', operator: '=~', value: '.*' }],
+      });
+      const panel = new VizPanel<OptionsPlugin1, FieldConfigPlugin1>({
+        pluginId: 'custom-plugin-id',
+        title: 'Env ${filters["env"]}',
+        $timeRange: new SceneTimeRange(),
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+      });
+      pluginToLoad = getTestPlugin1();
+      panel.activate();
+      await Promise.resolve();
+      expect(panel.interpolate(panel.state.title, undefined, 'text')).toBe('Env All');
+
+      const forceRenderSpy = jest.spyOn(panel, 'forceRender');
+      filtersVar.updateFilters([]);
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(forceRenderSpy).toHaveBeenCalled();
+      expect(panel.interpolate(panel.state.title, undefined, 'text')).toBe('Env ');
+    });
+
     it('should keep the cache when the changed variable is not referenced by the panel', async () => {
       const { panel, variable } = await setup({ title: 'Panel with no variables' });
 
@@ -1464,6 +1488,39 @@ describe('VizPanel', () => {
       pluginToLoad = undefined;
       mockPluginCache = {};
       mockImportPanelPlugin = jest.fn(() => Promise.resolve(undefined));
+    });
+
+    it('keeps runtime source values for reset while the renderer clears obsolete arrays', async () => {
+      const original = toDataFrame({ fields: [{ name: 'value', values: [1, 2, 3] }] });
+      const source = new SceneDataNode({
+        data: { state: LoadingState.Done, timeRange: getDefaultTimeRange(), series: [original] },
+      });
+      const transformer = new SceneDataTransformer({ $data: source, transformations: [] });
+      const panel = new VizPanel({
+        pluginId: 'custom-plugin-id',
+        $timeRange: new SceneTimeRange(),
+        $data: transformer,
+        _UNSAFE_clearPreviousFieldValues: true,
+      });
+      pluginToLoad = getTestPlugin1();
+
+      render(<panel.Component model={panel} />);
+      await screen.findByText('My custom panel');
+
+      act(() => panel.getRuntimeTransformations().set('test', [{ id: 'doubler', options: {} }]));
+      const transformedValues = panelProps!.data.series[0].fields[0].values;
+
+      expect(transformedValues).toEqual([2, 4, 6]);
+      expect(original.fields[0].values).toEqual([1, 2, 3]);
+      expect(panel.state._UNSAFE_clearPreviousFieldValues).toBe(true);
+
+      act(() => panel.getRuntimeTransformations().set('test', []));
+
+      expect(panelProps!.data.series[0].fields[0].values).toEqual([1, 2, 3]);
+      expect(transformedValues).toEqual([]);
+
+      act(() => source.setState({ data: { ...source.state.data, series: [] } }));
+      expect(original.fields[0].values).toEqual([]);
     });
 
     it('contributes the transformations of the plugin for the current pluginId', () => {
@@ -1745,7 +1802,7 @@ function getTestData(): PanelData {
       }),
     ],
     alertState: {
-      dashboardId: 1,
+      dashboardUID: '1',
       panelId: 18,
       state: AlertState.Pending,
       id: 123,

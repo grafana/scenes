@@ -1,3 +1,58 @@
+# v9.0.0 (Fri Oct 23 2026)
+
+#### 💥 Breaking Change
+
+- Deps: Require Grafana >=12.4 and update to latest 12.x [#1569](https://github.com/grafana/scenes/pull/1569) ([@Sergej-Vlasov](https://github.com/Sergej-Vlasov))
+
+#### Authors: 1
+
+- [@Sergej-Vlasov](https://github.com/Sergej-Vlasov)
+
+---
+
+# v8.22.0 (Thu Oct 15 2026)
+
+#### 🚀 Enhancement
+
+- Filters: Allows All interpolation and fixes groupBy dismissal bug [#1673](https://github.com/grafana/scenes/pull/1673) ([@mdvictor](https://github.com/mdvictor))
+
+#### 🐛 Bug Fix
+
+- Preserve runtime transformation source values during panel cleanup [#1655](https://github.com/grafana/scenes/pull/1655) ([@fastfrwrd](https://github.com/fastfrwrd))
+
+#### Authors: 2
+
+- Paul Marbach ([@fastfrwrd](https://github.com/fastfrwrd))
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
+# v8.21.2 (Tue Oct 13 2026)
+
+#### 🐛 Bug Fix
+
+- I18n: Download translations from Crowdin [#1680](https://github.com/grafana/scenes/pull/1680) ([@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 1
+
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+
+---
+
+# v8.21.1 (Mon Oct 12 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Add test ids to the filters combobox and fix duplicate group by input id [#1684](https://github.com/grafana/scenes/pull/1684) ([@mdvictor](https://github.com/mdvictor))
+- I18n: Download translations from Crowdin [#1678](https://github.com/grafana/scenes/pull/1678) ([@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot]))
+
+#### Authors: 2
+
+- [@grafana-pr-automation[bot]](https://github.com/grafana-pr-automation[bot])
+- Victor Marin ([@mdvictor](https://github.com/mdvictor))
+
+---
+
 # v8.21.0 (Tue Oct 06 2026)
 
 #### 🚀 Enhancement

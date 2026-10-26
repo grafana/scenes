@@ -2,14 +2,14 @@
   "grafana-scenes": {
     "components": {
       "adhoc-filter-pill": {
-        "all-values": "",
+        "all-values": "Alle",
         "edit-filter-with-key": "Filter mit Schlüssel {{keyLabel}} bearbeiten",
         "managed-filter": "{{origin}} verwalteter Filter",
         "non-applicable": "Der Filter ist nicht anwendbar",
         "remove-filter-with-key": "Filter mit Schlüssel {{keyLabel}} entfernen"
       },
       "adhoc-filters-combobox": {
-        "all-values": "",
+        "all-values": "Alle",
         "remove-filter-value": "Filterwert entfernen – {{itemLabel}}",
         "use-custom-value": "Benutzerdefinierten Wert verwenden: {{itemLabel}}"
       },
@@ -36,8 +36,8 @@
       "layout": {
         "grid": {
           "scene-grid-layout": {
-            "move-panel": "",
-            "resize-panel": ""
+            "move-panel": "Panel verschieben",
+            "resize-panel": "Panelgröße ändern"
           }
         }
       },
@@ -81,7 +81,7 @@
       },
       "viz-panel-renderer": {
         "loading-plugin-panel": "Plugin-Panel wird geladen …",
-        "outdated-plugin-error": "",
+        "outdated-plugin-error": "Ein unerwarteter Fehler ist aufgetreten. Ein Update des Plugins „{{pluginName}}“ auf die neueste Version könnte das Problem beheben.",
         "panel-plugin-has-no-panel-component": "Das Panel-Plugin hat keine Panel-Komponente"
       },
       "viz-panel-series-limit": {
@@ -97,7 +97,7 @@
         "content-cancel-query": "Abfrage abbrechen"
       },
       "time-shift-alignment-processor": {
-        "no-data-notice": ""
+        "no-data-notice": "Keine Daten für den Zeitvergleich zurückgegeben"
       }
     },
     "variables": {
@@ -142,7 +142,7 @@
         "tooltip-restore-groupby-set-by-this-dashboard": "Die Einstellung „Gruppieren nach“ von diesem Dashboard wiederherstellen."
       },
       "expression-hint-placeholder": {
-        "press-enter-to-apply": ""
+        "press-enter-to-apply": "Drücken Sie zur Anwendung die Eingabetaste"
       },
       "format-registry": {
         "formats": {
@@ -196,7 +196,7 @@
         "placeholder-enter-value": "Wert eingeben"
       },
       "variable-value-select": {
-        "all-label": "",
+        "all-label": "Alle",
         "placeholder-select-value": "Wert auswählen"
       }
     }

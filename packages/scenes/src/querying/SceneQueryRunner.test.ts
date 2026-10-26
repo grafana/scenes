@@ -799,9 +799,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
             metadata: { name: 'Scope 1' },
             spec: {
               title: 'Scope 1',
-              type: 'test',
-              description: 'Test scope',
-              category: 'test',
               filters: [{ key: 'cluster', operator: 'equals', value: 'prod' }],
             },
           },
@@ -853,9 +850,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
             metadata: { name: 'Scope 1' },
             spec: {
               title: 'Scope 1',
-              type: 'test',
-              description: 'Test scope',
-              category: 'test',
               filters: [{ key: 'cluster', operator: 'equals', value: 'prod' }],
             },
           },
@@ -1213,6 +1207,162 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
       expect(runRequestCall2[1].groupByKeys).toEqual(['C', 'D']);
+    });
+
+    it('should stop passing a default group by dimension once it is dismissed', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [],
+        originFilters: [{ key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '', origin: 'dashboard' }],
+        enableGroupBy: true,
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      deactivationHandlers.push(activateFullSceneTree(scene));
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls[0][1].groupByKeys).toEqual(['A']);
+
+      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      expect(runRequestMock.mock.calls[1][1].groupByKeys).toBeUndefined();
+    });
+
+    function setupInactiveGroupByScene() {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [],
+        originFilters: [{ key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '', origin: 'dashboard' }],
+        enableGroupBy: true,
+      });
+      const variables = new SceneVariableSet({ variables: [filtersVar] });
+      // On the body rather than the scene's own $data, which scene activation would keep active.
+      const scene = new EmbeddedScene({
+        $variables: variables,
+        body: new SceneCanvasText({ text: 'x', $data: queryRunner }),
+      });
+      deactivationHandlers.push(scene.activate());
+      return { queryRunner, filtersVar };
+    }
+
+    it('does not re-run on reactivation when nothing changed while inactive', async () => {
+      const { queryRunner } = setupInactiveGroupByScene();
+      const deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+
+      deactivateRunner();
+      deactivationHandlers.push(queryRunner.activate());
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+    });
+
+    it('re-runs on reactivation when a default group by was dismissed while inactive', async () => {
+      const { queryRunner, filtersVar } = setupInactiveGroupByScene();
+      const deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls[0][1].groupByKeys).toEqual(['A']);
+
+      deactivateRunner();
+      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      deactivationHandlers.push(queryRunner.activate());
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      expect(runRequestMock.mock.calls[1][1].groupByKeys).toBeUndefined();
+    });
+
+    it('re-runs a cloned runner on reactivation when its cloned variable dismissed a group by while inactive', async () => {
+      const { queryRunner } = setupInactiveGroupByScene();
+      const deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+      deactivateRunner();
+
+      const scene = queryRunner.parent!.parent as EmbeddedScene;
+      const clonedScene = scene.clone();
+      const clonedRunner = (clonedScene.state.body as SceneCanvasText).state.$data as SceneQueryRunner;
+      const clonedVar = clonedScene.state.$variables!.state.variables[0] as AdHocFiltersVariable;
+      deactivationHandlers.push(clonedScene.activate());
+
+      const deactivateClone = clonedRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+      deactivateClone();
+      const requestsBefore = runRequestMock.mock.calls.length;
+
+      clonedVar.updateToMatchAll(clonedVar.state.originFilters![0]);
+      deactivationHandlers.push(clonedRunner.activate());
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(requestsBefore + 1);
+      expect(runRequestMock.mock.calls[requestsBefore][1].groupByKeys).toBeUndefined();
+    });
+
+    it('checks the applied ad hoc variable on reactivation when a closer one shares its name', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+        $timeRange: new SceneTimeRange(),
+      });
+      const filtersVar = new AdHocFiltersVariable({
+        name: 'filters',
+        datasource: { uid: 'test-uid' },
+        filters: [],
+        originFilters: [{ key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '', origin: 'dashboard' }],
+        enableGroupBy: true,
+      });
+      // Not applied to the runner's queries, but it's what a lookup by name from the runner returns.
+      const manualVar = new AdHocFiltersVariable({
+        name: 'filters',
+        applyMode: 'manual',
+        datasource: { uid: 'test-uid' },
+        filters: [{ key: 'env', operator: '=', value: 'prod', condition: '' }],
+      });
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneFlexLayout({
+          $variables: new SceneVariableSet({ variables: [manualVar] }),
+          children: [new SceneFlexItem({ body: new SceneCanvasText({ text: 'x', $data: queryRunner }) })],
+        }),
+      });
+      deactivationHandlers.push(scene.activate());
+
+      let deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls[0][1].groupByKeys).toEqual(['A']);
+
+      deactivateRunner();
+      deactivateRunner = queryRunner.activate();
+      await new Promise((r) => setTimeout(r, 1));
+      expect(runRequestMock.mock.calls.length).toEqual(1);
+
+      deactivateRunner();
+      filtersVar.updateToMatchAll(filtersVar.state.originFilters![0]);
+      deactivationHandlers.push(queryRunner.activate());
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls.length).toEqual(2);
+      expect(runRequestMock.mock.calls[1][1].groupByKeys).toBeUndefined();
     });
 
     it('should not pass group by dimensions when enableGroupBy is false', async () => {
@@ -3668,7 +3818,7 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         await new Promise((r) => setTimeout(r, 1));
         expect(queryRunner.state.data?.alertState).toMatchInlineSnapshot(`
           {
-            "dashboardId": 1,
+            "dashboardUID": "1",
             "id": 1,
             "panelId": 123,
             "state": "alerting",
@@ -3712,9 +3862,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
             metadata: { name: 'Scope 1' },
             spec: {
               title: 'Scope 1',
-              type: 'test',
-              description: 'Test scope',
-              category: 'test',
               filters: [],
             },
           },
@@ -3737,7 +3884,6 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
         metadata: { name: 'Scope 1' },
         spec: {
           title: 'Scope 1',
-          type: 'test',
         },
       });
     });

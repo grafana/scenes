@@ -193,6 +193,25 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     return this._runtimeTransformations;
   }
 
+  /** @internal Source array identities let renderer cleanup skip unchanged frames without scanning their fields. */
+  public getRetainedDataFrameSources(): ReadonlyArray<readonly DataFrame[]> {
+    const sources = this._runtimeTransformations.getRetainedDataFrameSources();
+    let provider = sceneGraph.getData(this);
+
+    while (provider instanceof SceneDataTransformer) {
+      provider = provider.getSourceData();
+      const data = provider.state.data;
+      if (data?.series) {
+        sources.push(data.series);
+      }
+      if (data?.annotations) {
+        sources.push(data.annotations);
+      }
+    }
+
+    return sources;
+  }
+
   /**
    * Get the VizPanelRenderProfiler behavior if attached
    */
@@ -336,7 +355,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
 
     _UNSAFE_customMigrationHandler?.(panel, plugin);
 
-    //@ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/108998)
     const needsMigration = currentVersion !== pluginVersion || plugin.shouldMigrate?.(panel);
 
     if (plugin.onPanelMigration && needsMigration && !isAfterPluginChange) {
@@ -799,7 +817,6 @@ export class VizPanel<TOptions = {}, TFieldConfig extends {} = {}>
     return super.clone({
       _pluginInstanceState: undefined,
       _pluginLoadError: undefined,
-      _UNSAFE_clearPreviousFieldValues: this._runtimeTransformations.getClearPreviousFieldValuesForClone(),
       ...dataWithoutRuntimeOutput,
       ...withState,
     });

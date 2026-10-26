@@ -43,6 +43,8 @@ describe('useDataTransformer', () => {
       id: 'transformer1',
       name: 'Custom transformer',
       editor: () => null,
+      imageDark: '',
+      imageLight: '',
       transformation: {
         id: 'transformer1',
         name: 'Custom Transformer',

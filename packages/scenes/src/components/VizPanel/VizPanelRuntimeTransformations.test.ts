@@ -184,7 +184,7 @@ describe('VizPanel runtime transformations', () => {
     }).toEqual({ series: [1], annotations: [11] });
   });
 
-  it('clears every group and restores field cleanup when the plugin changes', () => {
+  it('clears every group without changing field cleanup when the plugin changes', () => {
     const { panel, transformer } = setup({ _UNSAFE_clearPreviousFieldValues: true });
     const controller = panel.getRuntimeTransformations();
     const firstListener = jest.fn();
@@ -195,7 +195,7 @@ describe('VizPanel runtime transformations', () => {
     controller.set('first', [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }]);
     controller.set('second', [{ id: 'runtimeMath', options: { operation: 'multiply', value: 10 } }]);
 
-    expect(panel.state._UNSAFE_clearPreviousFieldValues).toBe(false);
+    expect(panel.state._UNSAFE_clearPreviousFieldValues).toBe(true);
 
     panel.setState({ pluginId: 'timeseries' });
 
@@ -227,6 +227,45 @@ describe('VizPanel runtime transformations', () => {
     expect(panel.getRuntimeTransformations()).toBe(controller);
     expect(replacement.state.data?.series[0].fields[0].values).toEqual([6]);
     expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([5]);
+  });
+
+  it('waits for a new owner source capture after inactive panel data is replaced', () => {
+    const { panel, deactivateTransformer } = setup();
+    const controller = panel.getRuntimeTransformations();
+    const transformations = [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }];
+    controller.set('owner', transformations);
+    expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([1]);
+    deactivateTransformer();
+
+    const replacementSource = new SceneDataNode({
+      data: {
+        state: LoadingState.Done,
+        timeRange: getDefaultTimeRange(),
+        series: [toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [5] }] })],
+      },
+    });
+    const replacement = new SceneDataTransformer({
+      $data: replacementSource,
+      transformations: [{ id: 'runtimeMath', options: { operation: 'multiply', value: 10 } }],
+    });
+    const deactivateBeforeSwap = replacement.activate();
+    deactivateBeforeSwap();
+    expect(replacement.state.data?.series[0].fields[0].values).toEqual([50]);
+
+    panel.setState({ $data: replacement });
+
+    expect(replacement.isActive).toBe(false);
+    expect(controller.get('owner')).toEqual(transformations);
+    expect(controller.getSourceSeries('owner')).toEqual([]);
+    expect(controller.getSourceSeries('unregistered')).toBe(replacement.state.data?.series);
+
+    const deactivateReplacement = replacement.activate();
+    try {
+      expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([50]);
+      expect(replacement.state.data?.series[0].fields[0].values).toEqual([51]);
+    } finally {
+      deactivateReplacement();
+    }
   });
 
   it('applies an owner update made while the transformer is inactive', () => {
@@ -299,14 +338,14 @@ describe('VizPanel runtime transformations', () => {
     }
   });
 
-  it('restores the original field cleanup setting in a clone', () => {
-    const { panel } = setup({ _UNSAFE_clearPreviousFieldValues: true });
+  it.each([true, false, undefined])('inherits the unchanged field cleanup setting %s in a clone', (setting) => {
+    const { panel } = setup({ _UNSAFE_clearPreviousFieldValues: setting });
     panel.getRuntimeTransformations().set('owner', [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }]);
 
     const clone = panel.clone();
 
-    expect(panel.state._UNSAFE_clearPreviousFieldValues).toBe(false);
-    expect(clone.state._UNSAFE_clearPreviousFieldValues).toBe(true);
+    expect(panel.state._UNSAFE_clearPreviousFieldValues).toBe(setting);
+    expect(clone.state._UNSAFE_clearPreviousFieldValues).toBe(setting);
   });
 
   it('clears previous field values after a cloned panel receives replacement data', () => {

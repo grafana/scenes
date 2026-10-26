@@ -126,13 +126,13 @@ export class TestAlertStatesDataLayer
   private getResults() {
     let states: AlertStateInfo[] = [
       {
-        dashboardId: 1,
+        dashboardUID: '1',
         id: 1,
         panelId: 123,
         state: AlertState.Alerting,
       },
       {
-        dashboardId: 1,
+        dashboardUID: '1',
         id: 1,
         panelId: 124,
         state: AlertState.Pending,

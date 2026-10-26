@@ -42,7 +42,5 @@ export function isGroupByVariable(variable: SceneVariable): variable is GroupByV
 }
 
 export function isSwitchVariable(variable: SceneVariable): variable is SwitchVariable {
-  // TODO: remove this once switch is in the schema @leventebalogh
-  // @ts-expect-error - switch is a valid variable type, but not in the schema yet
   return variable.state.type === 'switch';
 }

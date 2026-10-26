@@ -26,6 +26,8 @@ export interface BasePillProps {
   strikethrough?: boolean;
   ariaLabel?: string;
   removeAriaLabel?: string;
+  testId?: string;
+  removeTestId?: string;
   additionalIcons?: ReactNode;
 }
 
@@ -43,6 +45,8 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
     strikethrough,
     ariaLabel,
     removeAriaLabel,
+    testId,
+    removeTestId,
     additionalIcons,
   },
   ref
@@ -72,6 +76,7 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
       onKeyDown={onKeyDown}
       role={readOnly ? undefined : 'button'}
       aria-label={ariaLabel}
+      data-testid={testId}
       tabIndex={0}
       ref={ref}
     >
@@ -98,6 +103,7 @@ export const BasePill = forwardRef<HTMLDivElement, BasePillProps>(function BaseP
           }}
           name="times"
           size="md"
+          data-testid={removeTestId}
           className={cx(styles.pillIcon, disabled && styles.disabledPillIcon)}
           tooltip={
             removeAriaLabel ?? t('grafana-scenes.components.base-pill.remove', 'Remove {{label}}', { label: fullLabel })

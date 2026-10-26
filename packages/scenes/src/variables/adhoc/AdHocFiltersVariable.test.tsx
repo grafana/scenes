@@ -1,8 +1,10 @@
 import React from 'react';
 import { act, getAllByRole, render, waitFor, screen, within } from '@testing-library/react';
 import { SceneVariable, SceneVariableValueChangedEvent } from '../types';
+import { sceneGraph } from '../../core/sceneGraph';
 import {
   AdHocFiltersVariable,
+  MatchAllFilterKeyValue,
   AdHocFiltersVariableState,
   AdHocFilterWithLabels,
   GROUP_BY_OPERATOR,
@@ -52,6 +54,7 @@ import { generateFilterUpdatePayload } from './AdHocFiltersCombobox/utils';
 import { ScopesVariable } from '../variants/ScopesVariable';
 import { TestVariable } from '../variants/TestVariable';
 import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
+import { getVariableControlId } from '../utils';
 
 function setTemplateSrvWithFilters(filters: AdHocVariableFilter[]): AdHocVariableFilter[] {
   setTemplateSrv({
@@ -2047,11 +2050,85 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
       expect(variable.getValue('["env"]')).toEqual(['prod', 'staging']);
     });
 
-    it('skips All-value filters', () => {
+    it('resolves an All-value filter to All', () => {
       const variable = makeVariable({
         originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
       });
+      expect(variable.getValue('["env"]')).toBeInstanceOf(MatchAllFilterKeyValue);
+      expect((variable.getValue('["env"]') as MatchAllFilterKeyValue).formatter('text')).toBe('All');
+      expect(variable.getValue('["env"].operator')).toBe('=|');
+    });
+
+    it.each([
+      ['text', '${filters["env"]:text}', 'All'],
+      ['regex', '${filters["env"]:regex}', ''],
+      ['raw', '${filters["env"]:raw}', ''],
+      ['the default format', '${filters["env"]}', ''],
+    ])('formats a match-all filter for %s', (_, template, expected) => {
+      const variable = makeVariable({
+        originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+      });
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        body: new SceneCanvasText({ text: '' }),
+      });
+      expect(sceneGraph.interpolate(scene, template)).toBe(expected);
+    });
+
+    it('renders nothing for a match-all filter through a datasource formatter function', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=~', value: '.*' }] });
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        body: new SceneCanvasText({ text: '' }),
+      });
+      const formatter = jest.fn((value: unknown) => `formatted(${String(value)})`);
+
+      expect(sceneGraph.interpolate(scene, 'env=~"${filters["env"]}"', undefined, formatter)).toBe('env=~""');
+      expect(formatter).not.toHaveBeenCalled();
+    });
+
+    it('publishes a value change when a default All filter is removed', () => {
+      const variable = makeVariable({
+        originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }],
+      });
+      const onChange = jest.fn();
+      variable.subscribeToEvent(SceneVariableValueChangedEvent, onChange);
+
+      variable.setState({ originFilters: [] });
+
       expect(variable.getValue('["env"]')).toBe('');
+      expect(onChange).toHaveBeenCalled();
+    });
+
+    it('keeps a real label value named All distinct from match-all in query formats', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=', value: 'All' }] });
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        body: new SceneCanvasText({ text: '' }),
+      });
+
+      expect(sceneGraph.interpolate(scene, '${filters["env"]:regex}')).toBe('All');
+    });
+
+    it.each([
+      [
+        'a default All filter',
+        { originFilters: [{ key: 'env', operator: '=|', value: '$__all', values: ['$__all'], origin: 'dashboard' }] },
+      ],
+      ['a regex match-all filter', { filters: [{ key: 'env', operator: '=~', value: '.*' }] }],
+    ])('formats %s for queryparam as no parameter, since it restricts nothing', (_, state) => {
+      const variable = makeVariable(state as Partial<AdHocFiltersVariableState>);
+      const scene = new EmbeddedScene({
+        $variables: new SceneVariableSet({ variables: [variable] }),
+        body: new SceneCanvasText({ text: '' }),
+      });
+
+      expect(sceneGraph.interpolate(scene, 'x=1&${filters["env"]:queryparam}')).toBe('x=1&');
+    });
+
+    it('resolves a regex match-all filter to All', () => {
+      const variable = makeVariable({ filters: [{ key: 'env', operator: '=~', value: '.*' }] });
+      expect((variable.getValue('["env"]') as MatchAllFilterKeyValue).formatter('text')).toBe('All');
     });
 
     it('returns only concrete values when an All-value filter shares the key', () => {
@@ -2060,6 +2137,7 @@ describe.each(['11.1.2', '11.1.1'])('AdHocFiltersVariable', (v) => {
         filters: [{ key: 'env', operator: '=', value: 'prod' }],
       });
       expect(variable.getValue('["env"]')).toBe('prod');
+      expect(variable.getValue('["env"].operator')).toBe('=');
     });
 
     it('flattens multiple filters sharing a key into one array', () => {
@@ -5006,6 +5084,63 @@ describe('group-by', () => {
 
         expect(filtersVar.isGroupByRestorable()).toBe(true);
       });
+    });
+  });
+
+  describe('combobox test ids and control ids', () => {
+    function setupGroupByScene() {
+      return setup({
+        layout: 'combobox',
+        enableGroupBy: true,
+        filters: setTemplateSrvWithFilters([
+          { key: 'key1', operator: '=', value: 'val1' },
+          { key: 'region', operator: GROUP_BY_OPERATOR, value: '' },
+        ]),
+      });
+    }
+
+    it('renders test ids for the wip inputs, pills and clear all button', () => {
+      setupGroupByScene();
+
+      expect(screen.getByTestId('data-testid ad hoc filters combobox filter input')).toBe(getAdHocInputElement());
+      expect(screen.getByTestId('data-testid ad hoc filters combobox group by input')).toBe(
+        screen.getByPlaceholderText('+ key')
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox filter pill key1')).toBe(
+        screen.getByRole('button', { name: 'Edit filter with key key1' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox filter pill remove key1')).toBe(
+        screen.getByRole('button', { name: 'Remove filter with key key1' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox group by pill region')).toBe(
+        screen.getByRole('button', { name: 'Group by region' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox group by pill remove region')).toBe(
+        screen.getByRole('button', { name: 'Remove group by region' })
+      );
+      expect(screen.getByTestId('data-testid ad hoc filters combobox clear all button')).toBe(
+        screen.getByRole('button', { name: 'Clear all' })
+      );
+    });
+
+    it('renders a test id for the operator pill in filter edit mode', async () => {
+      setupGroupByScene();
+
+      await userEvent.click(screen.getByRole('button', { name: 'Edit filter with key key1' }));
+
+      expect(screen.getByTestId('data-testid ad hoc filters combobox operator pill')).toBe(
+        screen.getByRole('button', { name: 'Edit filter operator', hidden: true })
+      );
+    });
+
+    it('gives the group by input a distinct id and keeps the control id on the filter input', () => {
+      const { filtersVar } = setupGroupByScene();
+      const controlId = getVariableControlId(filtersVar.state.type, filtersVar.state.key);
+
+      expect(getAdHocInputElement()).toHaveAttribute('id', controlId);
+      expect(screen.getByPlaceholderText('+ key')).toHaveAttribute('id', `${controlId}-group-by`);
+      expect(document.querySelectorAll(`[id="${controlId}"]`)).toHaveLength(1);
+      expect(screen.getByLabelText(filtersVar.state.name)).toBe(getAdHocInputElement());
     });
   });
 });

@@ -97,6 +97,8 @@ export function AdHocFilterPill({ filter, controller, readOnly, focusOnWipInputR
           { keyLabel }
         )}
         removable={showRemove}
+        testId={`data-testid ad hoc filters combobox filter pill ${filter.key}`}
+        removeTestId={`data-testid ad hoc filters combobox filter pill remove ${filter.key}`}
         additionalIcons={
           <>
             {filter.origin && filter.readOnly && (
