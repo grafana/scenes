@@ -54,7 +54,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
     _UNSAFE_clearPreviousFieldValues = false,
   } = model.useState();
   let [ref, { width, height }] = useMeasure();
-  const { enabled: fitContent, minHeight: fitMinHeight } = useContext(VizPanelFitContext);
+  const { enabled: fitContent, minHeight: fitMinHeight, maxHeight: fitMaxHeight } = useContext(VizPanelFitContext);
   const appEvents = useMemo(() => getAppEvents(), []);
 
   const setPanelAttention = useCallback(() => {
@@ -289,6 +289,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
         // content is short; the layout's CSS caps the max.
         height={fitContent ? undefined : height === 0 ? undefined : height}
         minHeight={fitContent ? fitMinHeight : undefined}
+        maxHeight={fitContent ? fitMaxHeight : undefined}
         selectionId={model.state.key}
         displayMode={displayMode}
         titleItems={titleItemsElement.length > 0 ? titleItemsElement : undefined}
@@ -338,9 +339,11 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
                     fieldConfig={fieldConfig}
                     transparent={displayMode === 'transparent'}
                     width={innerWidth}
-                    height={innerHeight || 0}
+                    // In fit-content mode innerHeight is the cap from maxHeight, not a size to fill.
+                    height={fitContent ? 0 : innerHeight || 0}
                     // @ts-expect-error remove on next @grafana/data update (adds PanelProps.fitContent)
                     fitContent={fitContent || undefined}
+                    fitMaxHeight={fitContent && innerHeight > 0 ? innerHeight : undefined}
                     renderCounter={_renderCounter}
                     replaceVariables={model.interpolate}
                     onOptionsChange={model.onOptionsChange}

@@ -12,6 +12,11 @@ interface VizPanelFitContextValue {
    * when its content is shorter. The max is enforced by the layout's CSS.
    */
   minHeight?: number;
+  /**
+   * Maximum height (px) the layout caps the panel chrome at, so the panel can size its
+   * content to it (e.g. paginate instead of overflowing). The layout still enforces it via CSS.
+   */
+  maxHeight?: number;
 }
 
 /**
@@ -32,7 +37,7 @@ export interface VizPanelFitScopeProps extends VizPanelFitContextValue {
  * height, floored at `minHeight`. The surrounding layout is expected to bound
  * the max via CSS. Used by content-aware layouts (e.g. auto grid cells).
  */
-export function VizPanelFitScope({ enabled, minHeight, children }: VizPanelFitScopeProps) {
-  const value = useMemo(() => ({ enabled, minHeight }), [enabled, minHeight]);
+export function VizPanelFitScope({ enabled, minHeight, maxHeight, children }: VizPanelFitScopeProps) {
+  const value = useMemo(() => ({ enabled, minHeight, maxHeight }), [enabled, minHeight, maxHeight]);
   return <VizPanelFitContext.Provider value={value}>{children}</VizPanelFitContext.Provider>;
 }
