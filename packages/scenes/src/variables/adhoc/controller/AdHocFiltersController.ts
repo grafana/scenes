@@ -23,6 +23,12 @@ export interface AdHocFiltersControllerState {
   drilldownRecommendationsEnabled?: boolean;
   enableGroupBy?: boolean;
   groupByRestorable?: boolean;
+  /**
+   * When true, an optional display-name input step is inserted between key and
+   * operator selection. The entered text is committed as keyLabel on the filter.
+   * Intended for settings/editor contexts only, never the dashboard filter bar.
+   */
+  enableKeyLabelEditing?: boolean;
 }
 
 /**
