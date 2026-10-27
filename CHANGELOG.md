@@ -1,3 +1,16 @@
+# v9.1.0 (Tue Oct 27 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - VizPanel: Pass the fit-content max height to the panel [#1698](https://github.com/grafana/scenes/pull/1698) ([@adela-almasan](https://github.com/adela-almasan))
+
+#### Authors: 1
+
+- Adela Almasan ([@adela-almasan](https://github.com/adela-almasan))
+
+---
+
 # v9.0.0 (Fri Oct 23 2026)
 
 #### 💥 Breaking Change
