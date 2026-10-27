@@ -237,6 +237,38 @@ describe('retained field value cleanup', () => {
     expect(original.fields[0].values).toEqual([]);
   });
 
+  it('clears values from a previous data pass of the same owner', () => {
+    const owner = {};
+    const original = frame();
+    const { rerender } = renderHook(({ data }) => useClearPreviousData(data, [], true, owner), {
+      initialProps: { data: panelData([original]) },
+    });
+
+    rerender({ data: panelData([frame([4, 5, 6])]) });
+
+    expect(original.fields[0].values).toEqual([]);
+  });
+
+  it('does not clear values of a previous owner when the owner changes', () => {
+    const ownerA = {};
+    const ownerB = {};
+    const a = frame();
+    const b = frame([4, 5, 6]);
+    const { rerender } = renderHook(({ data, owner }) => useClearPreviousData(data, [], true, owner), {
+      initialProps: { data: panelData([a]), owner: ownerA },
+    });
+
+    rerender({ data: panelData([b]), owner: ownerB });
+    expect(a.fields[0].values).toEqual([1, 2, 3]);
+
+    rerender({ data: panelData([a]), owner: ownerA });
+    expect(a.fields[0].values).toEqual([1, 2, 3]);
+    expect(b.fields[0].values).toEqual([4, 5, 6]);
+
+    rerender({ data: panelData([frame([7])]), owner: ownerA });
+    expect(a.fields[0].values).toEqual([]);
+  });
+
   it('protects shared values across series and annotation topics', () => {
     const shared = frame();
     const { rerender } = renderHook(({ data }) => useClearPreviousData(data, []), {

@@ -112,7 +112,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   useClearPreviousData(
     rawData.data,
     _UNSAFE_clearPreviousFieldValues ? model.getRetainedDataFrameSources() : [],
-    _UNSAFE_clearPreviousFieldValues
+    _UNSAFE_clearPreviousFieldValues,
+    model
   );
 
   const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
@@ -407,6 +408,7 @@ function collectValues(frames: readonly DataFrame[] | undefined, values: Set<unk
 }
 
 interface CleanupTracking {
+  owner: unknown;
   previousValues: Set<unknown[]>;
   currentValues: Set<unknown[]>;
   retainedValues: Set<unknown[]>;
@@ -415,25 +417,42 @@ interface CleanupTracking {
   sources?: ReadonlyArray<readonly DataFrame[]>;
 }
 
+function resetCleanupTracking(cache: CleanupTracking) {
+  cache.previousValues.clear();
+  cache.currentValues.clear();
+  cache.retainedValues.clear();
+  cache.series = undefined;
+  cache.annotations = undefined;
+  cache.sources = undefined;
+}
+
+/**
+ * @param owner Identity of the model whose data is tracked (the VizPanel). The renderer can be reused for a
+ *   different model instance, so tracking is reset when the owner changes.
+ */
 export function useClearPreviousData(
   data: PanelData | undefined,
   retainedSources: ReadonlyArray<readonly DataFrame[]>,
-  enabled = true
+  enabled = true,
+  owner?: unknown
 ) {
   const tracking = useRef<CleanupTracking | null>(null);
   const cache = (tracking.current ??= {
+    owner,
     previousValues: new Set(),
     currentValues: new Set(),
     retainedValues: new Set(),
   });
 
+  // A renderer reused for another model must not empty the previous model's arrays: that model may
+  // be restored (e.g. by undo) and still owns them. Start tracking from scratch instead.
+  if (cache.owner !== owner) {
+    resetCleanupTracking(cache);
+    cache.owner = owner;
+  }
+
   if (!enabled) {
-    cache.previousValues.clear();
-    cache.currentValues.clear();
-    cache.retainedValues.clear();
-    cache.series = undefined;
-    cache.annotations = undefined;
-    cache.sources = undefined;
+    resetCleanupTracking(cache);
     return;
   }
 
