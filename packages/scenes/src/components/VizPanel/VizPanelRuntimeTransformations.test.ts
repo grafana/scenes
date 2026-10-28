@@ -11,7 +11,7 @@ import {
 } from '@grafana/data';
 import { setPluginImportUtils } from '@grafana/runtime';
 import { act, render } from '@testing-library/react';
-import { type Observable, map } from 'rxjs';
+import { type Observable, delay, map } from 'rxjs';
 
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 import { SceneDataNode } from '../../core/SceneDataNode';
@@ -29,6 +29,11 @@ setPluginImportUtils({
 describe('VizPanel runtime transformations', () => {
   beforeAll(() => {
     mockTransformationsRegistry([
+      {
+        id: 'runtimeDelay',
+        name: 'runtimeDelay',
+        operator: () => (source: Observable<DataFrame[]>) => source.pipe(delay(0)),
+      },
       {
         id: 'runtimeMath',
         name: 'runtimeMath',
@@ -74,6 +79,47 @@ describe('VizPanel runtime transformations', () => {
     expect(controller.get('table:columns')).toBe(controller.get('table:columns'));
     expect(controller.get('table:columns')).toEqual([]);
   });
+
+  it.each([
+    { name: 'first', precedingOwner: false, input: 3, output: 30 },
+    { name: 'subsequent', precedingOwner: true, input: 10, output: 100 },
+  ])(
+    'retains the $name owner input while saved transformations reprocess asynchronously',
+    ({ precedingOwner, input, output }) => {
+      jest.useFakeTimers();
+      const { panel, transformer, deactivateTransformer } = setup();
+      try {
+        transformer.setState({
+          transformations: [
+            { id: 'runtimeMath', options: { operation: 'add', value: 2 } },
+            { id: 'runtimeDelay', options: {} },
+          ],
+        });
+        transformer.reprocessTransformations();
+        jest.runAllTimers();
+        const controller = panel.getRuntimeTransformations();
+        if (precedingOwner) {
+          controller.set('preceding', [{ id: 'runtimeMath', options: { operation: 'add', value: 7 } }]);
+          jest.runAllTimers();
+        }
+        const source = controller.getSourceSeries('new');
+        expect(source[0].fields[0].values).toEqual([input]);
+        const observed: Array<readonly DataFrame[]> = [];
+        controller.subscribe('new', () => observed.push(controller.getSourceSeries('new')));
+
+        controller.set('new', [{ id: 'runtimeMath', options: { operation: 'multiply', value: 10 } }]);
+
+        expect(observed).toEqual([source]);
+        expect(controller.getSourceSeries('new')).toBe(source);
+        jest.runAllTimers();
+        expect(controller.getSourceSeries('new')[0].fields[0].values).toEqual([input]);
+        expect(transformer.state.data!.series[0].fields[0].values).toEqual([output]);
+      } finally {
+        deactivateTransformer();
+        jest.useRealTimers();
+      }
+    }
+  );
 
   it('stores immutable owner snapshots and notifies only that owner', () => {
     const panel = new VizPanel({ pluginId: 'table' });
