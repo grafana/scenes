@@ -121,6 +121,77 @@ describe('VizPanel runtime transformations', () => {
     }
   );
 
+  it('keeps an existing owner capture empty when its update follows replaced panel data', () => {
+    const { panel, deactivateTransformer } = setup();
+    const controller = panel.getRuntimeTransformations();
+    controller.set('owner', [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }]);
+    deactivateTransformer();
+
+    const replacement = new SceneDataTransformer({
+      $data: new SceneDataNode({
+        data: {
+          state: LoadingState.Done,
+          timeRange: getDefaultTimeRange(),
+          series: [toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [5] }] })],
+        },
+      }),
+      transformations: [{ id: 'runtimeMath', options: { operation: 'multiply', value: 10 } }],
+    });
+    replacement.activate()();
+
+    panel.setState({ $data: replacement });
+    expect(controller.getSourceSeries('owner')).toEqual([]);
+
+    controller.set('owner', [{ id: 'runtimeMath', options: { operation: 'add', value: 2 } }]);
+
+    expect(controller.getSourceSeries('owner')).toEqual([]);
+    expect(replacement.state.data!.series[0].fields[0].values).toEqual([50]);
+  });
+
+  it('keeps a new owner capture when panel data was replaced while the controller was detached', () => {
+    jest.useFakeTimers();
+    const { panel, deactivateTransformer } = setup();
+    const controller = panel.getRuntimeTransformations();
+    try {
+      deactivateTransformer();
+      // Leaves the controller without a panel state subscription, so the replacement below goes unobserved.
+      panel.activate()();
+
+      const replacement = new SceneDataTransformer({
+        $data: new SceneDataNode({
+          data: {
+            state: LoadingState.Done,
+            timeRange: getDefaultTimeRange(),
+            series: [toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [5] }] })],
+          },
+        }),
+        transformations: [
+          { id: 'runtimeMath', options: { operation: 'multiply', value: 10 } },
+          { id: 'runtimeDelay', options: {} },
+        ],
+      });
+      const deactivateBeforeSwap = replacement.activate();
+      jest.runAllTimers();
+      deactivateBeforeSwap();
+      panel.setState({ $data: replacement });
+
+      controller.set('owner', [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }]);
+      expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([50]);
+
+      const deactivatePanel = panel.activate();
+      try {
+        expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([50]);
+        jest.runAllTimers();
+        expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([50]);
+        expect(replacement.state.data!.series[0].fields[0].values).toEqual([51]);
+      } finally {
+        deactivatePanel();
+      }
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('stores immutable owner snapshots and notifies only that owner', () => {
     const panel = new VizPanel({ pluginId: 'table' });
     const controller = panel.getRuntimeTransformations();
