@@ -25,6 +25,8 @@ function panelData(series: DataFrame[], annotations?: DataFrame[]): PanelData {
   return { state: LoadingState.Done, timeRange: getDefaultTimeRange(), series, annotations };
 }
 
+const testOwner = {};
+
 describe('retained field value cleanup', () => {
   const cleanups: Array<() => void> = [];
 
@@ -73,7 +75,7 @@ describe('retained field value cleanup', () => {
     const hook = renderHook(() => {
       const { data } = transformer.useState();
       const { _UNSAFE_clearPreviousFieldValues } = panel.useState();
-      useClearPreviousData(data, panel.getRetainedDataFrameSources(), _UNSAFE_clearPreviousFieldValues);
+      useClearPreviousData(panel, data, panel.getRetainedDataFrameSources(), _UNSAFE_clearPreviousFieldValues);
     });
     cleanups.push(() => {
       hook.unmount();
@@ -191,7 +193,7 @@ describe('retained field value cleanup', () => {
     const upstreamFields = jest.fn().mockReturnValue(upstream.fields);
     Object.defineProperty(current, 'fields', { get: currentFields });
     Object.defineProperty(upstream, 'fields', { get: upstreamFields });
-    const { rerender } = renderHook(({ data, sources }) => useClearPreviousData(data, sources), {
+    const { rerender } = renderHook(({ data, sources }) => useClearPreviousData(testOwner, data, sources), {
       initialProps: { data, sources },
     });
     expect(currentFields).toHaveBeenCalled();
@@ -209,7 +211,7 @@ describe('retained field value cleanup', () => {
     const original = frame();
     const output = panelData([]);
     const retained = [original];
-    const { rerender } = renderHook(({ data, sources }) => useClearPreviousData(data, sources), {
+    const { rerender } = renderHook(({ data, sources }) => useClearPreviousData(testOwner, data, sources), {
       initialProps: { data: panelData([original]), sources: [retained] },
     });
 
@@ -226,7 +228,7 @@ describe('retained field value cleanup', () => {
   it('resumes tracking unchanged data when cleanup is re-enabled', () => {
     const original = frame();
     const data = panelData([original]);
-    const { rerender } = renderHook(({ data, enabled }) => useClearPreviousData(data, [], enabled), {
+    const { rerender } = renderHook(({ data, enabled }) => useClearPreviousData(testOwner, data, [], enabled), {
       initialProps: { data, enabled: true },
     });
 
@@ -238,9 +240,8 @@ describe('retained field value cleanup', () => {
   });
 
   it('clears values from a previous data pass of the same owner', () => {
-    const owner = {};
     const original = frame();
-    const { rerender } = renderHook(({ data }) => useClearPreviousData(data, [], true, owner), {
+    const { rerender } = renderHook(({ data }) => useClearPreviousData(testOwner, data, []), {
       initialProps: { data: panelData([original]) },
     });
 
@@ -254,7 +255,7 @@ describe('retained field value cleanup', () => {
     const ownerB = {};
     const a = frame();
     const b = frame([4, 5, 6]);
-    const { rerender } = renderHook(({ data, owner }) => useClearPreviousData(data, [], true, owner), {
+    const { rerender } = renderHook(({ data, owner }) => useClearPreviousData(owner, data, []), {
       initialProps: { data: panelData([a]), owner: ownerA },
     });
 
@@ -271,7 +272,7 @@ describe('retained field value cleanup', () => {
 
   it('protects shared values across series and annotation topics', () => {
     const shared = frame();
-    const { rerender } = renderHook(({ data }) => useClearPreviousData(data, []), {
+    const { rerender } = renderHook(({ data }) => useClearPreviousData(testOwner, data, []), {
       initialProps: { data: panelData([shared]) },
     });
 
@@ -284,7 +285,7 @@ describe('retained field value cleanup', () => {
 
   it('does not take ownership of upstream arrays that were never rendered', () => {
     const upstream = frame();
-    const { rerender } = renderHook(({ retained }) => useClearPreviousData(panelData([]), [retained]), {
+    const { rerender } = renderHook(({ retained }) => useClearPreviousData(testOwner, panelData([]), [retained]), {
       initialProps: { retained: [upstream] },
     });
 
@@ -294,7 +295,7 @@ describe('retained field value cleanup', () => {
 
   it('preserves streaming buffers', () => {
     const streaming = Object.assign(frame(), { appendRow: jest.fn() });
-    const { rerender } = renderHook(({ data }) => useClearPreviousData(data, []), {
+    const { rerender } = renderHook(({ data }) => useClearPreviousData(testOwner, data, []), {
       initialProps: { data: panelData([streaming]) },
     });
 
@@ -306,7 +307,7 @@ describe('retained field value cleanup', () => {
     const original = frame();
     const refreshed = frame([4, 5, 6]);
     const { rerender } = renderHook<void, { data: PanelData | undefined; retainedFrames: DataFrame[] }>(
-      ({ data, retainedFrames }) => useClearPreviousData(data, [retainedFrames]),
+      ({ data, retainedFrames }) => useClearPreviousData(testOwner, data, [retainedFrames]),
       { initialProps: { data: panelData([original]), retainedFrames: [original] } }
     );
 
@@ -324,7 +325,7 @@ describe('retained field value cleanup', () => {
   it('preserves values reused after missing data', () => {
     const original = frame();
     const { rerender } = renderHook<void, { data: PanelData | undefined }>(
-      ({ data }) => useClearPreviousData(data, []),
+      ({ data }) => useClearPreviousData(testOwner, data, []),
       { initialProps: { data: panelData([original]) } }
     );
 
@@ -336,7 +337,7 @@ describe('retained field value cleanup', () => {
   it.each([false, true])('stops tracking when cleanup is disabled (missing data: %s)', (missingData) => {
     const ordinary = frame();
     const { rerender } = renderHook<void, { data: PanelData | undefined; enabled: boolean }>(
-      ({ data, enabled }) => useClearPreviousData(data, [], enabled),
+      ({ data, enabled }) => useClearPreviousData(testOwner, data, [], enabled),
       {
         initialProps: { data: panelData([ordinary]), enabled: true },
       }

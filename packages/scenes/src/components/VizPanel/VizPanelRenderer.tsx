@@ -110,10 +110,10 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   const rawData = dataObject.useState();
 
   useClearPreviousData(
+    model,
     rawData.data,
     _UNSAFE_clearPreviousFieldValues ? model.getRetainedDataFrameSources() : [],
-    _UNSAFE_clearPreviousFieldValues,
-    model
+    _UNSAFE_clearPreviousFieldValues
   );
 
   const dataWithSeriesLimit = useDataWithSeriesLimit(rawData.data, seriesLimit, seriesLimitShowAll);
@@ -408,7 +408,7 @@ function collectValues(frames: readonly DataFrame[] | undefined, values: Set<unk
 }
 
 interface CleanupTracking {
-  owner: unknown;
+  owner: object;
   previousValues: Set<unknown[]>;
   currentValues: Set<unknown[]>;
   retainedValues: Set<unknown[]>;
@@ -417,7 +417,8 @@ interface CleanupTracking {
   sources?: ReadonlyArray<readonly DataFrame[]>;
 }
 
-function resetCleanupTracking(cache: CleanupTracking) {
+function resetCleanupTracking(cache: CleanupTracking, owner: object) {
+  cache.owner = owner;
   cache.previousValues.clear();
   cache.currentValues.clear();
   cache.retainedValues.clear();
@@ -431,10 +432,10 @@ function resetCleanupTracking(cache: CleanupTracking) {
  *   different model instance, so tracking is reset when the owner changes.
  */
 export function useClearPreviousData(
+  owner: object,
   data: PanelData | undefined,
   retainedSources: ReadonlyArray<readonly DataFrame[]>,
-  enabled = true,
-  owner?: unknown
+  enabled = true
 ) {
   const tracking = useRef<CleanupTracking | null>(null);
   const cache = (tracking.current ??= {
@@ -447,12 +448,11 @@ export function useClearPreviousData(
   // A renderer reused for another model must not empty the previous model's arrays: that model may
   // be restored (e.g. by undo) and still owns them. Start tracking from scratch instead.
   if (cache.owner !== owner) {
-    resetCleanupTracking(cache);
-    cache.owner = owner;
+    resetCleanupTracking(cache, owner);
   }
 
   if (!enabled) {
-    resetCleanupTracking(cache);
+    resetCleanupTracking(cache, owner);
     return;
   }
 
