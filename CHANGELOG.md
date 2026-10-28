@@ -1,3 +1,16 @@
+# v9.1.1 (Wed Oct 28 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - VizPanel: Don't clear field values of a previous panel when the renderer is reused [#1700](https://github.com/grafana/scenes/pull/1700) ([@gelicia](https://github.com/gelicia))
+
+#### Authors: 1
+
+- Kristina ([@gelicia](https://github.com/gelicia))
+
+---
+
 # v9.1.0 (Tue Oct 27 2026)
 
 #### 🚀 Enhancement
