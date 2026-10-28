@@ -26,6 +26,7 @@ import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 
 import { VizPanel, VizPanelState } from './VizPanel';
 import { SceneDataNode } from '../../core/SceneDataNode';
+import { SceneObjectBase } from '../../core/SceneObjectBase';
 import { SeriesVisibilityChangeMode } from '@grafana/ui';
 import { SceneTimeRange } from '../../core/SceneTimeRange';
 import { act, render, screen } from '@testing-library/react';
@@ -1521,6 +1522,58 @@ describe('VizPanel', () => {
 
       act(() => source.setState({ data: { ...source.state.data, series: [] } }));
       expect(original.fields[0].values).toEqual([]);
+    });
+
+    describe('when the renderer is reused for another panel instance', () => {
+      const renderBeforeActivationDefault = SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT;
+
+      beforeEach(() => {
+        SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = true;
+      });
+
+      afterEach(() => {
+        SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT = renderBeforeActivationDefault;
+      });
+
+      function panelWithValues(values: number[]) {
+        const original = toDataFrame({ fields: [{ name: 'value', values }] });
+        const source = new SceneDataNode({
+          data: { state: LoadingState.Done, timeRange: getDefaultTimeRange(), series: [original] },
+        });
+        const panel = new VizPanel({
+          key: 'panel-1',
+          pluginId: 'values-plugin-id',
+          $timeRange: new SceneTimeRange(),
+          $data: new SceneDataTransformer({ $data: source, transformations: [] }),
+          _UNSAFE_clearPreviousFieldValues: true,
+        });
+
+        return { panel, original };
+      }
+
+      function Slot({ current }: { current: VizPanel }) {
+        return <current.Component key="panel-1" model={current} />;
+      }
+
+      it('keeps the data of a panel that is swapped out and back in', async () => {
+        pluginToLoad = getPanelPlugin({ id: 'values-plugin-id' }, ({ data }) => (
+          <div>{`values: ${data.series.map((frame) => frame.fields[0].values.join(',')).join('|')}`}</div>
+        ));
+        const a = panelWithValues([1, 2, 3]);
+        const b = panelWithValues([4, 5, 6]);
+
+        const { rerender } = render(<Slot current={a.panel} />);
+        await screen.findByText('values: 1,2,3');
+
+        rerender(<Slot current={b.panel} />);
+        await screen.findByText('values: 4,5,6');
+        expect(a.original.fields[0].values).toEqual([1, 2, 3]);
+
+        rerender(<Slot current={a.panel} />);
+        await screen.findByText('values: 1,2,3');
+        expect(a.original.fields[0].values).toEqual([1, 2, 3]);
+        expect(b.original.fields[0].values).toEqual([4, 5, 6]);
+      });
     });
 
     it('contributes the transformations of the plugin for the current pluginId', () => {
