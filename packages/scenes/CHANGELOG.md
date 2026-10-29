@@ -1,3 +1,15 @@
+# v9.1.2 (Thu Oct 29 2026)
+
+#### 🐛 Bug Fix
+
+- Data layers: Let layers opt out per consumer and always clear results on disable [#1664](https://github.com/grafana/scenes/pull/1664) ([@harisrozajac](https://github.com/harisrozajac))
+
+#### Authors: 1
+
+- Haris Rozajac ([@harisrozajac](https://github.com/harisrozajac))
+
+---
+
 # v9.1.1 (Thu Oct 29 2026)
 
 #### 🐛 Bug Fix
