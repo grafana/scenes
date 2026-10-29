@@ -12,7 +12,6 @@ import {
   PanelProps,
   PluginContextProvider,
   PluginType,
-  QueryResultMetaNotice,
   renderMarkdown,
   SetPanelAttentionEvent,
 } from '@grafana/data';
@@ -28,6 +27,7 @@ import { VizPanelFitContext } from './VizPanelFitContext';
 import { css, cx } from '@emotion/css';
 import { debounce } from 'lodash';
 import { VizPanelSeriesLimit } from './VizPanelSeriesLimit';
+import { PanelStatusItem, PanelStatusSeverity, VizPanelDefaultChrome } from './VizPanelChrome';
 import { useLazyLoaderIsInView } from '../layout/LazyLoader';
 
 export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
@@ -271,12 +271,14 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
   // can also reach PanelContext via usePanelContext() instead of being passed
   // props explicitly. PanelChrome itself reads onOpenInspector/onInvestigateErrors from this
   // context rather than through props.
+  const ChromeComponent = model.state.chrome ?? VizPanelDefaultChrome;
+
   const panelChrome = (
     <PanelContextProvider value={context}>
-      <PanelChrome
+      <ChromeComponent
+        panel={model}
         title={titleInterpolated}
         description={description?.trim() ? model.getDescription : undefined}
-        // @ts-expect-error remove this on next grafana/ui update
         subtitle={subtitleContent}
         loadingState={data.state}
         statusMessage={getChromeStatusMessage(data, _pluginLoadError)}
@@ -357,7 +359,7 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
             </ErrorBoundaryAlert>
           );
         }}
-      </PanelChrome>
+      </ChromeComponent>
     </PanelContextProvider>
   );
 
@@ -563,13 +565,6 @@ function getChromeStatusMessage(data: PanelData, pluginLoadingError: string | un
     message = data.errors.map((e) => e.message).join(', ');
   }
   return message;
-}
-
-type PanelStatusSeverity = QueryResultMetaNotice['severity'];
-
-interface PanelStatusItem {
-  severity: PanelStatusSeverity;
-  text: string;
 }
 
 /**
