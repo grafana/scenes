@@ -1,5 +1,5 @@
 import { isString } from 'lodash';
-import { Observable, of, OperatorFunction } from 'rxjs';
+import { from, Observable, of, OperatorFunction } from 'rxjs';
 import { map, mergeMap } from 'rxjs/operators';
 
 import {
@@ -11,11 +11,13 @@ import {
   DataFrame,
   DataSourceApi,
   DataTransformContext,
+  DataTransformerInfo,
   Field,
   FieldType,
   getFieldDisplayName,
   KeyValue,
   standardTransformersRegistry,
+  TransformerRegistryItem,
 } from '@grafana/data';
 import { config } from '@grafana/runtime';
 
@@ -71,12 +73,29 @@ export function singleFrameFromPanelData(): OperatorFunction<DataFrame[], DataFr
           interpolate: (v: string) => v,
         };
 
-        return of(data).pipe(
-          standardTransformersRegistry.get('merge').transformation.operator({}, ctx),
-          map((d) => d[0])
+        return from(resolveTransformer(standardTransformersRegistry.get('merge'))).pipe(
+          mergeMap((transformer) =>
+            of(data).pipe(
+              transformer.operator({}, ctx),
+              map((d) => d[0])
+            )
+          )
         );
       })
     );
+}
+
+/**
+ * Grafana 13.1 made registry items resolve their transformer lazily, while older hosts still hold it inline.
+ */
+function resolveTransformer(item: TransformerRegistryItem): Promise<DataTransformerInfo> {
+  const transformation: unknown = item.transformation;
+
+  if (typeof transformation === 'function') {
+    return transformation();
+  }
+
+  return Promise.resolve(transformation as DataTransformerInfo);
 }
 
 interface AnnotationEventFieldSetter {
