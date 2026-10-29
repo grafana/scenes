@@ -1,5 +1,6 @@
-import { getDataSourceSrv, getTemplateSrv } from '@grafana/runtime';
-import { AdHocVariableFilter } from '@grafana/data';
+import { getTemplateSrv } from '@grafana/runtime';
+import { getDataSourceInstanceSettings } from '@grafana/plugin-compat/datasources';
+import { AdHocVariableFilter, DataSourceInstanceSettings } from '@grafana/data';
 import { AdHocFiltersVariable, isGroupByFilter } from './AdHocFiltersVariable';
 import { interpolate } from '../../core/sceneGraph/sceneGraph';
 import { SceneObject } from '../../core/types';
@@ -7,9 +8,53 @@ import { SceneObject } from '../../core/types';
 let originalGetAdhocFilters: any = undefined;
 export const allActiveFilterSets = new Set<AdHocFiltersVariable>();
 
+// templateSrv.getAdhocFilters is synchronous and may be called with a data source name or "default", while data source
+// lookups are async. The settings are resolved when the variable activates, until then only uids can be matched.
+const resolvedDataSources = new WeakMap<AdHocFiltersVariable, DataSourceInstanceSettings>();
+
+async function resolveDataSource(filterVar: AdHocFiltersVariable) {
+  const ref = filterVar.state.datasource;
+  if (!ref) {
+    return;
+  }
+
+  try {
+    const settings = await getDataSourceInstanceSettings(ref);
+    if (settings) {
+      resolvedDataSources.set(filterVar, settings);
+    }
+  } catch (error) {
+    console.error('Failed to resolve the data source of an ad hoc filters variable', error);
+  }
+}
+
+function isFilterSetForDataSource(filterVar: AdHocFiltersVariable, dsName: string | undefined): boolean {
+  const uid = filterVar.state.datasource?.uid;
+  if (!uid) {
+    return false;
+  }
+
+  if (uid === dsName) {
+    return true;
+  }
+
+  // The data source can change after the settings were resolved
+  const resolved = resolvedDataSources.get(filterVar);
+  if (resolved?.uid !== uid) {
+    return false;
+  }
+
+  if (!dsName || dsName === 'default') {
+    return Boolean(resolved.isDefault);
+  }
+
+  return resolved.name === dsName;
+}
+
 export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {
   filterVar.addActivationHandler(() => {
     allActiveFilterSets.add(filterVar);
+    resolveDataSource(filterVar);
     return () => allActiveFilterSets.delete(filterVar);
   });
 
@@ -26,22 +71,13 @@ export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {
   originalGetAdhocFilters = templateSrv.getAdhocFilters;
 
   templateSrv.getAdhocFilters = function getAdhocFiltersScenePatch(dsName: string): AdHocVariableFilter[] {
-    if (allActiveFilterSets.size === 0) {
-      return originalGetAdhocFilters.call(templateSrv, dsName);
-    }
-
-    const ds = getDataSourceSrv().getInstanceSettings(dsName);
-    if (!ds) {
-      return [];
-    }
-
     for (const filter of allActiveFilterSets.values()) {
-      if (filter.state.datasource?.uid === ds.uid) {
+      if (isFilterSetForDataSource(filter, dsName)) {
         return filter.state.filters.filter((f) => !isGroupByFilter(f));
       }
     }
 
-    return [];
+    return originalGetAdhocFilters.call(templateSrv, dsName);
   }.bind(templateSrv);
 }
 
