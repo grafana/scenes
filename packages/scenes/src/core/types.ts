@@ -266,6 +266,14 @@ export interface SceneDataLayerProviderState extends SceneDataState {
 
 export interface SceneDataLayerProvider extends SceneDataProvider<SceneDataLayerProviderState> {
   isDataLayer: true;
+  /**
+   * Lets a layer opt out of being collected for a scene object below it (see sceneGraph.getDataLayers).
+   * Useful when part of the subtree below the layer's owner should not receive it, e.g. repeat clones
+   * that are children of their source object but have their own copy of the layer.
+   * Only checked on the provider set as `$data` (e.g. a SceneDataLayerSet), not on layers nested inside a set,
+   * so implement it on the set.
+   */
+  isVisibleTo?(sceneObject: SceneObject): boolean;
 }
 
 export function isDataLayer(obj: SceneObject): obj is SceneDataLayerProvider {
