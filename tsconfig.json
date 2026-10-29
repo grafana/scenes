@@ -6,6 +6,9 @@
     "emitDeclarationOnly": true,
     "isolatedModules": true,
     "moduleResolution": "node",
+    "paths": {
+      "@grafana/plugin-compat/datasources": ["./node_modules/@grafana/plugin-compat/dist/types/datasources.d.ts"]
+    },
     "rootDirs": ["."]
   },
   "exclude": ["dist/**/*"],
