@@ -169,32 +169,82 @@ export { VizConfigBuilders } from './core/PanelBuilders/VizConfigBuilders';
 export { type VizConfig } from './core/PanelBuilders/types';
 
 export const sceneUtils = {
+  /** @deprecated Import `getUrlWithAppState` from '@grafana/scenes' instead. */
   getUrlWithAppState,
+  /** @deprecated Import `registerRuntimePanelPlugin` from '@grafana/scenes' instead. */
   registerRuntimePanelPlugin,
+  /** @deprecated Import `registerRuntimeDataSource` from '@grafana/scenes' instead. */
   registerRuntimeDataSource,
+  /** @deprecated Import `registerVariableMacro` from '@grafana/scenes' instead. */
   registerVariableMacro,
+  /** @deprecated Import `cloneSceneObjectState` from '@grafana/scenes' instead. */
   cloneSceneObjectState,
+  /** @deprecated Import `syncStateFromSearchParams` from '@grafana/scenes' instead. */
   syncStateFromSearchParams,
+  /** @deprecated Import `getUrlState` from '@grafana/scenes' instead. */
   getUrlState,
+  /** @deprecated Import `renderPrometheusLabelFilters` from '@grafana/scenes' instead. */
   renderPrometheusLabelFilters,
+  /** @deprecated Import `escapeLabelValueInRegexSelector` from '@grafana/scenes' instead. */
   escapeLabelValueInRegexSelector,
+  /** @deprecated Import `escapeLabelValueInExactSelector` from '@grafana/scenes' instead. */
   escapeLabelValueInExactSelector,
+  /** @deprecated Import `escapeURLDelimiters` from '@grafana/scenes' instead. */
   escapeURLDelimiters,
+  /** @deprecated Import `getVariableControlId` from '@grafana/scenes' instead. */
   getVariableControlId,
 
   // Variable guards
+  /** @deprecated Import `isAdHocVariable` from '@grafana/scenes' instead. */
+  isAdHocVariable,
+  /** @deprecated Import `isConstantVariable` from '@grafana/scenes' instead. */
+  isConstantVariable,
+  /** @deprecated Import `isCustomVariable` from '@grafana/scenes' instead. */
+  isCustomVariable,
+  /** @deprecated Import `isDataSourceVariable` from '@grafana/scenes' instead. */
+  isDataSourceVariable,
+  /** @deprecated Import `isIntervalVariable` from '@grafana/scenes' instead. */
+  isIntervalVariable,
+  /** @deprecated Import `isQueryVariable` from '@grafana/scenes' instead. */
+  isQueryVariable,
+  /** @deprecated Import `isTextBoxVariable` from '@grafana/scenes' instead. */
+  isTextBoxVariable,
+  /** @deprecated Import `isGroupByVariable` from '@grafana/scenes' instead. */
+  isGroupByVariable,
+  /** @deprecated Import `isSwitchVariable` from '@grafana/scenes' instead. */
+  isSwitchVariable,
+  /** @deprecated Import `isRepeatCloneOrChildOf` from '@grafana/scenes' instead. */
+  isRepeatCloneOrChildOf,
+  /** @deprecated Import `buildPathIdFor` from '@grafana/scenes' instead. */
+  buildPathIdFor,
+};
+
+export { getUrlWithAppState } from './components/SceneApp/utils';
+export { registerRuntimePanelPlugin } from './components/VizPanel/registerRuntimePanelPlugin';
+export { registerVariableMacro } from './variables/macros';
+export { cloneSceneObjectState } from './core/sceneGraph/cloneSceneObject';
+export { getUrlState, syncStateFromSearchParams } from './services/utils';
+export {
+  escapeLabelValueInExactSelector,
+  escapeLabelValueInRegexSelector,
+  escapeURLDelimiters,
+  getVariableControlId,
+  renderPrometheusLabelFilters,
+} from './variables/utils';
+export { isRepeatCloneOrChildOf } from './utils/utils';
+export { buildPathIdFor } from './utils/pathId';
+
+export {
   isAdHocVariable,
   isConstantVariable,
   isCustomVariable,
   isDataSourceVariable,
+  isGroupByVariable,
   isIntervalVariable,
   isQueryVariable,
-  isTextBoxVariable,
-  isGroupByVariable,
   isSwitchVariable,
-  isRepeatCloneOrChildOf,
-  buildPathIdFor,
-};
+  isTextBoxVariable,
+} from './variables/variants/guards';
 
 export { SafeSerializableSceneObject } from './utils/SafeSerializableSceneObject';
 export { getExploreURL } from './utils/explore';
