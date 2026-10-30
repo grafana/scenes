@@ -1,3 +1,16 @@
+# v9.2.0 (Fri Oct 30 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - sceneUtils: directly export helpers [#1704](https://github.com/grafana/scenes/pull/1704) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
 # v9.1.2 (Thu Oct 29 2026)
 
 #### 🐛 Bug Fix
