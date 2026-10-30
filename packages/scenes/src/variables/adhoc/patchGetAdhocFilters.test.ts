@@ -1,4 +1,4 @@
-import { getDataSourceInstanceSettings } from '@grafana/plugin-compat/datasources';
+import { getDataSourceInstanceList, getDefaultDataSourceInstanceListItem } from '@grafana/plugin-compat/datasources';
 import { getTemplateSrv, setTemplateSrv } from '@grafana/runtime';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
@@ -8,10 +8,12 @@ import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 
 jest.mock('@grafana/plugin-compat/datasources', () => ({
   ...jest.requireActual('@grafana/plugin-compat/datasources'),
-  getDataSourceInstanceSettings: jest.fn(),
+  getDataSourceInstanceList: jest.fn(),
+  getDefaultDataSourceInstanceListItem: jest.fn(),
 }));
 
-const getDataSourceInstanceSettingsMock = jest.mocked(getDataSourceInstanceSettings);
+const getDataSourceInstanceListMock = jest.mocked(getDataSourceInstanceList);
+const getDefaultDataSourceInstanceListItemMock = jest.mocked(getDefaultDataSourceInstanceListItem);
 const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 interface TemplateSrvWithAdhocFilters {
@@ -20,6 +22,16 @@ interface TemplateSrvWithAdhocFilters {
 
 const originalGetAdhocFilters = jest.fn().mockReturnValue([]);
 setTemplateSrv({ getAdhocFilters: originalGetAdhocFilters } as any);
+
+function setDataSources(dataSources: Array<{ uid: string; name: string; isDefault?: boolean }>) {
+  const items = dataSources.map(({ uid, name }) => ({ uid, name, type: 'test', meta: {} }));
+
+  getDataSourceInstanceListMock.mockResolvedValue(items as any);
+  getDefaultDataSourceInstanceListItemMock.mockImplementation(async (listItems) => {
+    const defaultUid = dataSources.find((ds) => ds.isDefault)?.uid;
+    return listItems.find((item) => item.uid === defaultUid);
+  });
+}
 
 function activateVariable(variable: AdHocFiltersVariable) {
   const scene = new EmbeddedScene({
@@ -37,8 +49,7 @@ function getAdhocFiltersFromTemplateSrv(dsName?: string) {
 describe('patchGetAdhocFilters', () => {
   beforeEach(() => {
     originalGetAdhocFilters.mockClear();
-    getDataSourceInstanceSettingsMock.mockReset();
-    getDataSourceInstanceSettingsMock.mockResolvedValue(undefined);
+    setDataSources([]);
   });
 
   // The patched templateSrv.getAdhocFilters is a separate application path: datasources call it
@@ -90,7 +101,7 @@ describe('patchGetAdhocFilters', () => {
     });
 
     it('matches the name of the variable data source once it is resolved', async () => {
-      getDataSourceInstanceSettingsMock.mockResolvedValue({ uid: 'prom', name: 'Prometheus', isDefault: false } as any);
+      setDataSources([{ uid: 'prom', name: 'Prometheus' }]);
       const deactivate = activateAutoVariable('prom');
       await flushPromises();
 
@@ -101,7 +112,7 @@ describe('patchGetAdhocFilters', () => {
     });
 
     it.each([['default'], ['']])('matches "%s" when the variable data source is the default one', async (dsName) => {
-      getDataSourceInstanceSettingsMock.mockResolvedValue({ uid: 'prom', name: 'Prometheus', isDefault: true } as any);
+      setDataSources([{ uid: 'prom', name: 'Prometheus', isDefault: true }]);
       const deactivate = activateAutoVariable('prom');
       await flushPromises();
 
@@ -111,7 +122,7 @@ describe('patchGetAdhocFilters', () => {
     });
 
     it('does not match "default" when the variable data source is not the default one', async () => {
-      getDataSourceInstanceSettingsMock.mockResolvedValue({ uid: 'prom', name: 'Prometheus', isDefault: false } as any);
+      setDataSources([{ uid: 'prom', name: 'Prometheus' }]);
       const deactivate = activateAutoVariable('prom');
       await flushPromises();
 
@@ -124,7 +135,7 @@ describe('patchGetAdhocFilters', () => {
     it('falls back to the original getAdhocFilters when no variable matches', async () => {
       const legacyFilters = [{ key: 'legacy', operator: '=', value: '1', condition: '' }];
       originalGetAdhocFilters.mockReturnValueOnce(legacyFilters);
-      getDataSourceInstanceSettingsMock.mockResolvedValue({ uid: 'prom', name: 'Prometheus', isDefault: false } as any);
+      setDataSources([{ uid: 'prom', name: 'Prometheus' }]);
       const deactivate = activateAutoVariable('prom');
       await flushPromises();
 
@@ -135,7 +146,7 @@ describe('patchGetAdhocFilters', () => {
     });
 
     it('falls back to the original getAdhocFilters for a name until the data source is resolved', async () => {
-      getDataSourceInstanceSettingsMock.mockResolvedValue({ uid: 'prom', name: 'Prometheus', isDefault: false } as any);
+      setDataSources([{ uid: 'prom', name: 'Prometheus' }]);
       const deactivate = activateAutoVariable('prom');
 
       getAdhocFiltersFromTemplateSrv('Prometheus');
@@ -160,13 +171,10 @@ describe('patchGetAdhocFilters', () => {
     });
 
     it('matches the new data source by name after the variable data source changed', async () => {
-      const settingsByUid: Record<string, unknown> = {
-        prom: { uid: 'prom', name: 'Prometheus', isDefault: false },
-        loki: { uid: 'loki', name: 'Loki', isDefault: false },
-      };
-      getDataSourceInstanceSettingsMock.mockImplementation(
-        async (ref) => settingsByUid[(ref as { uid: string }).uid] as any
-      );
+      setDataSources([
+        { uid: 'prom', name: 'Prometheus' },
+        { uid: 'loki', name: 'Loki' },
+      ]);
       const variable = new AdHocFiltersVariable({ datasource: { uid: 'prom' }, applyMode: 'auto', filters });
       const deactivate = activateVariable(variable);
       await flushPromises();
@@ -184,19 +192,21 @@ describe('patchGetAdhocFilters', () => {
       deactivate();
     });
 
-    it('matches a name when the variable data source uid is a template variable', async () => {
-      getDataSourceInstanceSettingsMock.mockResolvedValue({ uid: 'prom', name: 'Prometheus', isDefault: false } as any);
+    it('only matches a variable whose data source uid is a template variable by uid', async () => {
+      setDataSources([{ uid: 'prom', name: 'Prometheus', isDefault: true }]);
       const deactivate = activateAutoVariable('${ds}');
       await flushPromises();
 
-      expect(getAdhocFiltersFromTemplateSrv('Prometheus')).toEqual(filters);
+      expect(getAdhocFiltersFromTemplateSrv('${ds}')).toEqual(filters);
+      expect(getAdhocFiltersFromTemplateSrv('Prometheus')).toEqual([]);
+      expect(getAdhocFiltersFromTemplateSrv('default')).toEqual([]);
 
       deactivate();
     });
 
     it('keeps matching by uid when resolving the data source fails', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-      getDataSourceInstanceSettingsMock.mockRejectedValue(new Error('boom'));
+      getDataSourceInstanceListMock.mockRejectedValue(new Error('boom'));
       const deactivate = activateAutoVariable('prom');
       await flushPromises();
 
