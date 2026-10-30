@@ -9,8 +9,14 @@ let originalGetAdhocFilters: any = undefined;
 export const allActiveFilterSets = new Set<AdHocFiltersVariable>();
 
 // templateSrv.getAdhocFilters is synchronous and may be called with a data source name or "default", while data source
-// lookups are async. The settings are resolved when the variable activates, until then only uids can be matched.
-const resolvedDataSources = new WeakMap<AdHocFiltersVariable, DataSourceInstanceSettings>();
+// lookups are async. The settings are resolved when the variable activates or its data source changes, until then only
+// uids can be matched.
+// refUid is the datasource uid the variable had when the settings were resolved, e.g. "${ds}" or "prom-uid". The
+// settings carry the real uid, so they can't tell whether they still belong to the variable's current datasource.
+const resolvedDataSources = new WeakMap<
+  AdHocFiltersVariable,
+  { refUid: string | undefined; settings: DataSourceInstanceSettings }
+>();
 
 async function resolveDataSource(filterVar: AdHocFiltersVariable) {
   const ref = filterVar.state.datasource;
@@ -20,8 +26,10 @@ async function resolveDataSource(filterVar: AdHocFiltersVariable) {
 
   try {
     const settings = await getDataSourceInstanceSettings(ref);
+    // If the data source changes again before this resolves, a slower earlier lookup can overwrite the newer result.
+    // The entry then won't match the current data source, so names are not matched until the next change or activation.
     if (settings) {
-      resolvedDataSources.set(filterVar, settings);
+      resolvedDataSources.set(filterVar, { refUid: ref.uid, settings });
     }
   } catch (error) {
     console.error('Failed to resolve the data source of an ad hoc filters variable', error);
@@ -38,24 +46,34 @@ function isFilterSetForDataSource(filterVar: AdHocFiltersVariable, dsName: strin
     return true;
   }
 
-  // The data source can change after the settings were resolved
+  // The settings are stale until the new data source is resolved after a change
   const resolved = resolvedDataSources.get(filterVar);
-  if (resolved?.uid !== uid) {
+  if (resolved?.refUid !== uid) {
     return false;
   }
 
   if (!dsName || dsName === 'default') {
-    return Boolean(resolved.isDefault);
+    return Boolean(resolved.settings.isDefault);
   }
 
-  return resolved.name === dsName;
+  return resolved.settings.name === dsName;
 }
 
 export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {
   filterVar.addActivationHandler(() => {
     allActiveFilterSets.add(filterVar);
     resolveDataSource(filterVar);
-    return () => allActiveFilterSets.delete(filterVar);
+
+    const sub = filterVar.subscribeToState((state, prevState) => {
+      if (state.datasource?.uid !== prevState.datasource?.uid) {
+        resolveDataSource(filterVar);
+      }
+    });
+
+    return () => {
+      allActiveFilterSets.delete(filterVar);
+      sub.unsubscribe();
+    };
   });
 
   if (originalGetAdhocFilters) {

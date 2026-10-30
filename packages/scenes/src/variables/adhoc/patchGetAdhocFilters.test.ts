@@ -159,8 +159,14 @@ describe('patchGetAdhocFilters', () => {
       deactivate();
     });
 
-    it('ignores the resolved name after the variable data source changed', async () => {
-      getDataSourceInstanceSettingsMock.mockResolvedValue({ uid: 'prom', name: 'Prometheus', isDefault: false } as any);
+    it('matches the new data source by name after the variable data source changed', async () => {
+      const settingsByUid: Record<string, unknown> = {
+        prom: { uid: 'prom', name: 'Prometheus', isDefault: false },
+        loki: { uid: 'loki', name: 'Loki', isDefault: false },
+      };
+      getDataSourceInstanceSettingsMock.mockImplementation(
+        async (ref) => settingsByUid[(ref as { uid: string }).uid] as any
+      );
       const variable = new AdHocFiltersVariable({ datasource: { uid: 'prom' }, applyMode: 'auto', filters });
       const deactivate = activateVariable(variable);
       await flushPromises();
@@ -168,7 +174,22 @@ describe('patchGetAdhocFilters', () => {
       variable.setState({ datasource: { uid: 'loki' } });
 
       expect(getAdhocFiltersFromTemplateSrv('Prometheus')).toEqual([]);
-      expect(originalGetAdhocFilters).toHaveBeenCalledWith('Prometheus');
+
+      await flushPromises();
+      originalGetAdhocFilters.mockClear();
+
+      expect(getAdhocFiltersFromTemplateSrv('Loki')).toEqual(filters);
+      expect(originalGetAdhocFilters).not.toHaveBeenCalled();
+
+      deactivate();
+    });
+
+    it('matches a name when the variable data source uid is a template variable', async () => {
+      getDataSourceInstanceSettingsMock.mockResolvedValue({ uid: 'prom', name: 'Prometheus', isDefault: false } as any);
+      const deactivate = activateAutoVariable('${ds}');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('Prometheus')).toEqual(filters);
 
       deactivate();
     });
