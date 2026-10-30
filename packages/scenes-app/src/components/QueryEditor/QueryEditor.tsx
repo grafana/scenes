@@ -4,7 +4,7 @@ import { QueryEditorRenderer } from './QueryEditorRenderer';
 import { DataQuery, DataSourceRef } from '@grafana/schema';
 
 import { DataSourceApi, ScopedVars } from '@grafana/data';
-import { getDataSourceSrv } from '@grafana/runtime';
+import { getDataSourceInstance } from '@grafana/plugin-compat/datasources';
 
 export interface QueryEditorState extends SceneObjectState {
   datasource?: DataSourceApi;
@@ -69,5 +69,5 @@ async function getDataSource(datasource: DataSourceRef | undefined, scopedVars: 
   if (datasource && (datasource as any).query) {
     return datasource as DataSourceApi;
   }
-  return await getDataSourceSrv().get(datasource as string, scopedVars);
+  return await getDataSourceInstance(datasource as string, scopedVars);
 }

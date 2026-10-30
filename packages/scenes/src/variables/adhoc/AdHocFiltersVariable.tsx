@@ -32,7 +32,7 @@ import { useStyles2 } from '@grafana/ui';
 import { sceneGraph } from '../../core/sceneGraph';
 import { AdHocFilterBuilder } from './AdHocFilterBuilder';
 import { AdHocFilterRenderer } from './AdHocFilterRenderer';
-import { getDataSourceSrv } from '@grafana/runtime';
+import { getDataSourceInstance } from '@grafana/plugin-compat/datasources';
 import { getAdHocFilterInteractionHandler } from '../../core/sceneGraph/getReportInteractionHandler';
 import { AdHocFiltersVariableUrlSyncHandler, toArray } from './AdHocFiltersVariableUrlSyncHandler';
 import { css } from '@emotion/css';
@@ -291,7 +291,6 @@ export class AdHocFiltersVariable
   static Component = AdHocFiltersVariableRenderer;
 
   private _scopedVars = { __sceneObject: wrapInSafeSerializableSceneObject(this) };
-  private _dataSourceSrv = getDataSourceSrv();
   // holds the originalValues of all baseFilters in a map. The values
   // are set on construct and used to restore a baseFilter with an origin
   // to its original value if edited at some point
@@ -1071,7 +1070,7 @@ export class AdHocFiltersVariable
     queries: SceneDataQuery[],
     groupByKeys?: string[]
   ): Promise<DrilldownsApplicability[] | undefined> {
-    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    const ds = await getDataSourceInstance(this.state.datasource, this._scopedVars);
     if (!ds || !ds.getDrilldownsApplicability) {
       return;
     }
@@ -1188,7 +1187,7 @@ export class AdHocFiltersVariable
       return this.state.defaultKeys.map(toSelectableValue);
     }
 
-    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    const ds = await getDataSourceInstance(this.state.datasource, this._scopedVars);
     if (!ds || !ds.getTagKeys) {
       return [];
     }
@@ -1248,7 +1247,7 @@ export class AdHocFiltersVariable
       return dataFromResponse(override.values).map(toSelectableValue);
     }
 
-    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    const ds = await getDataSourceInstance(this.state.datasource, this._scopedVars);
     // @ts-expect-error (TODO: remove after upgrading with https://github.com/grafana/grafana/pull/118270)
     if (!ds || !ds.getGroupByKeys) {
       return override ? dataFromResponse(override.values).map(toSelectableValue) : [];
@@ -1296,7 +1295,7 @@ export class AdHocFiltersVariable
       return dataFromResponse(override.values).map(toSelectableValue);
     }
 
-    const ds = await this._dataSourceSrv.get(this.state.datasource, this._scopedVars);
+    const ds = await getDataSourceInstance(this.state.datasource, this._scopedVars);
 
     if (!ds || !ds.getTagValues) {
       return [];

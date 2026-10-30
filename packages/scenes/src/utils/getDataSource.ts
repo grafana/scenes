@@ -1,5 +1,5 @@
 import { DataSourceApi, ScopedVars } from '@grafana/data';
-import { getDataSourceSrv } from '@grafana/runtime';
+import { getDataSourceInstance } from '@grafana/plugin-compat/datasources';
 import { DataSourceRef } from '@grafana/schema';
 import { runtimeDataSources } from '../querying/RuntimeDataSource';
 import { registerQueryWithController, wrapPromiseInStateObservable } from '../querying/registerQueryWithController';
@@ -21,7 +21,7 @@ export async function getDataSource(
     return datasource as DataSourceApi;
   }
 
-  const dsPromise = getDataSourceSrv().get(datasource as string, scopedVars);
+  const dsPromise = getDataSourceInstance(datasource as string, scopedVars);
 
   if (scopedVars.__sceneObject && scopedVars.__sceneObject.value.valueOf()) {
     const queryControler = sceneGraph.getQueryController(scopedVars.__sceneObject.value.valueOf() as SceneObject);
