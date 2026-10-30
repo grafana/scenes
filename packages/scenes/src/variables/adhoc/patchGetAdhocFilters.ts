@@ -1,6 +1,6 @@
 import { getTemplateSrv } from '@grafana/runtime';
-import { getDataSourceInstanceSettings } from '@grafana/plugin-compat/datasources';
-import { AdHocVariableFilter, DataSourceInstanceSettings } from '@grafana/data';
+import { getDataSourceInstanceList, getDefaultDataSourceInstanceListItem } from '@grafana/plugin-compat/datasources';
+import { AdHocVariableFilter } from '@grafana/data';
 import { AdHocFiltersVariable, isGroupByFilter } from './AdHocFiltersVariable';
 import { interpolate } from '../../core/sceneGraph/sceneGraph';
 import { SceneObject } from '../../core/types';
@@ -9,28 +9,30 @@ let originalGetAdhocFilters: any = undefined;
 export const allActiveFilterSets = new Set<AdHocFiltersVariable>();
 
 // templateSrv.getAdhocFilters is synchronous and may be called with a data source name or "default", while data source
-// lookups are async. The settings are resolved when the variable activates or its data source changes, until then only
-// uids can be matched.
-// refUid is the datasource uid the variable had when the settings were resolved, e.g. "${ds}" or "prom-uid". The
-// settings carry the real uid, so they can't tell whether they still belong to the variable's current datasource.
-const resolvedDataSources = new WeakMap<
-  AdHocFiltersVariable,
-  { refUid: string | undefined; settings: DataSourceInstanceSettings }
->();
+// lookups are async. The name and default flag are resolved when the variable activates or its data source changes,
+// until then only uids can be matched. Only the data source list is needed for this, so no per-data-source settings
+// are loaded. Template variable uids are not resolved, so those are matched by uid only.
+// refUid is the uid the variable had when this was resolved, so an entry for a previous data source is never used.
+const resolvedDataSources = new WeakMap<AdHocFiltersVariable, { refUid: string; name: string; isDefault: boolean }>();
 
 async function resolveDataSource(filterVar: AdHocFiltersVariable) {
-  const ref = filterVar.state.datasource;
-  if (!ref) {
+  const uid = filterVar.state.datasource?.uid;
+  if (!uid) {
     return;
   }
 
   try {
-    const settings = await getDataSourceInstanceSettings(ref);
+    const items = await getDataSourceInstanceList({ all: true });
+    const item = items.find((listItem) => listItem.uid === uid);
+    if (!item) {
+      return;
+    }
+
+    const defaultItem = await getDefaultDataSourceInstanceListItem(items);
+
     // If the data source changes again before this resolves, a slower earlier lookup can overwrite the newer result.
     // The entry then won't match the current data source, so names are not matched until the next change or activation.
-    if (settings) {
-      resolvedDataSources.set(filterVar, { refUid: ref.uid, settings });
-    }
+    resolvedDataSources.set(filterVar, { refUid: uid, name: item.name, isDefault: defaultItem?.uid === item.uid });
   } catch (error) {
     console.error('Failed to resolve the data source of an ad hoc filters variable', error);
   }
@@ -53,10 +55,10 @@ function isFilterSetForDataSource(filterVar: AdHocFiltersVariable, dsName: strin
   }
 
   if (!dsName || dsName === 'default') {
-    return Boolean(resolved.settings.isDefault);
+    return resolved.isDefault;
   }
 
-  return resolved.settings.name === dsName;
+  return resolved.name === dsName;
 }
 
 export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {
