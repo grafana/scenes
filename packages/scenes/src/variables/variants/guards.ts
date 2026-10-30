@@ -1,13 +1,13 @@
-import { AdHocFiltersVariable } from '../adhoc/AdHocFiltersVariable';
-import { SceneVariable } from '../types';
-import { ConstantVariable } from './ConstantVariable';
-import { CustomVariable } from './CustomVariable';
-import { DataSourceVariable } from './DataSourceVariable';
-import { IntervalVariable } from './IntervalVariable';
-import { TextBoxVariable } from './TextBoxVariable';
-import { QueryVariable } from './query/QueryVariable';
-import { GroupByVariable } from '../groupby/GroupByVariable';
-import { SwitchVariable } from './SwitchVariable';
+import type { AdHocFiltersVariable } from '../adhoc/AdHocFiltersVariable';
+import type { SceneVariable } from '../types';
+import type { ConstantVariable } from './ConstantVariable';
+import type { CustomVariable } from './CustomVariable';
+import type { DataSourceVariable } from './DataSourceVariable';
+import type { IntervalVariable } from './IntervalVariable';
+import type { TextBoxVariable } from './TextBoxVariable';
+import type { QueryVariable } from './query/QueryVariable';
+import type { GroupByVariable } from '../groupby/GroupByVariable';
+import type { SwitchVariable } from './SwitchVariable';
 
 export function isAdHocVariable(variable: SceneVariable): variable is AdHocFiltersVariable {
   return variable.state.type === 'adhoc';
