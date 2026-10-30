@@ -1,16 +1,37 @@
-import { getTemplateSrv, setDataSourceSrv, setTemplateSrv } from '@grafana/runtime';
+import { getDataSourceInstanceList, getDefaultDataSourceInstanceListItem } from '@grafana/plugin-compat/datasources';
+import { getTemplateSrv, setTemplateSrv } from '@grafana/runtime';
 import { AdHocFiltersVariable } from './AdHocFiltersVariable';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { EmbeddedScene } from '../../components/EmbeddedScene';
 import { SceneCanvasText } from '../../components/SceneCanvasText';
 import { activateFullSceneTree } from '../../utils/test/activateFullSceneTree';
 
+jest.mock('@grafana/plugin-compat/datasources', () => ({
+  ...jest.requireActual('@grafana/plugin-compat/datasources'),
+  getDataSourceInstanceList: jest.fn(),
+  getDefaultDataSourceInstanceListItem: jest.fn(),
+}));
+
+const getDataSourceInstanceListMock = jest.mocked(getDataSourceInstanceList);
+const getDefaultDataSourceInstanceListItemMock = jest.mocked(getDefaultDataSourceInstanceListItem);
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+
 interface TemplateSrvWithAdhocFilters {
-  getAdhocFilters: (dsName: string) => unknown;
+  getAdhocFilters: (dsName?: string) => unknown;
 }
 
-setTemplateSrv({ getAdhocFilters: jest.fn().mockReturnValue([]) } as any);
-setDataSourceSrv({ getInstanceSettings: () => ({ uid: 'prom' }) } as any);
+const originalGetAdhocFilters = jest.fn().mockReturnValue([]);
+setTemplateSrv({ getAdhocFilters: originalGetAdhocFilters } as any);
+
+function setDataSources(dataSources: Array<{ uid: string; name: string; isDefault?: boolean }>) {
+  const items = dataSources.map(({ uid, name }) => ({ uid, name, type: 'test', meta: {} }));
+
+  getDataSourceInstanceListMock.mockResolvedValue(items as any);
+  getDefaultDataSourceInstanceListItemMock.mockImplementation(async (listItems) => {
+    const defaultUid = dataSources.find((ds) => ds.isDefault)?.uid;
+    return listItems.find((item) => item.uid === defaultUid);
+  });
+}
 
 function activateVariable(variable: AdHocFiltersVariable) {
   const scene = new EmbeddedScene({
@@ -21,11 +42,16 @@ function activateVariable(variable: AdHocFiltersVariable) {
   return activateFullSceneTree(scene);
 }
 
-function getAdhocFiltersFromTemplateSrv(dsName: string) {
+function getAdhocFiltersFromTemplateSrv(dsName?: string) {
   return (getTemplateSrv() as unknown as TemplateSrvWithAdhocFilters).getAdhocFilters(dsName);
 }
 
 describe('patchGetAdhocFilters', () => {
+  beforeEach(() => {
+    originalGetAdhocFilters.mockClear();
+    setDataSources([]);
+  });
+
   // The patched templateSrv.getAdhocFilters is a separate application path: datasources call it
   // directly, so it never passes through DrilldownDependenciesManager and is not covered by the
   // applyMode check there. Only the constructor's `applyMode === 'auto'` guard keeps manual-mode
@@ -56,5 +82,138 @@ describe('patchGetAdhocFilters', () => {
     expect(getAdhocFiltersFromTemplateSrv('prom')).toEqual(variable.state.filters);
 
     deactivate();
+  });
+
+  describe('when called with a data source reference', () => {
+    const filters = [{ key: 'alertname', operator: '=', value: 'Boom', condition: '' }];
+
+    function activateAutoVariable(uid: string) {
+      return activateVariable(new AdHocFiltersVariable({ datasource: { uid }, applyMode: 'auto', filters }));
+    }
+
+    it('matches the uid of the variable data source without resolving anything', () => {
+      const deactivate = activateAutoVariable('prom');
+
+      expect(getAdhocFiltersFromTemplateSrv('prom')).toEqual(filters);
+      expect(originalGetAdhocFilters).not.toHaveBeenCalled();
+
+      deactivate();
+    });
+
+    it('matches the name of the variable data source once it is resolved', async () => {
+      setDataSources([{ uid: 'prom', name: 'Prometheus' }]);
+      const deactivate = activateAutoVariable('prom');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('Prometheus')).toEqual(filters);
+      expect(originalGetAdhocFilters).not.toHaveBeenCalled();
+
+      deactivate();
+    });
+
+    it.each([['default'], ['']])('matches "%s" when the variable data source is the default one', async (dsName) => {
+      setDataSources([{ uid: 'prom', name: 'Prometheus', isDefault: true }]);
+      const deactivate = activateAutoVariable('prom');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv(dsName)).toEqual(filters);
+
+      deactivate();
+    });
+
+    it('does not match "default" when the variable data source is not the default one', async () => {
+      setDataSources([{ uid: 'prom', name: 'Prometheus' }]);
+      const deactivate = activateAutoVariable('prom');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('default')).toEqual([]);
+      expect(originalGetAdhocFilters).toHaveBeenCalledWith('default');
+
+      deactivate();
+    });
+
+    it('falls back to the original getAdhocFilters when no variable matches', async () => {
+      const legacyFilters = [{ key: 'legacy', operator: '=', value: '1', condition: '' }];
+      originalGetAdhocFilters.mockReturnValueOnce(legacyFilters);
+      setDataSources([{ uid: 'prom', name: 'Prometheus' }]);
+      const deactivate = activateAutoVariable('prom');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('Loki')).toEqual(legacyFilters);
+      expect(originalGetAdhocFilters).toHaveBeenCalledWith('Loki');
+
+      deactivate();
+    });
+
+    it('falls back to the original getAdhocFilters for a name until the data source is resolved', async () => {
+      setDataSources([{ uid: 'prom', name: 'Prometheus' }]);
+      const deactivate = activateAutoVariable('prom');
+
+      getAdhocFiltersFromTemplateSrv('Prometheus');
+      expect(originalGetAdhocFilters).toHaveBeenCalledWith('Prometheus');
+
+      await flushPromises();
+      originalGetAdhocFilters.mockClear();
+
+      expect(getAdhocFiltersFromTemplateSrv('Prometheus')).toEqual(filters);
+      expect(originalGetAdhocFilters).not.toHaveBeenCalled();
+
+      deactivate();
+    });
+
+    it('does not match an empty name for a variable without a data source', () => {
+      const deactivate = activateVariable(new AdHocFiltersVariable({ applyMode: 'auto', filters }));
+
+      expect(getAdhocFiltersFromTemplateSrv()).toEqual([]);
+      expect(originalGetAdhocFilters).toHaveBeenCalled();
+
+      deactivate();
+    });
+
+    it('matches the new data source by name after the variable data source changed', async () => {
+      setDataSources([
+        { uid: 'prom', name: 'Prometheus' },
+        { uid: 'loki', name: 'Loki' },
+      ]);
+      const variable = new AdHocFiltersVariable({ datasource: { uid: 'prom' }, applyMode: 'auto', filters });
+      const deactivate = activateVariable(variable);
+      await flushPromises();
+
+      variable.setState({ datasource: { uid: 'loki' } });
+
+      expect(getAdhocFiltersFromTemplateSrv('Prometheus')).toEqual([]);
+
+      await flushPromises();
+      originalGetAdhocFilters.mockClear();
+
+      expect(getAdhocFiltersFromTemplateSrv('Loki')).toEqual(filters);
+      expect(originalGetAdhocFilters).not.toHaveBeenCalled();
+
+      deactivate();
+    });
+
+    it('only matches a variable whose data source uid is a template variable by uid', async () => {
+      setDataSources([{ uid: 'prom', name: 'Prometheus', isDefault: true }]);
+      const deactivate = activateAutoVariable('${ds}');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('${ds}')).toEqual(filters);
+      expect(getAdhocFiltersFromTemplateSrv('Prometheus')).toEqual([]);
+      expect(getAdhocFiltersFromTemplateSrv('default')).toEqual([]);
+
+      deactivate();
+    });
+
+    it('keeps matching by uid when resolving the data source fails', async () => {
+      const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+      getDataSourceInstanceListMock.mockRejectedValue(new Error('boom'));
+      const deactivate = activateAutoVariable('prom');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('prom')).toEqual(filters);
+
+      consoleError.mockRestore();
+      deactivate();
+    });
   });
 });
