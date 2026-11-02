@@ -1,3 +1,16 @@
+# v9.2.1 (Mon Nov 02 2026)
+
+#### 🐛 Bug Fix
+
+- `@grafana/scenes`
+  - fix(guards): remove type imports to prevent conflicts [#1710](https://github.com/grafana/scenes/pull/1710) ([@jackw](https://github.com/jackw))
+
+#### Authors: 1
+
+- Jack Westbrook ([@jackw](https://github.com/jackw))
+
+---
+
 # v9.2.0 (Fri Oct 30 2026)
 
 #### 🚀 Enhancement
