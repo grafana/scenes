@@ -16,8 +16,8 @@ import React from 'react';
 import { demoUrl, prefixRoute } from '../utils/utils.routing';
 import { DATASOURCE_REF, ROUTES } from '../constants';
 import { getDemos } from '../demos';
-import { Alert, Card, Input, useStyles2 } from '@grafana/ui';
-import { config } from '@grafana/runtime';
+import { Alert, Card, Input, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
+import { useDataSourceInstance } from '@grafana/plugin-compat/datasources';
 import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
 import { DemoSubTitle } from '../pages/DemoSubTitle';
@@ -132,8 +132,13 @@ export class DemoList extends SceneObjectBase<DemoListState> {
 function DemoListRenderer({ model }: SceneComponentProps<DemoList>) {
   const { body, searchQuery } = model.useState();
   const styles = useStyles2(getStyles);
+  const { isLoading, dataSource } = useDataSourceInstance(DATASOURCE_REF);
 
-  if (!config.datasources[DATASOURCE_REF.uid]) {
+  if (isLoading) {
+    return <LoadingPlaceholder text="Loading data source..." />;
+  }
+
+  if (!dataSource) {
     return (
       <Alert title={`Missing ${DATASOURCE_REF.uid} datasource`}>
         These demos depend on <b>testdata</b> datasource: <code>{JSON.stringify(DATASOURCE_REF)}</code>. See{' '}

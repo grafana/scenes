@@ -1,7 +1,7 @@
 import { PanelData, RawTimeRange, ScopedVars } from '@grafana/data';
 import { SceneObject } from '../core/types';
 import { wrapInSafeSerializableSceneObject } from './wrapInSafeSerializableSceneObject';
-import { getDataSourceSrv } from '@grafana/runtime';
+import { getDataSourceInstance } from '@grafana/plugin-compat/datasources';
 import { DataQuery } from '@grafana/schema';
 
 /**
@@ -28,7 +28,7 @@ export async function getExploreURL(
   const interpolatedQueries = (
     await Promise.allSettled(
       targets.map(async (q) => {
-        const queryDs = await getDataSourceSrv().get(q.datasource);
+        const queryDs = await getDataSourceInstance(q.datasource);
         return queryDs.interpolateVariablesInQueries?.([q], scopedVars ?? {}, filters)[0] || q;
       })
     )

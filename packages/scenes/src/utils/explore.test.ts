@@ -5,17 +5,14 @@ import { getExploreURL } from './explore';
 import { VizPanel } from '../components/VizPanel/VizPanel';
 import { wrapInSafeSerializableSceneObject } from './wrapInSafeSerializableSceneObject';
 
-const mockDataSourceSrv = {
-  get: jest.fn(),
-};
+const mockGetDataSourceInstance = jest.fn();
 
 const mockDataSource = {
   interpolateVariablesInQueries: jest.fn(),
 };
 
-jest.mock('@grafana/runtime', () => ({
-  ...jest.requireActual('@grafana/runtime'),
-  getDataSourceSrv: () => mockDataSourceSrv,
+jest.mock('@grafana/plugin-compat/datasources', () => ({
+  getDataSourceInstance: (...args: unknown[]) => mockGetDataSourceInstance(...args),
 }));
 
 interface TestQuery extends DataQuery {
@@ -25,7 +22,7 @@ interface TestQuery extends DataQuery {
 describe('getExploreURL', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDataSourceSrv.get.mockReturnValue(mockDataSource);
+    mockGetDataSourceInstance.mockReturnValue(mockDataSource);
     mockDataSource.interpolateVariablesInQueries.mockImplementation(
       (queries: DataQuery[], scopedVars: ScopedVars, filters: AdHocFilterItem[]) => {
         return queries.map((q) => ({ ...q, query: (q as TestQuery).query + ' interpolated' }));
@@ -64,7 +61,7 @@ describe('getExploreURL', () => {
       range: timeRange,
     };
 
-    expect(mockDataSourceSrv.get).toHaveBeenCalledTimes(1);
+    expect(mockGetDataSourceInstance).toHaveBeenCalledTimes(1);
     expect(mockDataSource.interpolateVariablesInQueries).toHaveBeenCalledWith(
       [data.request!.targets[0]],
       { __sceneObject: wrapInSafeSerializableSceneObject(model) },
@@ -119,7 +116,7 @@ describe('getExploreURL', () => {
       range: timeRange,
     };
 
-    expect(mockDataSourceSrv.get).toHaveBeenCalledTimes(2);
+    expect(mockGetDataSourceInstance).toHaveBeenCalledTimes(2);
     expect(mockDataSource.interpolateVariablesInQueries).toHaveBeenCalledTimes(2);
     expect(mockDataSource.interpolateVariablesInQueries).toHaveBeenNthCalledWith(
       1,
