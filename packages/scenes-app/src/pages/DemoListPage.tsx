@@ -16,7 +16,7 @@ import React from 'react';
 import { demoUrl, prefixRoute } from '../utils/utils.routing';
 import { DATASOURCE_REF, ROUTES } from '../constants';
 import { getDemos } from '../demos';
-import { Alert, Card, Input, useStyles2 } from '@grafana/ui';
+import { Alert, Card, Input, LoadingPlaceholder, useStyles2 } from '@grafana/ui';
 import { useDataSourceInstance } from '@grafana/plugin-compat/datasources';
 import { GrafanaTheme2 } from '@grafana/data';
 import { css } from '@emotion/css';
@@ -135,7 +135,7 @@ function DemoListRenderer({ model }: SceneComponentProps<DemoList>) {
   const { isLoading, dataSource } = useDataSourceInstance(DATASOURCE_REF);
 
   if (isLoading) {
-    return null;
+    return <LoadingPlaceholder text="Loading data source..." />;
   }
 
   if (!dataSource) {
