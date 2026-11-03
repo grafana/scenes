@@ -204,6 +204,21 @@ describe('patchGetAdhocFilters', () => {
       deactivate();
     });
 
+    it('matches the default data source by name when the variable data source uid is "default"', async () => {
+      setDataSources([
+        { uid: 'prom', name: 'Prometheus', isDefault: true },
+        { uid: 'loki', name: 'Loki' },
+      ]);
+      const deactivate = activateAutoVariable('default');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('Prometheus')).toEqual(filters);
+      expect(getAdhocFiltersFromTemplateSrv('default')).toEqual(filters);
+      expect(getAdhocFiltersFromTemplateSrv('Loki')).toEqual([]);
+
+      deactivate();
+    });
+
     it('keeps matching by uid when resolving the data source fails', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
       getDataSourceInstanceListMock.mockRejectedValue(new Error('boom'));

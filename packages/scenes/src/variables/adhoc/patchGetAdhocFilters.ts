@@ -23,12 +23,11 @@ async function resolveDataSource(filterVar: AdHocFiltersVariable) {
 
   try {
     const items = await getDataSourceInstanceList({ all: true });
-    const item = items.find((listItem) => listItem.uid === uid);
+    const defaultItem = await getDefaultDataSourceInstanceListItem(items);
+    const item = uid === 'default' ? defaultItem : items.find((listItem) => listItem.uid === uid);
     if (!item) {
       return;
     }
-
-    const defaultItem = await getDefaultDataSourceInstanceListItem(items);
 
     // If the data source changes again before this resolves, a slower earlier lookup can overwrite the newer result.
     // The entry then won't match the current data source, so names are not matched until the next change or activation.
