@@ -1,8 +1,8 @@
 import { t } from '@grafana/i18n';
-import { Observable, of } from 'rxjs';
+import { Observable, from, of, tap } from 'rxjs';
 
-import { stringToJsRegex, DataSourceInstanceSettings } from '@grafana/data';
-import { getDataSourceSrv } from '@grafana/runtime';
+import { stringToJsRegex } from '@grafana/data';
+import { getDataSourceInstanceList, getDefaultDataSourceInstanceListItem } from '@grafana/plugin-compat/datasources';
 
 import { sceneGraph } from '../../core/sceneGraph';
 import { SceneComponentProps } from '../../core/types';
@@ -51,24 +51,42 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
       return of([]);
     }
 
-    const dataSources = getDataSourceSrv().getList({ metrics: true, variables: false, pluginId: this.state.pluginId });
+    return from(this.getOptions()).pipe(
+      tap((options) => {
+        if (options.length === 0) {
+          this.setState({ error: 'No data sources found' });
+        } else if (this.state.error) {
+          this.setState({ error: null });
+        }
+      })
+    );
+  }
 
+  private async getOptions(): Promise<VariableValueOption[]> {
     let regex;
     if (this.state.regex) {
       const interpolated = sceneGraph.interpolate(this, this.state.regex, undefined, 'regex');
       regex = stringToJsRegex(interpolated);
     }
 
+    const dataSources = await getDataSourceInstanceList({
+      metrics: true,
+      variables: false,
+      pluginId: this.state.pluginId,
+    });
+
+    const defaultDataSource = this.state.defaultOptionEnabled
+      ? await getDefaultDataSourceInstanceListItem(dataSources)
+      : undefined;
+
     const options: VariableValueOption[] = [];
 
-    for (let i = 0; i < dataSources.length; i++) {
-      const source = dataSources[i];
-
+    for (const source of dataSources) {
       if (isValid(source, regex)) {
         options.push({ label: source.name, value: source.uid });
       }
 
-      if (this.state.defaultOptionEnabled && isDefault(source, regex)) {
+      if (defaultDataSource?.uid === source.uid && isDefaultValid(regex)) {
         options.push({
           label: t('grafana-scenes.variables.data-source-variable.label.default', 'default'),
           value: 'default',
@@ -76,13 +94,7 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
       }
     }
 
-    if (options.length === 0) {
-      this.setState({ error: 'No data sources found' });
-    } else if (this.state.error) {
-      this.setState({ error: null });
-    }
-
-    return of(options);
+    return options;
   }
 
   public static Component = ({ model }: SceneComponentProps<MultiValueVariable>) => {
@@ -90,7 +102,7 @@ export class DataSourceVariable extends MultiValueVariable<DataSourceVariableSta
   };
 }
 
-function isValid(source: DataSourceInstanceSettings, regex?: RegExp) {
+function isValid(source: { name: string }, regex?: RegExp) {
   if (!regex) {
     return true;
   }
@@ -98,11 +110,7 @@ function isValid(source: DataSourceInstanceSettings, regex?: RegExp) {
   return regex.exec(source.name);
 }
 
-function isDefault(source: DataSourceInstanceSettings, regex?: RegExp) {
-  if (!source.isDefault) {
-    return false;
-  }
-
+function isDefaultValid(regex?: RegExp) {
   if (!regex) {
     return true;
   }
