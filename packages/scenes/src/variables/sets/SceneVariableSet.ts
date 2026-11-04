@@ -329,11 +329,6 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       return;
     }
 
-    // Skip non active scene objects
-    if (!sceneObject.isActive) {
-      return;
-    }
-
     // If we find a nested SceneVariableSet that has a variable with the same name we stop the traversal
     if (sceneObject.state.$variables && sceneObject.state.$variables !== this) {
       const localVar = sceneObject.state.$variables.getByName(variable.state.name);
@@ -357,11 +352,15 @@ export class SceneVariableSet extends SceneObjectBase<SceneVariableSetState> imp
       }
     }
 
-    if (sceneObject.variableDependency) {
+    // Only notify active scene objects
+    if (sceneObject.isActive && sceneObject.variableDependency) {
       sceneObject.variableDependency.variableUpdateCompleted(variable, hasChanged);
     }
 
-    sceneObject.forEachChild((child) => this._traverseSceneAndNotify(child, variable, hasChanged));
+    // With render before activation an inactive parent can have active children, so keep traversing
+    if (sceneObject.isActive || SceneObjectBase.RENDER_BEFORE_ACTIVATION_DEFAULT) {
+      sceneObject.forEachChild((child) => this._traverseSceneAndNotify(child, variable, hasChanged));
+    }
   }
 
   /**
