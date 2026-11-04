@@ -217,7 +217,8 @@ export function VizPanelRenderer({ model }: SceneComponentProps<VizPanel>) {
           })}
         >
           <Icon
-            name={alertState.state === 'alerting' ? 'heart-break' : 'heart'}
+            name="bell"
+            type={alertState.state === AlertState.Alerting ? 'mono' : 'default'}
             className="panel-alert-icon"
             size="md"
           />
@@ -647,13 +648,17 @@ const fitContentWrapper = css({
 const getAlertStateStyles = (theme: GrafanaTheme2) => {
   return {
     ok: css({
-      color: theme.colors.success.text,
+      color: theme.colors.text.primary,
     }),
     pending: css({
       color: theme.colors.warning.text,
     }),
     alerting: css({
       color: theme.colors.error.text,
+      // The mono bell draws its body at reduced opacity; render the whole bell in one solid color
+      '.panel-alert-icon path': {
+        opacity: 1,
+      },
     }),
   };
 };
