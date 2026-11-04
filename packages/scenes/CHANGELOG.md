@@ -1,3 +1,20 @@
+# v9.2.2 (Wed Nov 04 2026)
+
+#### 🐛 Bug Fix
+
+- AdHocFilters: Stop using getDataSourceSrv in patched getAdhocFilters [#1706](https://github.com/grafana/scenes/pull/1706) ([@leventebalogh](https://github.com/leventebalogh))
+- Datasources: Use async data source APIs from plugin-compat [#1705](https://github.com/grafana/scenes/pull/1705) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### 🏠 Internal
+
+- Variables: Use async data source list API in DataSourceVariable [#1707](https://github.com/grafana/scenes/pull/1707) ([@leventebalogh](https://github.com/leventebalogh))
+
+#### Authors: 1
+
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+
+---
+
 # v9.2.1 (Mon Nov 02 2026)
 
 #### 🐛 Bug Fix
