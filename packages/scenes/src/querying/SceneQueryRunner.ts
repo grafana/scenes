@@ -433,13 +433,14 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
 
     const baseStateUpdate = this.state.data ? this.state.data : { ...emptyPanelData, timeRange: timeRange.state.value };
 
-    this.setState({
-      data: {
-        ...baseStateUpdate,
-        annotations: [...(this._resultAnnotations ?? []), ...annotations],
-        alertState: alertState ?? this.state.data?.alertState,
-      },
-    });
+    const data = {
+      ...baseStateUpdate,
+      annotations: [...(this._resultAnnotations ?? []), ...annotations],
+      alertState: alertState ?? this.state.data?.alertState,
+    };
+
+    this.setState({ data });
+    this._results.next({ origin: this, data });
   }
 
   /**
