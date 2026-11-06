@@ -1,6 +1,15 @@
-import { FieldType, toDataFrame } from '@grafana/data';
+import {
+  DataFrame,
+  DataTransformerInfo,
+  FieldType,
+  standardTransformersRegistry,
+  toDataFrame,
+  TransformerRegistryItem,
+} from '@grafana/data';
+import { of } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-import { getAnnotationsFromData } from './standardAnnotationsSupport';
+import { getAnnotationsFromData, singleFrameFromPanelData } from './standardAnnotationsSupport';
 
 describe('DataFrame to annotations', () => {
   test('simple conversion', async () => {
@@ -156,5 +165,50 @@ describe('DataFrame to annotations', () => {
     const observable = getAnnotationsFromData([frame]);
 
     await expect(observable).toEmitValues([[{ color: 'red', text: 'text', time: 100, type: 'default' }]]);
+  });
+});
+
+describe('singleFrameFromPanelData', () => {
+  const frameA = toDataFrame({ refId: 'A', fields: [{ name: 'time', type: FieldType.time, values: [1] }] });
+  const frameB = toDataFrame({ refId: 'B', fields: [{ name: 'time', type: FieldType.time, values: [2] }] });
+  const mergedFrame = toDataFrame({
+    refId: 'merged',
+    fields: [{ name: 'time', type: FieldType.time, values: [1, 2] }],
+  });
+
+  const fakeMergeTransformer: DataTransformerInfo = {
+    id: 'merge',
+    name: 'Merge',
+    operator: () => (source) => source.pipe(map((): DataFrame[] => [mergedFrame])),
+  };
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  function mockMergeRegistryItem(transformation: unknown) {
+    jest
+      .spyOn(standardTransformersRegistry, 'get')
+      .mockReturnValue({ id: 'merge', name: 'Merge', transformation } as unknown as TransformerRegistryItem);
+  }
+
+  it('returns undefined when there are no frames', async () => {
+    await expect(of([]).pipe(singleFrameFromPanelData())).toEmitValues([undefined]);
+  });
+
+  it('returns the only frame without merging', async () => {
+    await expect(of([frameA]).pipe(singleFrameFromPanelData())).toEmitValues([frameA]);
+  });
+
+  it('merges frames when the registry resolves the transformer lazily (Grafana 13.1+)', async () => {
+    mockMergeRegistryItem(() => Promise.resolve(fakeMergeTransformer));
+
+    await expect(of([frameA, frameB]).pipe(singleFrameFromPanelData())).toEmitValues([mergedFrame]);
+  });
+
+  it('merges frames when the registry holds the transformer inline (Grafana before 13.1)', async () => {
+    mockMergeRegistryItem(fakeMergeTransformer);
+
+    await expect(of([frameA, frameB]).pipe(singleFrameFromPanelData())).toEmitValues([mergedFrame]);
   });
 });
