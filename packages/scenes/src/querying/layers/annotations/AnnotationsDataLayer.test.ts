@@ -10,7 +10,7 @@ import {
   toDataFrame,
 } from '@grafana/data';
 import { AnnotationQuery, LoadingState } from '@grafana/schema';
-import { map, Observable, of } from 'rxjs';
+import { map, Observable, of, Subject } from 'rxjs';
 import { SceneFlexLayout } from '../../../components/layout/SceneFlexLayout';
 import { SceneTimeRange } from '../../../core/SceneTimeRange';
 import { SceneVariableSet } from '../../../variables/sets/SceneVariableSet';
@@ -22,7 +22,7 @@ import { TestSceneWithRequestEnricher } from '../../../utils/test/TestSceneWithR
 import { SafeSerializableSceneObject } from '../../../utils/SafeSerializableSceneObject';
 import { config, RefreshEvent } from '@grafana/runtime';
 import { ScopesVariable } from '../../../variables/variants/ScopesVariable';
-import { act } from '@testing-library/react';
+import { act, waitFor } from '@testing-library/react';
 import { AdHocFiltersVariable } from '../../../variables/adhoc/AdHocFiltersVariable';
 import { GroupByVariable } from '../../../variables/groupby/GroupByVariable';
 import { allActiveGroupByVariables } from '../../../variables/groupby/findActiveGroupByVariablesByUid';
@@ -105,6 +105,82 @@ describe.each(['11.1.2', '11.1.1'])('AnnotationsDataLayer', (v) => {
     // Clear the global variable sets to avoid cross-test contamination
     allActiveGroupByVariables.clear();
     allActiveFilterSets.clear();
+  });
+
+  it.each([
+    { name: 'new annotations', state: LoadingState.Done, times: [2000], texts: ['new deployment'] },
+    { name: 'no annotations', state: LoadingState.Done, times: [], texts: [] },
+    { name: 'an empty error result', state: LoadingState.Error, times: [], texts: [] },
+    {
+      name: 'new annotations while still loading',
+      state: LoadingState.Loading,
+      times: [2000],
+      texts: ['new deployment'],
+    },
+  ])('retains annotations during empty loading, then publishes $name', async ({ state, times, texts }) => {
+    const initialResponse = new Subject<PanelData>();
+    const refreshResponse = new Subject<PanelData>();
+    runRequestMock.mockReturnValueOnce(initialResponse).mockReturnValueOnce(refreshResponse);
+
+    const timeRange = new SceneTimeRange({ from: 'now-3h', to: 'now' });
+    const layer = new AnnotationsDataLayer({
+      name: 'Deployments',
+      query: { name: 'Deployments', enable: true, iconColor: 'red' },
+    });
+    const scene = new TestScene({ $timeRange: timeRange, $data: layer });
+    const deactivate = scene.activate();
+
+    try {
+      await waitFor(() => expect(runRequestMock).toHaveBeenCalledTimes(1));
+      initialResponse.next({ state: LoadingState.Loading, series: [], timeRange: timeRange.state.value });
+      expect(layer.state.data?.state).toBe(LoadingState.Loading);
+      expect(layer.state.data?.series[0].length).toBe(0);
+
+      initialResponse.next({
+        state: LoadingState.Done,
+        timeRange: timeRange.state.value,
+        series: [
+          toDataFrame({
+            fields: [
+              { name: 'time', values: [1000] },
+              { name: 'text', values: ['previous deployment'] },
+            ],
+          }),
+        ],
+      });
+      expect(layer.state.data?.series[0].fields.find((f) => f.name === 'text')?.values).toEqual([
+        'previous deployment',
+      ]);
+      const previousSeries = layer.state.data?.series;
+
+      timeRange.onRefresh();
+      await waitFor(() => expect(runRequestMock).toHaveBeenCalledTimes(2));
+      refreshResponse.next({ state: LoadingState.Loading, series: [], timeRange: timeRange.state.value });
+
+      expect(layer.state.data?.state).toBe(LoadingState.Loading);
+      expect(layer.state.data?.series).toBe(previousSeries);
+
+      refreshResponse.next({
+        state,
+        timeRange: timeRange.state.value,
+        series: [
+          toDataFrame({
+            fields: [
+              { name: 'time', values: times },
+              { name: 'text', values: texts },
+            ],
+          }),
+        ],
+      });
+
+      expect(layer.state.data?.state).toBe(state);
+      expect(layer.state.data?.series[0].length).toBe(times.length);
+      if (texts.length) {
+        expect(layer.state.data?.series[0].fields.find((f) => f.name === 'text')?.values).toEqual(texts);
+      }
+    } finally {
+      deactivate();
+    }
   });
 
   describe('deduplication', () => {
