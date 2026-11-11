@@ -11,7 +11,7 @@ import {
 } from '@grafana/data';
 import { setPluginImportUtils } from '@grafana/runtime';
 import { act, render } from '@testing-library/react';
-import { type Observable, map } from 'rxjs';
+import { type Observable, delay, map } from 'rxjs';
 
 import { getPanelPlugin } from '../../../utils/test/__mocks__/pluginMocks';
 import { SceneDataNode } from '../../core/SceneDataNode';
@@ -29,6 +29,11 @@ setPluginImportUtils({
 describe('VizPanel runtime transformations', () => {
   beforeAll(() => {
     mockTransformationsRegistry([
+      {
+        id: 'runtimeDelay',
+        name: 'runtimeDelay',
+        operator: () => (source: Observable<DataFrame[]>) => source.pipe(delay(0)),
+      },
       {
         id: 'runtimeMath',
         name: 'runtimeMath',
@@ -73,6 +78,118 @@ describe('VizPanel runtime transformations', () => {
 
     expect(controller.get('table:columns')).toBe(controller.get('table:columns'));
     expect(controller.get('table:columns')).toEqual([]);
+  });
+
+  it.each([
+    { name: 'first', precedingOwner: false, input: 3, output: 30 },
+    { name: 'subsequent', precedingOwner: true, input: 10, output: 100 },
+  ])(
+    'retains the $name owner input while saved transformations reprocess asynchronously',
+    ({ precedingOwner, input, output }) => {
+      jest.useFakeTimers();
+      const { panel, transformer, deactivateTransformer } = setup();
+      try {
+        transformer.setState({
+          transformations: [
+            { id: 'runtimeMath', options: { operation: 'add', value: 2 } },
+            { id: 'runtimeDelay', options: {} },
+          ],
+        });
+        transformer.reprocessTransformations();
+        jest.runAllTimers();
+        const controller = panel.getRuntimeTransformations();
+        if (precedingOwner) {
+          controller.set('preceding', [{ id: 'runtimeMath', options: { operation: 'add', value: 7 } }]);
+          jest.runAllTimers();
+        }
+        const source = controller.getSourceSeries('new');
+        expect(source[0].fields[0].values).toEqual([input]);
+        const observed: Array<readonly DataFrame[]> = [];
+        controller.subscribe('new', () => observed.push(controller.getSourceSeries('new')));
+
+        controller.set('new', [{ id: 'runtimeMath', options: { operation: 'multiply', value: 10 } }]);
+
+        expect(observed).toEqual([source]);
+        expect(controller.getSourceSeries('new')).toBe(source);
+        jest.runAllTimers();
+        expect(controller.getSourceSeries('new')[0].fields[0].values).toEqual([input]);
+        expect(transformer.state.data!.series[0].fields[0].values).toEqual([output]);
+      } finally {
+        deactivateTransformer();
+        jest.useRealTimers();
+      }
+    }
+  );
+
+  it('keeps an existing owner capture empty when its update follows replaced panel data', () => {
+    const { panel, deactivateTransformer } = setup();
+    const controller = panel.getRuntimeTransformations();
+    controller.set('owner', [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }]);
+    deactivateTransformer();
+
+    const replacement = new SceneDataTransformer({
+      $data: new SceneDataNode({
+        data: {
+          state: LoadingState.Done,
+          timeRange: getDefaultTimeRange(),
+          series: [toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [5] }] })],
+        },
+      }),
+      transformations: [{ id: 'runtimeMath', options: { operation: 'multiply', value: 10 } }],
+    });
+    replacement.activate()();
+
+    panel.setState({ $data: replacement });
+    expect(controller.getSourceSeries('owner')).toEqual([]);
+
+    controller.set('owner', [{ id: 'runtimeMath', options: { operation: 'add', value: 2 } }]);
+
+    expect(controller.getSourceSeries('owner')).toEqual([]);
+    expect(replacement.state.data!.series[0].fields[0].values).toEqual([50]);
+  });
+
+  it('keeps a new owner capture when panel data was replaced while the controller was detached', () => {
+    jest.useFakeTimers();
+    const { panel, deactivateTransformer } = setup();
+    const controller = panel.getRuntimeTransformations();
+    try {
+      deactivateTransformer();
+      // Leaves the controller without a panel state subscription, so the replacement below goes unobserved.
+      panel.activate()();
+
+      const replacement = new SceneDataTransformer({
+        $data: new SceneDataNode({
+          data: {
+            state: LoadingState.Done,
+            timeRange: getDefaultTimeRange(),
+            series: [toDataFrame({ fields: [{ name: 'value', type: FieldType.number, values: [5] }] })],
+          },
+        }),
+        transformations: [
+          { id: 'runtimeMath', options: { operation: 'multiply', value: 10 } },
+          { id: 'runtimeDelay', options: {} },
+        ],
+      });
+      const deactivateBeforeSwap = replacement.activate();
+      jest.runAllTimers();
+      deactivateBeforeSwap();
+      panel.setState({ $data: replacement });
+
+      controller.set('owner', [{ id: 'runtimeMath', options: { operation: 'add', value: 1 } }]);
+      expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([50]);
+
+      const deactivatePanel = panel.activate();
+      try {
+        expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([50]);
+        jest.runAllTimers();
+        expect(controller.getSourceSeries('owner')[0].fields[0].values).toEqual([50]);
+        expect(replacement.state.data!.series[0].fields[0].values).toEqual([51]);
+      } finally {
+        deactivatePanel();
+      }
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('stores immutable owner snapshots and notifies only that owner', () => {

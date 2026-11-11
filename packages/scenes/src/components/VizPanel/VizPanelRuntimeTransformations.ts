@@ -160,15 +160,16 @@ export class VizPanelRuntimeTransformationsController implements VizPanelRuntime
     }
   }
 
-  /** Creates an active owner group, keeping the previous capture until the next pass replaces it. */
+  /** Keeps the last input available until asynchronous reprocessing captures the next one. */
   private _createGroup(
     transformations: readonly DataTransformerConfig[],
     previous?: RuntimeTransformationGroup
   ): RuntimeTransformationGroup {
     const group: RuntimeTransformationGroup = {
       transformations,
-      sourceSeries: previous?.sourceSeries ?? NO_SERIES,
-      sourceData: previous?.sourceData,
+      // New owners run last, so the current output is their input before the next pass.
+      sourceSeries: previous?.sourceSeries ?? this._getTransformer()?.state.data?.series ?? NO_SERIES,
+      sourceData: previous ? previous.sourceData : this._panel.state.$data,
       operators: [],
     };
     group.operators = this._createOperators(group);
