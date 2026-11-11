@@ -5,10 +5,13 @@ import {
   DataSourceApi,
   getDefaultTimeRange,
   LoadingState,
+  MetricFindValue,
   PanelData,
   StandardVariableQuery,
 } from '@grafana/data';
 import { getRunRequest } from '@grafana/runtime';
+
+import { setWindowGrafanaSceneContext } from '../../../utils/compatibility/setWindowGrafanaSceneContext';
 
 import {
   hasCustomVariableSupport,
@@ -70,8 +73,22 @@ class LegacyQueryRunner implements QueryRunner {
       return getEmptyMetricFindValueObservable();
     }
 
-    return from(
-      this.datasource.metricFindQuery(variable.state.query, {
+    // Legacy datasources interpolate via templateSrv.replace() without forwarding the scopedVars
+    // passed below, so they resolve against window.__grafanaSceneContext instead. Point it at this
+    // variable's set for the duration of the call, otherwise a chained query interpolates against
+    // whichever scene happened to activate last. The variable set is used rather than the variable
+    // because templateSrv only honours the global while it is active, and a variable is only
+    // activated once its picker renders.
+    const restoreSceneContext = setWindowGrafanaSceneContext(variable.parent ?? variable);
+
+    // metricFindQuery must be invoked inside the window above, but the window must close before we
+    // await it: it stays open only for the synchronous part of the call, which is where these
+    // datasources interpolate. Holding it across the await would let concurrently resolving scenes
+    // overwrite each other's context.
+    let values: Promise<MetricFindValue[]>;
+
+    try {
+      values = this.datasource.metricFindQuery(variable.state.query, {
         ...request,
         // variable is used by SQL common data source
         variable: {
@@ -79,8 +96,12 @@ class LegacyQueryRunner implements QueryRunner {
           type: variable.state.type,
         },
         searchFilter,
-      })
-    ).pipe(
+      });
+    } finally {
+      restoreSceneContext();
+    }
+
+    return from(values).pipe(
       mergeMap((values) => {
         if (!values || !values.length) {
           return getEmptyMetricFindValueObservable();
