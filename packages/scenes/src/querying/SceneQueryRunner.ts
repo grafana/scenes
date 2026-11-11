@@ -307,6 +307,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
   private _dataLayersMerger = new DataLayersMerger();
   private _timeSub?: Unsubscribable;
   private _timeSubRange?: SceneTimeRangeLike;
+  private _lastQueryTimeRangeState?: SceneTimeRangeLike['state'];
   private _containerWidth?: number;
   private _variableValueRecorder = new VariableValueRecorder();
   private _results = new ReplaySubject<SceneDataProviderResult>(1);
@@ -598,7 +599,15 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
     this._timeSub = timeRange.subscribeToState(() => {
       // setTimeout to let SceneVariableSet also respond to time range change
       // So that variables that depend on time range have time to switch to loading state
-      setTimeout(() => this.runWithTimeRange(timeRange), 0);
+      setTimeout(() => {
+        // A synchronous variable refresh may already have started a query for this time range.
+        if (
+          this._lastQueryTimeRangeState !== timeRange.state ||
+          this._variableValueRecorder.hasDependenciesChanged(this)
+        ) {
+          this.runWithTimeRange(timeRange);
+        }
+      }, 0);
     });
   }
 
@@ -661,6 +670,7 @@ export class SceneQueryRunner extends SceneObjectBase<QueryRunnerState> implemen
       return;
     }
 
+    this._lastQueryTimeRangeState = timeRange.state;
     this._variableValueRecorder.recordCurrentDependencyValuesForSceneObject(this);
 
     const { queries } = this.state;

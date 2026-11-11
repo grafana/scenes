@@ -1699,6 +1699,73 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
       expect(runRequestMock.mock.calls.length).toBe(2);
     });
 
+    describe.each([
+      { synchronous: false, indirect: false, absolute: false },
+      { synchronous: true, indirect: false, absolute: false },
+      { synchronous: true, indirect: true, absolute: false },
+      { synchronous: false, indirect: true, absolute: true },
+      { synchronous: true, indirect: false, absolute: true },
+      { synchronous: true, indirect: true, absolute: true },
+    ])('time range refresh: %j', ({ synchronous, indirect, absolute }) => {
+      it.each([false, true])('should dispatch once when the variable value changes: %s', async (changed) => {
+        const variable = new TestVariable({
+          name: 'A',
+          value: 'AA',
+          optionsToReturn: [{ label: 'AA', value: 'AA' }],
+          refresh: VariableRefresh.onTimeRangeChanged,
+          delayMs: synchronous ? 0 : undefined,
+        });
+        const dependent = new TestVariable({
+          name: 'B',
+          value: 'child',
+          query: '$A',
+          optionsToReturn: [{ label: 'child', value: 'child' }],
+          delayMs: 0,
+        });
+        const timeRange = new SceneTimeRange(
+          absolute ? { from: '2026-11-09T10:00:00Z', to: '2026-11-09T11:00:00Z' } : {}
+        );
+        const queryRunner = new SceneQueryRunner({ queries: [{ refId: 'A', query: indirect ? '$B' : '$A' }] });
+        const scene = new TestScene({
+          $variables: new SceneVariableSet({ variables: indirect ? [variable, dependent] : [variable] }),
+          $timeRange: timeRange,
+          $data: queryRunner,
+        });
+        deactivationHandlers.push(scene.activate());
+        if (!synchronous) {
+          variable.signalUpdateCompleted();
+        }
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        expect(runRequestMock).toHaveBeenCalledTimes(1);
+
+        if (changed) {
+          variable.setState({ optionsToReturn: [{ label: 'BB', value: 'BB' }] });
+        }
+        const cancelled = jest.fn();
+        runRequestMock.mockImplementationOnce(() => new Observable(() => cancelled));
+        timeRange.onRefresh();
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        if (!synchronous) {
+          expect(runRequestMock).toHaveBeenCalledTimes(1);
+          variable.signalUpdateCompleted();
+          await new Promise((resolve) => setTimeout(resolve, 5));
+        }
+
+        expect(variable.state.value).toBe(changed ? 'BB' : 'AA');
+        expect(runRequestMock).toHaveBeenCalledTimes(2);
+        expect(cancelled).not.toHaveBeenCalled();
+
+        timeRange.onRefresh();
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        if (!synchronous) {
+          variable.signalUpdateCompleted();
+          await new Promise((resolve) => setTimeout(resolve, 5));
+        }
+        expect(runRequestMock).toHaveBeenCalledTimes(3);
+        expect(cancelled).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it('Should not execute query twice when time range changes and the query is using a time macro', async () => {
       const queryRunner = new SceneQueryRunner({
         queries: [{ refId: 'A', query: '$__from' }],
