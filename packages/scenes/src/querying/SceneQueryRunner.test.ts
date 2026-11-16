@@ -1,3 +1,4 @@
+import { cloneDeep } from 'lodash';
 import { map, Observable, of, Subject } from 'rxjs';
 
 // Mock crypto.randomUUID for generateOperationId
@@ -34,12 +35,22 @@ import { SceneTimeRangeCompare } from '../components/SceneTimeRangeCompare';
 import { SceneDataLayerSet } from './SceneDataLayerSet';
 import { TestAlertStatesDataLayer, TestAnnotationsDataLayer } from './layers/TestDataLayer';
 import { TestSceneWithRequestEnricher } from '../utils/test/TestSceneWithRequestEnricher';
-import { AdHocFiltersVariable, GROUP_BY_OPERATOR } from '../variables/adhoc/AdHocFiltersVariable';
+import {
+  AdHocFiltersVariable,
+  AdHocFilterWithLabels,
+  GROUP_BY_OPERATOR,
+} from '../variables/adhoc/AdHocFiltersVariable';
 import { GroupByVariable } from '../variables/groupby/GroupByVariable';
 import { emptyPanelData } from '../core/SceneDataNode';
 import { SceneQueryController } from '../behaviors/SceneQueryController';
 import { activateFullSceneTree } from '../utils/test/activateFullSceneTree';
-import { SceneDataQuery, SceneDeactivationHandler, SceneObjectState } from '../core/types';
+import {
+  DataRequestFiltersEnricher,
+  SceneDataQuery,
+  SceneDeactivationHandler,
+  SceneObject,
+  SceneObjectState,
+} from '../core/types';
 import { LocalValueVariable } from '../variables/variants/LocalValueVariable';
 import { SceneObjectBase } from '../core/SceneObjectBase';
 import { ExtraQueryDataProcessor, ExtraQueryDescriptor, ExtraQueryProvider } from './ExtraQueryProvider';
@@ -648,6 +659,285 @@ describe.each(['11.1.2', '11.1.1'])('SceneQueryRunner', (v) => {
 
       const runRequestCall2 = runRequestMock.mock.calls[1];
       expect(runRequestCall2[1].filters).toEqual(filtersVar.state.filters);
+    });
+
+    describe('when the scene root implements DataRequestFiltersEnricher', () => {
+      class SceneWithFiltersEnricher extends EmbeddedScene implements DataRequestFiltersEnricher {
+        public enrichDataRequestFilters = jest.fn((_source: SceneObject, filters: AdHocFilterWithLabels[]) =>
+          filters.filter((f) => f.key !== 'dropMe')
+        );
+      }
+
+      it('should send the filters returned by the root', async () => {
+        const queryRunner = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+
+        const filtersVar = new AdHocFiltersVariable({
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters: [
+            { key: 'A', operator: '=', value: 'B', condition: '' },
+            { key: 'dropMe', operator: '=', value: 'C', condition: '' },
+          ],
+        });
+
+        const scene = new SceneWithFiltersEnricher({
+          $data: queryRunner,
+          $variables: new SceneVariableSet({ variables: [filtersVar] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+
+        const deactivate = activateFullSceneTree(scene);
+        deactivationHandlers.push(deactivate);
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(scene.enrichDataRequestFilters).toHaveBeenCalledTimes(1);
+        expect(scene.enrichDataRequestFilters).toHaveBeenCalledWith(queryRunner, filtersVar.state.filters);
+        expect(runRequestMock.mock.calls[0][1].filters).toEqual([filtersVar.state.filters[0]]);
+      });
+
+      it('should not call the root when there are no ad hoc filter variables', async () => {
+        const queryRunner = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+
+        const scene = new SceneWithFiltersEnricher({
+          $data: queryRunner,
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+
+        const deactivate = activateFullSceneTree(scene);
+        deactivationHandlers.push(deactivate);
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(scene.enrichDataRequestFilters).not.toHaveBeenCalled();
+        expect(runRequestMock.mock.calls[0][1].filters).toBeUndefined();
+      });
+
+      it('should send an empty list when the root returns []', async () => {
+        const queryRunner = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+
+        const filtersVar = new AdHocFiltersVariable({
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters: [{ key: 'A', operator: '=', value: 'B', condition: '' }],
+        });
+
+        const scene = new SceneWithFiltersEnricher({
+          $data: queryRunner,
+          $variables: new SceneVariableSet({ variables: [filtersVar] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+        scene.enrichDataRequestFilters.mockImplementation(() => []);
+
+        deactivationHandlers.push(activateFullSceneTree(scene));
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(runRequestMock.mock.calls[0][1].filters).toEqual([]);
+      });
+
+      it('should call the root with [] when the ad hoc variable has no filters', async () => {
+        const queryRunner = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+
+        const filtersVar = new AdHocFiltersVariable({
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters: [],
+        });
+
+        const scene = new SceneWithFiltersEnricher({
+          $data: queryRunner,
+          $variables: new SceneVariableSet({ variables: [filtersVar] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+
+        deactivationHandlers.push(activateFullSceneTree(scene));
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(scene.enrichDataRequestFilters).toHaveBeenCalledWith(queryRunner, []);
+        expect(runRequestMock.mock.calls[0][1].filters).toEqual([]);
+      });
+
+      it('should let the root exclude a filter for one source only', async () => {
+        const runnerA = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+        const runnerB = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'B' }],
+        });
+
+        const filters: AdHocFilterWithLabels[] = [
+          { key: 'A', operator: '=', value: 'B', condition: '' },
+          { key: 'dropMe', operator: '=', value: 'C', condition: '' },
+        ];
+        const filtersVar = new AdHocFiltersVariable({
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters,
+        });
+        const filtersBefore = cloneDeep(filtersVar.state.filters);
+
+        const scene = new SceneWithFiltersEnricher({
+          $variables: new SceneVariableSet({ variables: [filtersVar] }),
+          body: new SceneFlexLayout({
+            children: [
+              new SceneFlexItem({ $data: runnerA, body: new SceneCanvasText({ text: 'A' }) }),
+              new SceneFlexItem({ $data: runnerB, body: new SceneCanvasText({ text: 'B' }) }),
+            ],
+          }),
+        });
+        scene.enrichDataRequestFilters.mockImplementation((source, f) =>
+          source === runnerA ? f.filter((filter) => filter.key !== 'dropMe') : f
+        );
+
+        deactivationHandlers.push(activateFullSceneTree(scene));
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        const requestFor = (refId: string) =>
+          runRequestMock.mock.calls.find((call) => call[1].targets[0].refId === refId)![1];
+
+        expect(requestFor('A').filters).toEqual([filters[0]]);
+        expect(requestFor('B').filters).toEqual(filters);
+        expect(filtersVar.state.filters).toEqual(filtersBefore);
+      });
+
+      it('should enrich filters before deduplicating identical dashboard and section filters', async () => {
+        const queryRunner = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+
+        const dashboardFilter: AdHocFilterWithLabels<{ owner: string }> = {
+          key: 'job',
+          operator: '=',
+          value: 'prom-a',
+          condition: '',
+          meta: { owner: 'dashboard' },
+        };
+        const sectionFilter: AdHocFilterWithLabels<{ owner: string }> = {
+          ...dashboardFilter,
+          meta: { owner: 'section' },
+        };
+
+        const dashboardFilters = new AdHocFiltersVariable({
+          name: 'filter0',
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters: [dashboardFilter],
+        });
+
+        const sectionFilters = new AdHocFiltersVariable({
+          name: 'filter0',
+          datasource: { uid: 'test-uid' },
+          applyMode: 'auto',
+          filters: [sectionFilter],
+        });
+
+        const scene = new SceneWithFiltersEnricher({
+          $variables: new SceneVariableSet({ variables: [dashboardFilters] }),
+          body: new TestScene({
+            $data: queryRunner,
+            $variables: new SceneVariableSet({ variables: [sectionFilters] }),
+          }),
+        });
+        scene.enrichDataRequestFilters.mockImplementation((_source, filters) =>
+          filters.filter((f) => (f.meta as { owner?: string } | undefined)?.owner !== 'dashboard')
+        );
+
+        deactivationHandlers.push(activateFullSceneTree(scene));
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        expect(scene.enrichDataRequestFilters).toHaveBeenCalledWith(queryRunner, [
+          dashboardFilters.state.filters[0],
+          sectionFilters.state.filters[0],
+        ]);
+        expect(runRequestMock.mock.calls[0][1].filters).toEqual([sectionFilters.state.filters[0]]);
+      });
+
+      it('should not affect group by keys or enrichDataRequest', async () => {
+        class SceneWithBothEnrichers extends SceneWithFiltersEnricher {
+          public enrichDataRequest() {
+            return { app: 'enriched' };
+          }
+        }
+
+        const queryRunner = new SceneQueryRunner({
+          datasource: { uid: 'test-uid' },
+          queries: [{ refId: 'A' }],
+        });
+
+        const filtersVar = new AdHocFiltersVariable({
+          name: 'filters',
+          datasource: { uid: 'test-uid' },
+          filters: [
+            { key: 'A', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+            { key: 'B', operator: GROUP_BY_OPERATOR, value: '', condition: '' },
+            { key: 'dropMe', operator: '=', value: 'C', condition: '' },
+          ],
+          enableGroupBy: true,
+        });
+
+        const scene = new SceneWithBothEnrichers({
+          $data: queryRunner,
+          $variables: new SceneVariableSet({ variables: [filtersVar] }),
+          body: new SceneCanvasText({ text: 'hello' }),
+        });
+
+        deactivationHandlers.push(activateFullSceneTree(scene));
+
+        await new Promise((r) => setTimeout(r, 1));
+
+        const request = runRequestMock.mock.calls[0][1];
+        expect(request.groupByKeys).toEqual(['A', 'B']);
+        expect(request.app).toBe('enriched');
+        expect(request.filters).toEqual([]);
+      });
+    });
+
+    it('should send adhoc filters unchanged when the scene root does not implement DataRequestFiltersEnricher', async () => {
+      const queryRunner = new SceneQueryRunner({
+        datasource: { uid: 'test-uid' },
+        queries: [{ refId: 'A' }],
+      });
+
+      const filtersVar = new AdHocFiltersVariable({
+        datasource: { uid: 'test-uid' },
+        applyMode: 'auto',
+        filters: [
+          { key: 'A', operator: '=', value: 'B', condition: '' },
+          { key: 'dropMe', operator: '=', value: 'C', condition: '' },
+        ],
+      });
+
+      const scene = new EmbeddedScene({
+        $data: queryRunner,
+        $variables: new SceneVariableSet({ variables: [filtersVar] }),
+        body: new SceneCanvasText({ text: 'hello' }),
+      });
+
+      const deactivate = activateFullSceneTree(scene);
+      deactivationHandlers.push(deactivate);
+
+      await new Promise((r) => setTimeout(r, 1));
+
+      expect(runRequestMock.mock.calls[0][1].filters).toEqual(filtersVar.state.filters);
     });
 
     it('should not pass adhoc filters via request object when applyMode is manual', async () => {
