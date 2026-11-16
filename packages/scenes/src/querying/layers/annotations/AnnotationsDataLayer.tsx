@@ -130,6 +130,10 @@ export class AnnotationsDataLayer
       );
 
       this.querySub = stream.subscribe((stateUpdate) => {
+        // Keep visible annotations until the refreshed query returns data.
+        if (stateUpdate.state === LoadingState.Loading && stateUpdate.series.every((frame) => frame.length === 0)) {
+          stateUpdate = { ...stateUpdate, series: this.state.data?.series ?? stateUpdate.series };
+        }
         this.publishResults(stateUpdate);
       });
     } catch (e) {
