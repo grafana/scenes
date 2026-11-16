@@ -1,3 +1,26 @@
+# v9.3.0 (Mon Nov 16 2026)
+
+#### 🚀 Enhancement
+
+- `@grafana/scenes`
+  - SceneQueryRunner: Let the scene root adjust ad hoc filters per request [#1671](https://github.com/grafana/scenes/pull/1671) ([@samjewell](https://github.com/samjewell))
+
+#### 🐛 Bug Fix
+
+- `scenes-app`, `@grafana/scenes`
+  - Dependencies: Bump plugin-compat to 0.11.0 [#1718](https://github.com/grafana/scenes/pull/1718) ([@leventebalogh](https://github.com/leventebalogh))
+- `@grafana/scenes`
+  - Annotations: Support lazily resolved transformers [#1683](https://github.com/grafana/scenes/pull/1683) ([@leventebalogh](https://github.com/leventebalogh))
+  - VizPanel: Show the alert state as a bell instead of a heart [#1713](https://github.com/grafana/scenes/pull/1713) ([@dhalachliyski](https://github.com/dhalachliyski))
+
+#### Authors: 3
+
+- Deyan Halachliyski ([@dhalachliyski](https://github.com/dhalachliyski))
+- Levente Balogh ([@leventebalogh](https://github.com/leventebalogh))
+- Sam Jewell ([@samjewell](https://github.com/samjewell))
+
+---
+
 # v9.2.2 (Wed Nov 04 2026)
 
 #### 🐛 Bug Fix
