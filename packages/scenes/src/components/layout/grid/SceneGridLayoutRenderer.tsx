@@ -4,6 +4,7 @@ import { SceneComponentProps } from '../../../core/types';
 import { GRID_CELL_HEIGHT, GRID_CELL_VMARGIN, GRID_COLUMN_COUNT } from './constants';
 import { LazyLoader } from '../LazyLoader';
 import { SceneGridLayout } from './SceneGridLayout';
+import { mirrorGridCallback, mirrorGridLayout } from './gridLayoutDirection';
 import { SceneGridItemLike } from './types';
 import { useStyles2 } from '@grafana/ui';
 import { css, cx } from '@emotion/css';
@@ -14,6 +15,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
   const { children, isLazy, isDraggable, isResizable } = model.useState();
   const [outerDivRef, { width, height }] = useMeasure();
   const ref = useRef<HTMLDivElement | null>(null);
+  const isRtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
 
   /**
    * The class that enables drag animations needs to be added after mount otherwise panels move on mount to their set positions which is annoying
@@ -41,6 +43,7 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
        */
       <div
         ref={ref}
+        dir={isRtl ? 'ltr' : undefined}
         style={{ width: `${width}px`, height: layout.length > 0 ? '100%' : '0' }}
         className="react-grid-layout"
       >
@@ -60,17 +63,19 @@ export function SceneGridLayoutRenderer({ model }: SceneComponentProps<SceneGrid
           rowHeight={GRID_CELL_HEIGHT}
           draggableHandle={`.grid-drag-handle-${model.state.key}`}
           draggableCancel=".grid-drag-cancel"
-          layout={layout}
-          onDragStart={model.onDragStart}
-          onDragStop={model.onDragStop}
-          onResizeStop={model.onResizeStop}
-          onLayoutChange={model.onLayoutChange}
+          layout={isRtl ? mirrorGridLayout(layout) : layout}
+          onDragStart={isRtl ? mirrorGridCallback(model.onDragStart) : model.onDragStart}
+          onDragStop={isRtl ? mirrorGridCallback(model.onDragStop) : model.onDragStop}
+          onResizeStop={isRtl ? mirrorGridCallback(model.onResizeStop) : model.onResizeStop}
+          onLayoutChange={isRtl ? (items) => model.onLayoutChange(mirrorGridLayout(items)) : model.onLayoutChange}
+          resizeHandles={isRtl ? ['sw'] : undefined}
           isBounded={false}
           resizeHandle={<ResizeHandle />}
         >
           {layout.map((gridItem, index) => (
             <GridItemWrapper
               key={gridItem.i}
+              dir={isRtl ? 'rtl' : undefined}
               grid={model}
               layoutItem={gridItem}
               index={index}
@@ -181,7 +186,7 @@ interface ResizeHandleProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeHandleProps>(({ handleAxis, ...divProps }, ref) => {
-  const customCssClass = useStyles2(getResizeHandleStyles);
+  const customCssClass = useStyles2(getResizeHandleStyles, handleAxis === 'sw');
 
   return (
     <div ref={ref} {...divProps} className={`${customCssClass} scene-resize-handle`}>
@@ -200,20 +205,22 @@ const ResizeHandle = React.forwardRef<HTMLDivElement, ResizeHandleProps>(({ hand
 
 ResizeHandle.displayName = 'ResizeHandle';
 
-function getResizeHandleStyles(theme: GrafanaTheme2) {
+function getResizeHandleStyles(theme: GrafanaTheme2, isRtl: boolean) {
   return css({
     position: 'absolute',
     bottom: 0,
-    right: 0,
+    right: isRtl ? undefined : 0,
+    left: isRtl ? 0 : undefined,
     zIndex: 999,
-    padding: theme.spacing(1.5, 0, 0, 1.5),
+    padding: isRtl ? theme.spacing(1.5, 1.5, 0, 0) : theme.spacing(1.5, 0, 0, 1.5),
     color: theme.colors.border.strong,
-    cursor: 'se-resize',
+    cursor: isRtl ? 'sw-resize' : 'se-resize',
     '&:hover': {
       color: theme.colors.text.link,
     },
     svg: {
       display: 'block',
+      transform: isRtl ? 'scaleX(-1)' : undefined,
     },
     '.react-resizable-hide &': {
       display: 'none',

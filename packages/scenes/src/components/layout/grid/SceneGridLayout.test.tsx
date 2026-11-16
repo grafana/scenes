@@ -30,6 +30,30 @@ class TestObject extends SceneObjectBase<SceneObjectState> {
 
 describe('SceneGridLayout', () => {
   describe('rendering', () => {
+    it('renders the first panel at the right edge in an RTL document', () => {
+      const originalDirection = document.documentElement.dir;
+      document.documentElement.dir = 'rtl';
+      try {
+        const panel = new SceneGridItem({
+          x: 0,
+          y: 0,
+          width: 12,
+          height: 5,
+          body: new TestObject({}),
+        });
+        const scene = new EmbeddedScene({ body: new SceneGridLayout({ children: [panel] }) });
+
+        render(<scene.Component model={scene} />);
+
+        const gridItem = screen.getByTestId('test-object').closest<HTMLElement>('[data-griditem-key]');
+        expect(gridItem).toHaveAttribute('dir', 'rtl');
+        expect(gridItem?.style.transform).toMatch(/^translate\(404px,/);
+        expect(panel.state.x).toBe(0);
+      } finally {
+        document.documentElement.dir = originalDirection;
+      }
+    });
+
     it('should render all grid children', async () => {
       const scene = new EmbeddedScene({
         body: new SceneGridLayout({
