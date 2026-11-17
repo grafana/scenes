@@ -187,6 +187,7 @@ jest.mock('@grafana/runtime', () => ({
     return {
       get: getDataSourceMock,
       getInstanceSettings: () => ({ uid: 'test-uid' }),
+      registerRuntimeDataSource: jest.fn(),
     };
   },
   getTemplateSrv: () => ({
