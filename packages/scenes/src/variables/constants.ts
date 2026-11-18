@@ -4,6 +4,8 @@ export const NONE_VARIABLE_TEXT = 'None';
 export const NONE_VARIABLE_VALUE = '';
 export const AUTO_VARIABLE_TEXT = 'Auto';
 export const AUTO_VARIABLE_VALUE = '$__auto';
+/** URL sentinel for an intentional empty multi selection (avoids colliding with a real '' option) */
+export const EMPTY_VARIABLE_VALUE = '$__empty';
 
 // Grafana core source: https://github.com/grafana/grafana/blob/main/public/app/features/variables/utils.ts#L23
 /*

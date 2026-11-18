@@ -1,6 +1,6 @@
 import { t } from '@grafana/i18n';
 import { isArray } from 'lodash';
-import React, { RefCallback, useEffect, useMemo, useState } from 'react';
+import React, { RefCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Checkbox,
   InputActionMeta,
@@ -27,21 +27,45 @@ const filterNoOp = () => true;
 
 const filterAll = (v: SelectableValue<VariableValueSingle>) => v.value !== ALL_VARIABLE_VALUE;
 
+const isAllVariableValue = (selected: VariableValueSingle[]) =>
+  selected.length === 1 && selected[0] === ALL_VARIABLE_VALUE;
+
+const getIndividualValues = (options: Array<SelectableValue<VariableValueSingle>>) =>
+  options.filter(filterAll).map((o) => o.value!);
+
+/** True when every value is selected (`$__all` or every individual). */
+const isFullySelected = (selected: VariableValueSingle[], individualValues: VariableValueSingle[]) =>
+  isAllVariableValue(selected) ||
+  (individualValues.length > 0 && individualValues.every((v) => selected.includes(v)));
+
 const determineToggleAllState = (
   selectedValues: Array<SelectableValue<VariableValueSingle>>,
   options: Array<SelectableValue<VariableValueSingle>>
 ) => {
-  if (selectedValues.length === options.filter(filterAll).length) {
+  const selected = selectedValues.map((v) => v.value as VariableValueSingle);
+  const individualValues = getIndividualValues(options);
+
+  if (isFullySelected(selected, individualValues)) {
     return ToggleAllState.allSelected;
-  } else if (
-    selectedValues.length === 0 ||
-    (selectedValues.length === 1 && selectedValues[0] && selectedValues[0].value === ALL_VARIABLE_VALUE)
-  ) {
-    return ToggleAllState.noneSelected;
-  } else {
-    return ToggleAllState.indeterminate;
   }
+  if (selected.length === 0) {
+    return ToggleAllState.noneSelected;
+  }
+  return ToggleAllState.indeterminate;
 };
+
+/** Count for "Selected (n)" — `$__all` counts as every individual option, not 1 */
+export function getVariableSelectedCount(
+  selectedValues: Array<SelectableValue<VariableValueSingle>>,
+  options: Array<SelectableValue<VariableValueSingle>>
+) {
+  const selected = selectedValues.map((v) => v.value as VariableValueSingle);
+  if (isAllVariableValue(selected)) {
+    return getIndividualValues(options).length;
+  }
+  return selected.filter((v) => v !== ALL_VARIABLE_VALUE).length;
+}
+
 
 export function toSelectableValue<T>(value: T, label?: string): SelectableValue<T> {
   return {
@@ -131,15 +155,33 @@ export function VariableValueSelectMulti({
   const arrayValue = useMemo(() => (isArray(value) ? value : [value]), [value]);
   // To not trigger queries on every selection we store this state locally here and only update the variable onBlur
   const [uncommittedValue, setUncommittedValue] = useState<VariableValueSingle[] | undefined>(undefined);
+  const uncommittedValueRef = useRef(uncommittedValue);
+  // When true, committing [] means the user unchecked All (do not fall back to `$__all`)
+  const clearedByAllToggleRef = useRef(false);
   const [inputValue, setInputValue] = useState('');
 
   const selectedValue = uncommittedValue ?? arrayValue;
   const optionSearcher = useMemo(() => getOptionSearcher(options, includeAll), [options, includeAll]);
 
+  const updateUncommitted = (next: VariableValueSingle[] | undefined, fromAllToggle = false) => {
+    clearedByAllToggleRef.current = fromAllToggle && Array.isArray(next) && next.length === 0;
+    uncommittedValueRef.current = next;
+    setUncommittedValue(next);
+  };
+
   // Detect value changes outside
   useEffect(() => {
+    uncommittedValueRef.current = undefined;
+    clearedByAllToggleRef.current = false;
     setUncommittedValue(undefined);
   }, [arrayValue]);
+
+  const commitValue = (next: VariableValueSingle[]) => {
+    const allowEmpty = next.length === 0 && clearedByAllToggleRef.current;
+    clearedByAllToggleRef.current = false;
+    // allowEmpty keeps [] after unchecking All (still goes through history / query profile)
+    model.changeValueTo(next, undefined, true, allowEmpty ? { allowEmpty: true } : undefined);
+  };
 
   const onInputChange = (value: string, { action }: InputActionMeta) => {
     if (action === 'input-change') {
@@ -163,6 +205,24 @@ export function VariableValueSelectMulti({
       ? t('grafana-scenes.variables.variable-value-select.placeholder-select-value', 'Select value')
       : '';
   const filteredOptions = optionSearcher(inputValue);
+  // Full list (ignores search filter) so All selects/deselects every value
+  const allIndividualValues = useMemo(() => getIndividualValues(optionSearcher('')), [optionSearcher]);
+  const fullySelected = isFullySelected(selectedValue, allIndividualValues);
+
+  // When `$__all` is stored, every option appears checked. All also appears checked when every individual is selected.
+  const isOptionSelected = (
+    option: SelectableValue<VariableValueSingle>,
+    selectValue: ReadonlyArray<SelectableValue<VariableValueSingle>>
+  ) => {
+    const selected = selectValue.map((v) => v.value as VariableValueSingle);
+    if (isAllVariableValue(selected)) {
+      return true;
+    }
+    if (option.value === ALL_VARIABLE_VALUE) {
+      return isFullySelected(selected, allIndividualValues);
+    }
+    return selected.includes(option.value as VariableValueSingle);
+  };
 
   return (
     <MultiSelect<VariableValueSingle>
@@ -183,7 +243,17 @@ export function VariableValueSelectMulti({
         enabled: true,
         optionsFilter: filterAll,
         determineToggleAllState: determineToggleAllState,
+        // Use the full individual list (not search-filtered options) so `$__all` shows Selected (N)
+        getSelectedCount: (selectedValues) => {
+          const selected = selectedValues.map((v) => v.value as VariableValueSingle);
+          if (isAllVariableValue(selected)) {
+            return allIndividualValues.length;
+          }
+          return selected.filter((v) => v !== ALL_VARIABLE_VALUE).length;
+        },
       }}
+      //@ts-ignore – react-select supports this; grafana-ui MultiSelect types omit it
+      isOptionSelected={isOptionSelected}
       options={filteredOptions}
       closeMenuOnSelect={false}
       components={{ Option: OptionWithCheckbox }}
@@ -192,22 +262,66 @@ export function VariableValueSelectMulti({
       blurInputOnSelect={false}
       onInputChange={onInputChange}
       onBlur={() => {
-        if (uncommittedValue !== undefined) {
-          model.changeValueTo(uncommittedValue, undefined, true);
+        const pending = uncommittedValueRef.current;
+        if (pending !== undefined) {
+          commitValue(pending);
         }
-        setUncommittedValue(undefined);
+        updateUncommitted(undefined);
       }}
       filterOption={filterNoOp}
       data-testid={selectors.pages.Dashboard.SubMenu.submenuItemValueDropDownValueLinkTexts(`${selectedValue}`)}
       onChange={(newValue, action) => {
         if (action.action === 'clear') {
           // Clearing does not leave the input focused, so onBlur may never fire to commit it
+          // Clear still uses the default fallback (`$__all` / first option) via changeValueTo
           model.changeValueTo([], undefined, true);
-          setUncommittedValue(undefined);
+          updateUncommitted(undefined);
           return;
         }
 
-        setUncommittedValue(newValue.map((x) => x.value!));
+        const optionValue = (action.option as SelectableValue<VariableValueSingle> | undefined)?.value;
+        const isAllOptionClick =
+          optionValue === ALL_VARIABLE_VALUE &&
+          (action.action === 'select-option' || action.action === 'deselect-option');
+
+        // Header toggle when checked emits [All] with an empty option — same as unchecking All
+        const isHeaderUncheckAll =
+          !optionValue &&
+          action.action === 'select-option' &&
+          newValue.length === 1 &&
+          newValue[0]?.value === ALL_VARIABLE_VALUE;
+
+        // All checkbox: check → select every value; uncheck → clear every value
+        if (isAllOptionClick || isHeaderUncheckAll) {
+          if (fullySelected || isHeaderUncheckAll) {
+            updateUncommitted([], true);
+          } else {
+            // Store `$__all` (query/URL semantics) while isOptionSelected shows every value checked
+            updateUncommitted([ALL_VARIABLE_VALUE]);
+          }
+          return;
+        }
+
+        // Individual click while `$__all` is active: exit All mode
+        if (isAllVariableValue(selectedValue) && optionValue !== undefined) {
+          if (action.action === 'deselect-option') {
+            updateUncommitted(allIndividualValues.filter((v) => v !== optionValue));
+          } else if (action.action === 'select-option') {
+            updateUncommitted(allIndividualValues);
+          }
+          return;
+        }
+
+        const next = newValue.map((x) => x.value!).filter((v) => v !== ALL_VARIABLE_VALUE);
+
+        // Only collapse to `$__all` when Include All is enabled — otherwise a full
+        // selection would be rewritten to the first option after validation/reload
+        if (includeAll && isFullySelected(next, allIndividualValues)) {
+          updateUncommitted([ALL_VARIABLE_VALUE]);
+          return;
+        }
+
+        updateUncommitted(next);
       }}
     />
   );
@@ -254,8 +368,12 @@ export const OptionWithCheckbox = ({
       // Using onPointerDown here as onClick is not fired first time for mobile/touch devices
       onPointerDown={rest.onClick}
     >
-      <div className={optionStyles.checkbox}>
-        <Checkbox indeterminate={indeterminate} value={isSelected} />
+      <div
+        className={optionStyles.checkbox}
+        // Keep focus on the select input so clicking the checkbox does not blur+commit mid-toggle
+        onMouseDown={(e) => e.preventDefault()}
+      >
+        <Checkbox indeterminate={indeterminate} value={isSelected} tabIndex={-1} />
       </div>
       <div
         className={selectStyles.optionBody}

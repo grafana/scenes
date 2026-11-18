@@ -1,6 +1,6 @@
 import { lastValueFrom } from 'rxjs';
 
-import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE } from '../constants';
+import { ALL_VARIABLE_TEXT, ALL_VARIABLE_VALUE, EMPTY_VARIABLE_VALUE } from '../constants';
 import { VariableFormatID } from '@grafana/schema';
 
 import { SceneVariableValueChangedEvent } from '../types';
@@ -112,6 +112,88 @@ describe('MultiValueVariable', () => {
 
       expect(variable.state.value).toEqual([]);
       expect(variable.state.text).toEqual([]);
+    });
+
+    it('Should recover to first option when options return after a temporary empty multi value', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [],
+        optionsToReturn: [],
+        value: ['A'],
+        text: ['A'],
+        delayMs: 0,
+        isMulti: true,
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+      expect(variable.state.value).toEqual([]);
+
+      variable.setState({
+        optionsToReturn: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+      });
+
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toEqual(['1']);
+      expect(variable.state.text).toEqual(['A']);
+    });
+
+    it('Should keep intentional empty selection when options refresh after allowEmpty', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        optionsToReturn: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        value: [ALL_VARIABLE_VALUE],
+        text: [ALL_VARIABLE_TEXT],
+        delayMs: 0,
+        isMulti: true,
+        defaultToAll: true,
+        includeAll: true,
+      });
+
+      variable.changeValueTo([], [], true, { allowEmpty: true });
+      await lastValueFrom(variable.validateAndUpdate());
+
+      expect(variable.state.value).toEqual([]);
+      expect(variable.state.text).toEqual([]);
+    });
+
+    it('Should keep saved empty selection after remount/clone', async () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        optionsToReturn: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        value: [],
+        text: [],
+        delayMs: 0,
+        isMulti: true,
+        defaultToAll: true,
+        includeAll: true,
+      });
+
+      expect(variable.state.allowEmptySelection).toBe(true);
+
+      const cloned = variable.clone();
+      await lastValueFrom(cloned.validateAndUpdate());
+
+      expect(cloned.state.value).toEqual([]);
+      expect(cloned.state.text).toEqual([]);
+      expect(cloned.isEmptySelectionAllowed()).toBe(true);
     });
 
     it('When saved value is same as text representation', async () => {
@@ -334,6 +416,76 @@ describe('MultiValueVariable', () => {
       variable.changeValueTo([]);
 
       expect(variable.state.value).toEqual([ALL_VARIABLE_VALUE]);
+    });
+
+    it('Should keep empty selection when allowEmpty is set', () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        isMulti: true,
+        defaultToAll: true,
+        optionsToReturn: [],
+        value: [ALL_VARIABLE_VALUE],
+        text: [ALL_VARIABLE_TEXT],
+        delayMs: 0,
+      });
+
+      variable.changeValueTo([], undefined, true, { allowEmpty: true });
+
+      expect(variable.state.value).toEqual([]);
+      expect(variable.state.text).toEqual([]);
+      expect(variable.state.allowEmptySelection).toBe(true);
+      // Encoded as [$__empty] so the query param is not dropped and '' options stay distinct
+      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: [EMPTY_VARIABLE_VALUE] });
+    });
+
+    it('Should restore empty selection from URL', () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'A', value: '1' },
+          { label: 'B', value: '2' },
+        ],
+        isMulti: true,
+        defaultToAll: true,
+        optionsToReturn: [],
+        value: [ALL_VARIABLE_VALUE],
+        text: [ALL_VARIABLE_TEXT],
+        delayMs: 0,
+      });
+
+      variable.urlSync?.updateFromUrl({ ['var-test']: [EMPTY_VARIABLE_VALUE] });
+
+      expect(variable.state.value).toEqual([]);
+      expect(variable.state.text).toEqual([]);
+      expect(variable.isEmptySelectionAllowed()).toBe(true);
+    });
+
+    it('Should not treat empty-string option as cleared selection in URL', () => {
+      const variable = new TestVariable({
+        name: 'test',
+        options: [
+          { label: 'None', value: '' },
+          { label: 'A', value: '1' },
+        ],
+        isMulti: true,
+        optionsToReturn: [],
+        value: [''],
+        text: ['None'],
+        delayMs: 0,
+      });
+
+      expect(variable.urlSync?.getUrlState()).toEqual({ ['var-test']: [''] });
+
+      variable.changeValueTo([ALL_VARIABLE_VALUE], [ALL_VARIABLE_TEXT]);
+      variable.urlSync?.updateFromUrl({ ['var-test']: [''] });
+
+      expect(variable.state.value).toEqual(['']);
+      expect(variable.state.text).toEqual(['None']);
+      expect(variable.isEmptySelectionAllowed()).toBe(false);
     });
 
     it('When changing to all value', () => {
