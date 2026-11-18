@@ -1,10 +1,112 @@
 import { lastValueFrom } from 'rxjs';
+import { VariableHide } from '@grafana/schema';
+import { locationService } from '@grafana/runtime';
 
+import { updateUrlStateAndSyncState } from '../../../utils/test/updateUrlStateAndSyncState';
+import { UrlSyncManager } from '../../services/UrlSyncManager';
 import { TestScene } from '../TestScene';
 import { SceneVariableSet } from '../sets/SceneVariableSet';
 import { CustomVariable } from './CustomVariable';
+import { TextBoxVariable } from './TextBoxVariable';
 
 describe('CustomVariable', () => {
+  describe.each([false, true])('Dependent variable URL updates (hidden=%s)', (hidden) => {
+    function setup() {
+      const search = new TextBoxVariable({ name: 'search', value: '' });
+      const offset = new CustomVariable({
+        name: 'offset',
+        query: 'Page ${search:percentencode} : 0',
+        value: '0',
+        text: 'Page',
+        hide: hidden ? VariableHide.hideVariable : VariableHide.dontHide,
+        allowCustomValue: false,
+      });
+      const variables = new SceneVariableSet({ variables: [search, offset] });
+      const scene = new TestScene({ $variables: variables });
+      return { scene, variables, search, offset };
+    }
+
+    it('validates on dependency changes after runtime URL updates', () => {
+      const { scene, variables, search, offset } = setup();
+      const deactivate = scene.activate();
+      const deactivateOffset = hidden ? () => {} : offset.activate();
+
+      try {
+        expect(variables.isActive).toBe(true);
+        expect(offset.isActive).toBe(!hidden);
+
+        for (const searchValue of ['timeout', '']) {
+          offset.urlSync!.updateFromUrl({ 'var-offset': '100' });
+          expect(offset.state.value).toBe('100');
+
+          search.setValue(searchValue);
+          expect(offset.state.value).toBe('0');
+          expect(offset.state.options).toEqual([{ label: `Page ${searchValue}`.trim(), value: '0' }]);
+        }
+      } finally {
+        deactivateOffset();
+        deactivate();
+      }
+    });
+
+    it('preserves the initial URL value until a dependency changes', () => {
+      const { scene, search, offset } = setup();
+      offset.urlSync!.updateFromUrl({ 'var-offset': '500' });
+      const deactivate = scene.activate();
+      const deactivateOffset = hidden ? () => {} : offset.activate();
+
+      try {
+        expect(offset.state.value).toBe('500');
+        search.setValue('timeout');
+        expect(offset.state.value).toBe('0');
+      } finally {
+        deactivateOffset();
+        deactivate();
+      }
+    });
+
+    it('resets a runtime URL offset through the URL sync manager when the parent changes', () => {
+      const { scene, search, offset } = setup();
+      const urlManager = new UrlSyncManager();
+      locationService.push('/?var-offset=500');
+      urlManager.initSync(scene);
+      const deactivate = scene.activate();
+      const deactivateOffset = hidden ? () => {} : offset.activate();
+
+      try {
+        expect(offset.state.value).toBe('500');
+        updateUrlStateAndSyncState({ 'var-offset': '100' }, urlManager);
+        expect(offset.state.value).toBe('100');
+        search.setValue('timeout');
+        expect(offset.state.value).toBe('0');
+        expect(locationService.getSearchObject()['var-offset']).toBe('0');
+      } finally {
+        deactivateOffset();
+        deactivate();
+        urlManager.cleanUp(scene);
+        locationService.push('/');
+      }
+    });
+
+    it('preserves runtime URL values when the scene is reactivated without changed dependencies', () => {
+      const { scene, offset } = setup();
+      const deactivate = scene.activate();
+      const deactivateOffset = hidden ? () => {} : offset.activate();
+      offset.urlSync!.updateFromUrl({ 'var-offset': '100' });
+      deactivateOffset();
+      deactivate();
+
+      const deactivateAgain = scene.activate();
+      const deactivateOffsetAgain = hidden ? () => {} : offset.activate();
+      try {
+        expect(offset.state.value).toBe('100');
+      } finally {
+        deactivateOffsetAgain();
+        deactivateAgain();
+      }
+    });
+  });
+
   describe('When empty query is provided', () => {
     it('Should default to empty options', async () => {
       const variable = new CustomVariable({

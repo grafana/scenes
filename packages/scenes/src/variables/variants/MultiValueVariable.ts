@@ -499,8 +499,11 @@ export class MultiValueUrlSyncHandler<TState extends MultiValueVariableState = M
       /**
        * Initial URL Sync happens before scene objects are activated.
        * We need to skip validation in this case to make sure values set via URL are maintained.
+       * Hidden variables stay inactive even while their variable set is active, so their
+       * runtime URL updates must not suppress the next dependency validation.
        */
-      if (!this._sceneObject.isActive) {
+      const variableSet = this._sceneObject.parent;
+      if (!this._sceneObject.isActive && !variableSet?.isActive) {
         this._sceneObject.skipNextValidation = true;
       }
 
