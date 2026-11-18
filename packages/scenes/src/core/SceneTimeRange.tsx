@@ -31,7 +31,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
       state.weekStart
     );
     const refreshOnActivate = state.refreshOnActivate ?? { percent: 10 };
-    super({ from, to, timeZone, value, refreshOnActivate, ...state });
+    super({ from, to, value, refreshOnActivate, ...state, timeZone });
 
     this.addActivationHandler(this._onActivate.bind(this));
   }
@@ -106,7 +106,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     const value = evaluateTimeRange(
       this.state.from,
       this.state.to,
-      this.state.timeZone ?? getTimeZone(),
+      this.getTimeZone(),
       this.state.fiscalYearStartMonth,
       this.state.UNSAFE_nowDelay,
       this.state.weekStart
@@ -244,7 +244,7 @@ export class SceneTimeRange extends SceneObjectBase<SceneTimeRangeState> impleme
     update.value = evaluateTimeRange(
       update.from ?? this.state.from,
       update.to ?? this.state.to,
-      update.timeZone ?? this.getTimeZone(),
+      getValidTimeZone(update.timeZone) ?? this.getTimeZone(),
       this.state.fiscalYearStartMonth,
       this.state.UNSAFE_nowDelay,
       this.state.weekStart
