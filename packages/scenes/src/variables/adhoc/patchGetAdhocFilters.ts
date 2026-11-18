@@ -9,11 +9,14 @@ let originalGetAdhocFilters: any = undefined;
 export const allActiveFilterSets = new Set<AdHocFiltersVariable>();
 
 // templateSrv.getAdhocFilters is synchronous and may be called with a data source name or "default", while data source
-// lookups are async. The name and default flag are resolved when the variable activates or its data source changes,
-// until then only uids can be matched. Only the data source list is needed for this, so no per-data-source settings
+// lookups are async. The real uid, name and default flag are resolved when the variable activates or its data source
+// changes, until then only the uid set on the variable can be matched. The real uid differs from it for "default". Only the data source list is needed for this, so no per-data-source settings
 // are loaded. Template variable uids are not resolved, so those are matched by uid only.
 // refUid is the uid the variable had when this was resolved, so an entry for a previous data source is never used.
-const resolvedDataSources = new WeakMap<AdHocFiltersVariable, { refUid: string; name: string; isDefault: boolean }>();
+const resolvedDataSources = new WeakMap<
+  AdHocFiltersVariable,
+  { refUid: string; resolvedUid: string; name: string; isDefault: boolean }
+>();
 
 async function resolveDataSource(filterVar: AdHocFiltersVariable) {
   const uid = filterVar.state.datasource?.uid;
@@ -31,7 +34,12 @@ async function resolveDataSource(filterVar: AdHocFiltersVariable) {
 
     // If the data source changes again before this resolves, a slower earlier lookup can overwrite the newer result.
     // The entry then won't match the current data source, so names are not matched until the next change or activation.
-    resolvedDataSources.set(filterVar, { refUid: uid, name: item.name, isDefault: defaultItem?.uid === item.uid });
+    resolvedDataSources.set(filterVar, {
+      refUid: uid,
+      resolvedUid: item.uid,
+      name: item.name,
+      isDefault: defaultItem?.uid === item.uid,
+    });
   } catch (error) {
     console.error('Failed to resolve the data source of an ad hoc filters variable', error);
   }
@@ -57,7 +65,7 @@ function isFilterSetForDataSource(filterVar: AdHocFiltersVariable, dsName: strin
     return resolved.isDefault;
   }
 
-  return resolved.name === dsName;
+  return resolved.resolvedUid === dsName || resolved.name === dsName;
 }
 
 export function patchGetAdhocFilters(filterVar: AdHocFiltersVariable) {

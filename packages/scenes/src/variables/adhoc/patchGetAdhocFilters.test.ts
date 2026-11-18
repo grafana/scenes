@@ -219,6 +219,67 @@ describe('patchGetAdhocFilters', () => {
       deactivate();
     });
 
+    it('matches the real uid of the default data source when the variable data source uid is "default"', async () => {
+      setDataSources([
+        { uid: 'abc123', name: 'Prometheus', isDefault: true },
+        { uid: 'loki', name: 'Loki' },
+      ]);
+      const deactivate = activateAutoVariable('default');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('abc123')).toEqual(filters);
+      expect(originalGetAdhocFilters).not.toHaveBeenCalled();
+
+      deactivate();
+    });
+
+    it('does not match the uid of another data source when the variable data source uid is "default"', async () => {
+      setDataSources([
+        { uid: 'abc123', name: 'Prometheus', isDefault: true },
+        { uid: 'loki', name: 'Loki' },
+      ]);
+      const deactivate = activateAutoVariable('default');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('loki')).toEqual([]);
+      expect(originalGetAdhocFilters).toHaveBeenCalledWith('loki');
+
+      deactivate();
+    });
+
+    it('still matches "default" and the name when the variable is bound to the real uid of the default data source', async () => {
+      setDataSources([{ uid: 'abc123', name: 'Prometheus', isDefault: true }]);
+      const deactivate = activateAutoVariable('abc123');
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('abc123')).toEqual(filters);
+      expect(getAdhocFiltersFromTemplateSrv('default')).toEqual(filters);
+      expect(getAdhocFiltersFromTemplateSrv('Prometheus')).toEqual(filters);
+
+      deactivate();
+    });
+
+    it('does not match the previous real uid after the variable data source changed from "default"', async () => {
+      setDataSources([
+        { uid: 'abc123', name: 'Prometheus', isDefault: true },
+        { uid: 'loki', name: 'Loki' },
+      ]);
+      const variable = new AdHocFiltersVariable({ datasource: { uid: 'default' }, applyMode: 'auto', filters });
+      const deactivate = activateVariable(variable);
+      await flushPromises();
+
+      variable.setState({ datasource: { uid: 'loki' } });
+
+      expect(getAdhocFiltersFromTemplateSrv('abc123')).toEqual([]);
+
+      await flushPromises();
+
+      expect(getAdhocFiltersFromTemplateSrv('abc123')).toEqual([]);
+      expect(getAdhocFiltersFromTemplateSrv('loki')).toEqual(filters);
+
+      deactivate();
+    });
+
     it('keeps matching by uid when resolving the data source fails', async () => {
       const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
       getDataSourceInstanceListMock.mockRejectedValue(new Error('boom'));
