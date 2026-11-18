@@ -191,6 +191,10 @@ const scene = new EmbeddedScene({
 
 Each scene object has a `$data` and `$timeRange` property that can be configured. Because a scene is an object tree, the data and time range configured through `SceneQueryRunner` and `SceneTimeRange` respectively are available to the objects they're added to _and_ all descendant objects.
 
+:::tip
+**Custom HTML or non-`VizPanel` views:** you can drive any markup from `SceneQueryRunner` by using `sceneGraph.getData()` and reading **`PanelData`** (`series`, `state`, errors). Grafana’s query pipeline typically emits **`Loading` several times**, then **`Done`**—same as dashboard panels—not a single snapshot. See [Data and time range in custom scene objects](./advanced-data).
+:::
+
 In the following example, each `VizPanel` uses different data. "Panel A" uses data defined on the `EmbeddedScene`, while "Panel B" has its own data and time range configured:
 
 ```tsx
