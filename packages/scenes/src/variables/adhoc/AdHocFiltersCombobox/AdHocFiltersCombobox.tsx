@@ -100,6 +100,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
   } = controller.useState();
 
   const multiValuePillWrapperRef = useRef<HTMLDivElement>(null);
+  const multiValueApplyButtonRef = useRef<HTMLDivElement>(null);
 
   const hasMultiValueOperator = isMultiValueOperator(filter?.operator || '');
   const isMultiValueEdit = hasMultiValueOperator && filterInputType === 'value';
@@ -880,7 +881,13 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
       {optionsLoading ? <Spinner className={styles.loadingIndicator} inline={true} /> : null}
       <FloatingPortal>
         {open && (
-          <FloatingFocusManager context={context} initialFocus={-1} visuallyHiddenDismiss modal={true}>
+          <FloatingFocusManager
+            context={context}
+            initialFocus={-1}
+            visuallyHiddenDismiss
+            modal={true}
+            getInsideElements={() => (multiValueApplyButtonRef.current ? [multiValueApplyButtonRef.current] : [])}
+          >
             <>
               <div
                 style={{
@@ -1042,6 +1049,7 @@ export const AdHocCombobox = forwardRef(function AdHocCombobox(
               </div>
               {isMultiValueEdit && !optionsLoading && !optionsError && filteredDropDownItems.length ? (
                 <MultiValueApplyButton
+                  ref={multiValueApplyButtonRef}
                   onApply={() => {
                     handleMultiValueFilterCommit(controller, filter!, filterMultiValues);
                     handleResetWip();
