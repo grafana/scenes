@@ -28,6 +28,7 @@ import { sceneGraph } from '../../core/sceneGraph';
 import { CustomTransformerDefinition, DeepPartial, SceneObject, SceneObjectState } from '../../core/types';
 
 import { VizPanelRenderer } from './VizPanelRenderer';
+import { VizPanelChromeComponent } from './VizPanelChrome';
 import { VizPanelMenu } from './VizPanelMenu';
 import { VariableDependencyConfig } from '../../variables/VariableDependencyConfig';
 import { VariableCustomFormatterFn } from '../../variables/types';
@@ -98,6 +99,12 @@ export interface VizPanelState<TOptions = {}, TFieldConfig = {}> extends SceneOb
    * Add action to the top right panel header
    */
   headerActions?: React.ReactNode | SceneObject | SceneObject[];
+  /**
+   * Replaces the component that renders the panel chrome (header, menu, status, frame). It receives the same props
+   * PanelChrome would, so it can render PanelChrome with tweaks or something else entirely. Data handling, plugin
+   * rendering and the PanelContext provider stay in VizPanelRenderer. Not serializable.
+   */
+  chrome?: VizPanelChromeComponent;
   /**
    * Mainly for advanced use cases that need custom handling of PanelContext callbacks.
    */
