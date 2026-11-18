@@ -4,7 +4,7 @@ title: Building apps with Scenes
 ---
 
 :::note
-**Before you begin**: You must already know about building Grafana plugins before continuing with this guide. Learn more in the [official Grafana documentation](https://grafana.com/docs/grafana/latest/developers/plugins/).
+**Before you begin**: You must already know about building Grafana plugins before continuing with this guide. Learn more in the [official Grafana documentation](https://grafana.com/developers/plugin-tools).
 :::
 
 Scenes come with the following objects that make it easy to build highly interactive Grafana app plugins:
